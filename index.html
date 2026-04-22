@@ -62,7 +62,14 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes floatLogo { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
     @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-    @keyframes shimmer { 0%,25% { background-position: -200% 0; } 65%,100% { background-position: 220% 0; } }
+    @keyframes shimmer {
+      0%   { background-position: -150% 0; opacity: 0; }
+      10%  { opacity: 0; }
+      25%  { opacity: 1; }
+      50%  { background-position: 150% 0; opacity: 1; }
+      62%  { opacity: 0; }
+      100% { background-position: 150% 0; opacity: 0; }
+    }
     @keyframes glowPulse { 0%,100% { opacity: 0.45; filter: blur(14px); } 50% { opacity: 0.85; filter: blur(22px); } }
 
     .hero-logo-outer { animation: fadeUp 0.7s ease both 0.15s; }
@@ -76,9 +83,10 @@
     }
     .hero-logo-wrap::before {
       content: ''; position: absolute; inset: 0; border-radius: 20px;
-      background: linear-gradient(108deg, transparent 25%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.12) 55%, transparent 75%);
-      background-size: 200% 100%; background-position: -200% 0;
-      animation: shimmer 5s ease-in-out infinite; animation-delay: 1.2s;
+      background: linear-gradient(108deg, transparent 30%, rgba(255,255,255,0.15) 46%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.15) 54%, transparent 70%);
+      background-size: 200% 100%; background-position: -150% 0;
+      opacity: 0;
+      animation: shimmer 6s ease-in-out infinite; animation-delay: 1.2s;
       z-index: 2; pointer-events: none;
     }
     .hero-logo-wrap::after {
