@@ -18,6 +18,7 @@
   <meta name="twitter:title" content="Sake Kitty Cards — Coming Soon" />
   <meta name="twitter:description" content="Your new favorite Pokémon card vendor. Coming soon!" />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+  <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
@@ -317,6 +318,28 @@
 </head>
 <body>
 
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="vendors.html">Vendors</a></li>
+        <li><a href="buylist.html">Buylist</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
   <canvas id="particles"></canvas>
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -356,6 +379,7 @@
 
   <footer>sakekittycards.com</footer>
 
+  <script src="main.js"></script>
   <script>
     // Particle system
     const canvas = document.getElementById('particles');
