@@ -113,6 +113,13 @@ button { font-family: inherit; }
 .btn-venmo:hover { box-shadow: 0 6px 24px rgba(0,140,255,0.5); }
 .btn-tcg { background: linear-gradient(135deg,#1a60d8,#0d3fa8); color: #fff; box-shadow: 0 4px 16px rgba(26,96,216,0.35); }
 .btn-tcg:hover { box-shadow: 0 6px 24px rgba(26,96,216,0.55); }
+.btn-paypal { background: linear-gradient(135deg,#003087,#0070ba); color: #fff; box-shadow: 0 4px 14px rgba(0,112,186,0.3); }
+.btn-paypal:hover { box-shadow: 0 6px 22px rgba(0,112,186,0.55); }
+.btn-paylater { background: linear-gradient(135deg,#5b3ede,#8a5aff); color: #fff; box-shadow: 0 4px 14px rgba(91,62,222,0.35); }
+.btn-paylater:hover { box-shadow: 0 6px 22px rgba(91,62,222,0.55); }
+.pay-buttons { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.pay-buttons .btn { width: 100%; justify-content: center; }
+.pay-note { font-size: 11px; color: var(--dim); text-align: center; margin-top: 10px; line-height: 1.5; }
 .btn-sm { padding: 8px 18px; font-size: 13px; }
 .btn-lg { padding: 15px 36px; font-size: 16px; }
 
