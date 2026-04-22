@@ -23,7 +23,7 @@
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 button { font-family: inherit; }
@@ -76,8 +76,8 @@ button { font-family: inherit; }
   text-align: center; max-width: var(--max-w); margin: 0 auto;
 }
 .page-hero h1 {
-  font-family: 'Bangers', cursive; font-size: clamp(48px,8vw,80px);
-  letter-spacing: 3px; line-height: 1;
+  font-family: 'Bangers', cursive; font-size: clamp(38px,8vw,76px);
+  letter-spacing: 0.03em; line-height: 1; padding: 0 10px;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   filter: drop-shadow(0 0 20px rgba(255,106,0,0.35)); margin-bottom: 14px;
@@ -88,7 +88,7 @@ button { font-family: inherit; }
 .section { padding: 72px 24px; max-width: var(--max-w); margin: 0 auto; }
 .section-header { margin-bottom: 44px; }
 .section-title {
-  font-family: 'Bangers', cursive; font-size: clamp(32px,5vw,52px); letter-spacing: 2px;
+  font-family: 'Bangers', cursive; font-size: clamp(28px,5vw,52px); letter-spacing: 0.04em;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   filter: drop-shadow(0 0 12px rgba(255,106,0,0.25));
@@ -149,7 +149,7 @@ button { font-family: inherit; }
   border: 1px solid rgba(255,106,0,.18); border-radius: var(--r);
   padding: 36px 44px; display: flex; align-items: center; justify-content: space-between; gap: 32px;
 }
-.tcg-banner-text h2 { font-family: 'Bangers',cursive; font-size: 30px; letter-spacing: 1px; margin-bottom: 6px; }
+.tcg-banner-text h2 { font-family: 'Bangers',cursive; font-size: clamp(22px,4vw,30px); letter-spacing: 0.03em; margin-bottom: 6px; }
 .tcg-banner-text p { font-size: 14px; color: var(--muted); }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
@@ -269,7 +269,7 @@ button { font-family: inherit; }
 .about-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
 .about-img { width: 100%; max-width: 340px; border-radius: 20px; box-shadow: 0 0 60px rgba(255,106,0,.25),0 0 120px rgba(123,47,255,.15); animation: floatImg 5s ease-in-out infinite; }
 @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-.about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(30px,5vw,46px); letter-spacing: 2px; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px; }
+.about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(28px,5vw,46px); letter-spacing: 0.04em; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px; }
 .about-text p { font-size: 15px; color: var(--muted); line-height: 1.85; margin-bottom: 14px; }
 .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
 .value-card { padding: 22px; text-align: center; }
@@ -295,7 +295,7 @@ button { font-family: inherit; }
 .cm-info strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .cm-info span { font-size: 13px; color: var(--dim); }
 .contact-form-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 34px; }
-.contact-form-box h3 { font-family: 'Bangers',cursive; font-size: 26px; letter-spacing: 1px; margin-bottom: 22px; }
+.contact-form-box h3 { font-family: 'Bangers',cursive; font-size: clamp(22px,4vw,26px); letter-spacing: 0.04em; margin-bottom: 22px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group textarea, .form-group select {
