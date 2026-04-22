@@ -261,6 +261,57 @@
       box-shadow: 0 2px 8px rgba(255,106,0,0.35);
     }
 
+    /* Add Sealed toggle + form */
+    .ti-sealed-toggle {
+      margin-top: 14px;
+      padding: 11px 14px;
+      background: transparent;
+      border: 1.5px dashed rgba(255,255,255,0.15);
+      color: var(--muted);
+      border-radius: 10px;
+      font-family: 'Inter',sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all .15s;
+    }
+    .ti-sealed-toggle:hover {
+      border-color: rgba(255,106,0,0.4);
+      color: var(--orange);
+      background: rgba(255,106,0,0.04);
+    }
+    .ti-sealed-form {
+      margin-top: 12px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: 10px;
+      display: none;
+    }
+    .ti-sealed-form.open { display: block; }
+    .ti-sealed-form-title {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .ti-sealed-form-row {
+      display: flex; gap: 8px; margin-bottom: 8px;
+    }
+    .ti-sealed-form-row .ti-input { margin-bottom: 0; }
+    .ti-sealed-actions { display: flex; gap: 8px; margin-top: 4px; }
+    .ti-sealed-actions .btn { flex: 1; justify-content: center; }
+
+    /* Sealed icon in list */
+    .ti-sealed-icon {
+      width: 44px; height: 62px; border-radius: 4px;
+      background: linear-gradient(135deg, #2a1f4a, #4a2a6a);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      border: 1px solid rgba(255,106,0,0.25);
+    }
+    .ti-item.is-sealed { border-color: rgba(255,106,0,0.25); }
+
     /* Mobile sticky summary bar */
     .ti-mobile-bar { display: none; }
 
@@ -351,13 +402,34 @@
 
         <!-- Search + list -->
         <div class="trade-col">
-          <h3>1. Find Your Cards</h3>
+          <h3>1. Find Your Products</h3>
           <div class="ti-search-wrap">
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
             </span>
-            <input type="text" class="ti-search" id="searchInput" placeholder="Search by name, set, or number (e.g. &quot;Charizard Obsidian&quot;)" autocomplete="off" />
+            <input type="text" class="ti-search" id="searchInput" placeholder="Search singles by name, set, or number" autocomplete="off" />
             <div class="ti-results" id="searchResults"></div>
+          </div>
+
+          <button type="button" class="ti-sealed-toggle" id="sealedToggle">📦 Have sealed product? Add it manually</button>
+
+          <div class="ti-sealed-form" id="sealedForm">
+            <div class="ti-sealed-form-title">Add Sealed Product</div>
+            <input type="text" class="ti-input" id="sealedName" placeholder="Product name (e.g. Obsidian Flames Booster Box)" />
+            <div class="ti-sealed-form-row">
+              <input type="number" class="ti-input" id="sealedPrice" placeholder="Market value ($)" step="0.01" min="0" style="flex:1" />
+              <div class="ti-cond" style="flex-shrink:0">
+                <button type="button" class="ti-cond-btn" id="sealedCondBtn">Sealed<span class="ti-cond-arrow">▼</span></button>
+                <div class="ti-cond-menu" id="sealedCondMenu">
+                  <button type="button" class="ti-cond-opt selected" data-val="Sealed">Sealed</button>
+                  <button type="button" class="ti-cond-opt" data-val="Damaged">Damaged</button>
+                </div>
+              </div>
+            </div>
+            <div class="ti-sealed-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="sealedAddBtn">Add to List</button>
+              <button type="button" class="btn btn-outline btn-sm" id="sealedCancelBtn">Cancel</button>
+            </div>
           </div>
 
           <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
@@ -453,8 +525,12 @@
   <script>
     const CASH_PCT = 0.60;
     const CREDIT_PCT = 0.75;
-    const COND_MULT = { NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50 };
-    const CONDITIONS = ['NM', 'LP', 'MP', 'HP'];
+    const COND_MULT = {
+      NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50,
+      Sealed: 1.0, Damaged: 0.6
+    };
+    const CARD_CONDITIONS   = ['NM', 'LP', 'MP', 'HP'];
+    const SEALED_CONDITIONS = ['Sealed', 'Damaged'];
 
     let cards = [];       // items the user added
     let searchTimeout;
@@ -555,7 +631,8 @@
     function addCard(card) {
       const price = getMarketPrice(card);
       cards.push({
-        id: card.id + '_' + Date.now(),   // unique instance id
+        id: card.id + '_' + Date.now(),
+        type: 'card',
         name: card.name,
         set: card.set?.name || '',
         number: card.number || '',
@@ -568,15 +645,31 @@
       renderList();
     }
 
+    function addSealed(name, price, condition) {
+      cards.push({
+        id: 'sealed_' + Date.now(),
+        type: 'sealed',
+        name: name,
+        set: 'Sealed Product',
+        number: '',
+        image: '',
+        market: price,
+        condition: condition || 'Sealed',
+      });
+      renderList();
+    }
+
     function renderList() {
       countEl.textContent = cards.length ? `(${cards.length})` : '';
       if (!cards.length) {
-        listEl.innerHTML = `<div class="ti-empty"><div class="icon">🎴</div>Your list is empty. Search above to add cards.</div>`;
+        listEl.innerHTML = `<div class="ti-empty"><div class="icon">🎴</div>Your list is empty. Search above or add a sealed product.</div>`;
         updateTotals();
         return;
       }
 
       listEl.innerHTML = cards.map((c, i) => {
+        const isSealed = c.type === 'sealed';
+        const conditions = isSealed ? SEALED_CONDITIONS : CARD_CONDITIONS;
         const adjusted = c.market != null ? c.market * COND_MULT[c.condition] : null;
         const cash   = adjusted != null ? adjusted * CASH_PCT   : null;
         const credit = adjusted != null ? adjusted * CREDIT_PCT : null;
@@ -584,15 +677,21 @@
         const offerStr  = (cash != null && credit != null)
           ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
           : `<span style="color:var(--dim)">Price unavailable — contact us</span>`;
-        const condMenu = CONDITIONS.map(o =>
+        const condMenu = conditions.map(o =>
           `<button type="button" class="ti-cond-opt ${o===c.condition?'selected':''}" data-val="${o}">${o}</button>`
         ).join('');
+        const thumb = isSealed
+          ? `<div class="ti-sealed-icon">📦</div>`
+          : `<img src="${c.image}" alt="" onerror="this.style.visibility='hidden'" />`;
+        const subtitle = isSealed
+          ? `<div class="set">Sealed Product</div>`
+          : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
         return `
-          <div class="ti-item">
-            <img src="${c.image}" alt="" onerror="this.style.visibility='hidden'" />
+          <div class="ti-item ${isSealed?'is-sealed':''}">
+            ${thumb}
             <div class="ti-item-info">
               <h4>${c.name}</h4>
-              <div class="set">${c.set}${c.number?' · #'+c.number:''}</div>
+              ${subtitle}
               <div class="row">
                 <div class="ti-cond" data-idx="${i}">
                   <button type="button" class="ti-cond-btn">${c.condition}<span class="ti-cond-arrow">▼</span></button>
@@ -700,6 +799,56 @@
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
     }
 
+    // Sealed-product form
+    const sealedToggle  = document.getElementById('sealedToggle');
+    const sealedForm    = document.getElementById('sealedForm');
+    const sealedName    = document.getElementById('sealedName');
+    const sealedPrice   = document.getElementById('sealedPrice');
+    const sealedAddBtn  = document.getElementById('sealedAddBtn');
+    const sealedCancel  = document.getElementById('sealedCancelBtn');
+    const sealedCondBtn = document.getElementById('sealedCondBtn');
+    const sealedCondMenu= document.getElementById('sealedCondMenu');
+    let sealedCondition = 'Sealed';
+
+    sealedToggle.addEventListener('click', () => {
+      sealedForm.classList.toggle('open');
+      if (sealedForm.classList.contains('open')) sealedName.focus();
+    });
+    sealedCancel.addEventListener('click', () => {
+      sealedForm.classList.remove('open');
+      sealedName.value = ''; sealedPrice.value = '';
+    });
+
+    // Sealed condition dropdown
+    sealedCondBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.ti-cond-menu.open').forEach(m => { if (m !== sealedCondMenu) m.classList.remove('open'); });
+      document.querySelectorAll('.ti-cond-btn.open').forEach(b => { if (b !== sealedCondBtn) b.classList.remove('open'); });
+      sealedCondMenu.classList.toggle('open');
+      sealedCondBtn.classList.toggle('open');
+    });
+    sealedCondMenu.querySelectorAll('.ti-cond-opt').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        sealedCondition = opt.dataset.val;
+        sealedCondMenu.querySelectorAll('.ti-cond-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        sealedCondBtn.firstChild.textContent = sealedCondition;
+        sealedCondMenu.classList.remove('open');
+        sealedCondBtn.classList.remove('open');
+      });
+    });
+
+    sealedAddBtn.addEventListener('click', () => {
+      const name = sealedName.value.trim();
+      const priceVal = parseFloat(sealedPrice.value);
+      if (!name) { alert('Please enter a product name.'); sealedName.focus(); return; }
+      if (isNaN(priceVal) || priceVal <= 0) { alert('Please enter a valid market price.'); sealedPrice.focus(); return; }
+      addSealed(name, priceVal, sealedCondition);
+      sealedName.value = ''; sealedPrice.value = '';
+      sealedForm.classList.remove('open');
+    });
+
     // Send list via mailto
     sendBtn.addEventListener('click', () => {
       if (!cards.length) return;
@@ -716,21 +865,40 @@
       }
 
       let market = 0, cash = 0, credit = 0;
-      const lines = cards.map((c, i) => {
+      const cardItems   = cards.filter(c => c.type !== 'sealed');
+      const sealedItems = cards.filter(c => c.type === 'sealed');
+
+      const formatItem = (c, i) => {
         const idx = String(i+1).padStart(2, ' ');
         const numPart = c.number ? ' #'+c.number : '';
+        const setPart = c.type === 'sealed' ? '' : ` (${c.set}${numPart})`;
         if (c.market == null) {
-          return `${idx}. ${c.name} (${c.set}${numPart}) — ${c.condition} — Price unavailable, please quote`;
+          return `${idx}. ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote`;
         }
         const adj = c.market * COND_MULT[c.condition];
         const lineCash   = adj * CASH_PCT;
         const lineCredit = adj * CREDIT_PCT;
         market += c.market; cash += lineCash; credit += lineCredit;
         return [
-          `${idx}. ${c.name} (${c.set}${numPart}) — ${c.condition}`,
+          `${idx}. ${c.name}${setPart} — ${c.condition}`,
           `    Market $${c.market.toFixed(2)}  |  Cash est $${lineCash.toFixed(2)}  |  Credit est $${lineCredit.toFixed(2)}`,
         ].join('\n');
-      });
+      };
+
+      const sections = [];
+      if (cardItems.length) {
+        sections.push(`SINGLES (${cardItems.length})`);
+        sections.push('-'.repeat(40));
+        sections.push(...cardItems.map((c, i) => formatItem(c, i)));
+        sections.push('');
+      }
+      if (sealedItems.length) {
+        sections.push(`SEALED (${sealedItems.length})`);
+        sections.push('-'.repeat(40));
+        sections.push(...sealedItems.map((c, i) => formatItem(c, i)));
+        sections.push('');
+      }
+      const lines = sections;
 
       const body = [
         '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
@@ -744,10 +912,7 @@
         phone ? `Phone:   ${phone}` : null,
         `Payment: ${paymentPref}`,
         '',
-        `CARDS (${cards.length})`,
-        '-'.repeat(40),
         ...lines,
-        '',
         'TOTALS',
         '------',
         `Market Total:             $${market.toFixed(2)}`,
