@@ -531,6 +531,17 @@
     };
     const CARD_CONDITIONS   = ['NM', 'LP', 'MP', 'HP'];
     const SEALED_CONDITIONS = ['Sealed', 'Damaged'];
+    const VARIANT_LABELS = {
+      normal:               'Normal',
+      holofoil:             'Holofoil',
+      reverseHolofoil:      'Reverse Holo',
+      '1stEdition':         '1st Edition',
+      '1stEditionNormal':   '1st Edition',
+      '1stEditionHolofoil': '1st Edition Holo',
+      unlimited:            'Unlimited',
+      unlimitedHolofoil:    'Unlimited Holo',
+    };
+    const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
 
     let cards = [];       // items the user added
     let searchTimeout;
@@ -546,17 +557,25 @@
 
     function fmt(n) { return `$${n.toFixed(2)}`; }
 
-    function getMarketPrice(card) {
+    // Expand a card to one row per priced variant.
+    // Returns [{card, variantKey, variantLabel, price}, ...]
+    function expandVariants(card) {
       const prices = card.tcgplayer && card.tcgplayer.prices;
-      if (!prices) return null;
-      const pref = ['holofoil', 'normal', 'reverseHolofoil', '1stEditionHolofoil', 'unlimitedHolofoil', 'unlimited'];
-      for (const v of pref) if (prices[v]?.market) return prices[v].market;
-      for (const v of Object.keys(prices)) {
-        if (prices[v]?.market) return prices[v].market;
-        if (prices[v]?.mid)    return prices[v].mid;
-        if (prices[v]?.low)    return prices[v].low;
+      if (!prices || Object.keys(prices).length === 0) {
+        return [{ card, variantKey: null, variantLabel: null, price: null }];
       }
-      return null;
+      const rows = [];
+      for (const key of Object.keys(prices)) {
+        const p = prices[key];
+        const price = p?.market ?? p?.mid ?? p?.low ?? null;
+        rows.push({
+          card,
+          variantKey: key,
+          variantLabel: VARIANT_LABELS[key] || key,
+          price,
+        });
+      }
+      return rows;
     }
 
     function buildQuery(input) {
@@ -600,18 +619,29 @@
         resultsEl.innerHTML = '<div class="ti-status">No cards found. Try a different spelling.</div>';
         return;
       }
-      resultsEl.innerHTML = results.map(c => {
-        const price = getMarketPrice(c);
-        const priceHTML = price != null
-          ? `<span class="ti-result-price">${fmt(price)}</span>`
+      // Flatten all cards into variant rows (1st Edition, Holofoil, Reverse Holo, etc.)
+      const rows = [];
+      for (const c of results) {
+        for (const r of expandVariants(c)) rows.push(r);
+      }
+      // Show up to 24 rows to keep UI tidy
+      const shown = rows.slice(0, 24);
+
+      resultsEl.innerHTML = shown.map((r, i) => {
+        const c = r.card;
+        const priceHTML = r.price != null
+          ? `<span class="ti-result-price">${fmt(r.price)}</span>`
           : `<span class="ti-result-price nomarket">No price</span>`;
         const setName = c.set?.name || '';
         const num = c.number ? ` · #${c.number}` : '';
+        const variantTag = r.variantLabel
+          ? ` <span style="color:var(--orange);font-weight:600;font-size:12px">· ${r.variantLabel}</span>`
+          : '';
         return `
-          <div class="ti-result" data-id="${c.id}">
+          <div class="ti-result" data-idx="${i}">
             <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
             <div class="ti-result-info">
-              <div class="ti-result-name">${c.name}</div>
+              <div class="ti-result-name">${c.name}${variantTag}</div>
               <div class="ti-result-set">${setName}${num}</div>
             </div>
             ${priceHTML}
@@ -621,23 +651,23 @@
 
       resultsEl.querySelectorAll('.ti-result').forEach(el => {
         el.addEventListener('click', () => {
-          const id = el.dataset.id;
-          const card = results.find(c => c.id === id);
-          if (card) addCard(card);
+          const r = shown[+el.dataset.idx];
+          if (r) addCard(r.card, r.variantKey, r.variantLabel, r.price);
         });
       });
     }
 
-    function addCard(card) {
-      const price = getMarketPrice(card);
+    function addCard(card, variantKey, variantLabel, price) {
+      const fullName = variantLabel ? `${card.name} · ${variantLabel}` : card.name;
       cards.push({
-        id: card.id + '_' + Date.now(),
+        id: card.id + '_' + (variantKey || 'nv') + '_' + Date.now(),
         type: 'card',
-        name: card.name,
+        name: fullName,
         set: card.set?.name || '',
         number: card.number || '',
         image: card.images?.small || '',
         market: price,
+        variant: variantKey || null,
         condition: 'NM',
       });
       searchInput.value = '';
@@ -849,8 +879,22 @@
       sealedForm.classList.remove('open');
     });
 
-    // Send list via mailto
-    sendBtn.addEventListener('click', () => {
+    function showSuccessState(count) {
+      document.getElementById('totalsCol').innerHTML = `
+        <div style="text-align:center;padding:30px 10px">
+          <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--pink));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 8px 30px rgba(255,106,0,0.45)">✓</div>
+          <h3 style="font-family:'Bangers',cursive;font-size:28px;letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px">List Sent!</h3>
+          <p style="color:var(--muted);font-size:14px;line-height:1.7;max-width:320px;margin:0 auto 22px">We got your request for ${count} item${count!==1?'s':''}. Nick will review and get back to you within 24 hours.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="location.reload()">Submit Another List</button>
+        </div>
+      `;
+      // Hide mobile sticky bar
+      document.getElementById('mobileBar').classList.remove('visible');
+      document.body.classList.remove('has-sticky-bar');
+    }
+
+    // Send list directly via FormSubmit AJAX (no email client needed)
+    sendBtn.addEventListener('click', async () => {
       if (!cards.length) return;
 
       const name  = document.getElementById('custName').value.trim();
@@ -864,68 +908,69 @@
         document.getElementById('custEmail').focus(); return;
       }
 
+      // Calculate totals + build formatted sections
       let market = 0, cash = 0, credit = 0;
       const cardItems   = cards.filter(c => c.type !== 'sealed');
       const sealedItems = cards.filter(c => c.type === 'sealed');
 
       const formatItem = (c, i) => {
-        const idx = String(i+1).padStart(2, ' ');
+        const idx = (i+1) + '.';
         const numPart = c.number ? ' #'+c.number : '';
         const setPart = c.type === 'sealed' ? '' : ` (${c.set}${numPart})`;
         if (c.market == null) {
-          return `${idx}. ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote`;
+          return `${idx} ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote`;
         }
         const adj = c.market * COND_MULT[c.condition];
         const lineCash   = adj * CASH_PCT;
         const lineCredit = adj * CREDIT_PCT;
         market += c.market; cash += lineCash; credit += lineCredit;
-        return [
-          `${idx}. ${c.name}${setPart} — ${c.condition}`,
-          `    Market $${c.market.toFixed(2)}  |  Cash est $${lineCash.toFixed(2)}  |  Credit est $${lineCredit.toFixed(2)}`,
-        ].join('\n');
+        return `${idx} ${c.name}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}`;
       };
 
-      const sections = [];
-      if (cardItems.length) {
-        sections.push(`SINGLES (${cardItems.length})`);
-        sections.push('-'.repeat(40));
-        sections.push(...cardItems.map((c, i) => formatItem(c, i)));
-        sections.push('');
-      }
-      if (sealedItems.length) {
-        sections.push(`SEALED (${sealedItems.length})`);
-        sections.push('-'.repeat(40));
-        sections.push(...sealedItems.map((c, i) => formatItem(c, i)));
-        sections.push('');
-      }
-      const lines = sections;
+      const singlesText = cardItems.length ? cardItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
+      const sealedText  = sealedItems.length ? sealedItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
 
-      const body = [
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-        '  SAKE KITTY CARDS — TRADE-IN REQUEST',
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-        '',
-        'CONTACT',
-        '-------',
-        `Name:    ${name}`,
-        `Email:   ${email}`,
-        phone ? `Phone:   ${phone}` : null,
-        `Payment: ${paymentPref}`,
-        '',
-        ...lines,
-        'TOTALS',
-        '------',
-        `Market Total:             $${market.toFixed(2)}`,
-        `Estimated Cash Offer:     $${cash.toFixed(2)}  (60%)`,
-        `Estimated Store Credit:   $${credit.toFixed(2)}  (75%)`,
-        '',
-        notes ? 'NOTES\n-----\n' + notes + '\n' : null,
-        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-        'Sent via sakekittycards.com trade-in tool',
-      ].filter(l => l !== null).join('\n');
+      // FormSubmit payload
+      const payload = {
+        _subject: `Trade-In Request from ${name} (${cards.length} item${cards.length!==1?'s':''})`,
+        _replyto: email,
+        _captcha: 'false',
+        _template: 'table',
+        Name: name,
+        Email: email,
+        Phone: phone || '(not provided)',
+        'Payment Preference': paymentPref,
+        'Market Total': fmt(market),
+        'Cash Offer (60%)': fmt(cash),
+        'Store Credit (75%)': fmt(credit),
+        'Item Count': String(cards.length),
+        Singles: singlesText,
+        Sealed: sealedText,
+        Notes: notes || '(none)',
+      };
 
-      const subject = `Trade-In Request from ${name} (${cards.length} card${cards.length>1?'s':''})`;
-      window.location.href = `mailto:sakekittycards@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      sendBtn.disabled = true;
+      const origText = sendBtn.textContent;
+      sendBtn.textContent = 'Sending…';
+
+      try {
+        const res = await fetch(FORMSUBMIT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || (json.success === 'false' || json.success === false)) {
+          throw new Error(json.message || 'Submission failed');
+        }
+        showSuccessState(cards.length);
+        cards = [];
+      } catch (err) {
+        console.error('Submission error:', err);
+        sendBtn.disabled = false;
+        sendBtn.textContent = origText;
+        alert('Sorry, the submission could not be sent. Please try again in a minute, or email nick@sakekittycards.com directly with your list.');
+      }
     });
 
     clearBtn.addEventListener('click', () => {
