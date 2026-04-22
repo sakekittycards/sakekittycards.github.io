@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sake Kitty Cards — Coming Soon</title>
+  <meta name="description" content="Sake Kitty Cards — Your new favorite Pokémon card vendor. Coming soon!" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background-color: #080808;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Background glow blobs */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, #ff4e00, #ff0080);
+      top: -150px;
+      left: -150px;
+    }
+    body::after {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #3a00ff, #00d4ff);
+      bottom: -120px;
+      right: -120px;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .logo-wrap {
+      animation: float 4s ease-in-out infinite;
+    }
+
+    .logo-wrap img {
+      width: 260px;
+      max-width: 80vw;
+      border-radius: 20px;
+      box-shadow:
+        0 0 40px rgba(255, 78, 0, 0.4),
+        0 0 80px rgba(58, 0, 255, 0.25);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    .headline {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(52px, 12vw, 96px);
+      letter-spacing: 4px;
+      line-height: 1;
+      background: linear-gradient(135deg, #ff6a00 0%, #ff0080 40%, #7b2fff 75%, #00d4ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      filter: drop-shadow(0 0 18px rgba(255, 106, 0, 0.5));
+    }
+
+    .tagline {
+      font-size: clamp(14px, 3vw, 18px);
+      color: rgba(255, 255, 255, 0.65);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .divider {
+      width: 80px;
+      height: 3px;
+      background: linear-gradient(90deg, #ff6a00, #7b2fff, #00d4ff);
+      border-radius: 2px;
+    }
+
+    .sub {
+      font-size: clamp(13px, 2.5vw, 16px);
+      color: rgba(255, 255, 255, 0.45);
+      max-width: 380px;
+      line-height: 1.7;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .social-links a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .social-links a:hover {
+      border-color: #ff6a00;
+      color: #fff;
+      background: rgba(255,106,0,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(255,106,0,0.3);
+    }
+
+    .social-links svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-wrap">
+      <img src="logo.png" alt="Sake Kitty Cards Logo" />
+    </div>
+
+    <h1 class="headline">Coming Soon</h1>
+
+    <div class="divider"></div>
+
+    <p class="tagline">Pokémon Cards &amp; More</p>
+
+    <p class="sub">
+      Something exciting is brewing. Sake Kitty Cards is gearing up to bring you the best Pokémon card deals around. Stay tuned!
+    </p>
+
+    <div class="social-links">
+      <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">
+        <!-- Instagram icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+        Instagram
+      </a>
+    </div>
+  </div>
+
+  <footer>sakekittycards.com</footer>
+
+</body>
+</html>
