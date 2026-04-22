@@ -199,6 +199,68 @@
       background: rgba(255,255,255,.02); border: 1px solid var(--border);
     }
 
+    /* Contact form inside totals panel */
+    .ti-contact {
+      padding-top: 16px; margin-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .ti-contact h4 {
+      font-size: 11px; font-weight: 700; color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .ti-input, .ti-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      margin-bottom: 8px;
+    }
+    .ti-input:focus, .ti-textarea:focus {
+      border-color: rgba(255,106,0,0.5);
+      box-shadow: 0 0 0 3px rgba(255,106,0,0.08);
+    }
+    .ti-input::placeholder, .ti-textarea::placeholder { color: var(--dim); }
+    .ti-textarea { resize: vertical; min-height: 54px; }
+
+    .ti-pref-label {
+      font-size: 10px; color: var(--dim); font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin: 6px 0 6px;
+    }
+    .ti-pref {
+      display: flex; gap: 3px; padding: 3px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .ti-pref button {
+      flex: 1;
+      padding: 7px 4px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'Inter',sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .ti-pref button:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+    .ti-pref button.active {
+      background: linear-gradient(135deg,var(--orange),var(--pink));
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(255,106,0,0.35);
+    }
+
     @media (max-width: 820px) {
       .trade-layout { grid-template-columns: 1fr; }
     }
@@ -271,6 +333,22 @@
           <div class="ti-totals-row">
             <div class="ti-totals-label">Store Credit <small>(75%)</small></div>
             <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
+          </div>
+
+          <div class="ti-contact">
+            <h4>Your Info</h4>
+            <input type="text" id="custName" class="ti-input" placeholder="Your name *" />
+            <input type="email" id="custEmail" class="ti-input" placeholder="Email address *" />
+            <input type="tel" id="custPhone" class="ti-input" placeholder="Phone (optional)" />
+
+            <div class="ti-pref-label">Payment Preference</div>
+            <div class="ti-pref" id="prefGroup">
+              <button type="button" data-val="Either" class="active">Either</button>
+              <button type="button" data-val="Cash">Cash</button>
+              <button type="button" data-val="Store Credit">Store Credit</button>
+            </div>
+
+            <textarea id="custNotes" class="ti-textarea" placeholder="Additional notes (optional)"></textarea>
           </div>
 
           <div class="ti-actions">
@@ -531,32 +609,80 @@
       }
     });
 
+    // Payment preference toggle
+    let paymentPref = 'Either';
+    document.querySelectorAll('#prefGroup button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#prefGroup button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        paymentPref = btn.dataset.val;
+      });
+    });
+
+    function isValidEmail(e) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+    }
+
     // Send list via mailto
     sendBtn.addEventListener('click', () => {
       if (!cards.length) return;
+
+      const name  = document.getElementById('custName').value.trim();
+      const email = document.getElementById('custEmail').value.trim();
+      const phone = document.getElementById('custPhone').value.trim();
+      const notes = document.getElementById('custNotes').value.trim();
+
+      if (!name)  { alert('Please enter your name.');  document.getElementById('custName').focus();  return; }
+      if (!email || !isValidEmail(email)) {
+        alert('Please enter a valid email address.');
+        document.getElementById('custEmail').focus(); return;
+      }
+
       let market = 0, cash = 0, credit = 0;
-      const lines = cards.map(c => {
-        if (c.market == null) return `- ${c.name} (${c.set}${c.number?' #'+c.number:''}) · ${c.condition} · Price unavailable`;
+      const lines = cards.map((c, i) => {
+        const idx = String(i+1).padStart(2, ' ');
+        const numPart = c.number ? ' #'+c.number : '';
+        if (c.market == null) {
+          return `${idx}. ${c.name} (${c.set}${numPart}) — ${c.condition} — Price unavailable, please quote`;
+        }
         const adj = c.market * COND_MULT[c.condition];
-        market += c.market; cash += adj * CASH_PCT; credit += adj * CREDIT_PCT;
-        return `- ${c.name} (${c.set}${c.number?' #'+c.number:''}) · ${c.condition} · Market ${fmt(c.market)} · Cash ${fmt(adj*CASH_PCT)} / Credit ${fmt(adj*CREDIT_PCT)}`;
+        const lineCash   = adj * CASH_PCT;
+        const lineCredit = adj * CREDIT_PCT;
+        market += c.market; cash += lineCash; credit += lineCredit;
+        return [
+          `${idx}. ${c.name} (${c.set}${numPart}) — ${c.condition}`,
+          `    Market $${c.market.toFixed(2)}  |  Cash est $${lineCash.toFixed(2)}  |  Credit est $${lineCredit.toFixed(2)}`,
+        ].join('\n');
       });
+
       const body = [
-        "Hi Sake Kitty Cards,",
-        "",
-        "I'd like to sell the following cards. Estimates below were generated by your trade-in tool.",
-        "",
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '  SAKE KITTY CARDS — TRADE-IN REQUEST',
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        '',
+        'CONTACT',
+        '-------',
+        `Name:    ${name}`,
+        `Email:   ${email}`,
+        phone ? `Phone:   ${phone}` : null,
+        `Payment: ${paymentPref}`,
+        '',
+        `CARDS (${cards.length})`,
+        '-'.repeat(40),
         ...lines,
-        "",
-        `Market Total: ${fmt(market)}`,
-        `Estimated Cash Offer: ${fmt(cash)}`,
-        `Estimated Store Credit: ${fmt(credit)}`,
-        "",
-        "Please get back to me to confirm and arrange pickup/shipping.",
-        "",
-        "Thanks!",
-      ].join("\n");
-      const subject = `Trade-In Request (${cards.length} cards)`;
+        '',
+        'TOTALS',
+        '------',
+        `Market Total:             $${market.toFixed(2)}`,
+        `Estimated Cash Offer:     $${cash.toFixed(2)}  (60%)`,
+        `Estimated Store Credit:   $${credit.toFixed(2)}  (75%)`,
+        '',
+        notes ? 'NOTES\n-----\n' + notes + '\n' : null,
+        '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+        'Sent via sakekittycards.com trade-in tool',
+      ].filter(l => l !== null).join('\n');
+
+      const subject = `Trade-In Request from ${name} (${cards.length} card${cards.length>1?'s':''})`;
       window.location.href = `mailto:sakekittycards@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
