@@ -58,6 +58,39 @@
       gap: 24px;
     }
 
+    /* Work-in-progress badge */
+    .wip-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 18px;
+      border-radius: 100px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(255,0,128,0.12));
+      border: 1px solid rgba(255,106,0,0.35);
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      backdrop-filter: blur(8px);
+      max-width: 520px;
+      animation: fadeUp 0.6s ease both 0.05s;
+    }
+    .wip-badge .wip-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 10px var(--orange);
+      animation: wipPulse 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes wipPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50%       { opacity: 1;   transform: scale(1.25); }
+    }
+    .wip-badge strong { color: var(--orange); font-weight: 700; }
+    @media (max-width: 580px) {
+      .wip-badge { font-size: 12px; padding: 8px 14px; }
+    }
+
     @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes floatLogo { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
@@ -245,6 +278,10 @@
 
     <!-- Hero -->
     <section class="hero">
+      <div class="wip-badge">
+        <span class="wip-dot"></span>
+        <span><strong>Work in progress</strong> — the site is under active construction. Play with the tools while we work out the kinks!</span>
+      </div>
       <div class="hero-logo-outer">
         <div class="hero-logo-wrap">
           <div class="hero-logo-mask">
