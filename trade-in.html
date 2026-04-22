@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade-In — Sake Kitty Cards</title>
+  <meta name="description" content="Search your cards, build a list, and get an instant rough estimate of what Sake Kitty Cards would offer." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Trade-in specific styles */
+    .trade-layout {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .trade-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .trade-col h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(20px,4vw,24px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg,var(--orange),var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    /* Search */
+    .ti-search-wrap { position: relative; }
+    .ti-search {
+      width: 100%;
+      padding: 14px 18px 14px 46px;
+      background: rgba(255,255,255,.05);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-pill);
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Inter',sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .ti-search:focus { border-color: rgba(255,106,0,.55); box-shadow: 0 0 0 3px rgba(255,106,0,.08); }
+    .ti-search::placeholder { color: var(--dim); }
+    .ti-search-icon {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; opacity: 0.45; pointer-events: none;
+    }
+    .ti-search-icon svg { width: 100%; height: 100%; fill: var(--text); }
+
+    .ti-results {
+      position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+      background: rgba(12,12,18,0.96);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      max-height: 420px; overflow-y: auto;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .ti-results.open { display: block; }
+    .ti-result {
+      display: flex; gap: 12px; align-items: center;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    .ti-result:last-child { border-bottom: none; }
+    .ti-result:hover { background: rgba(255,106,0,0.08); }
+    .ti-result img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: #1a1a2e; }
+    .ti-result-info { flex: 1; min-width: 0; }
+    .ti-result-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ti-result-set { font-size: 12px; color: var(--dim); }
+    .ti-result-price { font-family: 'Bangers',cursive; font-size: 18px; color: var(--orange); letter-spacing: .5px; }
+    .ti-result-price.nomarket { color: var(--dim); font-size: 11px; font-family: 'Inter',sans-serif; }
+
+    .ti-status {
+      text-align: center; padding: 18px; font-size: 13px; color: var(--dim);
+    }
+    .ti-status.err { color: #ff6b6b; }
+
+    /* List */
+    .ti-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .ti-empty {
+      padding: 40px 20px; text-align: center;
+      color: var(--dim); font-size: 13px; line-height: 1.7;
+    }
+    .ti-empty .icon { font-size: 34px; margin-bottom: 10px; opacity: 0.35; }
+
+    .ti-item {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+    .ti-item img { width: 44px; height: 62px; object-fit: cover; border-radius: 4px; }
+    .ti-item-info h4 { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 2px; }
+    .ti-item-info .set { font-size: 11px; color: var(--dim); margin-bottom: 5px; }
+    .ti-item-info .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 11px; }
+    .ti-cond-select {
+      padding: 3px 8px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: 'Inter',sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ti-cond-select:focus { outline: none; border-color: var(--orange); }
+    .ti-item-info .market { color: var(--muted); }
+    .ti-item-info .offer { color: var(--orange); font-weight: 700; }
+    .ti-item-info .offer.credit { color: var(--cyan); }
+    .ti-remove {
+      background: none; border: none; color: var(--dim);
+      cursor: pointer; font-size: 20px; padding: 4px 8px;
+      transition: color .15s;
+    }
+    .ti-remove:hover { color: #ff6b6b; }
+
+    /* Totals panel */
+    .ti-totals-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .ti-totals-row:last-of-type { border-bottom: none; }
+    .ti-totals-label { font-size: 13px; color: var(--muted); }
+    .ti-totals-label small { color: var(--dim); font-size: 11px; font-weight: 400; }
+    .ti-totals-value {
+      font-family: 'Bangers',cursive;
+      font-size: 22px; letter-spacing: .5px;
+    }
+    .ti-totals-value.cash { color: var(--orange); }
+    .ti-totals-value.credit { color: var(--cyan); }
+    .ti-totals-value.market { color: var(--text); }
+
+    .ti-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+    .ti-actions .btn { justify-content: center; }
+
+    .ti-disclaimer {
+      font-size: 11px; color: var(--dim); line-height: 1.6;
+      margin-top: 14px; padding: 12px; border-radius: var(--r-sm);
+      background: rgba(255,255,255,.02); border: 1px solid var(--border);
+    }
+
+    @media (max-width: 820px) {
+      .trade-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="vendors.html">Vendors</a></li>
+        <li><a href="buylist.html">Sell to Us</a></li>
+        <li><a href="trade-in.html">Trade-In</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="page-hero">
+      <h1>Trade-In</h1>
+      <p>Search for your cards, add them to your list, and get an instant rough estimate of what we'd offer.</p>
+    </div>
+
+    <div class="section" style="padding-top:0">
+
+      <div class="trade-layout">
+
+        <!-- Search + list -->
+        <div class="trade-col">
+          <h3>1. Find Your Cards</h3>
+          <div class="ti-search-wrap">
+            <span class="ti-search-icon">
+              <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
+            </span>
+            <input type="text" class="ti-search" id="searchInput" placeholder="Search for a Pokémon card (e.g. Charizard ex)" autocomplete="off" />
+            <div class="ti-results" id="searchResults"></div>
+          </div>
+
+          <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
+          <div id="tradeList" class="ti-list"></div>
+        </div>
+
+        <!-- Totals + actions -->
+        <div class="trade-col" id="totalsCol">
+          <h3>3. Your Estimate</h3>
+
+          <div class="ti-totals-row">
+            <div class="ti-totals-label">Market Total <small>(TCGPlayer)</small></div>
+            <div class="ti-totals-value market" id="totalMarket">$0.00</div>
+          </div>
+          <div class="ti-totals-row">
+            <div class="ti-totals-label">Cash Offer <small>(60%)</small></div>
+            <div class="ti-totals-value cash" id="totalCash">$0.00</div>
+          </div>
+          <div class="ti-totals-row">
+            <div class="ti-totals-label">Store Credit <small>(75%)</small></div>
+            <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
+          </div>
+
+          <div class="ti-actions">
+            <button id="sendListBtn" class="btn btn-primary" disabled>Send This List to Sake Kitty</button>
+            <button id="clearListBtn" class="btn btn-outline btn-sm">Clear List</button>
+          </div>
+
+          <p class="ti-disclaimer">
+            <strong style="color:var(--muted)">Estimates only.</strong> Prices pulled from TCGPlayer market data and may not reflect live spreads. Final offers depend on in-person condition inspection and current inventory needs. Graded cards and rare promos may not appear here — reach out directly for a quote.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <p>Your favorite Pokémon card vendor.</p>
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="vendors.html">Vendors</a>
+        <a href="buylist.html">Sell to Us</a>
+        <a href="trade-in.html">Trade-In</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
+  </footer>
+
+  <script src="main.js"></script>
+  <script>
+    const CASH_PCT = 0.60;
+    const CREDIT_PCT = 0.75;
+    const COND_MULT = { NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50 };
+    const CONDITIONS = ['NM', 'LP', 'MP', 'HP'];
+
+    let cards = [];       // items the user added
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+    const resultsEl   = document.getElementById('searchResults');
+    const listEl      = document.getElementById('tradeList');
+    const countEl     = document.getElementById('listCount');
+    const totalMarketEl = document.getElementById('totalMarket');
+    const totalCashEl   = document.getElementById('totalCash');
+    const totalCreditEl = document.getElementById('totalCredit');
+    const sendBtn   = document.getElementById('sendListBtn');
+    const clearBtn  = document.getElementById('clearListBtn');
+
+    function fmt(n) { return `$${n.toFixed(2)}`; }
+
+    function getMarketPrice(card) {
+      const prices = card.tcgplayer && card.tcgplayer.prices;
+      if (!prices) return null;
+      const pref = ['holofoil', 'normal', 'reverseHolofoil', '1stEditionHolofoil', 'unlimitedHolofoil', 'unlimited'];
+      for (const v of pref) if (prices[v]?.market) return prices[v].market;
+      for (const v of Object.keys(prices)) {
+        if (prices[v]?.market) return prices[v].market;
+        if (prices[v]?.mid)    return prices[v].mid;
+        if (prices[v]?.low)    return prices[v].low;
+      }
+      return null;
+    }
+
+    async function searchCards(query) {
+      const q = query.trim();
+      if (q.length < 2) { resultsEl.classList.remove('open'); return; }
+      resultsEl.innerHTML = '<div class="ti-status">Searching…</div>';
+      resultsEl.classList.add('open');
+      try {
+        const url = `https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(q)}*"&pageSize=10&orderBy=-set.releaseDate`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        renderResults(data.data || []);
+      } catch (err) {
+        resultsEl.innerHTML = '<div class="ti-status err">Search failed. Please try again.</div>';
+      }
+    }
+
+    function renderResults(results) {
+      if (!results.length) {
+        resultsEl.innerHTML = '<div class="ti-status">No cards found. Try a different spelling.</div>';
+        return;
+      }
+      resultsEl.innerHTML = results.map(c => {
+        const price = getMarketPrice(c);
+        const priceHTML = price != null
+          ? `<span class="ti-result-price">${fmt(price)}</span>`
+          : `<span class="ti-result-price nomarket">No price</span>`;
+        const setName = c.set?.name || '';
+        const num = c.number ? ` · #${c.number}` : '';
+        return `
+          <div class="ti-result" data-id="${c.id}">
+            <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
+            <div class="ti-result-info">
+              <div class="ti-result-name">${c.name}</div>
+              <div class="ti-result-set">${setName}${num}</div>
+            </div>
+            ${priceHTML}
+          </div>
+        `;
+      }).join('');
+
+      resultsEl.querySelectorAll('.ti-result').forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.dataset.id;
+          const card = results.find(c => c.id === id);
+          if (card) addCard(card);
+        });
+      });
+    }
+
+    function addCard(card) {
+      const price = getMarketPrice(card);
+      cards.push({
+        id: card.id + '_' + Date.now(),   // unique instance id
+        name: card.name,
+        set: card.set?.name || '',
+        number: card.number || '',
+        image: card.images?.small || '',
+        market: price,
+        condition: 'NM',
+      });
+      searchInput.value = '';
+      resultsEl.classList.remove('open');
+      renderList();
+    }
+
+    function renderList() {
+      countEl.textContent = cards.length ? `(${cards.length})` : '';
+      if (!cards.length) {
+        listEl.innerHTML = `<div class="ti-empty"><div class="icon">🎴</div>Your list is empty. Search above to add cards.</div>`;
+        updateTotals();
+        return;
+      }
+
+      listEl.innerHTML = cards.map((c, i) => {
+        const adjusted = c.market != null ? c.market * COND_MULT[c.condition] : null;
+        const cash   = adjusted != null ? adjusted * CASH_PCT   : null;
+        const credit = adjusted != null ? adjusted * CREDIT_PCT : null;
+        const marketStr = c.market != null ? fmt(c.market) : 'N/A';
+        const offerStr  = (cash != null && credit != null)
+          ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
+          : `<span style="color:var(--dim)">Price unavailable — contact us</span>`;
+        const condOpts = CONDITIONS.map(o =>
+          `<option value="${o}" ${o===c.condition?'selected':''}>${o}</option>`
+        ).join('');
+        return `
+          <div class="ti-item">
+            <img src="${c.image}" alt="" onerror="this.style.visibility='hidden'" />
+            <div class="ti-item-info">
+              <h4>${c.name}</h4>
+              <div class="set">${c.set}${c.number?' · #'+c.number:''}</div>
+              <div class="row">
+                <select class="ti-cond-select" data-idx="${i}">${condOpts}</select>
+                <span class="market">Market: ${marketStr}</span>
+                ${offerStr}
+              </div>
+            </div>
+            <button class="ti-remove" data-idx="${i}" aria-label="Remove">×</button>
+          </div>
+        `;
+      }).join('');
+
+      listEl.querySelectorAll('.ti-cond-select').forEach(sel => {
+        sel.addEventListener('change', e => {
+          cards[+e.target.dataset.idx].condition = e.target.value;
+          renderList();
+        });
+      });
+      listEl.querySelectorAll('.ti-remove').forEach(btn => {
+        btn.addEventListener('click', e => {
+          cards.splice(+e.currentTarget.dataset.idx, 1);
+          renderList();
+        });
+      });
+      updateTotals();
+    }
+
+    function updateTotals() {
+      let market = 0, cash = 0, credit = 0;
+      for (const c of cards) {
+        if (c.market == null) continue;
+        const adj = c.market * COND_MULT[c.condition];
+        market += c.market;
+        cash   += adj * CASH_PCT;
+        credit += adj * CREDIT_PCT;
+      }
+      totalMarketEl.textContent = fmt(market);
+      totalCashEl.textContent   = fmt(cash);
+      totalCreditEl.textContent = fmt(credit);
+      sendBtn.disabled = cards.length === 0;
+    }
+
+    // Search input with debounce
+    searchInput.addEventListener('input', e => {
+      clearTimeout(searchTimeout);
+      const v = e.target.value;
+      if (v.trim().length < 2) { resultsEl.classList.remove('open'); return; }
+      searchTimeout = setTimeout(() => searchCards(v), 300);
+    });
+
+    // Close results when clicking outside
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.ti-search-wrap')) resultsEl.classList.remove('open');
+    });
+
+    // Send list via mailto
+    sendBtn.addEventListener('click', () => {
+      if (!cards.length) return;
+      let market = 0, cash = 0, credit = 0;
+      const lines = cards.map(c => {
+        if (c.market == null) return `- ${c.name} (${c.set}${c.number?' #'+c.number:''}) · ${c.condition} · Price unavailable`;
+        const adj = c.market * COND_MULT[c.condition];
+        market += c.market; cash += adj * CASH_PCT; credit += adj * CREDIT_PCT;
+        return `- ${c.name} (${c.set}${c.number?' #'+c.number:''}) · ${c.condition} · Market ${fmt(c.market)} · Cash ${fmt(adj*CASH_PCT)} / Credit ${fmt(adj*CREDIT_PCT)}`;
+      });
+      const body = [
+        "Hi Sake Kitty Cards,",
+        "",
+        "I'd like to sell the following cards. Estimates below were generated by your trade-in tool.",
+        "",
+        ...lines,
+        "",
+        `Market Total: ${fmt(market)}`,
+        `Estimated Cash Offer: ${fmt(cash)}`,
+        `Estimated Store Credit: ${fmt(credit)}`,
+        "",
+        "Please get back to me to confirm and arrange pickup/shipping.",
+        "",
+        "Thanks!",
+      ].join("\n");
+      const subject = `Trade-In Request (${cards.length} cards)`;
+      window.location.href = `mailto:sakekittycards@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (!cards.length) return;
+      if (confirm('Clear your list?')) { cards = []; renderList(); }
+    });
+
+    renderList();
+  </script>
+
+</body>
+</html>
