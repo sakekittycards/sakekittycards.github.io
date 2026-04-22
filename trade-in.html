@@ -208,7 +208,7 @@
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
             </span>
-            <input type="text" class="ti-search" id="searchInput" placeholder="Search for a Pokémon card (e.g. Charizard ex)" autocomplete="off" />
+            <input type="text" class="ti-search" id="searchInput" placeholder="Search by name, set, or number (e.g. &quot;Charizard Obsidian&quot;)" autocomplete="off" />
             <div class="ti-results" id="searchResults"></div>
           </div>
 
@@ -306,13 +306,33 @@
       return null;
     }
 
+    function buildQuery(input) {
+      // Split on whitespace into tokens, each token must match somewhere
+      // (name, set name, or card number) — AND across tokens, OR within fields.
+      const tokens = input.trim().split(/\s+/).filter(Boolean);
+      if (!tokens.length) return '';
+      return tokens.map(tok => {
+        // Strip characters that would break the Lucene query
+        const clean = tok.replace(/[^\w\d&'.-]/g, '');
+        if (!clean) return '';
+        const isNum = /^\d+$/.test(clean);
+        if (isNum) {
+          // Treat purely numeric tokens as possible card numbers OR contained in name/set
+          return `(number:${clean} OR name:*${clean}* OR set.name:*${clean}*)`;
+        }
+        return `(name:*${clean}* OR set.name:*${clean}* OR set.series:*${clean}*)`;
+      }).filter(Boolean).join(' ');
+    }
+
     async function searchCards(query) {
       const q = query.trim();
       if (q.length < 2) { resultsEl.classList.remove('open'); return; }
+      const lucene = buildQuery(q);
+      if (!lucene) { resultsEl.classList.remove('open'); return; }
       resultsEl.innerHTML = '<div class="ti-status">Searching…</div>';
       resultsEl.classList.add('open');
       try {
-        const url = `https://api.pokemontcg.io/v2/cards?q=name:"${encodeURIComponent(q)}*"&pageSize=10&orderBy=-set.releaseDate`;
+        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
