@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Inter:wght@400;600;700&display=swap');
 
 /* ── Variables ── */
 :root {
@@ -49,7 +49,7 @@ button { font-family: inherit; }
 .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
 .nav-logo img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; }
 .nav-logo span {
-  font-family: 'Bangers', cursive; font-size: 20px; letter-spacing: 1px;
+  font-family: 'Bagel Fat One', cursive; font-size: 20px; letter-spacing: 1px;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
@@ -76,7 +76,7 @@ button { font-family: inherit; }
   text-align: center; max-width: var(--max-w); margin: 0 auto;
 }
 .page-hero h1 {
-  font-family: 'Bangers', cursive; font-size: clamp(48px,8vw,80px);
+  font-family: 'Bagel Fat One', cursive; font-size: clamp(48px,8vw,80px);
   letter-spacing: 3px; line-height: 1;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -88,7 +88,7 @@ button { font-family: inherit; }
 .section { padding: 72px 24px; max-width: var(--max-w); margin: 0 auto; }
 .section-header { margin-bottom: 44px; }
 .section-title {
-  font-family: 'Bangers', cursive; font-size: clamp(32px,5vw,52px); letter-spacing: 2px;
+  font-family: 'Bagel Fat One', cursive; font-size: clamp(32px,5vw,52px); letter-spacing: 2px;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   filter: drop-shadow(0 0 12px rgba(255,106,0,0.25));
@@ -142,7 +142,7 @@ button { font-family: inherit; }
   border: 1px solid rgba(255,106,0,.18); border-radius: var(--r);
   padding: 36px 44px; display: flex; align-items: center; justify-content: space-between; gap: 32px;
 }
-.tcg-banner-text h2 { font-family: 'Bangers',cursive; font-size: 30px; letter-spacing: 1px; margin-bottom: 6px; }
+.tcg-banner-text h2 { font-family: 'Bagel Fat One',cursive; font-size: 30px; letter-spacing: 1px; margin-bottom: 6px; }
 .tcg-banner-text p { font-size: 14px; color: var(--muted); }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
@@ -158,7 +158,7 @@ button { font-family: inherit; }
 .product-name { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
 .product-set  { font-size: 12px; color: var(--dim); margin-bottom: 10px; }
 .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.product-price { font-family: 'Bangers',cursive; font-size: 22px; letter-spacing: 1px; color: var(--orange); }
+.product-price { font-family: 'Bagel Fat One',cursive; font-size: 22px; letter-spacing: 1px; color: var(--orange); }
 
 /* Sold out state */
 .product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }
@@ -185,7 +185,7 @@ button { font-family: inherit; }
 .event-card { padding: 28px; }
 .event-date { width: 52px; height: 52px; background: linear-gradient(135deg,var(--orange),var(--pink)); border-radius: var(--r-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; line-height: 1.1; }
 .event-date .mo { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-.event-date .dy { font-family: 'Bangers',cursive; font-size: 22px; }
+.event-date .dy { font-family: 'Bagel Fat One',cursive; font-size: 22px; }
 .event-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
 .event-loc { font-size: 13px; color: var(--dim); margin-bottom: 8px; }
 .event-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
@@ -226,7 +226,7 @@ button { font-family: inherit; }
   width: 42px; height: 42px; border-radius: 50%; margin: 0 auto 12px;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Bangers',cursive; font-size: 22px;
+  font-family: 'Bagel Fat One',cursive; font-size: 22px;
   box-shadow: 0 4px 14px rgba(255,106,0,.3);
 }
 .step-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
@@ -238,7 +238,7 @@ button { font-family: inherit; }
 .buylist-table td { padding: 15px 20px; border-bottom: 1px solid var(--border); color: var(--muted); }
 .buylist-table tr:last-child td { border-bottom: none; }
 .buylist-table tr:hover td { background: var(--bg-card); }
-.buylist-table .buy-price { color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 17px; letter-spacing: .5px; }
+.buylist-table .buy-price { color: var(--orange); font-weight: 700; font-family: 'Bagel Fat One',cursive; font-size: 17px; letter-spacing: .5px; }
 
 /* ── FAQ ── */
 .faq-list { max-width: 740px; margin: 0 auto; }
@@ -261,7 +261,7 @@ button { font-family: inherit; }
 .about-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
 .about-img { width: 100%; max-width: 340px; border-radius: 20px; box-shadow: 0 0 60px rgba(255,106,0,.25),0 0 120px rgba(123,47,255,.15); animation: floatImg 5s ease-in-out infinite; }
 @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-.about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(30px,5vw,46px); letter-spacing: 2px; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px; }
+.about-text h2 { font-family: 'Bagel Fat One',cursive; font-size: clamp(30px,5vw,46px); letter-spacing: 2px; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px; }
 .about-text p { font-size: 15px; color: var(--muted); line-height: 1.85; margin-bottom: 14px; }
 .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
 .value-card { padding: 22px; text-align: center; }
@@ -287,7 +287,7 @@ button { font-family: inherit; }
 .cm-info strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .cm-info span { font-size: 13px; color: var(--dim); }
 .contact-form-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 34px; }
-.contact-form-box h3 { font-family: 'Bangers',cursive; font-size: 26px; letter-spacing: 1px; margin-bottom: 22px; }
+.contact-form-box h3 { font-family: 'Bagel Fat One',cursive; font-size: 26px; letter-spacing: 1px; margin-bottom: 22px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group textarea, .form-group select {
