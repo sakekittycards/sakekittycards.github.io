@@ -65,29 +65,29 @@ text_x = logo_x + logo_size + 60
 text_y_start = H // 2 - 130
 
 try:
-    font_title = ImageFont.truetype("C:/Windows/Fonts/ariblk.ttf", 92)
+    font_title = ImageFont.truetype("C:/Windows/Fonts/ariblk.ttf", 78)
 except:
     font_title = ImageFont.load_default()
 
-# Two lines — no clipping risk
-for line_i, line in enumerate(["COMING", "SOON"]):
-    ly = text_y_start + line_i * 100
+# Two lines — "POKÉMON / CARDS"
+for line_i, line in enumerate(["POKEMON", "CARDS"]):
+    ly = text_y_start + line_i * 86
     for offset in range(4, 0, -1):
         draw.text((text_x + offset, ly + offset), line,
                   font=font_title, fill=(255, 106, 0, 30))
     draw.text((text_x, ly), line, font=font_title, fill="#ff6a00")
 
 # Tagline
-draw.text((text_x, text_y_start + 210), "POKÉMON CARDS & MORE",
-          font=font_sub, fill=(255, 255, 255, 140))
+draw.text((text_x, text_y_start + 190), "SINGLES · SEALED · EVENTS",
+          font=font_sub, fill=(255, 255, 255, 160))
 
 # Divider line
-div_y = text_y_start + 253
+div_y = text_y_start + 230
 draw.rectangle([text_x, div_y, text_x + 200, div_y + 3], fill="#7b2fff")
 
 # URL
 draw.text((text_x, div_y + 16), "sakekittycards.com",
-          font=font_url, fill=(255, 255, 255, 80))
+          font=font_url, fill=(255, 255, 255, 90))
 
 img.save(out_path, "PNG", optimize=True)
 print(f"Saved: {out_path}")
