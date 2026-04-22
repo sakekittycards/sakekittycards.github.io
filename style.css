@@ -160,6 +160,26 @@ button { font-family: inherit; }
 .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .product-price { font-family: 'Bangers',cursive; font-size: 22px; letter-spacing: 1px; color: var(--orange); }
 
+/* Sold out state */
+.product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }
+.product-card.sold-out .product-name,
+.product-card.sold-out .product-set,
+.product-card.sold-out .product-price { opacity: 0.55; }
+.product-card.sold-out .product-price { color: var(--muted); }
+.product-card.sold-out:hover { transform: none; border-color: var(--border); }
+.sold-out-badge {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: rgba(0,0,0,0.75); color: #fff;
+  padding: 5px 11px; border-radius: var(--r-pill);
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15);
+}
+.btn-disabled {
+  background: rgba(255,255,255,0.05); color: var(--dim);
+  border: 1.5px solid var(--border); cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ── Events ── */
 .events-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 22px; }
 .event-card { padding: 28px; }
