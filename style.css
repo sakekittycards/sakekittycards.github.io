@@ -239,6 +239,7 @@ button { font-family: inherit; }
 .buylist-table tr:last-child td { border-bottom: none; }
 .buylist-table tr:hover td { background: var(--bg-card); }
 .buylist-table .buy-price { color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 17px; letter-spacing: .5px; }
+.buylist-table .credit-price { color: var(--cyan); font-weight: 700; font-family: 'Bangers',cursive; font-size: 17px; letter-spacing: .5px; }
 
 /* ── FAQ ── */
 .faq-list { max-width: 740px; margin: 0 auto; }
