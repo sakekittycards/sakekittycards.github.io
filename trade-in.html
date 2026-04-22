@@ -411,26 +411,9 @@
             <div class="ti-results" id="searchResults"></div>
           </div>
 
-          <button type="button" class="ti-sealed-toggle" id="sealedToggle">📦 Have sealed product? Add it manually</button>
-
-          <div class="ti-sealed-form" id="sealedForm">
-            <div class="ti-sealed-form-title">Add Sealed Product</div>
-            <input type="text" class="ti-input" id="sealedName" placeholder="Product name (e.g. Obsidian Flames Booster Box)" />
-            <div class="ti-sealed-form-row">
-              <input type="number" class="ti-input" id="sealedPrice" placeholder="Market value ($)" step="0.01" min="0" style="flex:1" />
-              <div class="ti-cond" style="flex-shrink:0">
-                <button type="button" class="ti-cond-btn" id="sealedCondBtn">Sealed<span class="ti-cond-arrow">▼</span></button>
-                <div class="ti-cond-menu" id="sealedCondMenu">
-                  <button type="button" class="ti-cond-opt selected" data-val="Sealed">Sealed</button>
-                  <button type="button" class="ti-cond-opt" data-val="Damaged">Damaged</button>
-                </div>
-              </div>
-            </div>
-            <div class="ti-sealed-actions">
-              <button type="button" class="btn btn-primary btn-sm" id="sealedAddBtn">Add to List</button>
-              <button type="button" class="btn btn-outline btn-sm" id="sealedCancelBtn">Cancel</button>
-            </div>
-          </div>
+          <p style="font-size:12px;color:var(--dim);margin-top:12px;line-height:1.6">
+            Selling sealed product (booster boxes, ETBs, etc.)? Mention it in the notes below or <a href="contact.html" style="color:var(--orange)">contact us directly</a> for a quote — sealed pricing isn't available in the card database this tool uses.
+          </p>
 
           <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
           <div id="tradeList" class="ti-list"></div>
@@ -541,6 +524,10 @@
       unlimited:            'Unlimited',
       unlimitedHolofoil:    'Unlimited Holo',
     };
+    // Web3Forms — get a free access key at https://web3forms.com/ (takes 30 seconds)
+    // Once you have it, replace the placeholder below.
+    const WEB3FORMS_KEY = 'YOUR_WEB3FORMS_ACCESS_KEY';
+    // FormSubmit fallback (keep if user hasn't set up Web3Forms yet)
     const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
 
     let cards = [];       // items the user added
@@ -829,55 +816,6 @@
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
     }
 
-    // Sealed-product form
-    const sealedToggle  = document.getElementById('sealedToggle');
-    const sealedForm    = document.getElementById('sealedForm');
-    const sealedName    = document.getElementById('sealedName');
-    const sealedPrice   = document.getElementById('sealedPrice');
-    const sealedAddBtn  = document.getElementById('sealedAddBtn');
-    const sealedCancel  = document.getElementById('sealedCancelBtn');
-    const sealedCondBtn = document.getElementById('sealedCondBtn');
-    const sealedCondMenu= document.getElementById('sealedCondMenu');
-    let sealedCondition = 'Sealed';
-
-    sealedToggle.addEventListener('click', () => {
-      sealedForm.classList.toggle('open');
-      if (sealedForm.classList.contains('open')) sealedName.focus();
-    });
-    sealedCancel.addEventListener('click', () => {
-      sealedForm.classList.remove('open');
-      sealedName.value = ''; sealedPrice.value = '';
-    });
-
-    // Sealed condition dropdown
-    sealedCondBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      document.querySelectorAll('.ti-cond-menu.open').forEach(m => { if (m !== sealedCondMenu) m.classList.remove('open'); });
-      document.querySelectorAll('.ti-cond-btn.open').forEach(b => { if (b !== sealedCondBtn) b.classList.remove('open'); });
-      sealedCondMenu.classList.toggle('open');
-      sealedCondBtn.classList.toggle('open');
-    });
-    sealedCondMenu.querySelectorAll('.ti-cond-opt').forEach(opt => {
-      opt.addEventListener('click', e => {
-        e.stopPropagation();
-        sealedCondition = opt.dataset.val;
-        sealedCondMenu.querySelectorAll('.ti-cond-opt').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        sealedCondBtn.firstChild.textContent = sealedCondition;
-        sealedCondMenu.classList.remove('open');
-        sealedCondBtn.classList.remove('open');
-      });
-    });
-
-    sealedAddBtn.addEventListener('click', () => {
-      const name = sealedName.value.trim();
-      const priceVal = parseFloat(sealedPrice.value);
-      if (!name) { alert('Please enter a product name.'); sealedName.focus(); return; }
-      if (isNaN(priceVal) || priceVal <= 0) { alert('Please enter a valid market price.'); sealedPrice.focus(); return; }
-      addSealed(name, priceVal, sealedCondition);
-      sealedName.value = ''; sealedPrice.value = '';
-      sealedForm.classList.remove('open');
-    });
 
     function showSuccessState(count) {
       document.getElementById('totalsCol').innerHTML = `
@@ -953,15 +891,35 @@
       const origText = sendBtn.textContent;
       sendBtn.textContent = 'Sending…';
 
+      // Prefer Web3Forms if an access key is configured, else fall back to FormSubmit
+      const hasWeb3Key = WEB3FORMS_KEY && WEB3FORMS_KEY !== 'YOUR_WEB3FORMS_ACCESS_KEY';
+
       try {
-        const res = await fetch(FORMSUBMIT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok || (json.success === 'false' || json.success === false)) {
-          throw new Error(json.message || 'Submission failed');
+        let res, json;
+        if (hasWeb3Key) {
+          res = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              access_key: WEB3FORMS_KEY,
+              subject: payload._subject,
+              from_name: 'Sake Kitty Trade-In',
+              replyto: email,
+              ...payload,
+            }),
+          });
+          json = await res.json().catch(() => ({}));
+          if (!res.ok || !json.success) throw new Error(json.message || 'Submission failed');
+        } else {
+          res = await fetch(FORMSUBMIT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          json = await res.json().catch(() => ({}));
+          if (!res.ok || (json.success === 'false' || json.success === false)) {
+            throw new Error(json.message || 'Submission failed');
+          }
         }
         showSuccessState(cards.length);
         cards = [];
