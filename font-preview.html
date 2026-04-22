@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Font Preview — Sake Kitty Cards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Bagel+Fat+One&family=Lilita+One&family=Bowlby+One&family=Paytone+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #060608;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      padding: 40px 24px 80px;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    .page-h {
+      font-size: 32px; font-weight: 700; margin-bottom: 8px;
+      background: linear-gradient(135deg,#ff6a00,#ff0080);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-sub { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 50px; }
+    .opt {
+      padding: 40px 32px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      margin-bottom: 24px;
+    }
+    .opt-label {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(255,106,0,0.15);
+      color: #ff6a00;
+      border: 1px solid rgba(255,106,0,0.3);
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+    .opt-current {
+      background: rgba(0,180,255,0.12);
+      color: #00b4ff;
+      border-color: rgba(0,180,255,0.3);
+    }
+    .opt-top {
+      background: rgba(123,47,255,0.15);
+      color: #b78dff;
+      border-color: rgba(123,47,255,0.3);
+    }
+    .brand {
+      font-size: clamp(56px, 9vw, 92px);
+      line-height: 1;
+      letter-spacing: 0.02em;
+      background: linear-gradient(135deg,#ff6a00 0%,#ff0080 35%,#7b2fff 68%,#00d4ff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 18px rgba(255,106,0,0.4));
+      margin-bottom: 8px;
+    }
+    .hero-line {
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1.05;
+      letter-spacing: 0.02em;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .small-line {
+      font-size: 22px;
+      letter-spacing: 1px;
+      color: #ff6a00;
+    }
+
+    .f1 { font-family: 'Bangers', cursive; letter-spacing: 0.05em; }
+    .f2 { font-family: 'Bagel Fat One', cursive; }
+    .f3 { font-family: 'Lilita One', cursive; }
+    .f4 { font-family: 'Bowlby One', cursive; }
+    .f5 { font-family: 'Paytone One', sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="page-h">Font Preview</h1>
+    <p class="page-sub">Same headlines, different fonts. Pick the one that feels most like Sake Kitty Cards to you.</p>
+
+    <div class="opt">
+      <span class="opt-label opt-current">Current · Bangers</span>
+      <div class="f1 brand">SAKE KITTY CARDS</div>
+      <div class="f1 hero-line">Pokémon Cards, Done Right.</div>
+      <div class="f1 small-line">COMING SOON</div>
+    </div>
+
+    <div class="opt">
+      <span class="opt-label opt-top">My Pick · Bagel Fat One</span>
+      <div class="f2 brand">SAKE KITTY CARDS</div>
+      <div class="f2 hero-line">Pokémon Cards, Done Right.</div>
+      <div class="f2 small-line">COMING SOON</div>
+    </div>
+
+    <div class="opt">
+      <span class="opt-label">Option · Lilita One</span>
+      <div class="f3 brand">SAKE KITTY CARDS</div>
+      <div class="f3 hero-line">Pokémon Cards, Done Right.</div>
+      <div class="f3 small-line">COMING SOON</div>
+    </div>
+
+    <div class="opt">
+      <span class="opt-label">Option · Bowlby One</span>
+      <div class="f4 brand">SAKE KITTY CARDS</div>
+      <div class="f4 hero-line">Pokémon Cards, Done Right.</div>
+      <div class="f4 small-line">COMING SOON</div>
+    </div>
+
+    <div class="opt">
+      <span class="opt-label">Option · Paytone One</span>
+      <div class="f5 brand">SAKE KITTY CARDS</div>
+      <div class="f5 hero-line">Pokémon Cards, Done Right.</div>
+      <div class="f5 small-line">COMING SOON</div>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;text-align:center;margin-top:40px">Tell me which number you want and I'll swap it in everywhere.</p>
+  </div>
+</body>
+</html>
