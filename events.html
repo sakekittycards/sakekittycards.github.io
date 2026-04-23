@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=13" />
+  <link rel="stylesheet" href="style.css?v=14" />
   <style>
     /* ── Calendar layout ── */
     .cal-layout {
@@ -86,6 +86,21 @@
       transform: translateY(-2px) scale(1.03);
       box-shadow: 0 4px 22px rgba(255,106,0,.4);
     }
+    /* Whatnot stream events — purple treatment */
+    .cal-day.whatnot-event {
+      background: linear-gradient(135deg, rgba(123,47,255,.20), rgba(255,0,128,.12));
+      border: 1px solid rgba(123,47,255,.4);
+      box-shadow: 0 0 14px rgba(123,47,255,.18);
+    }
+    .cal-day.whatnot-event:hover {
+      background: linear-gradient(135deg, rgba(123,47,255,.35), rgba(255,0,128,.22));
+      border-color: var(--purple);
+      box-shadow: 0 4px 22px rgba(123,47,255,.4);
+    }
+    .cal-day.whatnot-event::after {
+      background: var(--purple);
+      box-shadow: 0 0 6px var(--purple);
+    }
     .cal-day.selected {
       background: linear-gradient(135deg, var(--orange), var(--pink));
       color: #fff;
@@ -139,6 +154,18 @@
     .event-item-info h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; line-height: 1.3; }
     .event-item-info .loc { font-size: 12px; color: var(--dim); }
     .event-item-info .range { font-size: 11px; color: var(--orange); font-weight: 600; margin-top: 3px; }
+    .event-type-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .event-type-badge.whatnot {
+      background: rgba(123,47,255,0.15);
+      border: 1px solid rgba(123,47,255,0.4);
+      color: #b78dff;
+    }
 
     .panel-empty { text-align: center; padding: 30px 12px; color: var(--dim); font-size: 13px; line-height: 1.7; }
     .panel-empty .icon { font-size: 32px; opacity: .4; margin-bottom: 10px; }
@@ -151,6 +178,7 @@
     .legend-item { display: flex; align-items: center; gap: 6px; }
     .legend-dot { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
     .legend-event { background: linear-gradient(135deg, rgba(255,106,0,.3), rgba(255,0,128,.2)); border: 1px solid rgba(255,106,0,.4); }
+    .legend-whatnot { background: linear-gradient(135deg, rgba(123,47,255,.3), rgba(255,0,128,.15)); border: 1px solid rgba(123,47,255,.4); }
     .legend-today { border: 1.5px solid rgba(255,106,0,.5); background: transparent; }
     .legend-selected { background: linear-gradient(135deg,var(--orange),var(--pink)); }
 
@@ -235,7 +263,8 @@
           </div>
           <div class="cal-days" id="calDays"></div>
           <div class="cal-legend">
-            <div class="legend-item"><span class="legend-dot legend-event"></span> Event day</div>
+            <div class="legend-item"><span class="legend-dot legend-event"></span> Live event</div>
+            <div class="legend-item"><span class="legend-dot legend-whatnot"></span> Whatnot stream</div>
             <div class="legend-item"><span class="legend-dot legend-today"></span> Today</div>
             <div class="legend-item"><span class="legend-dot legend-selected"></span> Selected</div>
           </div>
@@ -249,7 +278,15 @@
 
       </div>
 
-      <div class="notify-bar" style="margin-top:48px">
+      <!-- Whatnot streams coming soon -->
+      <div class="coordinator-cta" style="background:linear-gradient(135deg,rgba(123,47,255,.07),rgba(255,0,128,.05));border-color:rgba(123,47,255,.3);margin-top:32px">
+        <div class="coordinator-icon" style="filter:drop-shadow(0 0 14px rgba(123,47,255,0.5))">📺</div>
+        <h3 style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Whatnot Streams — Coming Soon</h3>
+        <p>Can't make it in person? We're gearing up to host live card breaks and showcases on Whatnot. Streams will show up on the calendar the moment they're scheduled — follow us to get notified when the first one drops.</p>
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-outline">Follow @sakekittycards</a>
+      </div>
+
+      <div class="notify-bar" style="margin-top:32px">
         <div>
           <h3>Never miss an event</h3>
           <p>Follow us on Instagram for event announcements, card drops, and live updates from the shows.</p>
@@ -295,7 +332,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
-  <script src="main.js?v=13"></script>
+  <script src="main.js?v=14"></script>
   <script>
     const EVENTS = [
       { start: '2026-04-25', end: '2026-04-26', name: 'Bradenton TCG',              loc: 'Bradenton, FL' },
@@ -387,6 +424,8 @@
         if (dateStr === TODAY_STR) div.classList.add('today');
         if (evs.length > 0) {
           div.classList.add('has-event');
+          // Mark whatnot-only days with a different color treatment
+          if (evs.every(e => e.type === 'whatnot')) div.classList.add('whatnot-event');
           div.addEventListener('click', () => {
             selected = (selected === dateStr) ? null : dateStr;
             renderCalendar();
@@ -438,6 +477,9 @@
       const dayLabel = ev.end
         ? `<span class="dy" style="font-size:12px">${s.getDate()}–${new Date(ev.end + 'T00:00:00').getDate()}</span>`
         : `<span class="dy">${s.getDate()}</span>`;
+      const typeBadge = ev.type === 'whatnot'
+        ? `<span class="event-type-badge whatnot">📺 Whatnot</span>`
+        : '';
       return `
         <div class="event-item" onclick="jumpTo('${ev.start}')">
           <div class="event-date">
@@ -445,7 +487,7 @@
             ${dayLabel}
           </div>
           <div class="event-item-info">
-            <h4>${ev.name}</h4>
+            <h4>${ev.name}${typeBadge}</h4>
             <div class="loc">${ev.loc}</div>
             <div class="range">${formatDateRange(ev)}</div>
           </div>
