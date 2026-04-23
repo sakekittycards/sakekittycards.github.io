@@ -589,7 +589,7 @@
     async function loadGroups() {
       if (groupsCache) return groupsCache;
       try {
-        const res = await fetch(`${TCGCSV_BASE}/groups.json`);
+        const res = await fetch(`${TCGCSV_BASE}/groups`);
         const data = await res.json();
         groupsCache = data.results || [];
       } catch (err) {
@@ -603,8 +603,8 @@
       if (productsCache[groupId]) return productsCache[groupId];
       try {
         const [productsRes, pricesRes] = await Promise.all([
-          fetch(`${TCGCSV_BASE}/${groupId}/products.json`),
-          fetch(`${TCGCSV_BASE}/${groupId}/prices.json`),
+          fetch(`${TCGCSV_BASE}/${groupId}/products`),
+          fetch(`${TCGCSV_BASE}/${groupId}/prices`),
         ]);
         const [productsData, pricesData] = await Promise.all([
           productsRes.json(), pricesRes.json(),
