@@ -65,25 +65,40 @@ def gradient_text(text, font, gradient_hex, pad=20):
     out.putalpha(mask)
     return out
 
-# ─── Background (black + atmospheric glows) ────────────────────────────────
+# ─── Pure black background ────────────────────────────────────────────────
 img = Image.new('RGB', (W, H), '#000000')
 
-# Big glows in the 4 corners so coverage by keyboard/mouse doesn't kill the vibe.
-glows = [
-    (radial_blob(int(2600*DPI_MULT), '#ff4e00', '#ff0080'),                    (-700, -900)),
-    (radial_blob(int(2400*DPI_MULT), '#3a00ff', '#00d4ff'),                    (W - 1700, H - 1500)),
-    (radial_blob(int(1800*DPI_MULT), '#7b2fff', '#ff0080', alpha_max=140),     (W//2 - 900, H//2 - 900)),
-    (radial_blob(int(1900*DPI_MULT), '#ff6a00', '#7b2fff', alpha_max=160),     (W - 2400, -800)),
-    (radial_blob(int(1700*DPI_MULT), '#ff0080', '#3a00ff', alpha_max=130),     (-500, H - 1400)),
+# ─── Lava-lamp paint blobs (subtle, the site's easter-egg vibe) ───────────
+# Scattered blurred organic-shape colored blobs — low opacity so they read as
+# floating goo drops in the black, not a background wash.
+random.seed(7)
+blob_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+bd = ImageDraw.Draw(blob_layer)
+BLOB_COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff3b9a', '#ff4e00']
+blob_specs = [
+    # (x_frac, y_frac, size_factor, color_idx, alpha)
+    (0.10, 0.22, 1.0, 0, 120),
+    (0.18, 0.78, 1.3, 1, 105),
+    (0.80, 0.18, 1.1, 2, 115),
+    (0.88, 0.70, 0.9, 3, 100),
+    (0.35, 0.15, 0.7, 4, 95),
+    (0.65, 0.85, 0.8, 5, 90),
 ]
-for g, pos in glows:
-    img.paste(g, pos, g)
+for fx, fy, sf, ci, a in blob_specs:
+    rx = int(random.uniform(220, 340) * sf * DPI_MULT)
+    ry = int(rx * random.uniform(0.55, 0.85))    # oblong, not perfectly round
+    cx = int(fx * W)
+    cy = int(fy * H)
+    rgb = hex_rgb(BLOB_COLORS[ci])
+    bd.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=(*rgb, a))
+blob_layer = blob_layer.filter(ImageFilter.GaussianBlur(int(80 * DPI_MULT)))
+img.paste(blob_layer, (0, 0), blob_layer)
 
-# ─── Sparkle particle field (dense — lots of real estate) ──────────────────
+# ─── Sparkle particle field ────────────────────────────────────────────────
 random.seed(42)
 sparkles = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 sd = ImageDraw.Draw(sparkles)
-for _ in range(220):
+for _ in range(180):
     x = random.uniform(0, W)
     y = random.uniform(0, H)
     r = random.uniform(4, 11) * DPI_MULT
@@ -93,20 +108,6 @@ for _ in range(220):
     sd.ellipse((x-r, y-r, x+r, y+r), fill=(*rgb, 240))
 sparkles = sparkles.filter(ImageFilter.GaussianBlur(1.2))
 img.paste(sparkles, (0, 0), sparkles)
-
-# ─── Diagonal holofoil ribbons across the full width ────────────────────────
-shine = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-sd = ImageDraw.Draw(shine)
-ribbon_cols = [hex_rgb(c) for c in BRAND_GRADIENT]
-for i, color in enumerate(ribbon_cols):
-    x_off = int((600 + i * 180) * DPI_MULT)
-    band_w = int(200 * DPI_MULT)
-    sd.polygon([
-        (W, 0), (W, band_w),
-        (x_off + band_w, H), (x_off, H),
-    ], fill=(*color, 26))
-shine = shine.filter(ImageFilter.GaussianBlur(int(14 * DPI_MULT)))
-img.paste(shine, (0, 0), shine)
 
 # ─── Logo (centered, big enough to be the hero) ────────────────────────────
 logo = Image.open(LOGO_PATH).convert('RGBA')
