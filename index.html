@@ -45,7 +45,9 @@
       top: -100px; right: -200px;
       animation: blobDrift 11s ease-in-out infinite alternate-reverse;
     }
-    body { position: relative; }   /* positioning context for the absolute blobs */
+    /* Hero-blobs have negative left/right offsets; without overflow-x:hidden they cause horizontal
+       page overflow on mobile, which pushes the hamburger menu off-screen. */
+    html, body { position: relative; overflow-x: hidden; }
     @keyframes blobDrift {
       from { transform: translate(0,0) scale(1); }
       to   { transform: translate(40px,30px) scale(1.08); }
