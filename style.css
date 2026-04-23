@@ -488,25 +488,23 @@ button { font-family: inherit; }
 .footer-copy { max-width: var(--max-w); margin: 0 auto; font-size: 12px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 22px; }
 
 
-/* ── Paint splatter (click effect) ── */
-.paint-drop {
+/* ── Subtle click ring (matches logo glow vibe) ── */
+.click-ring {
   position: fixed;
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%);
-  animation: paintFly 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  mix-blend-mode: screen;
-  filter: blur(0.3px);
+  border: 1.5px solid rgba(255,106,0,0.7);
+  box-shadow:
+    0 0 18px rgba(255,106,0,0.35),
+    inset 0 0 10px rgba(255,106,0,0.18);
+  background: transparent;
+  animation: clickRingPulse 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-@keyframes paintFly {
-  0%   { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
-  65%  { opacity: 1; }
-  100% {
-    transform:
-      translate(calc(-50% + var(--dx, 0)), calc(-50% + var(--dy, 0)))
-      scale(1.5) rotate(var(--rot, 0deg));
-    opacity: 0;
-  }
+@keyframes clickRingPulse {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.22); }
 }
 
 /* ── Responsive ── */
