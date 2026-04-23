@@ -41,36 +41,40 @@ button { font-family: inherit; }
   background: rgba(6,6,8,0.82);
   backdrop-filter: blur(18px);
 }
-/* Subtle paint-colors flowing across the nav background */
+/* Paint sloshing across the nav — bigger blobs, higher opacity */
 .site-nav::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 400px 60px at 15% 50%, rgba(255,106,0,0.16), transparent 70%),
-    radial-gradient(ellipse 360px 60px at 45% 50%, rgba(255,0,128,0.12), transparent 70%),
-    radial-gradient(ellipse 380px 60px at 75% 50%, rgba(123,47,255,0.12), transparent 70%),
-    radial-gradient(ellipse 340px 60px at 100% 50%, rgba(0,212,255,0.10), transparent 70%);
-  background-size: 250% 100%;
+    radial-gradient(ellipse 600px 120px at 10% 50%, rgba(255,106,0,0.35), transparent 65%),
+    radial-gradient(ellipse 520px 110px at 40% 50%, rgba(255,0,128,0.30), transparent 65%),
+    radial-gradient(ellipse 560px 110px at 70% 50%, rgba(123,47,255,0.28), transparent 65%),
+    radial-gradient(ellipse 500px 100px at 100% 50%, rgba(0,212,255,0.25), transparent 65%);
+  background-size: 220% 100%;
   background-repeat: no-repeat;
-  animation: paintSlosh 14s ease-in-out infinite alternate;
+  animation: paintSlosh 10s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
+  filter: blur(14px) saturate(1.2);
 }
 /* Paint-drip stripe along the bottom edge */
 .site-nav::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 3px;
+  height: 4px;
   background: linear-gradient(
     90deg,
     #ff6a00 0%, #ff0080 20%, #7b2fff 40%, #00d4ff 60%,
     #ff0080 80%, #ff6a00 100%
   );
   background-size: 200% 100%;
-  animation: paintFlow 6s linear infinite;
-  box-shadow: 0 0 14px rgba(255,106,0,0.45), 0 0 6px rgba(255,0,128,0.35);
+  animation: paintFlow 5s linear infinite;
+  box-shadow:
+    0 0 18px rgba(255,106,0,0.7),
+    0 0 10px rgba(255,0,128,0.55),
+    0 0 6px rgba(123,47,255,0.45);
   z-index: 1;
 }
 @keyframes paintSlosh {
