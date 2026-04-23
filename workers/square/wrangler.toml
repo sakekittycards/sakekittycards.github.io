@@ -6,9 +6,9 @@ compatibility_date = "2025-10-01"
 # The access token is stored separately as a secret via:
 #   wrangler secret put SQUARE_ACCESS_TOKEN
 [vars]
-SQUARE_APPLICATION_ID = "sandbox-sq0idb-yd8K60RrJoZVHoyWjCJVxQ"
-SQUARE_LOCATION_ID    = "L609TAK1JWN13"
-SQUARE_ENV            = "sandbox"
+SQUARE_APPLICATION_ID = "sq0idp-vogl03F5qlpHSwThMKSjdQ"
+SQUARE_LOCATION_ID    = "LWJ5EY6TCBCGV"
+SQUARE_ENV            = "production"
 
 # When flipping to production:
 #   1. wrangler secret put SQUARE_ACCESS_TOKEN       (paste the PRODUCTION token)
