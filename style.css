@@ -201,7 +201,7 @@ button { font-family: inherit; }
   80%      { transform: rotate(2deg)  scale(1.03); }
 }
 .nav-logo span {
-  font-family: 'Bangers', cursive; font-size: 24px; letter-spacing: 0.04em;
+  font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 0.04em;
   background: linear-gradient(135deg,var(--orange),var(--pink),var(--purple));
   background-size: 200% 100%;
   animation: navGradient 6s ease infinite;
