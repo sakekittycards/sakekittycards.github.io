@@ -129,6 +129,48 @@
     .hero-logo-mask img {
       width: 280px; max-width: 68vw; display: block;
     }
+    /* Easter egg: 5 clicks on the logo → paint drips + slow hue cycle */
+    .hero-logo-wrap.logo-animated .hero-logo-mask img {
+      animation: logoHue 14s ease-in-out infinite;
+    }
+    @keyframes logoHue {
+      0%, 100% { filter: hue-rotate(0deg)   saturate(1);    }
+      50%      { filter: hue-rotate(-12deg) saturate(1.08); }
+    }
+    .paint-drips {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      height: 0; z-index: -1;
+      filter: url(#logo-goo);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .hero-logo-wrap.logo-animated .paint-drips { opacity: 1; }
+    .paint-drip {
+      position: absolute;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      top: -16px;
+      opacity: 0;
+    }
+    .hero-logo-wrap.logo-animated .paint-drip {
+      animation: paintDrop 6s ease-in infinite;
+    }
+    .paint-drip:nth-child(1) { left: 22%; background: #ff6a00; animation-delay: 0s;   animation-duration: 5.5s; }
+    .paint-drip:nth-child(2) { left: 48%; background: #ff0080; animation-delay: 2.2s; animation-duration: 6.8s; width: 28px; height: 28px; }
+    .paint-drip:nth-child(3) { left: 72%; background: #7b2fff; animation-delay: 4s;   animation-duration: 6s; }
+    .paint-drip:nth-child(4) { left: 36%; background: #ff3b9a; animation-delay: 3.1s; animation-duration: 7.2s; width: 18px; height: 18px; }
+    @keyframes paintDrop {
+      0%   { transform: translateY(-10px) scale(0.6); opacity: 0; }
+      12%  { transform: translateY(0)     scale(1);   opacity: 0.85; }
+      70%  { transform: translateY(70px)  scale(1)   scaleY(1.4); opacity: 0.7; }
+      100% { transform: translateY(120px) scale(0.2) scaleY(2);   opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-logo-wrap.logo-animated .paint-drip,
+      .hero-logo-wrap.logo-animated .hero-logo-mask img { animation: none; }
+    }
     /* Shine element */
     .hero-logo-mask::before {
       content: '';
@@ -284,12 +326,29 @@
         <span><strong>Work in progress</strong> — the site is under active construction. Play with the tools while we work out the kinks!</span>
       </div>
       <div class="hero-logo-outer">
-        <div class="hero-logo-wrap">
+        <div class="hero-logo-wrap" id="heroLogoWrap">
           <div class="hero-logo-mask">
             <img src="logo.png" alt="Sake Kitty Cards" />
           </div>
+          <div class="paint-drips" aria-hidden="true">
+            <span class="paint-drip"></span>
+            <span class="paint-drip"></span>
+            <span class="paint-drip"></span>
+            <span class="paint-drip"></span>
+          </div>
         </div>
       </div>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <filter id="logo-goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feColorMatrix in="blur" mode="matrix"
+              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 18 -7"
+              result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
+      </svg>
       <h1 class="hero-title">Collecting, Done Right.</h1>
       <p class="hero-tagline">Trusted singles, sealed product, and live event drops from a full-time vendor who loves the game as much as you do.</p>
       <div class="hero-ctas">
@@ -410,6 +469,21 @@
       };
     }
     for (let i = 0; i < 60; i++) particles.push(mkParticle(true));
+
+    // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle
+    (function() {
+      const wrap = document.getElementById('heroLogoWrap');
+      if (!wrap) return;
+      let count = 0;
+      wrap.addEventListener('click', () => {
+        count++;
+        if (count >= 5) {
+          wrap.classList.toggle('logo-animated');
+          count = 0;
+        }
+      });
+    })();
+
     function tick() {
       ctx.clearRect(0, 0, W, H);
       for (const p of particles) {
