@@ -171,6 +171,9 @@ const SK_CART_KEY        = 'sk_cart_v1';
 const SK_SHIP_FREE_OVER  = 35;
 const SK_SHIP_FLAT_FEE   = 5;
 const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
+const SK_VENMO_HANDLE    = 'sakekittycards';
+const SK_PAYPAL_HANDLE   = 'sakekittycards';
+const SK_WEB3FORMS_KEY   = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
 
 const skCartListeners = new Set();
 
@@ -394,14 +397,207 @@ window.SK = {
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
       <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
       <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
-      <button type="button" class="btn btn-primary cart-checkout" id="cartCheckout">Checkout with Square</button>
-      <p class="cart-ship-policy">Apple Pay, Google Pay, or card on the next page.</p>
+
+      <div class="cart-pay-options">
+        <button type="button" class="btn btn-primary cart-pay-btn" id="payWithSquare">
+          <span class="pay-label">Pay with Square</span>
+          <span class="pay-sub">Apple Pay · Google Pay · Card</span>
+        </button>
+        <div class="cart-pay-or"><span>or</span></div>
+        <div class="cart-pay-alt">
+          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithVenmo">
+            <span class="pay-icon venmo">V</span>
+            <span>Venmo</span>
+          </button>
+          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithPaypal">
+            <span class="pay-icon paypal">PP</span>
+            <span>PayPal</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="cart-ship-policy">Square handles shipping address automatically. Venmo / PayPal: we'll collect it in the next step.</p>
     `;
 
-    // Chunk 3 will wire this to the /checkout endpoint. For now, graceful placeholder.
-    document.getElementById('cartCheckout')?.addEventListener('click', () => {
-      alert('Checkout flow coming in the next update. Your cart is saved and ready.');
+    document.getElementById('payWithSquare')?.addEventListener('click', () => payWithSquare(cart, shipping));
+    document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total));
+    document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total));
+  }
+
+  // ─── Square: redirect to hosted checkout ──────────────────────────────────
+  async function payWithSquare(cart, shipping) {
+    const btn = document.getElementById('payWithSquare');
+    if (!btn) return;
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="pay-label">Connecting to Square…</span>';
+
+    try {
+      const res = await fetch(`${SK_WORKER_BASE}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(i => ({
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+          })),
+          shippingCost: shipping,
+          returnUrl: `${window.location.origin}/order-confirmation.html?from=square`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || 'Could not reach Square');
+      }
+      window.location.assign(data.url);
+    } catch (err) {
+      console.error('Square checkout failed:', err);
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      alert('Sorry — Square checkout is having trouble right now. Try Venmo or PayPal, or reach out on Instagram.');
+    }
+  }
+
+  // ─── Venmo / PayPal: show modal to collect customer + shipping info ──────
+  function openCustomerInfoModal(provider, cart, subtotal, shipping, total) {
+    const label = provider === 'venmo' ? 'Venmo' : 'PayPal';
+    const accent = provider === 'venmo' ? '#008cff' : '#003087';
+
+    const modal = document.createElement('div');
+    modal.className = 'pay-modal';
+    modal.innerHTML = `
+      <div class="pay-modal-panel">
+        <button type="button" class="pay-modal-close" aria-label="Close">×</button>
+        <h3>Pay with ${label}</h3>
+        <p class="pay-modal-sub">We'll email ourselves your order details, then open ${label} with the total pre-filled. You'll complete payment in ${label} and we ship within 48 hours of receiving it.</p>
+
+        <form id="payInfoForm" class="pay-modal-form">
+          <label>Your name *<input type="text" name="name" required autocomplete="name" /></label>
+          <label>Email *<input type="email" name="email" required autocomplete="email" /></label>
+          <label>Shipping address *
+            <textarea name="address" rows="3" required autocomplete="shipping street-address" placeholder="Street, city, state, ZIP"></textarea>
+          </label>
+          <label>Phone (optional)<input type="tel" name="phone" autocomplete="tel" /></label>
+
+          <div class="pay-modal-totals">
+            <div><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+            <div><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+            <div class="grand"><span>Total</span><span>${fmt(total)}</span></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary pay-modal-submit" style="background:${accent}">
+            Continue to ${label}
+          </button>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    requestAnimationFrame(() => modal.classList.add('open'));
+
+    const closeModal = () => {
+      modal.classList.remove('open');
+      setTimeout(() => modal.remove(), 250);
+    };
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    modal.querySelector('.pay-modal-close').addEventListener('click', closeModal);
+
+    modal.querySelector('#payInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const fd = new FormData(form);
+      const customer = {
+        name:    (fd.get('name')    || '').toString().trim(),
+        email:   (fd.get('email')   || '').toString().trim(),
+        address: (fd.get('address') || '').toString().trim(),
+        phone:   (fd.get('phone')   || '').toString().trim(),
+      };
+
+      const submitBtn = form.querySelector('.pay-modal-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending order…';
+
+      // Build order summary for email
+      const itemLines = cart.map(i =>
+        `${i.quantity} × ${i.name} @ ${fmt(i.price)} = ${fmt(i.price * i.quantity)}`
+      ).join('\n');
+      const shortNote = cart.length === 1
+        ? `${cart[0].quantity} × ${cart[0].name}`
+        : `${cart.length} items`;
+
+      const payload = {
+        access_key:  SK_WEB3FORMS_KEY,
+        subject:     `Online Order (${label}) — ${customer.name} — ${fmt(total)}`,
+        from_name:   'Sake Kitty Online Order',
+        replyto:     customer.email,
+        Name:        customer.name,
+        Email:       customer.email,
+        Phone:       customer.phone || '(not provided)',
+        'Shipping Address': customer.address,
+        'Payment Method':   label,
+        'Order Items':      itemLines,
+        Subtotal:    fmt(subtotal),
+        Shipping:    shipping === 0 ? 'Free' : fmt(shipping),
+        Total:       fmt(total),
+        _note:       'Payment is pending on customer side — they have been redirected to ' + label + '.',
+      };
+
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) throw new Error(json.message || 'Email submission failed');
+
+        // Open the Venmo / PayPal link in a new tab
+        const paymentUrl = provider === 'venmo'
+          ? buildVenmoUrl(total, shortNote)
+          : buildPaypalUrl(total);
+        window.open(paymentUrl, '_blank', 'noopener');
+
+        // Clear cart + show success state in the drawer
+        skClearCart();
+        closeModal();
+        showDrawerOrderSuccess(label, customer.email);
+      } catch (err) {
+        console.error('Order submission failed:', err);
+        submitBtn.disabled = false;
+        submitBtn.textContent = `Continue to ${label}`;
+        alert('Sorry — we could not send your order email. Please try again or reach out on Instagram @sakekittycards.');
+      }
     });
+  }
+
+  function buildVenmoUrl(amount, note) {
+    const params = new URLSearchParams({
+      txn: 'pay',
+      amount: amount.toFixed(2),
+      note: `Sake Kitty order: ${note}`.slice(0, 280),
+    });
+    return `https://venmo.com/${SK_VENMO_HANDLE}?${params}`;
+  }
+
+  function buildPaypalUrl(amount) {
+    return `https://www.paypal.me/${SK_PAYPAL_HANDLE}/${amount.toFixed(2)}`;
+  }
+
+  function showDrawerOrderSuccess(provider, email) {
+    const body   = document.getElementById('cartBody');
+    const footer = document.getElementById('cartFooter');
+    if (!body || !footer) return;
+    body.innerHTML = `
+      <div class="cart-order-success">
+        <div class="cart-order-check">✓</div>
+        <h4>Order sent!</h4>
+        <p>Your order details were emailed to us. A ${provider} payment page opened in a new tab — complete the payment there and we'll ship within 48 hours.</p>
+        <p class="cart-order-email">Confirmation going to <strong>${email}</strong></p>
+      </div>
+    `;
+    footer.innerHTML = `
+      <a href="shop.html" class="btn btn-outline" style="width:100%;justify-content:center">Keep Shopping</a>
+    `;
   }
 
   skCartListeners.add(() => {
