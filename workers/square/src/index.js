@@ -55,6 +55,14 @@ export default {
         return await createCheckout(body, base, squareHeaders, env, url);
       }
 
+      // Dev-only seeder: creates a test product. Disabled in production.
+      if (path === '/dev/seed' && request.method === 'GET') {
+        if (env.SQUARE_ENV !== 'sandbox') {
+          return json({ error: 'seed endpoint disabled outside sandbox' }, 403);
+        }
+        return await seedTestItem(base, squareHeaders);
+      }
+
       return json({ error: 'not found', path }, 404);
     } catch (err) {
       return json({ error: err.message || String(err) }, 500);
@@ -152,6 +160,43 @@ async function createCheckout(body, base, headers, env, reqUrl) {
     id:        data.payment_link?.id,
     orderId:   data.payment_link?.order_id,
     createdAt: data.payment_link?.created_at,
+  });
+}
+
+async function seedTestItem(base, headers) {
+  const payload = {
+    idempotency_key: crypto.randomUUID(),
+    object: {
+      type: 'ITEM',
+      id: '#pikachu_plush',
+      item_data: {
+        name: 'Pikachu Plush',
+        description: 'Test plush for cart development — remove before production.',
+        variations: [{
+          type: 'ITEM_VARIATION',
+          id: '#pikachu_plush_regular',
+          item_variation_data: {
+            item_id: '#pikachu_plush',
+            name: 'Regular',
+            pricing_type: 'FIXED_PRICING',
+            price_money: { amount: 2500, currency: 'USD' },
+          },
+        }],
+      },
+    },
+  };
+  const res  = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST',
+    headers,
+    body:   JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) return json({ error: 'square_api_error', detail: data }, res.status);
+  return json({
+    ok:        true,
+    itemId:    data.catalog_object?.id,
+    itemName:  data.catalog_object?.item_data?.name,
+    message:   'test product created — hit /items to verify',
   });
 }
 
