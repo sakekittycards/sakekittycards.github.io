@@ -162,3 +162,252 @@ function spawnSingleDrip() {
   container.appendChild(blob);
   setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Cart state + drawer UI
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SK_CART_KEY        = 'sk_cart_v1';
+const SK_SHIP_FREE_OVER  = 35;
+const SK_SHIP_FLAT_FEE   = 5;
+const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
+
+const skCartListeners = new Set();
+
+function skGetCart() {
+  try {
+    const raw = localStorage.getItem(SK_CART_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function skSaveCart(cart) {
+  try { localStorage.setItem(SK_CART_KEY, JSON.stringify(cart)); } catch {}
+  skCartListeners.forEach(fn => { try { fn(cart); } catch {} });
+}
+function skAddToCart(product) {
+  if (!product || !product.id) return;
+  const cart = skGetCart();
+  const existing = cart.find(item => item.id === product.id);
+  if (existing) {
+    existing.quantity = Math.min(99, existing.quantity + 1);
+  } else {
+    cart.push({
+      id:          product.id,
+      variationId: product.variationId || product.id,
+      name:        String(product.name || 'Item'),
+      price:       Number(product.price) || 0,
+      imageUrl:    product.imageUrl || null,
+      quantity:    1,
+    });
+  }
+  skSaveCart(cart);
+}
+function skRemoveFromCart(id) {
+  skSaveCart(skGetCart().filter(i => i.id !== id));
+}
+function skUpdateQuantity(id, qty) {
+  const cart = skGetCart();
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  if (qty <= 0) {
+    skSaveCart(cart.filter(i => i.id !== id));
+  } else {
+    item.quantity = Math.min(99, qty);
+    skSaveCart(cart);
+  }
+}
+function skClearCart() { skSaveCart([]); }
+function skCartCount() {
+  return skGetCart().reduce((s, i) => s + i.quantity, 0);
+}
+function skCartSubtotal() {
+  return skGetCart().reduce((s, i) => s + (i.price * i.quantity), 0);
+}
+function skShippingCost(subtotal) {
+  if (subtotal <= 0) return 0;
+  return subtotal >= SK_SHIP_FREE_OVER ? 0 : SK_SHIP_FLAT_FEE;
+}
+
+// Public API for shop pages
+window.SK = {
+  getCart:        skGetCart,
+  addToCart:      skAddToCart,
+  removeFromCart: skRemoveFromCart,
+  updateQuantity: skUpdateQuantity,
+  clearCart:      skClearCart,
+  getCount:       skCartCount,
+  getSubtotal:    skCartSubtotal,
+  getShipping:    skShippingCost,
+  WORKER_BASE:    SK_WORKER_BASE,
+  onCartChange(fn) { skCartListeners.add(fn); return () => skCartListeners.delete(fn); },
+  openDrawer()     { document.getElementById('navCart')?.click(); },
+};
+
+// Inject cart icon + drawer into every page
+(function mountCart() {
+  const navInner = document.querySelector('.site-nav .nav-inner');
+  if (!navInner) return;
+
+  // 1) Cart icon — inserted after the logo so CSS can push it right
+  const navLogo = navInner.querySelector('.nav-logo');
+  if (navLogo && !navInner.querySelector('.nav-cart')) {
+    const cartBtn = document.createElement('button');
+    cartBtn.type = 'button';
+    cartBtn.className = 'nav-cart';
+    cartBtn.id = 'navCart';
+    cartBtn.setAttribute('aria-label', 'Open cart');
+    cartBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5.5 5.5 3 5V3h2.7l1 4h12.9l-2.6 8H8.4l-.3-1.25L6.3 5.5zM9 21a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8 0a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+      </svg>
+      <span class="nav-cart-badge" id="navCartBadge" hidden></span>
+    `;
+    navLogo.after(cartBtn);
+  }
+
+  // 2) Drawer + backdrop at end of body
+  if (!document.getElementById('cartDrawer')) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'cart-drawer-backdrop';
+    backdrop.id = 'cartBackdrop';
+    document.body.appendChild(backdrop);
+
+    const drawer = document.createElement('aside');
+    drawer.className = 'cart-drawer';
+    drawer.id = 'cartDrawer';
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-labelledby', 'cartTitle');
+    drawer.setAttribute('aria-hidden', 'true');
+    drawer.innerHTML = `
+      <div class="cart-drawer-header">
+        <h3 id="cartTitle">Cart</h3>
+        <button type="button" class="cart-drawer-close" id="cartClose" aria-label="Close cart">×</button>
+      </div>
+      <div class="cart-drawer-body" id="cartBody"></div>
+      <div class="cart-drawer-footer" id="cartFooter"></div>
+    `;
+    document.body.appendChild(drawer);
+  }
+
+  const cartBtn   = document.getElementById('navCart');
+  const drawer    = document.getElementById('cartDrawer');
+  const backdrop  = document.getElementById('cartBackdrop');
+  const closeBtn  = document.getElementById('cartClose');
+
+  function open() {
+    drawer.classList.add('open');
+    backdrop.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cart-open');
+    renderDrawer();
+  }
+  function close() {
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('cart-open');
+  }
+  cartBtn?.addEventListener('click', open);
+  backdrop?.addEventListener('click', close);
+  closeBtn?.addEventListener('click', close);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && drawer.classList.contains('open')) close();
+  });
+
+  function fmt(n) { return `$${(Math.round(n * 100) / 100).toFixed(2)}`; }
+
+  function renderBadge() {
+    const badge = document.getElementById('navCartBadge');
+    if (!badge) return;
+    const count = skCartCount();
+    badge.textContent = count > 99 ? '99+' : String(count);
+    badge.hidden = count === 0;
+  }
+
+  function renderDrawer() {
+    const body   = document.getElementById('cartBody');
+    const footer = document.getElementById('cartFooter');
+    if (!body || !footer) return;
+
+    const cart = skGetCart();
+
+    if (cart.length === 0) {
+      body.innerHTML = `
+        <div class="cart-empty">
+          <div class="cart-empty-icon">🛒</div>
+          <h4>Your cart is empty</h4>
+          <p>Head to the shop to add plushies, cards, and more.</p>
+          <a href="shop.html" class="btn btn-primary btn-sm">Shop Now</a>
+        </div>
+      `;
+      footer.innerHTML = '';
+      return;
+    }
+
+    body.innerHTML = cart.map(item => {
+      const thumb = item.imageUrl
+        ? `<img src="${item.imageUrl}" alt="" class="cart-item-img" onerror="this.style.visibility='hidden'" />`
+        : `<div class="cart-item-img placeholder">📦</div>`;
+      return `
+        <div class="cart-item" data-id="${item.id}">
+          ${thumb}
+          <div class="cart-item-info">
+            <h5>${item.name}</h5>
+            <div class="cart-item-price">${fmt(item.price)} each</div>
+            <div class="cart-item-controls">
+              <div class="cart-qty-group">
+                <button type="button" class="cart-qty-btn" data-action="dec" aria-label="Decrease">−</button>
+                <span class="cart-qty-num">${item.quantity}</span>
+                <button type="button" class="cart-qty-btn" data-action="inc" aria-label="Increase">+</button>
+              </div>
+              <button type="button" class="cart-item-remove" data-action="remove">Remove</button>
+            </div>
+          </div>
+          <div class="cart-item-total">${fmt(item.price * item.quantity)}</div>
+        </div>
+      `;
+    }).join('');
+
+    body.querySelectorAll('.cart-item').forEach(el => {
+      const id = el.dataset.id;
+      el.querySelector('[data-action="dec"]')?.addEventListener('click', () => {
+        const item = skGetCart().find(i => i.id === id);
+        if (item) skUpdateQuantity(id, item.quantity - 1);
+      });
+      el.querySelector('[data-action="inc"]')?.addEventListener('click', () => {
+        const item = skGetCart().find(i => i.id === id);
+        if (item) skUpdateQuantity(id, item.quantity + 1);
+      });
+      el.querySelector('[data-action="remove"]')?.addEventListener('click', () => skRemoveFromCart(id));
+    });
+
+    const subtotal  = skCartSubtotal();
+    const shipping  = skShippingCost(subtotal);
+    const total     = subtotal + shipping;
+    const remaining = SK_SHIP_FREE_OVER - subtotal;
+
+    footer.innerHTML = `
+      ${shipping > 0
+        ? `<div class="cart-ship-note">Add <strong>${fmt(Math.max(0, remaining))}</strong> more for free shipping</div>`
+        : `<div class="cart-ship-note free">✓ You've unlocked free shipping</div>`}
+      <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+      <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+      <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
+      <button type="button" class="btn btn-primary cart-checkout" id="cartCheckout">Checkout with Square</button>
+      <p class="cart-ship-policy">Apple Pay, Google Pay, or card on the next page.</p>
+    `;
+
+    // Chunk 3 will wire this to the /checkout endpoint. For now, graceful placeholder.
+    document.getElementById('cartCheckout')?.addEventListener('click', () => {
+      alert('Checkout flow coming in the next update. Your cart is saved and ready.');
+    });
+  }
+
+  skCartListeners.add(() => {
+    renderBadge();
+    if (drawer.classList.contains('open')) renderDrawer();
+  });
+
+  renderBadge();
+})();
