@@ -121,3 +121,18 @@ document.querySelector('.nav-logo')?.addEventListener('click', (e) => {
   const rect = e.currentTarget.getBoundingClientRect();
   paintSplatter(rect.left + rect.width / 2, rect.top + rect.height / 2);
 });
+
+// Clicking the empty space of the nav = popping a lava blob
+document.querySelector('.site-nav')?.addEventListener('click', (e) => {
+  // Don't double-fire for link/button/logo clicks (they have their own splatter)
+  if (e.target.closest('a, button')) return;
+  paintSplatter(e.clientX, e.clientY);
+});
+// Make the nav feel interactive — pointer changes when hovering an open area
+(function() {
+  const nav = document.querySelector('.site-nav');
+  if (!nav) return;
+  nav.style.cursor = 'pointer';
+  // Revert cursor on links/buttons so they still feel clickable
+  nav.querySelectorAll('a, button').forEach(el => el.style.cursor = '');
+})();
