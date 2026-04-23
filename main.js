@@ -1,3 +1,40 @@
+// ── Lava-lamp nav effect ──
+// Inject the SVG gooey filter once, and populate the nav with colored blobs.
+(function injectLavaLamp() {
+  // SVG filter — creates the liquid-merging effect between blurred shapes
+  if (!document.getElementById('nav-goo')) {
+    const svgNs = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNs, 'svg');
+    svg.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = `
+      <defs>
+        <filter id="nav-goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur" />
+          <feColorMatrix in="blur" mode="matrix"
+            values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 22 -10"
+            result="goo" />
+          <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+        </filter>
+      </defs>
+    `;
+    document.body.prepend(svg);
+  }
+
+  // Inject blob container into the nav
+  const nav = document.querySelector('.site-nav');
+  if (nav && !nav.querySelector('.nav-lava')) {
+    const lava = document.createElement('div');
+    lava.className = 'nav-lava';
+    for (let i = 0; i < 5; i++) {
+      const blob = document.createElement('div');
+      blob.className = 'nav-lava-blob';
+      lava.appendChild(blob);
+    }
+    nav.insertBefore(lava, nav.firstChild);
+  }
+})();
+
 // Nav hamburger
 const toggle = document.getElementById('navToggle');
 const links  = document.getElementById('navLinks');

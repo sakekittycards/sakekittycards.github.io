@@ -41,22 +41,80 @@ button { font-family: inherit; }
   background: rgba(6,6,8,0.82);
   backdrop-filter: blur(18px);
 }
-/* Paint sloshing across the nav — bigger blobs, higher opacity */
-.site-nav::before {
-  content: '';
+/* Lava-lamp paint blob container — gooey SVG filter creates the merging liquid effect */
+.nav-lava {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 600px 120px at 10% 50%, rgba(255,106,0,0.35), transparent 65%),
-    radial-gradient(ellipse 520px 110px at 40% 50%, rgba(255,0,128,0.30), transparent 65%),
-    radial-gradient(ellipse 560px 110px at 70% 50%, rgba(123,47,255,0.28), transparent 65%),
-    radial-gradient(ellipse 500px 100px at 100% 50%, rgba(0,212,255,0.25), transparent 65%);
-  background-size: 220% 100%;
-  background-repeat: no-repeat;
-  animation: paintSlosh 10s ease-in-out infinite alternate;
+  overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  filter: blur(14px) saturate(1.2);
+  filter: url(#nav-goo);
+  opacity: 0.85;
+}
+.nav-lava-blob {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+/* 5 blobs, each on a unique organic path + scale pulse */
+.nav-lava-blob:nth-child(1) {
+  width: 150px; height: 150px;
+  background: #ff6a00;
+  top: -45%; left: 3%;
+  animation: lava1 22s ease-in-out infinite;
+}
+.nav-lava-blob:nth-child(2) {
+  width: 130px; height: 130px;
+  background: #ff0080;
+  top: -20%; left: 22%;
+  animation: lava2 26s ease-in-out infinite;
+  animation-delay: -5s;
+}
+.nav-lava-blob:nth-child(3) {
+  width: 160px; height: 160px;
+  background: #7b2fff;
+  top: -40%; left: 45%;
+  animation: lava3 28s ease-in-out infinite;
+  animation-delay: -12s;
+}
+.nav-lava-blob:nth-child(4) {
+  width: 140px; height: 140px;
+  background: #00d4ff;
+  top: -25%; left: 68%;
+  animation: lava4 24s ease-in-out infinite;
+  animation-delay: -8s;
+}
+.nav-lava-blob:nth-child(5) {
+  width: 130px; height: 130px;
+  background: #ff4e00;
+  top: -35%; left: 88%;
+  animation: lava5 25s ease-in-out infinite;
+  animation-delay: -3s;
+}
+@keyframes lava1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  30%      { transform: translate(90px, 30px) scale(1.3); }
+  60%      { transform: translate(-40px, 10px) scale(0.8); }
+}
+@keyframes lava2 {
+  0%, 100% { transform: translate(0, 0) scale(1.1); }
+  40%      { transform: translate(130px, -20px) scale(0.9); }
+  70%      { transform: translate(-50px, 30px) scale(1.3); }
+}
+@keyframes lava3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25%      { transform: translate(-70px, 20px) scale(1.2); }
+  50%      { transform: translate(80px, -15px) scale(0.85); }
+  75%      { transform: translate(30px, 25px) scale(1.15); }
+}
+@keyframes lava4 {
+  0%, 100% { transform: translate(0, 0) scale(0.95); }
+  35%      { transform: translate(-100px, 15px) scale(1.25); }
+  70%      { transform: translate(60px, -10px) scale(0.9); }
+}
+@keyframes lava5 {
+  0%, 100% { transform: translate(0, 0) scale(1.05); }
+  50%      { transform: translate(-150px, 25px) scale(1.3); }
 }
 /* Paint-drip stripe along the bottom edge */
 .site-nav::after {
