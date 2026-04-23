@@ -97,32 +97,49 @@ async function listItems(base, headers, locationId) {
 
   const catalogItems = objects.filter(o => o.type === 'ITEM');
 
-  // Fetch real inventory counts for all variations.
-  // Items with no count record are untracked (e.g. Printful POD) — treat as in-stock.
-  const variationIds = catalogItems.map(o => o.item_data?.variations?.[0]?.id).filter(Boolean);
-  const stockCounts  = await fetchStockCounts(base, headers, variationIds, locationId);
+  // Collect every variation ID across all items for one batch inventory call.
+  const allVariationIds = catalogItems
+    .flatMap(o => (o.item_data?.variations || []).map(v => v.id))
+    .filter(Boolean);
+  const stockCounts = await fetchStockCounts(base, headers, allVariationIds, locationId);
 
   const items = catalogItems
     .map(o => {
-      const variation   = o.item_data?.variations?.[0]?.item_variation_data;
-      const variationId = o.item_data?.variations?.[0]?.id;
-      const amountCents = variation?.price_money?.amount;
-      // Untracked items (not in stockCounts) are assumed in-stock (POD, etc.).
-      // Tracked items are in-stock only if quantity > 0.
-      const inStock = !(variationId in stockCounts) || stockCounts[variationId] > 0;
+      const imageUrl = images[o.item_data?.image_ids?.[0]] || null;
+
+      const variations = (o.item_data?.variations || [])
+        .map(v => {
+          const vd    = v.item_variation_data;
+          const cents = vd?.price_money?.amount;
+          if (cents == null) return null;
+          return {
+            id:      v.id,
+            name:    vd?.name || '',
+            price:   cents / 100,
+            inStock: !(v.id in stockCounts) || stockCounts[v.id] > 0,
+          };
+        })
+        .filter(Boolean);
+
+      if (!variations.length) return null;
+
+      // Top-level fields point to the first in-stock variation for backward compat.
+      const primary = variations.find(v => v.inStock) || variations[0];
+
       return {
         id:          o.id,
-        variationId,
+        variationId: primary.id,
         name:        o.item_data?.name || '',
         description: o.item_data?.description || '',
-        price:       amountCents != null ? amountCents / 100 : null,
-        currency:    variation?.price_money?.currency || 'USD',
-        imageUrl:    images[o.item_data?.image_ids?.[0]] || null,
+        price:       primary.price,
+        currency:    o.item_data?.variations?.[0]?.item_variation_data?.price_money?.currency || 'USD',
+        imageUrl,
         categoryId:  o.item_data?.category_id || null,
-        inStock,
+        inStock:     variations.some(v => v.inStock),
+        variations,
       };
     })
-    .filter(item => item.price != null);  // hide items with no price
+    .filter(Boolean);
 
   return json({ items });
 }
