@@ -83,11 +83,16 @@
     .service-addon-left { flex:1; }
     .service-addon-price { flex-shrink:0; text-align:right; padding-top:4px; }
 
+    .prep-steps { grid-template-columns:repeat(5,1fr); }
+
+    @media (max-width:900px) { .prep-steps { grid-template-columns:repeat(3,1fr); } }
     @media (max-width:768px) {
       .gp-layout { grid-template-columns:1fr; }
+      .prep-steps { grid-template-columns:repeat(2,1fr); }
       .service-addon { flex-direction:column; gap:16px; padding:22px 20px; }
       .service-addon-price { text-align:left; }
     }
+    @media (max-width:480px) { .prep-steps { grid-template-columns:1fr; } }
 
     /* ── Conditioning standards modal ── */
     .cond-modal { display:none; position:fixed; inset:0; z-index:1000; }
@@ -182,10 +187,12 @@
         <div class="service-addon-left">
           <div class="service-addon-badge">Optional Add-On</div>
           <div class="service-name" style="margin-bottom:4px">Card Prep</div>
-          <div class="service-tagline" style="margin-bottom:0">We physically prepare the card for its best shot at the grade. Can be stacked with either screen tier or ordered on its own.</div>
+          <div class="service-tagline" style="margin-bottom:0">We prep the card and submit it directly to whichever grading company you choose. You get it back once it's graded.</div>
           <ul class="service-includes" style="margin-top:14px">
             <li>Light surface cleaning with card-safe materials</li>
-            <li>Proper sleeving and protective packaging for submission</li>
+            <li>Proper sleeving and submission packaging</li>
+            <li>We handle the grading submission on your behalf</li>
+            <li>Card returned to you after the grading company sends it back</li>
           </ul>
         </div>
         <div class="service-addon-price">
@@ -201,7 +208,7 @@
         <div class="combine-box-icon">💡</div>
         <div>
           <h3>Stack Your Services</h3>
-          <p>Pair <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for the full package — we evaluate the card, mark any issues, prep it for submission, and send it back ready to go. Just check both options when you build your list below.</p>
+          <p>Pair <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for the full package — we evaluate the card, mark any issues, prep it, and submit it directly to your grading company. You get it back once it's graded. Just check both options when you build your list below.</p>
         </div>
       </div>
     </div>
@@ -216,23 +223,28 @@
       <div class="prep-steps">
         <div class="prep-step">
           <div class="prep-step-num">1</div>
-          <h4>Build Your List</h4>
-          <p>Use the form below to search each card, pick Standard or Detailed screening, and check the Prep box if you want cleaning too.</p>
+          <h4>Submit Your List</h4>
+          <p>Use the form below to search each card, pick your service, and send us your request.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">2</div>
-          <h4>Send Us Your Cards</h4>
-          <p>Mail them in or hand them off at an event. We'll confirm receipt and send payment instructions.</p>
+          <h4>We Review & Approve</h4>
+          <p>We'll confirm we can take your submission and follow up with next steps. We sometimes get bottlenecked, so approval comes first.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">3</div>
-          <h4>We Evaluate Within 2 Days</h4>
-          <p>Every card gets reviewed against current grading standards for PSA, CGC, and Beckett.</p>
+          <h4>Send Us Your Cards</h4>
+          <p>Once approved, mail them in or hand them off at an event. We'll confirm receipt and send a payment link.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">4</div>
-          <h4>You Get Your Results</h4>
-          <p>Pass/fail by email. Detailed tier includes photos and notes on every fail. Prepped cards ship back submission-ready.</p>
+          <h4>We Evaluate</h4>
+          <p>Every card gets reviewed against current grading standards for PSA, CGC, and Beckett within 2 business days.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">5</div>
+          <h4>Results & Return</h4>
+          <p>Screening results sent by email. Card Prep submissions go directly to the grading company — you get your cards back once they're graded.</p>
         </div>
       </div>
     </div>
