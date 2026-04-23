@@ -171,6 +171,39 @@
       .hero-logo-wrap.logo-animated .paint-drip,
       .hero-logo-wrap.logo-animated .hero-logo-mask img { animation: none; }
     }
+
+    /* One-shot aura burst — fires on easter-egg trigger, expands from center to cover the page and recedes */
+    .aura-burst {
+      position: fixed;
+      top: 50%; left: 50%;
+      width: 160vmax; height: 160vmax;
+      margin: -80vmax 0 0 -80vmax;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(255, 106,   0, 0.55) 0%,
+        rgba(255,   0, 128, 0.42) 22%,
+        rgba(123,  47, 255, 0.30) 48%,
+        rgba(  0, 212, 255, 0.18) 72%,
+        transparent               92%);
+      filter: blur(30px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+      transform: scale(0.05);
+      mix-blend-mode: screen;
+    }
+    .aura-burst.burst {
+      animation: auraBurst 2.4s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    @keyframes auraBurst {
+      0%   { transform: scale(0.05); opacity: 0;    }
+      18%  { opacity: 1;              }
+      50%  { transform: scale(1);    opacity: 0.85; }
+      100% { transform: scale(0.05); opacity: 0;    }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .aura-burst.burst { animation: none; }
+    }
     /* Shine element */
     .hero-logo-mask::before {
       content: '';
@@ -470,16 +503,25 @@
     }
     for (let i = 0; i < 60; i++) particles.push(mkParticle(true));
 
-    // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle
+    // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle,
+    // and fires a one-shot aura burst that expands from center and recedes.
     (function() {
       const wrap = document.getElementById('heroLogoWrap');
       if (!wrap) return;
+      const burst = document.createElement('div');
+      burst.className = 'aura-burst';
+      document.body.appendChild(burst);
+      burst.addEventListener('animationend', () => burst.classList.remove('burst'));
+
       let count = 0;
       wrap.addEventListener('click', () => {
         count++;
         if (count >= 5) {
           wrap.classList.toggle('logo-animated');
           count = 0;
+          burst.classList.remove('burst');
+          void burst.offsetWidth;         // force reflow so the animation can restart
+          burst.classList.add('burst');
         }
       });
     })();

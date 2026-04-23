@@ -17,7 +17,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
 
 # ─── Config ────────────────────────────────────────────────────────────────
 CANVAS      = 640            # output resolution (square)
-LOOP_SEC    = 8              # loop length
+LOOP_SEC    = 24             # loop length
 FPS         = 30
 LOGO_BASE   = 440            # rendered logo size (leaves room for particles)
 NUM_PARTS   = 40             # particle count (home page uses 60 across a wide viewport)
