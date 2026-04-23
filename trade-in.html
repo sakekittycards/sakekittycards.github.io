@@ -589,7 +589,10 @@
 
           <div class="ti-sealed-form" id="gradedForm">
             <div class="ti-sealed-form-title">Add Graded Card</div>
-            <input type="text" class="ti-input" id="gradedName" placeholder="Card name (e.g. Charizard Base Set Shadowless Holo)" />
+            <div class="ti-graded-search" style="position:relative;margin-bottom:12px">
+              <input type="text" class="ti-input" id="gradedName" placeholder="Card name (e.g. Charizard Base Set Holo)" autocomplete="off" style="margin:0" />
+              <div class="ti-results" id="gradedResults"></div>
+            </div>
             <div class="ti-sealed-form-row">
               <div class="ti-cond" style="flex-shrink:0">
                 <button type="button" class="ti-cond-btn" id="gradedGradeBtn">PSA 10<span class="ti-cond-arrow">▼</span></button>
@@ -1489,7 +1492,8 @@
 
     // Close search results + condition menus when clicking outside
     document.addEventListener('click', e => {
-      if (!e.target.closest('.ti-search-wrap')) resultsEl.classList.remove('open');
+      if (!e.target.closest('.ti-search-wrap'))   resultsEl.classList.remove('open');
+      if (!e.target.closest('.ti-graded-search')) gradedResults?.classList.remove('open');
       if (!e.target.closest('.ti-cond')) {
         document.querySelectorAll('.ti-cond-menu.open').forEach(m => m.classList.remove('open'));
         document.querySelectorAll('.ti-cond-btn.open').forEach(b => b.classList.remove('open'));
@@ -1516,6 +1520,70 @@
       gradedForm.classList.toggle('open');
       if (gradedForm.classList.contains('open')) gradedName.focus();
     });
+
+    // Graded card name — autocomplete suggestions from pokemontcg.io, same source as the main search.
+    const gradedResults = document.getElementById('gradedResults');
+    let gradedSearchTimeout;
+    let selectedGradedCard = null;   // populated when user picks a suggestion
+
+    const escG = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    gradedName.addEventListener('input', e => {
+      clearTimeout(gradedSearchTimeout);
+      selectedGradedCard = null;    // freetyping invalidates any prior selection
+      const v = e.target.value;
+      if (v.trim().length < 2) { gradedResults.classList.remove('open'); return; }
+      gradedSearchTimeout = setTimeout(() => searchGradedSuggestions(v), 300);
+    });
+
+    async function searchGradedSuggestions(query) {
+      const tokens = query.trim().toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      if (!tokens.length) { gradedResults.classList.remove('open'); return; }
+      const lucene = buildQuery(tokens);
+      if (!lucene) { gradedResults.classList.remove('open'); return; }
+
+      gradedResults.innerHTML = '<div class="ti-status">Searching…</div>';
+      gradedResults.classList.add('open');
+      try {
+        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=10&orderBy=-set.releaseDate`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.status);
+        const data  = await res.json();
+        const items = data.data || [];
+        renderGradedSuggestions(items);
+      } catch {
+        gradedResults.innerHTML = '<div class="ti-status">Couldn\'t load suggestions — just type the card name manually.</div>';
+      }
+    }
+
+    function renderGradedSuggestions(items) {
+      if (!items.length) {
+        gradedResults.innerHTML = '<div class="ti-status">No matches found — type the name manually and we\'ll verify on intake.</div>';
+        return;
+      }
+      gradedResults.innerHTML = items.map(c => `
+        <button type="button" class="ti-result" data-card-id="${escG(c.id)}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 10px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;color:inherit">
+          <img src="${escG(c.images?.small || '')}" alt="" style="width:36px;height:50px;object-fit:cover;border-radius:3px;flex-shrink:0;background:rgba(255,255,255,0.05)" onerror="this.style.visibility='hidden'" />
+          <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escG(c.name)}</div>
+            <div style="font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escG(c.set?.name || '')}${c.number ? ` · #${escG(c.number)}` : ''}</div>
+          </div>
+        </button>
+      `).join('');
+
+      gradedResults.querySelectorAll('.ti-result').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.cardId;
+          const card = items.find(c => c.id === id);
+          if (!card) return;
+          selectedGradedCard = card;
+          // Display a clean summary string; keep full data in selectedGradedCard for the add step
+          gradedName.value = `${card.name} · ${card.set?.name || ''}${card.number ? ` · #${card.number}` : ''}`;
+          gradedResults.classList.remove('open');
+          gradedValue.focus();
+        });
+      });
+    }
 
     // eBay sold-listings quick-lookup: public, no login needed, reference most collectors trust.
     const gradedLookupBtn = document.getElementById('gradedLookupBtn');
@@ -1554,18 +1622,21 @@
       const val  = parseFloat(gradedValue.value);
       if (!name) { alert('Please enter a card name.'); gradedName.focus(); return; }
       if (isNaN(val) || val <= 0) { alert('Please enter an estimated value.'); gradedValue.focus(); return; }
+      const picked = selectedGradedCard;
       cards.push({
         id: 'graded_' + Date.now(),
         type: 'graded',
-        name: name,
-        set: 'Graded',
-        number: '',
-        image: '',
+        name:   picked ? picked.name : name,
+        set:    picked ? (picked.set?.name || 'Graded') : 'Graded',
+        number: picked ? (picked.number || '') : '',
+        image:  picked ? (picked.images?.small || '') : '',
         market: val,
         condition: selectedGrade,
       });
       gradedName.value = ''; gradedValue.value = '';
+      selectedGradedCard = null;
       gradedForm.classList.remove('open');
+      gradedResults.classList.remove('open');
       renderList();
     });
 
