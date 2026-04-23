@@ -185,7 +185,7 @@
 
   <style>
     .bulk-qty {
-      width: 80px; padding: 6px 8px; text-align: center;
+      width: 64px; padding: 6px 8px; text-align: center;
       background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
       border-radius: 6px; color: var(--text);
       font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 600;
@@ -195,6 +195,29 @@
     .bulk-qty::-webkit-outer-spin-button, .bulk-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .bulk-qty:focus { border-color: rgba(255,106,0,0.55); box-shadow: 0 0 0 3px rgba(255,106,0,0.08); }
     .bulk-table td { padding: 12px 14px; }
+
+    /* +/- nudge buttons */
+    .qty-group { display: inline-flex; align-items: center; gap: 6px; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,106,0,0.08);
+      border: 1px solid rgba(255,106,0,0.25);
+      color: var(--orange);
+      font-family: 'Inter',sans-serif; font-size: 15px; font-weight: 700; line-height: 1;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity .15s, background .15s, transform .1s;
+      user-select: none;
+    }
+    .bulk-table tr:hover .qty-btn,
+    .bulk-qty:focus ~ .qty-btn,
+    .bulk-qty:focus + .qty-btn,
+    .qty-btn:focus { opacity: 1; }
+    .qty-btn:hover { background: rgba(255,106,0,0.2); border-color: var(--orange); }
+    .qty-btn:active { transform: scale(0.9); }
+    @media (max-width: 640px) {
+      .qty-btn { opacity: 1; }  /* always visible on mobile (no hover) */
+    }
     .bulk-table .line-total { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 15px; letter-spacing: 0.5px; }
     .bulk-input {
       width: 100%; padding: 11px 14px;
@@ -248,7 +271,11 @@
         <tr>
           <td><strong>${r.name}</strong></td>
           <td style="text-align:center">
-            <input type="number" class="bulk-qty" min="0" placeholder="0" data-idx="${i}" inputmode="numeric" />
+            <div class="qty-group">
+              <button type="button" class="qty-btn" data-nudge="-1" data-idx="${i}" aria-label="Decrease">−</button>
+              <input type="number" class="bulk-qty" min="0" placeholder="0" data-idx="${i}" inputmode="numeric" />
+              <button type="button" class="qty-btn" data-nudge="1" data-idx="${i}" aria-label="Increase">+</button>
+            </div>
           </td>
           <td class="buy-price" style="text-align:right">${fmt(r.cash)}</td>
           <td class="credit-price" style="text-align:right">${fmt(r.credit)}</td>
@@ -256,6 +283,16 @@
         </tr>
       `).join('');
       tbody.querySelectorAll('.bulk-qty').forEach(inp => inp.addEventListener('input', updateBulkTotals));
+      tbody.querySelectorAll('.qty-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          const step = (e.shiftKey ? 10 : 1) * parseInt(btn.dataset.nudge);
+          const input = tbody.querySelector(`.bulk-qty[data-idx="${btn.dataset.idx}"]`);
+          const current = parseInt(input.value) || 0;
+          const next = Math.max(0, current + step);
+          input.value = next === 0 ? '' : next;
+          updateBulkTotals();
+        });
+      });
     }
 
     function updateBulkTotals() {
