@@ -47,7 +47,7 @@ export default {
       }
 
       if (path === '/items' && request.method === 'GET') {
-        return await listItems(base, squareHeaders);
+        return await listItems(base, squareHeaders, env.SQUARE_LOCATION_ID);
       }
 
       if (path === '/checkout' && request.method === 'POST') {
@@ -55,12 +55,25 @@ export default {
         return await createCheckout(body, base, squareHeaders, env, url);
       }
 
+      // Dev-only: dump raw catalog for inspection.
+      if (path === '/dev/raw' && request.method === 'GET') {
+        if (env.SQUARE_ENV !== 'sandbox') return json({ error: 'disabled outside sandbox' }, 403);
+        const r = await fetch(`${base}/v2/catalog/list?types=ITEM`, { headers: squareHeaders });
+        return json(await r.json());
+      }
+
+      // Dev-only: delete every ITEM in the catalog. Sandbox only.
+      if (path === '/dev/cleanup' && request.method === 'GET') {
+        if (env.SQUARE_ENV !== 'sandbox') return json({ error: 'disabled outside sandbox' }, 403);
+        return await cleanupAllItems(base, squareHeaders);
+      }
+
       // Dev-only seeder: creates a test product. Disabled in production.
       if (path === '/dev/seed' && request.method === 'GET') {
         if (env.SQUARE_ENV !== 'sandbox') {
           return json({ error: 'seed endpoint disabled outside sandbox' }, 403);
         }
-        return await seedTestItem(base, squareHeaders);
+        return await seedTestItem(base, squareHeaders, env.SQUARE_LOCATION_ID);
       }
 
       return json({ error: 'not found', path }, 404);
@@ -72,7 +85,7 @@ export default {
 
 // ─── Handlers ──────────────────────────────────────────────────────────────
 
-async function listItems(base, headers) {
+async function listItems(base, headers, locationId) {
   const res = await fetch(`${base}/v2/catalog/list?types=ITEM,IMAGE`, { headers });
   const data = await res.json();
   if (!res.ok) return json({ error: 'square_api_error', detail: data }, res.status);
@@ -82,25 +95,60 @@ async function listItems(base, headers) {
     objects.filter(o => o.type === 'IMAGE').map(o => [o.id, o.image_data?.url])
   );
 
+  const variationIds = objects
+    .filter(o => o.type === 'ITEM')
+    .map(o => o.item_data?.variations?.[0]?.id)
+    .filter(Boolean);
+
+  // Map of variationId → explicit IN_STOCK quantity. Missing variations default to in-stock.
+  const stockByVariation = await fetchStockCounts(base, headers, variationIds, locationId);
+
   const items = objects
     .filter(o => o.type === 'ITEM')
     .map(o => {
       const variation = o.item_data?.variations?.[0]?.item_variation_data;
+      const variationId = o.item_data?.variations?.[0]?.id;
       const amountCents = variation?.price_money?.amount;
+      const qty = stockByVariation[variationId];
+      // In stock unless we have an explicit count of 0. Untracked items → assumed in stock.
+      const inStock = qty === undefined ? true : qty > 0;
       return {
         id:          o.id,
-        variationId: o.item_data?.variations?.[0]?.id,
+        variationId,
         name:        o.item_data?.name || '',
         description: o.item_data?.description || '',
         price:       amountCents != null ? amountCents / 100 : null,
         currency:    variation?.price_money?.currency || 'USD',
         imageUrl:    images[o.item_data?.image_ids?.[0]] || null,
         categoryId:  o.item_data?.category_id || null,
+        inStock,
       };
     })
     .filter(item => item.price != null);  // hide items with no price
 
   return json({ items });
+}
+
+async function fetchStockCounts(base, headers, variationIds, locationId) {
+  if (variationIds.length === 0) return {};
+  const res = await fetch(`${base}/v2/inventory/counts/batch-retrieve`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      catalog_object_ids: variationIds,
+      location_ids:       [locationId],
+      states:             ['IN_STOCK'],
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) return {};  // fail open — treat all as in-stock if inventory API hiccups
+  const out = {};
+  for (const count of data.counts || []) {
+    if (count.state === 'IN_STOCK' && count.location_id === locationId) {
+      out[count.catalog_object_id] = Number(count.quantity) || 0;
+    }
+  }
+  return out;
 }
 
 async function createCheckout(body, base, headers, env, reqUrl) {
@@ -163,8 +211,9 @@ async function createCheckout(body, base, headers, env, reqUrl) {
   });
 }
 
-async function seedTestItem(base, headers) {
-  const payload = {
+async function seedTestItem(base, headers, locationId) {
+  // Step 1 — create the item + variation.
+  const createPayload = {
     idempotency_key: crypto.randomUUID(),
     object: {
       type: 'ITEM',
@@ -185,19 +234,62 @@ async function seedTestItem(base, headers) {
       },
     },
   };
-  const res  = await fetch(`${base}/v2/catalog/object`, {
+  const createRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST', headers, body: JSON.stringify(createPayload),
+  });
+  const createData = await createRes.json();
+  if (!createRes.ok) return json({ error: 'square_api_error', detail: createData }, createRes.status);
+
+  const item      = createData.catalog_object;
+  const variation = item?.item_data?.variations?.[0];
+  if (!variation) return json({ error: 'no variation returned by create', detail: createData }, 500);
+
+  // Step 2 — set inventory count to 0 at the location. This is Square's
+  // real "sold out" signal; location_overrides.sold_out is silently dropped.
+  const invRes = await fetch(`${base}/v2/inventory/changes/batch-create`, {
     method: 'POST',
     headers,
-    body:   JSON.stringify(payload),
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      changes: [{
+        type: 'PHYSICAL_COUNT',
+        physical_count: {
+          catalog_object_id: variation.id,
+          state:       'IN_STOCK',
+          location_id: locationId,
+          quantity:    '0',
+          occurred_at: new Date().toISOString(),
+        },
+      }],
+    }),
   });
-  const data = await res.json();
-  if (!res.ok) return json({ error: 'square_api_error', detail: data }, res.status);
+  const invData = await invRes.json();
+  if (!invRes.ok) return json({ error: 'inventory_api_error', detail: invData }, invRes.status);
+
   return json({
-    ok:        true,
-    itemId:    data.catalog_object?.id,
-    itemName:  data.catalog_object?.item_data?.name,
-    message:   'test product created — hit /items to verify',
+    ok:       true,
+    itemId:   item.id,
+    itemName: item.item_data?.name,
+    soldOut:  true,
+    message:  'test product created with 0 inventory — hit /items to verify inStock:false',
   });
+}
+
+async function cleanupAllItems(base, headers) {
+  const listRes = await fetch(`${base}/v2/catalog/list?types=ITEM`, { headers });
+  const listData = await listRes.json();
+  if (!listRes.ok) return json({ error: 'square_api_error', detail: listData }, listRes.status);
+
+  const ids = (listData.objects || []).map(o => o.id);
+  if (ids.length === 0) return json({ ok: true, deleted: 0, message: 'catalog already empty' });
+
+  const delRes = await fetch(`${base}/v2/catalog/batch-delete`, {
+    method: 'POST', headers, body: JSON.stringify({ object_ids: ids }),
+  });
+  const delData = await delRes.json();
+  if (!delRes.ok) return json({ error: 'square_api_error', detail: delData }, delRes.status);
+
+  return json({ ok: true, deleted: ids.length, ids });
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────

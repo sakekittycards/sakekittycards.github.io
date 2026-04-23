@@ -128,14 +128,20 @@
         grid.hidden = false;
 
         grid.innerHTML = items.map(item => {
+          const oos = item.inStock === false;
           const imgBlock = item.imageUrl
             ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" class="product-img-real" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
             : `<div class="product-img">📦</div>`;
           const desc = item.description
             ? `<div class="product-set">${escapeHtml(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
             : '';
+          const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
+          const button = oos
+            ? `<button type="button" class="btn btn-sm btn-disabled" style="width:100%;justify-content:center;margin-top:12px" disabled>Out of Stock</button>`
+            : `<button type="button" class="btn btn-primary btn-sm shop-add-btn" style="width:100%;justify-content:center;margin-top:12px">Add to Cart</button>`;
           return `
-            <div class="product-card" data-product-id="${escapeHtml(item.id)}">
+            <div class="product-card${oos ? ' sold-out' : ''}" data-product-id="${escapeHtml(item.id)}" style="position:relative">
+              ${badge}
               ${imgBlock}
               <div class="product-info">
                 <div class="product-name">${escapeHtml(item.name)}</div>
@@ -143,20 +149,19 @@
                 <div class="product-footer">
                   <span class="product-price">${fmt(item.price)}</span>
                 </div>
-                <button type="button" class="btn btn-primary btn-sm shop-add-btn" style="width:100%;justify-content:center;margin-top:12px">Add to Cart</button>
+                ${button}
               </div>
             </div>
           `;
         }).join('');
 
-        // Wire up Add to Cart buttons
-        grid.querySelectorAll('.product-card').forEach(card => {
+        // Wire up Add to Cart buttons (skips OOS — those render without .shop-add-btn)
+        grid.querySelectorAll('.shop-add-btn').forEach(btn => {
+          const card = btn.closest('.product-card');
           const id = card.dataset.productId;
           const item = items.find(i => i.id === id);
-          const btn = card.querySelector('.shop-add-btn');
           btn.addEventListener('click', () => {
             window.SK.addToCart(item);
-            // Briefly show "Added!" feedback
             const orig = btn.textContent;
             btn.textContent = '✓ Added to Cart';
             btn.disabled = true;
