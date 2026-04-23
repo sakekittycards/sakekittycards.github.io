@@ -5,8 +5,9 @@ Effect stack on pure black:
   - rainbow hue cycle on the logo (one full revolution per loop)
   - gentle pulse + brightness throb (2s period)
   - subtle Y-axis rocking tilt (horizontal squash, 12s period)
-  - 5 stars orbiting the logo on an elliptical path with depth-faked
-    brightness/size (brighter+bigger in front, dim+small behind logo)
+  - 5 stars that appear once per loop: fade in, do exactly one orbit
+    around the logo on an elliptical path (depth-faked brightness/size),
+    fade out — invisible the rest of the loop
   - 40 drifting sparkle particles (ported from home page particle system)
 
 Pure black background (fan treats black as LEDs-off / invisible).
@@ -22,16 +23,18 @@ import sys
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
 
 # ─── Config ────────────────────────────────────────────────────────────────
-CANVAS         = 640          # output resolution (square)
-LOOP_SEC       = 24           # loop length (also = one full rainbow cycle)
-FPS            = 30
-LOGO_BASE      = 440          # rendered logo size
-NUM_PARTS      = 40           # drifting particles (home-page port)
-NUM_ORBITERS   = 5            # orbiting stars
-ORBIT_RADIUS_X = 250          # ellipse semi-major (horizontal)
-ORBIT_RADIUS_Y = 70           # ellipse semi-minor (vertical) — flat ellipse fakes depth
-TILT_MAX_DEG   = 22           # max rocking angle (±)
-TILT_PERIOD    = 12           # seconds per full tilt cycle
+CANVAS             = 640      # output resolution (square)
+LOOP_SEC           = 36       # loop length (also = one full rainbow cycle)
+FPS                = 30
+LOGO_BASE          = 440      # rendered logo size
+NUM_PARTS          = 40       # drifting particles (home-page port)
+NUM_ORBITERS       = 5        # orbiting stars
+ORBIT_RADIUS_X     = 250      # ellipse semi-major (horizontal)
+ORBIT_RADIUS_Y     = 70       # ellipse semi-minor (vertical) — flat ellipse fakes depth
+ORBIT_PERIOD       = 12       # seconds per full orbit revolution (also = visibility window)
+ORBIT_WINDOW_SEC   = 12       # stars are visible only during this window in the middle of the loop
+TILT_MAX_DEG       = 22       # max rocking angle (±)
+TILT_PERIOD        = 12       # seconds per full tilt cycle
 
 # Home-page palette
 PARTICLE_COLORS = [
@@ -86,8 +89,9 @@ class Orbiter:
         self.r     = random.uniform(6, 9.5)
         self.color = PARTICLE_COLORS[idx % len(PARTICLE_COLORS)]
 
-    def sample(self, t_frac):
-        theta = 2 * math.pi * ((t_frac + self.phase) % 1.0)
+    def sample(self, t):
+        """t is in seconds. One full revolution every ORBIT_PERIOD seconds."""
+        theta = 2 * math.pi * (t / ORBIT_PERIOD + self.phase)
         x = CANVAS / 2 + ORBIT_RADIUS_X * math.cos(theta)
         y = CANVAS / 2 + ORBIT_RADIUS_Y * math.sin(theta)
         z = math.sin(theta)              # -1 (back) … +1 (front)
@@ -95,6 +99,15 @@ class Orbiter:
         scale      = 0.55 + 0.75 * depth_t   # 0.55 back → 1.30 front
         brightness = 0.25 + 0.75 * depth_t   # 0.25 back → 1.00 front
         return x, y, z, scale, brightness
+
+def orbiter_visibility(t):
+    """Smooth bell-curve visibility centered in the loop. Returns 0..1."""
+    center = LOOP_SEC / 2
+    half   = ORBIT_WINDOW_SEC / 2
+    if abs(t - center) > half: return 0.0
+    # Cosine bell: 0 at window edges, 1 at center
+    w = (t - (center - half)) / ORBIT_WINDOW_SEC     # 0..1 within window
+    return 0.5 - 0.5 * math.cos(2 * math.pi * w)
 
 def star_points(cx, cy, r_outer, r_inner, tilt=math.pi / 2):
     """Return 10 vertices of a 5-pointed star centered on (cx, cy)."""
@@ -106,14 +119,20 @@ def star_points(cx, cy, r_outer, r_inner, tilt=math.pi / 2):
     return pts
 
 # ─── Image helpers ─────────────────────────────────────────────────────────
+def _hue_rotate_matrix(deg):
+    """Standard SVG/CSS hue-rotate matrix — floating-point, no quantization."""
+    c = math.cos(math.radians(deg))
+    s = math.sin(math.radians(deg))
+    return (
+        0.213 + 0.787*c - 0.213*s,  0.715 - 0.715*c - 0.715*s,  0.072 - 0.072*c + 0.928*s, 0,
+        0.213 - 0.213*c + 0.143*s,  0.715 + 0.285*c + 0.140*s,  0.072 - 0.072*c - 0.283*s, 0,
+        0.213 - 0.213*c - 0.787*s,  0.715 - 0.715*c + 0.715*s,  0.072 + 0.928*c + 0.072*s, 0,
+    )
+
 def hue_rotate(im_rgba, degrees):
-    """Rotate hue by `degrees` while preserving alpha."""
+    """Rotate hue by `degrees` while preserving alpha. Smooth (no integer quantization)."""
     r, g, b, a = im_rgba.split()
-    hsv = Image.merge('RGB', (r, g, b)).convert('HSV')
-    h, s, v = hsv.split()
-    shift = int(degrees * 255 / 360) % 256
-    h = h.point(lambda px, s=shift: (px + s) & 0xff)
-    rgb = Image.merge('HSV', (h, s, v)).convert('RGB')
+    rgb = Image.merge('RGB', (r, g, b)).convert('RGB', _hue_rotate_matrix(degrees))
     r2, g2, b2 = rgb.split()
     return Image.merge('RGBA', (r2, g2, b2, a))
 
@@ -193,33 +212,40 @@ def main():
                                 fill=(*p.color, int(a * 255)))
             drift_glow_blurred = drift_glow.filter(ImageFilter.GaussianBlur(radius=8))
 
-            # Orbiters — split into back (behind logo) and front (in front of logo)
-            back_glow  = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-            back_core  = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-            front_glow = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-            front_core = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
-            bg_draw, bc_draw = ImageDraw.Draw(back_glow),  ImageDraw.Draw(back_core)
-            fg_draw, fc_draw = ImageDraw.Draw(front_glow), ImageDraw.Draw(front_core)
-            for orb in orbiters:
-                x, y, z, scale, bright = orb.sample(t_frac)
-                if z < 0:
-                    draw_orbiter(bg_draw, bc_draw, x, y, orb.r * scale, orb.color, bright)
-                else:
-                    draw_orbiter(fg_draw, fc_draw, x, y, orb.r * scale, orb.color, bright)
-            back_glow_b  = back_glow.filter(ImageFilter.GaussianBlur(radius=5))
-            front_glow_b = front_glow.filter(ImageFilter.GaussianBlur(radius=4))
+            # Orbiters — only rendered inside the visibility window. Split back/front for depth.
+            visibility = orbiter_visibility(t)
+            if visibility > 0:
+                back_glow  = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+                back_core  = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+                front_glow = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+                front_core = Image.new('RGBA', (CANVAS, CANVAS), (0, 0, 0, 0))
+                bg_draw, bc_draw = ImageDraw.Draw(back_glow),  ImageDraw.Draw(back_core)
+                fg_draw, fc_draw = ImageDraw.Draw(front_glow), ImageDraw.Draw(front_core)
+                for orb in orbiters:
+                    x, y, z, scale, bright = orb.sample(t)
+                    effective_bright = bright * visibility
+                    if z < 0:
+                        draw_orbiter(bg_draw, bc_draw, x, y, orb.r * scale, orb.color, effective_bright)
+                    else:
+                        draw_orbiter(fg_draw, fc_draw, x, y, orb.r * scale, orb.color, effective_bright)
+                back_glow_b  = back_glow.filter(ImageFilter.GaussianBlur(radius=5))
+                front_glow_b = front_glow.filter(ImageFilter.GaussianBlur(radius=4))
+            else:
+                back_glow_b = back_core = front_glow_b = front_core = None
 
             # Composite (back to front):
             #   black → drift glow → back orbiter glow → back orbiter core
             #         → logo → front orbiter glow → front orbiter core → drift cores
             canvas.alpha_composite(drift_glow_blurred)
-            canvas.alpha_composite(back_glow_b)
-            canvas.alpha_composite(back_core)
+            if back_glow_b is not None:
+                canvas.alpha_composite(back_glow_b)
+                canvas.alpha_composite(back_core)
             lx = (CANVAS - tilted_w) // 2
             ly = (CANVAS - size) // 2
             canvas.alpha_composite(logo_tilted, (lx, ly))
-            canvas.alpha_composite(front_glow_b)
-            canvas.alpha_composite(front_core)
+            if front_glow_b is not None:
+                canvas.alpha_composite(front_glow_b)
+                canvas.alpha_composite(front_core)
             canvas.alpha_composite(drift_cores)
 
             ffmpeg.stdin.write(canvas.convert('RGB').tobytes())
