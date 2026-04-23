@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=13" />
 
   <style>
     /* Hero-specific styles */
@@ -64,6 +64,7 @@
       align-items: center;
       gap: 9px;
       padding: 9px 18px;
+      margin-bottom: 20px;        /* breathing room before the logo */
       border-radius: 100px;
       background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(255,0,128,0.12));
       border: 1px solid rgba(255,106,0,0.35);
@@ -112,7 +113,7 @@
     }
     /* Glow ring — extends outside, needs no clipping */
     .hero-logo-wrap::after {
-      content: ''; position: absolute; inset: -5px; border-radius: 25px;
+      content: ''; position: absolute; inset: -10px; border-radius: 30px;
       background: linear-gradient(135deg, #ff6a00, #ff0080, #7b2fff, #00d4ff);
       z-index: 0;
       animation: glowPulse 3.5s ease-in-out infinite;
@@ -120,12 +121,13 @@
     /* Mask — clips shine to logo shape */
     .hero-logo-mask {
       position: relative;
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
       z-index: 1;
+      box-shadow: 0 16px 50px rgba(255,106,0,0.35), 0 0 60px rgba(123,47,255,0.25);
     }
     .hero-logo-mask img {
-      width: 200px; max-width: 55vw; display: block;
+      width: 280px; max-width: 68vw; display: block;
     }
     /* Shine element */
     .hero-logo-mask::before {
@@ -391,7 +393,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
-  <script src="main.js?v=12"></script>
+  <script src="main.js?v=13"></script>
   <script>
     // Particle system
     const canvas = document.getElementById('particles');

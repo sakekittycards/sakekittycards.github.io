@@ -108,55 +108,57 @@ document.querySelectorAll('.nav-lava-blob').forEach(blob => {
 
     const count = (blobClickCounts.get(blob) || 0) + 1;
     blobClickCounts.set(blob, count);
-    if (count >= UNLOCK_AT && !document.body.classList.contains('drip-unlocked')) {
-      unlockPageDrip();
+    // Every 5th click on the same blob spawns one fresh drip
+    if (count % UNLOCK_AT === 0) {
+      if (!document.body.classList.contains('drip-unlocked')) {
+        unlockPageDrip(); // first time: unlock + one drip
+      } else {
+        spawnSingleDrip();  // subsequent: just one more drip
+      }
     }
   });
 });
 
 function unlockPageDrip() {
   document.body.classList.add('drip-unlocked');
-  initPageDripSystem();
+  ensureDripContainer();
+  spawnSingleDrip(); // fire one immediately on unlock
 }
 
-function initPageDripSystem() {
+function ensureDripContainer() {
   if (document.querySelector('.page-drip-bg')) return;
-
   const container = document.createElement('div');
   container.className = 'page-drip-bg';
   document.body.appendChild(container);
+}
+
+function spawnSingleDrip() {
+  const container = document.querySelector('.page-drip-bg');
+  if (!container) return;
 
   const COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff4e00'];
+  const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const x       = 6 + Math.random() * 88;
+  const size    = 55 + Math.random() * 50;
+  const docH    = document.documentElement.scrollHeight;
+  const fallDur = Math.max(16, docH / 80);
 
-  function spawnDrip() {
-    const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const x       = 6 + Math.random() * 88; // 6–94% across
-    const size    = 55 + Math.random() * 50;
-    const docH    = document.documentElement.scrollHeight;
-    const fallDur = Math.max(16, docH / 80); // slower on taller pages
+  const blob = document.createElement('div');
+  blob.className = 'page-drip-blob';
+  blob.style.left   = x + 'vw';
+  blob.style.width  = size + 'px';
+  blob.style.height = size + 'px';
+  blob.style.backgroundColor = color;
+  blob.style.boxShadow = `0 0 22px ${color}`;
+  blob.style.animationDuration = fallDur + 's';
+  blob.style.setProperty('--fall-end', (docH - 40) + 'px');
 
-    const blob = document.createElement('div');
-    blob.className = 'page-drip-blob';
-    blob.style.left   = x + 'vw';
-    blob.style.width  = size + 'px';
-    blob.style.height = size + 'px';
-    blob.style.backgroundColor = color;
-    blob.style.boxShadow = `0 0 22px ${color}`;
-    blob.style.animationDuration = fallDur + 's';
-    blob.style.setProperty('--fall-end', (docH - 40) + 'px');
+  const r1 = 40 + Math.random() * 35;
+  const r2 = 50 + Math.random() * 30;
+  const r3 = 45 + Math.random() * 35;
+  const r4 = 55 + Math.random() * 25;
+  blob.style.borderRadius = `${r1}% ${r2}% ${r3}% ${r4}% / ${r4}% ${r3}% ${r2}% ${r1}%`;
 
-    // Organic, non-spherical
-    const r1 = 40 + Math.random() * 35;
-    const r2 = 50 + Math.random() * 30;
-    const r3 = 45 + Math.random() * 35;
-    const r4 = 55 + Math.random() * 25;
-    blob.style.borderRadius = `${r1}% ${r2}% ${r3}% ${r4}% / ${r4}% ${r3}% ${r2}% ${r1}%`;
-
-    container.appendChild(blob);
-    setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
-  }
-
-  // Initial spawn + steady cadence
-  for (let i = 0; i < 2; i++) setTimeout(spawnDrip, i * 2200);
-  setInterval(spawnDrip, 3500);
+  container.appendChild(blob);
+  setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
 }
