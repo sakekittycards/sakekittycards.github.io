@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=26" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -81,12 +81,12 @@
     .ti-result img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: #1a1a2e; }
     .ti-result-info { flex: 1; min-width: 0; }
     .ti-result-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .ti-result-set { font-size: 12px; color: var(--dim); }
+    .ti-result-set { font-size: 13px; color: var(--dim); }
     .ti-result-price { font-family: 'Bangers',cursive; font-size: 18px; color: var(--orange); letter-spacing: .5px; }
     .ti-result-price.nomarket { color: var(--dim); font-size: 11px; font-family: 'Inter',sans-serif; }
 
     .ti-status {
-      text-align: center; padding: 18px; font-size: 13px; color: var(--dim);
+      text-align: center; padding: 18px; font-size: 14px; color: var(--dim);
     }
     .ti-status.err { color: #ff6b6b; }
 
@@ -109,7 +109,7 @@
     .ti-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
     .ti-empty {
       padding: 40px 20px; text-align: center;
-      color: var(--dim); font-size: 13px; line-height: 1.7;
+      color: var(--dim); font-size: 14px; line-height: 1.7;
     }
     .ti-empty .icon { font-size: 34px; margin-bottom: 10px; opacity: 0.35; }
 
@@ -124,9 +124,9 @@
       border-radius: var(--r-sm);
     }
     .ti-item img { width: 44px; height: 62px; object-fit: cover; border-radius: 4px; }
-    .ti-item-info h4 { font-size: 13px; font-weight: 700; line-height: 1.3; margin-bottom: 2px; }
-    .ti-item-info .set { font-size: 11px; color: var(--dim); margin-bottom: 5px; }
-    .ti-item-info .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 11px; }
+    .ti-item-info h4 { font-size: 14px; font-weight: 700; line-height: 1.3; margin-bottom: 2px; }
+    .ti-item-info .set { font-size: 13px; color: var(--dim); margin-bottom: 5px; }
+    .ti-item-info .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; }
     /* Custom condition dropdown (native select styling is unreliable cross-browser) */
     .ti-cond { position: relative; display: inline-block; }
     .ti-cond-btn {
@@ -195,7 +195,7 @@
       padding: 10px 0; border-bottom: 1px solid var(--border);
     }
     .ti-totals-row:last-of-type { border-bottom: none; }
-    .ti-totals-label { font-size: 13px; color: var(--muted); }
+    .ti-totals-label { font-size: 14px; color: var(--muted); }
     .ti-totals-label small { color: var(--dim); font-size: 11px; font-weight: 400; }
     .ti-totals-value {
       font-family: 'Bangers',cursive;
@@ -209,7 +209,7 @@
     .ti-actions .btn { justify-content: center; }
 
     .ti-disclaimer {
-      font-size: 11px; color: var(--dim); line-height: 1.6;
+      font-size: 13px; color: var(--dim); line-height: 1.6;
       margin-top: 14px; padding: 12px; border-radius: var(--r-sm);
       background: rgba(255,255,255,.02); border: 1px solid var(--border);
     }
@@ -534,8 +534,8 @@
       color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase;
     }
     .bulk-table td strong { color: var(--text); font-size: 14px; }
-    .bulk-table .buy-price { color: var(--orange); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 13px; }
-    .bulk-table .credit-price { color: var(--cyan); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 13px; }
+    .bulk-table .buy-price { color: var(--orange); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
+    .bulk-table .credit-price { color: var(--cyan); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
     .bulk-table .line-total { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 15px; letter-spacing: 0.5px; }
 
     /* +/- nudge buttons */

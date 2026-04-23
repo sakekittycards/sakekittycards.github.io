@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=26" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -29,19 +29,19 @@
     .gp-result:hover { background:rgba(255,106,0,.08); }
     .gp-result img { width:38px; height:54px; object-fit:cover; border-radius:4px; flex-shrink:0; background:#1a1a2e; }
     .gp-result-info { flex:1; min-width:0; }
-    .gp-result-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .gp-result-set { font-size:11px; color:var(--dim); }
-    .gp-status { text-align:center; padding:16px; font-size:13px; color:var(--dim); }
+    .gp-result-name { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .gp-result-set { font-size:13px; color:var(--dim); }
+    .gp-status { text-align:center; padding:16px; font-size:14px; color:var(--dim); }
     .gp-status.err { color:#ff6b6b; }
 
     .gp-list { display:flex; flex-direction:column; gap:8px; min-height:60px; }
-    .gp-empty { padding:36px 20px; text-align:center; color:var(--dim); font-size:13px; line-height:1.7; }
+    .gp-empty { padding:36px 20px; text-align:center; color:var(--dim); font-size:14px; line-height:1.7; }
     .gp-empty .icon { font-size:30px; margin-bottom:8px; opacity:.35; display:block; }
 
     .gp-item { display:grid; grid-template-columns:44px 1fr auto; gap:12px; align-items:start; padding:10px 12px; background:rgba(255,255,255,.025); border:1px solid var(--border); border-radius:var(--r-sm); }
     .gp-item img { width:44px; height:62px; object-fit:cover; border-radius:4px; }
-    .gp-item-info h4 { font-size:13px; font-weight:700; line-height:1.3; margin-bottom:2px; }
-    .gp-item-info .gp-set { font-size:11px; color:var(--dim); margin-bottom:7px; }
+    .gp-item-info h4 { font-size:14px; font-weight:700; line-height:1.3; margin-bottom:2px; }
+    .gp-item-info .gp-set { font-size:13px; color:var(--dim); margin-bottom:7px; }
     .gp-item-svc { display:flex; flex-direction:column; gap:5px; }
     .gp-svc-row { display:flex; gap:6px; flex-wrap:wrap; }
 
@@ -64,17 +64,17 @@
     .gp-totals { margin-bottom:16px; }
     .gp-totals-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
     .gp-totals-row:last-child { border-bottom:none; }
-    .gp-totals-label { font-size:13px; color:var(--muted); }
+    .gp-totals-label { font-size:14px; color:var(--muted); }
     .gp-totals-val { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.5px; }
     .gp-total-orange { color:var(--orange); }
 
     .gp-contact { padding-top:14px; margin-top:2px; border-top:1px solid var(--border); margin-bottom:14px; }
     .gp-contact-label { font-size:10px; font-weight:700; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
-    .gp-input, .gp-textarea { width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color .15s,box-shadow .15s; margin-bottom:8px; }
+    .gp-input, .gp-textarea { width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; transition:border-color .15s,box-shadow .15s; margin-bottom:8px; }
     .gp-input:focus, .gp-textarea:focus { border-color:rgba(255,106,0,.5); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
     .gp-input::placeholder, .gp-textarea::placeholder { color:var(--dim); }
     .gp-textarea { resize:vertical; min-height:60px; }
-    .gp-disclaimer { font-size:11px; color:var(--dim); line-height:1.6; margin-top:12px; }
+    .gp-disclaimer { font-size:13px; color:var(--dim); line-height:1.6; margin-top:12px; }
 
     /* ── Card Prep add-on strip ── */
     .service-addon { display:flex; align-items:flex-start; gap:40px; margin-top:20px; padding:28px 32px; background:var(--bg-card); border:1.5px dashed rgba(0,212,255,.25); border-radius:var(--r); transition:border-color .2s,background .2s; }
@@ -183,7 +183,7 @@
             <li>We handle the grading submission on your behalf</li>
             <li>Your graded card is returned to you once it comes back from the grading company</li>
           </ul>
-          <p style="font-size:11px;color:var(--dim);margin-top:14px;line-height:1.6"><strong style="color:var(--muted)">Not included in the $5:</strong> grading submission fees (set by PSA, CGC, or Beckett based on the service tier you choose) and shipping insurance (available at your option).</p>
+          <p style="font-size:13px;color:var(--dim);margin-top:14px;line-height:1.6"><strong style="color:var(--muted)">Not included in the $5:</strong> grading submission fees (set by PSA, CGC, or Beckett based on the service tier you choose) and shipping insurance (available at your option).</p>
         </div>
         <div class="service-addon-price">
           <div class="service-price" style="color:var(--cyan);filter:drop-shadow(0 0 10px rgba(0,212,255,.35))">$5<sub>/card</sub></div>
