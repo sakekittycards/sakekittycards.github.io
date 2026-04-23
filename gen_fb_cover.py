@@ -100,15 +100,15 @@ sparkle = sparkle.filter(ImageFilter.GaussianBlur(0.6))
 img.paste(sparkle, (0, 0), sparkle)
 
 # ─── Layout note ───────────────────────────────────────────────────────────
-# No logo on the banner — Facebook overlays the profile picture in the
-# bottom-left corner (a ~170px circle). The text block is centered so it
-# reads cleanly on both desktop and mobile, and stays clear of that overlap.
+# Facebook business pages overlap a centered profile picture (~170px circle)
+# at the bottom-center of the cover. Everything important must live in the
+# top ~60% of the banner so nothing gets covered. Bottom strip stays
+# atmospheric (glows + sparkles only).
 
-# ─── Text block (centered, atmospheric) ────────────────────────────────────
-font_brand = load_font(FONT_PATH, 200)
-font_sub   = load_font(FONT_PATH, 64)
-font_tag   = load_font('C:/Windows/Fonts/arialbd.ttf', 30)
-font_url   = load_font('C:/Windows/Fonts/arial.ttf',   26)
+# ─── Text block (centered, all in upper portion) ──────────────────────────
+font_brand = load_font(FONT_PATH, 180)
+font_sub   = load_font(FONT_PATH, 56)
+font_tag   = load_font('C:/Windows/Fonts/arialbd.ttf', 28)
 
 draw = ImageDraw.Draw(img)
 center_x = W // 2
@@ -117,11 +117,11 @@ def measure(text, font):
     bbox = draw.textbbox((0, 0), text, font=font)
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-# Big brand title (single line)
+# Big brand title (single line, gradient)
 title = 'SAKE KITTY CARDS'
 gtxt  = gradient_text_image(title, font_brand, BRAND_GRADIENT)
 gw, gh = gtxt.size
-title_y = 110
+title_y = 50
 
 # Soft drop shadow
 shadow_alpha = gtxt.split()[-1].point(lambda p: int(p * 0.55))
@@ -134,25 +134,19 @@ img.paste(gtxt,   (center_x - gw // 2,     title_y),      gtxt)
 # Subtitle
 sub_text = 'Collecting, Done Right.'
 sw, sh = measure(sub_text, font_sub)
-sub_y = title_y + gh + 4
+sub_y = title_y + gh - 6
 draw.text((center_x - sw // 2, sub_y), sub_text, font=font_sub, fill=(255, 255, 255, 255))
 
 # Divider
 div_w = 220
-div_y = sub_y + sh + 28
+div_y = sub_y + sh + 22
 draw.rectangle([center_x - div_w // 2, div_y, center_x + div_w // 2, div_y + 4], fill='#7b2fff')
 
 # Offerings
 tag_text = 'Singles  ·  Sealed  ·  Trade-Ins  ·  Live Events'
 tw, th = measure(tag_text, font_tag)
-tag_y = div_y + 26
+tag_y = div_y + 22
 draw.text((center_x - tw // 2, tag_y), tag_text, font=font_tag, fill=(255, 255, 255, 230))
-
-# URL + IG handle row
-url_text = 'sakekittycards.com   ·   @sakekittycards'
-uw, uh = measure(url_text, font_url)
-url_y = tag_y + th + 18
-draw.text((center_x - uw // 2, url_y), url_text, font=font_url, fill=(255, 255, 255, 175))
 
 # ─── Save ──────────────────────────────────────────────────────────────────
 os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
