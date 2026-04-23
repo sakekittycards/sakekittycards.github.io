@@ -298,6 +298,8 @@ button { font-family: inherit; }
   background: linear-gradient(135deg, var(--orange), var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   margin: 0;
+  line-height: 1.25;
+  padding: 2px 0 6px;    /* Bangers has deep descenders — give them room so background-clip doesn't crop */
 }
 .cart-drawer-close {
   background: none; border: none; color: var(--muted);
