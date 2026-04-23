@@ -28,8 +28,9 @@
     /* Hero-specific styles */
     #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 
+    /* Blobs anchor to the top of the page (scroll with it) so scrolling down reveals pure-black sections. */
     .hero-blob {
-      position: fixed; border-radius: 50%; filter: blur(110px); opacity: 0.16;
+      position: absolute; border-radius: 50%; filter: blur(110px); opacity: 0.16;
       pointer-events: none; z-index: 0;
     }
     .hero-blob-1 {
@@ -41,9 +42,10 @@
     .hero-blob-2 {
       width: 600px; height: 600px;
       background: radial-gradient(circle,#3a00ff,#00d4ff);
-      bottom: -200px; right: -200px;
+      top: -100px; right: -200px;
       animation: blobDrift 11s ease-in-out infinite alternate-reverse;
     }
+    body { position: relative; }   /* positioning context for the absolute blobs */
     @keyframes blobDrift {
       from { transform: translate(0,0) scale(1); }
       to   { transform: translate(40px,30px) scale(1.08); }
