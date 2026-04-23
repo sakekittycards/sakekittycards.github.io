@@ -80,43 +80,70 @@
         <div class="divider"></div>
       </div>
 
+      <p style="margin-top:4px;font-size:13px;color:var(--dim);margin-bottom:18px">Enter quantities below to get an instant estimate — submit the list and we'll reach out to arrange pickup, shipping, or meet-up.</p>
+
       <div class="table-wrap">
-        <table class="buylist-table">
+        <table class="buylist-table bulk-table">
           <thead>
             <tr>
               <th>Card Type</th>
-              <th style="text-align:right">Cash</th>
-              <th style="text-align:right">Store Credit</th>
+              <th style="text-align:center;width:100px">Qty</th>
+              <th style="text-align:right;width:80px">Cash</th>
+              <th style="text-align:right;width:80px">Credit</th>
+              <th style="text-align:right;width:90px">Line Total</th>
             </tr>
           </thead>
-          <tbody>
-            <tr><td><strong>Common / Uncommon</strong></td>           <td class="buy-price" style="text-align:right">$0.01</td> <td class="credit-price" style="text-align:right">$0.01</td></tr>
-            <tr><td><strong>Rare (Non-Holo)</strong></td>              <td class="buy-price" style="text-align:right">$0.01</td> <td class="credit-price" style="text-align:right">$0.01</td></tr>
-            <tr><td><strong>Reverse Holo</strong></td>                 <td class="buy-price" style="text-align:right">$0.02</td> <td class="credit-price" style="text-align:right">$0.03</td></tr>
-            <tr><td><strong>Holo Rare</strong></td>                    <td class="buy-price" style="text-align:right">$0.02</td> <td class="credit-price" style="text-align:right">$0.03</td></tr>
-            <tr><td><strong>Holo Promo</strong></td>                   <td class="buy-price" style="text-align:right">$0.02</td> <td class="credit-price" style="text-align:right">$0.03</td></tr>
-            <tr><td><strong>GX, EX, or V</strong></td>                 <td class="buy-price" style="text-align:right">$0.25</td> <td class="credit-price" style="text-align:right">$0.35</td></tr>
-            <tr><td><strong>VMAX / VSTAR</strong></td>                 <td class="buy-price" style="text-align:right">$0.35</td> <td class="credit-price" style="text-align:right">$0.50</td></tr>
-            <tr><td><strong>Full Art (Textured)</strong></td>          <td class="buy-price" style="text-align:right">$0.40</td> <td class="credit-price" style="text-align:right">$0.55</td></tr>
-            <tr><td><strong>Secret / Hyper Rare (Textured)</strong></td><td class="buy-price" style="text-align:right">$1.00</td> <td class="credit-price" style="text-align:right">$1.30</td></tr>
-            <tr><td><strong>Illustration Rare (Scarlet &amp; Violet)</strong></td><td class="buy-price" style="text-align:right">$0.40</td> <td class="credit-price" style="text-align:right">$0.55</td></tr>
-            <tr><td><strong>Trainer / Galarian Gallery</strong></td>   <td class="buy-price" style="text-align:right">$0.25</td> <td class="credit-price" style="text-align:right">$0.35</td></tr>
-            <tr><td><strong>Radiant / Amazing Rare</strong></td>       <td class="buy-price" style="text-align:right">$0.05</td> <td class="credit-price" style="text-align:right">$0.07</td></tr>
-            <tr><td><strong>BREAK</strong></td>                        <td class="buy-price" style="text-align:right">$0.25</td> <td class="credit-price" style="text-align:right">$0.35</td></tr>
-            <tr><td><strong>Bulk CGC Graded Card</strong></td>         <td class="buy-price" style="text-align:right">$2.50</td> <td class="credit-price" style="text-align:right">$3.25</td></tr>
-            <tr><td><strong>Bulk PSA / BGS Graded Card</strong></td>   <td class="buy-price" style="text-align:right">$5.00</td> <td class="credit-price" style="text-align:right">$6.00</td></tr>
+          <tbody id="bulkRows">
+            <!-- Populated below via data attributes so totals can be calculated -->
           </tbody>
+          <tfoot>
+            <tr style="border-top:2px solid var(--border)">
+              <td style="padding-top:16px"><strong style="color:var(--text);font-size:14px;letter-spacing:0.5px;text-transform:uppercase">Total</strong></td>
+              <td style="padding-top:16px;text-align:center;color:var(--muted)" id="bulkTotalQty">0 cards</td>
+              <td style="padding-top:16px" class="buy-price" id="bulkTotalCash" style="text-align:right">$0.00</td>
+              <td style="padding-top:16px" class="credit-price" id="bulkTotalCredit" style="text-align:right">$0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
-      <p style="margin-top:16px;font-size:13px;color:var(--dim)">* Rates are per card and apply to NM/LP cards. Heavily played or damaged cards may receive reduced rates. Individual high-value singles are priced separately — use the Trade-In tool below for an instant estimate.</p>
+      <p style="margin-top:16px;font-size:13px;color:var(--dim)">* Rates are per card and apply to NM/LP cards. Heavily played or damaged cards may receive reduced rates. Individual high-value singles are priced separately — use the <a href="trade-in.html" style="color:var(--orange)">Trade-In tool</a> for those.</p>
 
-      <!-- Trade-In tool CTA -->
-      <div style="margin-top:48px;padding:36px 32px;background:linear-gradient(135deg,rgba(255,106,0,.1),rgba(123,47,255,.1));border:1px solid rgba(255,106,0,.25);border-radius:var(--r);text-align:center">
-        <div style="font-size:36px;margin-bottom:10px">💎</div>
-        <h3 style="font-family:'Bangers',cursive;font-size:clamp(24px,4.5vw,32px);letter-spacing:0.04em;margin-bottom:8px;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Got Singles to Sell?</h3>
-        <p style="font-size:15px;color:var(--muted);max-width:460px;margin:0 auto 22px;line-height:1.7">Use our Trade-In tool to search your cards, build a list, and get an instant rough estimate of what we'd offer — cash or store credit.</p>
-        <a href="trade-in.html" class="btn btn-primary">Try the Trade-In Tool →</a>
+      <!-- Organization callout -->
+      <div style="margin-top:32px;padding:20px 22px;background:linear-gradient(135deg,rgba(255,204,0,0.08),rgba(255,106,0,0.08));border:1px solid rgba(255,204,0,0.3);border-radius:var(--r);display:flex;gap:16px;align-items:flex-start">
+        <div style="font-size:28px;flex-shrink:0">📦</div>
+        <div>
+          <h4 style="font-family:'Inter',sans-serif;font-size:14px;font-weight:700;color:#ffcc00;letter-spacing:0.5px;margin-bottom:6px">Please organize your cards by type</h4>
+          <p style="font-size:13px;color:var(--muted);line-height:1.65;margin:0">When sending or dropping off your bulk, keep each card type grouped together — Commons with Commons, Holos with Holos, GX/EX/V with GX/EX/V, and so on. They don't need to be bagged separately, but <strong style="color:var(--muted)">please don't mix everything</strong>. This keeps intake fast and your payout quick.</p>
+        </div>
+      </div>
+
+      <!-- Submission form -->
+      <div style="margin-top:32px;padding:28px 32px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r)" id="bulkFormWrap">
+        <h3 style="font-family:'Bangers',cursive;font-size:clamp(22px,4vw,28px);letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px">Ready to Send Us Your Bulk?</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Fill in your info and submit. We'll confirm details over email.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <input type="text" id="bulkName" class="bulk-input" placeholder="Your name *" />
+          <input type="email" id="bulkEmail" class="bulk-input" placeholder="Email address *" />
+        </div>
+        <input type="tel" id="bulkPhone" class="bulk-input" placeholder="Phone (optional)" style="margin-bottom:12px" />
+
+        <p style="font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Payment Preference</p>
+        <div class="ti-pref" id="bulkPrefGroup" style="margin-bottom:12px">
+          <button type="button" data-val="Either" class="active">Either</button>
+          <button type="button" data-val="Cash">Cash</button>
+          <button type="button" data-val="Store Credit">Store Credit</button>
+        </div>
+
+        <textarea id="bulkNotes" class="bulk-input" placeholder="Notes (cards not in list, delivery method preference, etc.)" style="min-height:70px;resize:vertical;margin-bottom:16px"></textarea>
+
+        <button type="button" class="btn btn-primary" id="bulkSubmitBtn" style="width:100%;justify-content:center" disabled>Submit Bulk List</button>
+
+        <p style="margin-top:14px;font-size:11px;color:var(--dim);line-height:1.6">
+          <strong style="color:var(--muted)">Estimates only.</strong> Final offer depends on condition inspection on intake. Heavily played, damaged, or cards that don't match the listed category may receive adjusted rates.
+        </p>
       </div>
 
       <!-- CTA -->
@@ -156,6 +183,182 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
+  <style>
+    .bulk-qty {
+      width: 80px; padding: 6px 8px; text-align: center;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      border-radius: 6px; color: var(--text);
+      font-family: 'Inter',sans-serif; font-size: 14px; font-weight: 600;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      -moz-appearance: textfield;
+    }
+    .bulk-qty::-webkit-outer-spin-button, .bulk-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .bulk-qty:focus { border-color: rgba(255,106,0,0.55); box-shadow: 0 0 0 3px rgba(255,106,0,0.08); }
+    .bulk-table td { padding: 12px 14px; }
+    .bulk-table .line-total { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 15px; letter-spacing: 0.5px; }
+    .bulk-input {
+      width: 100%; padding: 11px 14px;
+      background: rgba(255,255,255,0.05); border: 1.5px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'Inter',sans-serif; font-size: 14px;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .bulk-input:focus { border-color: rgba(255,106,0,0.5); box-shadow: 0 0 0 3px rgba(255,106,0,0.08); }
+    .bulk-input::placeholder { color: var(--dim); }
+    @media (max-width: 640px) {
+      .bulk-table th:nth-child(3), .bulk-table td:nth-child(3),
+      .bulk-table th:nth-child(4), .bulk-table td:nth-child(4) { display: none; }
+      #bulkFormWrap > div[style*='grid-template-columns'] { grid-template-columns: 1fr !important; }
+    }
+    /* Reuse ti-pref styles from trade-in */
+    .ti-pref { display: flex; gap: 3px; padding: 3px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; }
+    .ti-pref button { flex: 1; padding: 8px 4px; background: transparent; border: none; color: var(--muted); font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all .15s; }
+    .ti-pref button:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+    .ti-pref button.active { background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; box-shadow: 0 2px 8px rgba(255,106,0,0.35); }
+  </style>
+
   <script src="main.js"></script>
+  <script>
+    // ── Bulk submission tool ──
+    const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
+
+    const BULK_RATES = [
+      { name: 'Common / Uncommon',                   cash: 0.01, credit: 0.01 },
+      { name: 'Rare (Non-Holo)',                     cash: 0.01, credit: 0.01 },
+      { name: 'Reverse Holo',                        cash: 0.02, credit: 0.03 },
+      { name: 'Holo Rare',                           cash: 0.02, credit: 0.03 },
+      { name: 'Holo Promo',                          cash: 0.02, credit: 0.03 },
+      { name: 'GX, EX, or V',                        cash: 0.25, credit: 0.35 },
+      { name: 'VMAX / VSTAR',                        cash: 0.35, credit: 0.50 },
+      { name: 'Full Art (Textured)',                 cash: 0.40, credit: 0.55 },
+      { name: 'Secret / Hyper Rare (Textured)',      cash: 1.00, credit: 1.30 },
+      { name: 'Illustration Rare (Scarlet & Violet)',cash: 0.40, credit: 0.55 },
+      { name: 'Trainer / Galarian Gallery',          cash: 0.25, credit: 0.35 },
+      { name: 'Radiant / Amazing Rare',              cash: 0.05, credit: 0.07 },
+      { name: 'BREAK',                               cash: 0.25, credit: 0.35 },
+      { name: 'Bulk CGC Graded Card',                cash: 2.50, credit: 3.25 },
+      { name: 'Bulk PSA / BGS Graded Card',          cash: 5.00, credit: 6.00 },
+    ];
+
+    const fmt = n => `$${n.toFixed(2)}`;
+
+    function renderBulkRows() {
+      const tbody = document.getElementById('bulkRows');
+      tbody.innerHTML = BULK_RATES.map((r, i) => `
+        <tr>
+          <td><strong>${r.name}</strong></td>
+          <td style="text-align:center">
+            <input type="number" class="bulk-qty" min="0" placeholder="0" data-idx="${i}" inputmode="numeric" />
+          </td>
+          <td class="buy-price" style="text-align:right">${fmt(r.cash)}</td>
+          <td class="credit-price" style="text-align:right">${fmt(r.credit)}</td>
+          <td class="line-total" data-line="${i}">—</td>
+        </tr>
+      `).join('');
+      tbody.querySelectorAll('.bulk-qty').forEach(inp => inp.addEventListener('input', updateBulkTotals));
+    }
+
+    function updateBulkTotals() {
+      let totalQty = 0, totalCash = 0, totalCredit = 0;
+      document.querySelectorAll('.bulk-qty').forEach(inp => {
+        const qty = parseInt(inp.value) || 0;
+        const rate = BULK_RATES[+inp.dataset.idx];
+        const lineCash = qty * rate.cash;
+        const lineCredit = qty * rate.credit;
+        totalQty += qty; totalCash += lineCash; totalCredit += lineCredit;
+        const lineTotalEl = document.querySelector(`[data-line="${inp.dataset.idx}"]`);
+        lineTotalEl.textContent = qty > 0 ? `${fmt(lineCash)} / ${fmt(lineCredit)}` : '—';
+        lineTotalEl.style.color = qty > 0 ? 'var(--orange)' : 'var(--dim)';
+      });
+      document.getElementById('bulkTotalQty').textContent    = `${totalQty} card${totalQty!==1?'s':''}`;
+      document.getElementById('bulkTotalCash').textContent   = fmt(totalCash);
+      document.getElementById('bulkTotalCredit').textContent = fmt(totalCredit);
+      document.getElementById('bulkSubmitBtn').disabled = totalQty === 0;
+    }
+
+    // Payment preference toggle
+    let bulkPref = 'Either';
+    document.querySelectorAll('#bulkPrefGroup button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#bulkPrefGroup button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        bulkPref = btn.dataset.val;
+      });
+    });
+
+    function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+    function showBulkSuccess(totalQty, totalCash, totalCredit) {
+      document.getElementById('bulkFormWrap').innerHTML = `
+        <div style="text-align:center;padding:20px 10px">
+          <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--pink));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 8px 30px rgba(255,106,0,0.45)">✓</div>
+          <h3 style="font-family:'Bangers',cursive;font-size:28px;letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px">Bulk List Sent!</h3>
+          <p style="color:var(--muted);font-size:14px;line-height:1.7;max-width:360px;margin:0 auto 22px">We got your list of ${totalQty} card${totalQty!==1?'s':''} (est. ${fmt(totalCash)} cash / ${fmt(totalCredit)} credit). We'll review and get back to you within 48 hours to coordinate drop-off or shipping.</p>
+          <button type="button" class="btn btn-outline btn-sm" onclick="location.reload()">Submit Another List</button>
+        </div>
+      `;
+    }
+
+    document.getElementById('bulkSubmitBtn').addEventListener('click', async () => {
+      const name  = document.getElementById('bulkName').value.trim();
+      const email = document.getElementById('bulkEmail').value.trim();
+      const phone = document.getElementById('bulkPhone').value.trim();
+      const notes = document.getElementById('bulkNotes').value.trim();
+      if (!name)  { alert('Please enter your name.');  document.getElementById('bulkName').focus(); return; }
+      if (!email || !isValidEmail(email)) { alert('Please enter a valid email address.'); document.getElementById('bulkEmail').focus(); return; }
+
+      let totalQty = 0, totalCash = 0, totalCredit = 0;
+      const lines = [];
+      document.querySelectorAll('.bulk-qty').forEach(inp => {
+        const qty = parseInt(inp.value) || 0;
+        if (qty === 0) return;
+        const rate = BULK_RATES[+inp.dataset.idx];
+        const lineCash = qty * rate.cash;
+        const lineCredit = qty * rate.credit;
+        totalQty += qty; totalCash += lineCash; totalCredit += lineCredit;
+        lines.push(`${rate.name.padEnd(44)} ${String(qty).padStart(5)} @ ${fmt(rate.cash)}/${fmt(rate.credit)} = ${fmt(lineCash)} cash / ${fmt(lineCredit)} credit`);
+      });
+      if (totalQty === 0) return;
+
+      const payload = {
+        access_key: WEB3FORMS_KEY,
+        subject: `Bulk Submission from ${name} (${totalQty} cards)`,
+        from_name: 'Sake Kitty Bulk Submission',
+        replyto: email,
+        Name: name,
+        Email: email,
+        Phone: phone || '(not provided)',
+        'Payment Preference': bulkPref,
+        'Total Cards': String(totalQty),
+        'Total Cash Offer': fmt(totalCash),
+        'Total Store Credit': fmt(totalCredit),
+        'Breakdown': lines.join('\n'),
+        'Notes': notes || '(none)',
+      };
+
+      const btn = document.getElementById('bulkSubmitBtn');
+      btn.disabled = true;
+      const orig = btn.textContent;
+      btn.textContent = 'Sending…';
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.success) throw new Error(json.message || 'submit failed');
+        showBulkSuccess(totalQty, totalCash, totalCredit);
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = orig;
+        alert('Sorry, submission could not be sent. Please try again or email sakekittycards@gmail.com directly.');
+      }
+    });
+
+    renderBulkRows();
+    updateBulkTotals();
+  </script>
 </body>
 </html>
