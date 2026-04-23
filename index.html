@@ -430,9 +430,18 @@
       border: 1px solid rgba(255,106,0,0.25); border-radius: var(--r);
       text-align: center;
     }
+    /* Sell/trade variant — cyan + pink palette so it reads distinct from the orange buy CTA */
+    .cta-banner.cta-sell {
+      background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(255,0,128,0.10));
+      border-color: rgba(0,212,255,0.32);
+    }
     .cta-banner h2 {
       font-family: 'Bangers', cursive; font-size: clamp(24px, 4.5vw, 40px);
       letter-spacing: 0.03em; margin-bottom: 8px;
+    }
+    .cta-banner.cta-sell h2 {
+      background: linear-gradient(135deg, #00d4ff, #ff0080);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
     .cta-banner p { color: var(--muted); font-size: 15px; margin-bottom: 22px; }
 
@@ -622,6 +631,15 @@
       <p style="text-align:center;margin-top:24px;font-size:13px;color:var(--dim)">
         See more on our <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211/feedback" target="_blank" rel="noopener" style="color:var(--orange)">TCGPlayer feedback page →</a>
       </p>
+    </section>
+
+    <!-- Sell / Trade CTA — paired with the buy CTA below so the bottom of the page reads bidirectional -->
+    <section class="section" style="padding-top:0">
+      <div class="cta-banner cta-sell">
+        <h2>Got Cards to Trade?</h2>
+        <p>Singles, sealed, graded, or bulk — build a list and get an instant rough estimate. Cash or store credit, your call.</p>
+        <a href="trade-in.html" class="btn btn-primary btn-lg">Sell or Trade In →</a>
+      </div>
     </section>
 
     <!-- CTA banner -->
