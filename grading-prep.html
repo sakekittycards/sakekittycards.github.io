@@ -76,8 +76,17 @@
     .gp-textarea { resize:vertical; min-height:60px; }
     .gp-disclaimer { font-size:11px; color:var(--dim); line-height:1.6; margin-top:12px; }
 
+    /* ── Card Prep add-on strip ── */
+    .service-addon { display:flex; align-items:flex-start; gap:40px; margin-top:20px; padding:28px 32px; background:var(--bg-card); border:1.5px dashed rgba(0,212,255,.25); border-radius:var(--r); transition:border-color .2s,background .2s; }
+    .service-addon:hover { border-color:rgba(0,212,255,.45); background:var(--bg-card-hover); }
+    .service-addon-badge { display:inline-block; background:linear-gradient(135deg,var(--cyan),var(--purple)); color:#fff; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:var(--r-pill); margin-bottom:12px; }
+    .service-addon-left { flex:1; }
+    .service-addon-price { flex-shrink:0; text-align:right; padding-top:4px; }
+
     @media (max-width:768px) {
       .gp-layout { grid-template-columns:1fr; }
+      .service-addon { flex-direction:column; gap:16px; padding:22px 20px; }
+      .service-addon-price { text-align:left; }
     }
 
     /* ── Conditioning standards modal ── */
@@ -131,7 +140,7 @@
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
-      <div class="service-grid">
+      <div class="service-grid" style="grid-template-columns:repeat(2,1fr)">
 
         <!-- Standard Screen -->
         <div class="service-card">
@@ -166,20 +175,23 @@
           </ul>
         </div>
 
-        <!-- Card Prep -->
-        <div class="service-card">
-          <div class="service-name">Card Prep</div>
-          <div class="service-tagline">We physically prepare the card for its best shot at the grade.</div>
-          <div class="service-price">$5<sub>/card</sub></div>
-          <div class="service-unit">Per card prepped</div>
-          <div class="service-divider"></div>
-          <ul class="service-includes">
+      </div>
+
+      <!-- Card Prep — add-on strip -->
+      <div class="service-addon">
+        <div class="service-addon-left">
+          <div class="service-addon-badge">Optional Add-On</div>
+          <div class="service-name" style="margin-bottom:4px">Card Prep</div>
+          <div class="service-tagline" style="margin-bottom:0">We physically prepare the card for its best shot at the grade. Can be stacked with either screen tier or ordered on its own.</div>
+          <ul class="service-includes" style="margin-top:14px">
             <li>Light surface cleaning with card-safe materials</li>
             <li>Proper sleeving and protective packaging for submission</li>
-            <li>Can be added to either screen tier or ordered on its own</li>
           </ul>
         </div>
-
+        <div class="service-addon-price">
+          <div class="service-price" style="color:var(--cyan);filter:drop-shadow(0 0 10px rgba(0,212,255,.35))">$5<sub>/card</sub></div>
+          <div class="service-unit">Per card prepped</div>
+        </div>
       </div>
     </div>
 
