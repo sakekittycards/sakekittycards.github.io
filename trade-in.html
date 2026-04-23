@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -551,7 +551,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
-  <script src="main.js?v=6"></script>
+  <script src="main.js?v=7"></script>
   <script>
     // Trade-in rates (online — a touch below booth rates to leave room for quotes)
     //   Booth:  Cards 70/80 · Sealed 80/90 · Graded <$1k 80/90 · Graded ≥$1k 90/100
@@ -656,27 +656,32 @@
       'v box','vmax box','vstar box','v battle','starter set','starter collection',
     ];
     let groupsCache = null;
-    const productsCache = {}; // { groupId: [ {...product, prices: [...]} ] }
+    const productsCache = {}; // keyed by `${lang}_${groupId}`
 
     async function loadGroups() {
       if (groupsCache) return groupsCache;
-      try {
-        const res = await fetch(tcgcsvUrl('groups'));
-        const data = await res.json();
-        groupsCache = data.results || [];
-      } catch (err) {
-        console.warn('TCG CSV groups fetch failed:', err);
-        groupsCache = [];
-      }
+      const [enRes, jpRes] = await Promise.allSettled([
+        fetch(tcgcsvUrl('groups')).then(r => r.ok ? r.json() : Promise.reject()),
+        fetch(tcgcsvUrl('jp/groups')).then(r => r.ok ? r.json() : Promise.reject()),
+      ]);
+      const enGroups = enRes.status === 'fulfilled'
+        ? (enRes.value.results || []).map(g => ({ ...g, lang: 'en' }))
+        : [];
+      const jpGroups = jpRes.status === 'fulfilled'
+        ? (jpRes.value.results || []).map(g => ({ ...g, lang: 'jp' }))
+        : [];
+      groupsCache = [...enGroups, ...jpGroups];
       return groupsCache;
     }
 
-    async function loadProductsForGroup(groupId) {
-      if (productsCache[groupId]) return productsCache[groupId];
+    async function loadProductsForGroup(group) {
+      const key = `${group.lang}_${group.groupId}`;
+      if (productsCache[key]) return productsCache[key];
       try {
+        const prefix = group.lang === 'jp' ? 'jp/' : '';
         const [productsRes, pricesRes] = await Promise.all([
-          fetch(tcgcsvUrl(`${groupId}/products`)),
-          fetch(tcgcsvUrl(`${groupId}/prices`)),
+          fetch(tcgcsvUrl(`${prefix}${group.groupId}/products`)),
+          fetch(tcgcsvUrl(`${prefix}${group.groupId}/prices`)),
         ]);
         const [productsData, pricesData] = await Promise.all([
           productsRes.json(), pricesRes.json(),
@@ -690,11 +695,11 @@
           ...product,
           prices: priceMap[product.productId] || [],
         }));
-        productsCache[groupId] = products;
+        productsCache[key] = products;
         return products;
       } catch (err) {
-        console.warn(`TCG CSV products fetch failed for group ${groupId}:`, err);
-        productsCache[groupId] = [];
+        console.warn(`TCG CSV products fetch failed for group ${key}:`, err);
+        productsCache[key] = [];
         return [];
       }
     }
@@ -717,49 +722,58 @@
 
     async function searchSealed(query) {
       const groups = await loadGroups();
-      if (!groups.length) return [];
+      if (!groups.length) return { sealed: [], japanese: [] };
 
       const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-      if (!tokens.length) return [];
+      if (!tokens.length) return { sealed: [], japanese: [] };
 
-      // Find groups whose name matches any token
+      // Find groups whose name/abbr matches any token (in either language)
       const matchingGroups = groups.filter(g => {
         const name = (g.name || '').toLowerCase();
         const abbr = (g.abbreviation || '').toLowerCase();
         return tokens.some(t => name.includes(t) || abbr.includes(t));
-      }).slice(0, 8); // cap to keep load manageable
+      }).slice(0, 12);
 
-      if (!matchingGroups.length) return [];
+      if (!matchingGroups.length) return { sealed: [], japanese: [] };
 
       // Fetch products for matching groups in parallel
       const productArrays = await Promise.all(
-        matchingGroups.map(g => loadProductsForGroup(g.groupId))
+        matchingGroups.map(g => loadProductsForGroup(g))
       );
-      const groupById = {};
-      groups.forEach(g => { groupById[g.groupId] = g; });
 
-      // Flatten + filter
-      const matched = [];
+      const sealed = [];   // English sealed (EN singles come from pokemontcg.io)
+      const japanese = []; // JP cards + sealed together
       productArrays.forEach((products, idx) => {
         const group = matchingGroups[idx];
         for (const p of products) {
-          if (!isSealedProduct(p)) continue;
           const haystack = `${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase();
           if (!tokens.every(t => haystack.includes(t))) continue;
-          matched.push({ product: p, group });
+
+          const isSealed = isSealedProduct(p);
+          const row = {
+            productId: p.productId,
+            name: p.name,
+            set: group.name || '',
+            image: p.imageUrl || '',
+            market: getSealedMarketPrice(p),
+            url: p.url || '',
+            lang: group.lang,
+            isSealed,
+          };
+
+          if (group.lang === 'jp') {
+            japanese.push(row);
+          } else if (isSealed) {
+            sealed.push(row);
+          }
+          // Skip English non-sealed (those come from pokemontcg.io)
         }
       });
 
-      // Map to unified sealed result format
-      return matched.slice(0, 14).map(({ product, group }) => ({
-        source: 'sealed',
-        productId: product.productId,
-        name: product.name,
-        set: group.name || '',
-        image: product.imageUrl || '',
-        market: getSealedMarketPrice(product),
-        url: product.url || '',
-      }));
+      return {
+        sealed:   sealed.slice(0, 12),
+        japanese: japanese.slice(0, 14),
+      };
     }
     // FormSubmit fallback (keep if user hasn't set up Web3Forms yet)
     const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
@@ -870,63 +884,81 @@
           fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
           searchSealed(searchTokens.join(' ')),
         ]);
-        const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || [])   : [];
-        const sealed = sealedRes.status === 'fulfilled' ? sealedRes.value              : [];
-        renderResults(cards, sealed);
+        const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
+        const csv    = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
+        renderResults(cards, csv.sealed || [], csv.japanese || []);
       } catch (err) {
         resultsEl.innerHTML = '<div class="ti-status err">Search failed. Please try again.</div>';
       }
     }
 
-    function renderResults(cardResults, sealedResults) {
+    function renderResults(cardResults, sealedResults, japaneseResults) {
       const cardRows = [];
       for (const c of (cardResults || [])) {
         for (const r of expandVariants(c)) {
-          // If query included variant intent (e.g. "1st edition"), only keep matching variants
           if (currentVariantFilter && r.variantKey && !currentVariantFilter.has(r.variantKey)) continue;
-          if (currentVariantFilter && !r.variantKey) continue; // skip unpriced row when filtering
+          if (currentVariantFilter && !r.variantKey) continue;
           cardRows.push({ kind: 'card', ...r });
         }
       }
-      const sealedRows = (sealedResults || []).map(s => ({ kind: 'sealed', ...s }));
+      const sealedRows = (sealedResults   || []).slice(0, 10);
+      const jpRows     = (japaneseResults || []).slice(0, 14);
+      const cards      = cardRows.slice(0, 16);
 
-      if (!cardRows.length && !sealedRows.length) {
+      if (!cardRows.length && !sealedRows.length && !jpRows.length) {
         resultsEl.innerHTML = '<div class="ti-status">No results found. Try a different spelling or search by set name.</div>';
         return;
       }
 
-      // Show up to 16 cards and 10 sealed, sealed first if they dominate the query
-      const cards  = cardRows.slice(0, 16);
-      const sealed = sealedRows.slice(0, 10);
+      const sectionHeader = (icon, label, color, bg) =>
+        `<div style="padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};background:${bg};border-bottom:1px solid var(--border);border-top:1px solid var(--border)">${icon} ${label}</div>`;
+
+      const priceHTML = (mkt) => mkt != null
+        ? `<span class="ti-result-price">${fmt(mkt)}</span>`
+        : `<span class="ti-result-price nomarket">No price</span>`;
 
       const html = [];
-      if (sealed.length) {
-        html.push(`<div style="padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);background:rgba(255,106,0,0.08);border-bottom:1px solid var(--border)">📦 Sealed Product</div>`);
-        html.push(...sealed.map((r, i) => {
-          const priceHTML = r.market != null
-            ? `<span class="ti-result-price">${fmt(r.market)}</span>`
-            : `<span class="ti-result-price nomarket">No price</span>`;
+
+      // 1) Sealed (English)
+      if (sealedRows.length) {
+        html.push(sectionHeader('📦', 'Sealed Product', 'var(--orange)', 'rgba(255,106,0,0.08)'));
+        html.push(...sealedRows.map((r, i) => `
+          <div class="ti-result" data-sealed-idx="${i}">
+            <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+            <div class="ti-result-info">
+              <div class="ti-result-name">${r.name}</div>
+              <div class="ti-result-set">${r.set}</div>
+            </div>
+            ${priceHTML(r.market)}
+          </div>
+        `));
+      }
+
+      // 2) Japanese (cards + sealed)
+      if (jpRows.length) {
+        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
+        html.push(...jpRows.map((r, i) => {
+          const typeTag = r.isSealed
+            ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
+            : '';
           return `
-            <div class="ti-result" data-sealed-idx="${i}">
+            <div class="ti-result" data-jp-idx="${i}">
               <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
               <div class="ti-result-info">
-                <div class="ti-result-name">${r.name}</div>
+                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
                 <div class="ti-result-set">${r.set}</div>
               </div>
-              ${priceHTML}
+              ${priceHTML(r.market)}
             </div>
           `;
         }));
       }
+
+      // 3) Singles (English, from pokemontcg.io)
       if (cards.length) {
-        if (sealed.length) {
-          html.push(`<div style="padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.05);border-bottom:1px solid var(--border);border-top:1px solid var(--border)">🎴 Singles</div>`);
-        }
+        html.push(sectionHeader('🎴', 'Singles', 'var(--cyan)', 'rgba(0,212,255,0.05)'));
         html.push(...cards.map((r, i) => {
           const c = r.card;
-          const priceHTML = r.price != null
-            ? `<span class="ti-result-price">${fmt(r.price)}</span>`
-            : `<span class="ti-result-price nomarket">No price</span>`;
           const setName = c.set?.name || '';
           const num = c.number ? ` · #${c.number}` : '';
           const variantTag = r.variantLabel
@@ -939,11 +971,12 @@
                 <div class="ti-result-name">${c.name}${variantTag}</div>
                 <div class="ti-result-set">${setName}${num}</div>
               </div>
-              ${priceHTML}
+              ${priceHTML(r.price)}
             </div>
           `;
         }));
       }
+
       resultsEl.innerHTML = html.join('');
 
       resultsEl.querySelectorAll('[data-card-idx]').forEach(el => {
@@ -954,22 +987,31 @@
       });
       resultsEl.querySelectorAll('[data-sealed-idx]').forEach(el => {
         el.addEventListener('click', () => {
-          const r = sealed[+el.dataset.sealedIdx];
-          if (r) addSealedFromSearch(r);
+          const r = sealedRows[+el.dataset.sealedIdx];
+          if (r) addTcgCsvItem(r);
+        });
+      });
+      resultsEl.querySelectorAll('[data-jp-idx]').forEach(el => {
+        el.addEventListener('click', () => {
+          const r = jpRows[+el.dataset.jpIdx];
+          if (r) addTcgCsvItem(r);
         });
       });
     }
 
-    function addSealedFromSearch(sealedRow) {
+    function addTcgCsvItem(row) {
+      const isJp = row.lang === 'jp';
+      const isSealed = row.isSealed;
+      const displayName = (isJp ? '[JP] ' : '') + row.name;
       cards.push({
-        id: 'sealed_' + sealedRow.productId + '_' + Date.now(),
-        type: 'sealed',
-        name: sealedRow.name,
-        set: sealedRow.set || 'Sealed Product',
+        id: (isSealed ? 'sealed_' : 'card_') + row.productId + '_' + Date.now(),
+        type: isSealed ? 'sealed' : 'card',
+        name: displayName,
+        set: row.set || (isSealed ? 'Sealed Product' : ''),
         number: '',
-        image: sealedRow.image || '',
-        market: sealedRow.market,
-        condition: 'Sealed',
+        image: row.image || '',
+        market: row.market,
+        condition: isSealed ? 'Sealed' : 'NM',
       });
       searchInput.value = '';
       resultsEl.classList.remove('open');

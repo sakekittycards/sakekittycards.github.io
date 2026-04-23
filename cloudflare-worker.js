@@ -19,7 +19,14 @@
 //   GET /<groupId>/prices           → prices for a set
 // ─────────────────────────────────────────────────────────────
 
-const UPSTREAM = 'https://tcgcsv.com/tcgplayer/3';
+// Supported TCGPlayer categories.
+//   /groups            → category 3 (English Pokémon) — legacy paths
+//   /<id>/products     → category 3
+//   /<id>/prices       → category 3
+//   /jp/groups         → category 85 (Japanese Pokémon)
+//   /jp/<id>/products  → category 85
+//   /jp/<id>/prices    → category 85
+const UPSTREAM_BASE = 'https://tcgcsv.com/tcgplayer';
 
 // 6-hour cache — TCG CSV refreshes daily, so this is plenty fresh.
 const CACHE_SECONDS = 6 * 60 * 60;
@@ -42,14 +49,18 @@ export default {
 
     const url = new URL(request.url);
 
-    // Allow only the three patterns we need, so this proxy can't be
-    // used as a generic open relay.
-    const allowed = /^\/(groups|\d+\/(products|prices))$/;
-    if (!allowed.test(url.pathname)) {
+    // Resolve category from path prefix (defaults to 3 / English)
+    let category = 3;
+    let rest;
+    const legacy = url.pathname.match(/^\/(groups|\d+\/(?:products|prices))$/);
+    const japan  = url.pathname.match(/^\/jp\/(groups|\d+\/(?:products|prices))$/);
+    if (legacy)       { rest = legacy[1]; }
+    else if (japan)   { rest = japan[1];  category = 85; }
+    else {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
     }
 
-    const target = `${UPSTREAM}${url.pathname}`;
+    const target = `${UPSTREAM_BASE}/${category}/${rest}`;
 
     // Try Cloudflare edge cache first
     const cacheKey = new Request(target, { method: 'GET' });
