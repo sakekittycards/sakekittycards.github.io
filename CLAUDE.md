@@ -17,7 +17,8 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - `index.html` — home, glowing hero, feature grid
 - `shop.html` — placeholder product grid; will become cart-based storefront once Square is wired
 - `events.html` — interactive calendar + event list; event schema supports optional `hours` and `type: 'whatnot'`
-- `vendors.html` — Nick, Jonathan Delia, Joshua Noplis
+- `team.html` — Nick, Jonathan Delia, Joshua Noplis (nav links this page as "Our Team")
+- `vendors.html` — **redirect only** to team.html (legacy link support). Don't restore old content.
 - `trade-in.html` — "Sell / Trade" unified page: card search (singles/sealed/Japanese/graded) AND bulk rates. Submits via Web3Forms with cards + bulk subtotals + grand total.
 - `buylist.html` — **redirect only** to trade-in.html (legacy link support). Don't restore old content.
 - `faq.html`, `about.html`, `contact.html` — info pages
