@@ -95,23 +95,15 @@ async function listItems(base, headers, locationId) {
     objects.filter(o => o.type === 'IMAGE').map(o => [o.id, o.image_data?.url])
   );
 
-  const variationIds = objects
-    .filter(o => o.type === 'ITEM')
-    .map(o => o.item_data?.variations?.[0]?.id)
-    .filter(Boolean);
-
-  // Map of variationId → explicit IN_STOCK quantity. Missing variations default to in-stock.
-  const stockByVariation = await fetchStockCounts(base, headers, variationIds, locationId);
-
   const items = objects
     .filter(o => o.type === 'ITEM')
     .map(o => {
       const variation = o.item_data?.variations?.[0]?.item_variation_data;
       const variationId = o.item_data?.variations?.[0]?.id;
       const amountCents = variation?.price_money?.amount;
-      const qty = stockByVariation[variationId];
-      // In stock unless we have an explicit count of 0. Untracked items → assumed in stock.
-      const inStock = qty === undefined ? true : qty > 0;
+      // All current items are Printful print-on-demand — never out of stock.
+      // Printful inconsistently enables track_inventory during sync, so we ignore it.
+      const inStock = true;
       return {
         id:          o.id,
         variationId,
@@ -162,15 +154,17 @@ async function createCheckout(body, base, headers, env, reqUrl) {
   if (items.length === 0) return json({ error: 'items array is required' }, 400);
 
   const lineItems = items.map((item) => {
-    const name     = String(item.name || 'Item').slice(0, 500);
     const quantity = String(Math.max(1, parseInt(item.quantity, 10) || 1));
-    const cents    = Math.round(Number(item.price) * 100);
+    if (item.variationId) {
+      // Reference the Square catalog variation — Square pulls name + price from catalog.
+      // This is what Printful's order sync watches for to trigger fulfillment.
+      return { catalog_object_id: String(item.variationId), quantity };
+    }
+    // Fallback for any ad-hoc item without a catalog ID.
+    const name  = String(item.name || 'Item').slice(0, 500);
+    const cents = Math.round(Number(item.price) * 100);
     if (!Number.isFinite(cents) || cents <= 0) throw new Error(`invalid price for ${name}`);
-    return {
-      name,
-      quantity,
-      base_price_money: { amount: cents, currency: 'USD' },
-    };
+    return { name, quantity, base_price_money: { amount: cents, currency: 'USD' } };
   });
 
   if (shippingCost > 0) {

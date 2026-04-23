@@ -438,9 +438,10 @@ window.SK = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart.map(i => ({
-            name: i.name,
-            price: i.price,
-            quantity: i.quantity,
+            name:        i.name,
+            price:       i.price,
+            quantity:    i.quantity,
+            variationId: i.variationId,
           })),
           shippingCost: shipping,
           returnUrl: `${window.location.origin}/order-confirmation.html?from=square`,
