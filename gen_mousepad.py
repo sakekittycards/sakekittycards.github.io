@@ -68,32 +68,6 @@ def gradient_text(text, font, gradient_hex, pad=20):
 # ─── Pure black background ────────────────────────────────────────────────
 img = Image.new('RGB', (W, H), '#000000')
 
-# ─── Lava-lamp paint blobs (subtle, the site's easter-egg vibe) ───────────
-# Scattered blurred organic-shape colored blobs — low opacity so they read as
-# floating goo drops in the black, not a background wash.
-random.seed(7)
-blob_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-bd = ImageDraw.Draw(blob_layer)
-BLOB_COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff3b9a', '#ff4e00']
-blob_specs = [
-    # (x_frac, y_frac, size_factor, color_idx, alpha)
-    (0.10, 0.22, 1.0, 0, 120),
-    (0.18, 0.78, 1.3, 1, 105),
-    (0.80, 0.18, 1.1, 2, 115),
-    (0.88, 0.70, 0.9, 3, 100),
-    (0.35, 0.15, 0.7, 4, 95),
-    (0.65, 0.85, 0.8, 5, 90),
-]
-for fx, fy, sf, ci, a in blob_specs:
-    rx = int(random.uniform(220, 340) * sf * DPI_MULT)
-    ry = int(rx * random.uniform(0.55, 0.85))    # oblong, not perfectly round
-    cx = int(fx * W)
-    cy = int(fy * H)
-    rgb = hex_rgb(BLOB_COLORS[ci])
-    bd.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), fill=(*rgb, a))
-blob_layer = blob_layer.filter(ImageFilter.GaussianBlur(int(80 * DPI_MULT)))
-img.paste(blob_layer, (0, 0), blob_layer)
-
 # ─── Sparkle particle field ────────────────────────────────────────────────
 random.seed(42)
 sparkles = Image.new('RGBA', (W, H), (0, 0, 0, 0))
@@ -109,36 +83,15 @@ for _ in range(180):
 sparkles = sparkles.filter(ImageFilter.GaussianBlur(1.2))
 img.paste(sparkles, (0, 0), sparkles)
 
-# ─── Logo (centered, big enough to be the hero) ────────────────────────────
+# ─── Logo (centered, just logo — no glow ring, no tagline) ────────────────
 logo = Image.open(LOGO_PATH).convert('RGBA')
-logo_target = int(1600 * DPI_MULT)
+logo_target = int(1800 * DPI_MULT)    # slightly bigger since it's now the only element
 scale = logo_target / logo.width
 logo = logo.resize((logo_target, int(logo.height * scale)), Image.LANCZOS)
 
-# Glow ring behind the logo to lift it off the bg
-ring = Image.new('RGBA', (logo.width + 240, logo.height + 240), (0, 0, 0, 0))
-ImageDraw.Draw(ring).ellipse([0, 0, logo.width + 240, logo.height + 240], fill=(255, 106, 0, 110))
-ring = ring.filter(ImageFilter.GaussianBlur(90))
-
 lx = (W - logo.width) // 2
-ly = (H - logo.height) // 2 - int(60 * DPI_MULT)
-img.paste(ring, (lx - 120, ly - 120), ring)
+ly = (H - logo.height) // 2
 img.paste(logo, (lx, ly), logo)
-
-# ─── Tagline (gradient Bangers, under the logo) ────────────────────────────
-font_tag = ImageFont.truetype(FONT_PATH, int(180 * DPI_MULT))
-tag_img = gradient_text('COLLECTING, DONE RIGHT.', font_tag, BRAND_GRADIENT, pad=int(24 * DPI_MULT))
-
-# Soft drop shadow for legibility
-sh_alpha = tag_img.split()[-1].point(lambda p: int(p * 0.55))
-shadow = Image.new('RGBA', tag_img.size, (0, 0, 0, 0))
-shadow.putalpha(sh_alpha)
-shadow = shadow.filter(ImageFilter.GaussianBlur(int(16 * DPI_MULT)))
-
-tx = (W - tag_img.width) // 2
-ty = ly + logo.height - int(20 * DPI_MULT)
-img.paste(shadow,  (tx + int(10*DPI_MULT), ty + int(14*DPI_MULT)), shadow)
-img.paste(tag_img, (tx, ty), tag_img)
 
 # ─── Save ──────────────────────────────────────────────────────────────────
 os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
