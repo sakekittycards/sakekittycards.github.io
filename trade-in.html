@@ -415,6 +415,25 @@
             Search covers singles <strong style="color:var(--muted)">and sealed product</strong> (booster boxes, ETBs, bundles, tins, etc.) — try something like <em>"Obsidian Flames ETB"</em> or <em>"Evolving Skies Booster Box"</em>.
           </p>
 
+          <button type="button" class="ti-sealed-toggle" id="gradedToggle">🏆 Have a graded card? Add it with value</button>
+
+          <div class="ti-sealed-form" id="gradedForm">
+            <div class="ti-sealed-form-title">Add Graded Card</div>
+            <input type="text" class="ti-input" id="gradedName" placeholder="Card name (e.g. Charizard Base Set Shadowless Holo)" />
+            <div class="ti-sealed-form-row">
+              <div class="ti-cond" style="flex-shrink:0">
+                <button type="button" class="ti-cond-btn" id="gradedGradeBtn">PSA 10<span class="ti-cond-arrow">▼</span></button>
+                <div class="ti-cond-menu" id="gradedGradeMenu"></div>
+              </div>
+              <input type="number" class="ti-input" id="gradedValue" placeholder="Estimated value ($)" step="0.01" min="0" style="flex:1" />
+            </div>
+            <p style="font-size:11px;color:var(--dim);margin:-2px 0 8px;line-height:1.5">Enter your best estimate of the card's current value (from TCGPlayer, eBay sold, Card Ladder, etc.). We'll verify on intake.</p>
+            <div class="ti-sealed-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="gradedAddBtn">Add to List</button>
+              <button type="button" class="btn btn-outline btn-sm" id="gradedCancelBtn">Cancel</button>
+            </div>
+          </div>
+
           <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
           <div id="tradeList" class="ti-list"></div>
         </div>
@@ -428,13 +447,14 @@
             <div class="ti-totals-value market" id="totalMarket">$0.00</div>
           </div>
           <div class="ti-totals-row">
-            <div class="ti-totals-label">Cash Offer <small>(singles 60% · sealed 75%)</small></div>
+            <div class="ti-totals-label">Cash Offer</div>
             <div class="ti-totals-value cash" id="totalCash">$0.00</div>
           </div>
           <div class="ti-totals-row">
-            <div class="ti-totals-label">Store Credit <small>(singles 75% · sealed 85%)</small></div>
+            <div class="ti-totals-label">Store Credit</div>
             <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
           </div>
+          <p style="font-size:10px;color:var(--dim);line-height:1.55;margin-top:10px;letter-spacing:0.3px">Rates by item type:<br>Singles 60% cash / 75% credit · Sealed 75% / 85% · Graded &lt;$1k 75% / 85% · Graded ≥$1k 85% / 95%</p>
 
           <div class="ti-contact">
             <h4>Your Info</h4>
@@ -507,21 +527,37 @@
   <script src="main.js"></script>
   <script>
     // Trade-in rates (online — a touch below booth rates to leave room for quotes)
-    //   Booth:  Cards 70/80 cash/credit · Sealed 80/90
-    //   Online: Cards 60/75 · Sealed 75/85
+    //   Booth:  Cards 70/80 · Sealed 80/90 · Graded <$1k 80/90 · Graded ≥$1k 90/100
+    //   Online: Cards 60/75 · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95
     const RATES = {
-      card:   { cash: 0.60, credit: 0.75 },
-      sealed: { cash: 0.75, credit: 0.85 },
+      card:        { cash: 0.60, credit: 0.75 },
+      sealed:      { cash: 0.75, credit: 0.85 },
+      graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $1,000
+      graded_high: { cash: 0.85, credit: 0.95 },   // graded cards $1,000 and up
     };
     function ratesFor(item) {
-      return item.type === 'sealed' ? RATES.sealed : RATES.card;
+      if (item.type === 'sealed') return RATES.sealed;
+      if (item.type === 'graded') {
+        return (item.market != null && item.market >= 1000) ? RATES.graded_high : RATES.graded_low;
+      }
+      return RATES.card;
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50,
-      Sealed: 1.0, Damaged: 0.6
+      Sealed: 1.0, Damaged: 0.6,
+      'PSA 10': 1.0, 'PSA 9': 1.0, 'PSA 8': 1.0, 'PSA 7': 1.0,
+      'BGS 10': 1.0, 'BGS 9.5': 1.0, 'BGS 9': 1.0,
+      'CGC 10': 1.0, 'CGC 9.5': 1.0, 'CGC 9': 1.0,
+      'SGC 10': 1.0, 'SGC 9.5': 1.0, 'SGC 9': 1.0,
     };
     const CARD_CONDITIONS   = ['NM', 'LP', 'MP', 'HP'];
     const SEALED_CONDITIONS = ['Sealed', 'Damaged'];
+    const GRADES = [
+      'PSA 10','PSA 9','PSA 8','PSA 7',
+      'BGS 10','BGS 9.5','BGS 9',
+      'CGC 10','CGC 9.5','CGC 9',
+      'SGC 10','SGC 9.5','SGC 9',
+    ];
     const VARIANT_LABELS = {
       normal:               'Normal',
       holofoil:             'Holofoil',
@@ -865,24 +901,45 @@
 
       listEl.innerHTML = cards.map((c, i) => {
         const isSealed = c.type === 'sealed';
+        const isGraded = c.type === 'graded';
         const conditions = isSealed ? SEALED_CONDITIONS : CARD_CONDITIONS;
         const adjusted = c.market != null ? c.market * COND_MULT[c.condition] : null;
         const r = ratesFor(c);
         const cash   = adjusted != null ? adjusted * r.cash   : null;
         const credit = adjusted != null ? adjusted * r.credit : null;
+        const marketLabel = isGraded ? 'Value' : 'Market';
         const marketStr = c.market != null ? fmt(c.market) : 'N/A';
         const offerStr  = (cash != null && credit != null)
           ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
           : `<span style="color:var(--dim)">Price unavailable — contact us</span>`;
-        const condMenu = conditions.map(o =>
-          `<button type="button" class="ti-cond-opt ${o===c.condition?'selected':''}" data-val="${o}">${o}</button>`
-        ).join('');
+
+        // Condition control: graded items show a fixed badge; others show the custom dropdown
+        let condControl;
+        if (isGraded) {
+          condControl = `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;background:rgba(255,106,0,0.15);color:var(--orange);font-size:11px;font-weight:700;border:1px solid rgba(255,106,0,0.35)">🏆 ${c.condition}</span>`;
+        } else {
+          const condMenu = conditions.map(o =>
+            `<button type="button" class="ti-cond-opt ${o===c.condition?'selected':''}" data-val="${o}">${o}</button>`
+          ).join('');
+          condControl = `
+            <div class="ti-cond" data-idx="${i}">
+              <button type="button" class="ti-cond-btn">${c.condition}<span class="ti-cond-arrow">▼</span></button>
+              <div class="ti-cond-menu">${condMenu}</div>
+            </div>`;
+        }
+
         const thumb = isSealed
           ? `<div class="ti-sealed-icon">📦</div>`
+          : isGraded
+          ? `<div class="ti-sealed-icon" style="background:linear-gradient(135deg,#3a2a1a,#5a3a1a);border-color:rgba(255,106,0,0.35)">🏆</div>`
           : `<img src="${c.image}" alt="" onerror="this.style.visibility='hidden'" />`;
+
         const subtitle = isSealed
           ? `<div class="set">Sealed Product</div>`
+          : isGraded
+          ? `<div class="set">Graded</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
+
         return `
           <div class="ti-item ${isSealed?'is-sealed':''}">
             ${thumb}
@@ -890,11 +947,8 @@
               <h4>${c.name}</h4>
               ${subtitle}
               <div class="row">
-                <div class="ti-cond" data-idx="${i}">
-                  <button type="button" class="ti-cond-btn">${c.condition}<span class="ti-cond-arrow">▼</span></button>
-                  <div class="ti-cond-menu">${condMenu}</div>
-                </div>
-                <span class="market">Market: ${marketStr}</span>
+                ${condControl}
+                <span class="market">${marketLabel}: ${marketStr}</span>
                 ${offerStr}
               </div>
             </div>
@@ -983,6 +1037,68 @@
       }
     });
 
+    // Graded card form
+    const gradedToggle    = document.getElementById('gradedToggle');
+    const gradedForm      = document.getElementById('gradedForm');
+    const gradedName      = document.getElementById('gradedName');
+    const gradedValue     = document.getElementById('gradedValue');
+    const gradedAddBtn    = document.getElementById('gradedAddBtn');
+    const gradedCancelBtn = document.getElementById('gradedCancelBtn');
+    const gradedGradeBtn  = document.getElementById('gradedGradeBtn');
+    const gradedGradeMenu = document.getElementById('gradedGradeMenu');
+    let selectedGrade = 'PSA 10';
+
+    // Populate grade dropdown
+    gradedGradeMenu.innerHTML = GRADES.map(g =>
+      `<button type="button" class="ti-cond-opt ${g===selectedGrade?'selected':''}" data-val="${g}">${g}</button>`
+    ).join('');
+
+    gradedToggle.addEventListener('click', () => {
+      gradedForm.classList.toggle('open');
+      if (gradedForm.classList.contains('open')) gradedName.focus();
+    });
+    gradedCancelBtn.addEventListener('click', () => {
+      gradedForm.classList.remove('open');
+      gradedName.value = ''; gradedValue.value = '';
+    });
+    gradedGradeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      document.querySelectorAll('.ti-cond-menu.open').forEach(m => { if (m !== gradedGradeMenu) m.classList.remove('open'); });
+      document.querySelectorAll('.ti-cond-btn.open').forEach(b => { if (b !== gradedGradeBtn) b.classList.remove('open'); });
+      gradedGradeMenu.classList.toggle('open');
+      gradedGradeBtn.classList.toggle('open');
+    });
+    gradedGradeMenu.querySelectorAll('.ti-cond-opt').forEach(opt => {
+      opt.addEventListener('click', e => {
+        e.stopPropagation();
+        selectedGrade = opt.dataset.val;
+        gradedGradeMenu.querySelectorAll('.ti-cond-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        gradedGradeBtn.firstChild.textContent = selectedGrade;
+        gradedGradeMenu.classList.remove('open');
+        gradedGradeBtn.classList.remove('open');
+      });
+    });
+    gradedAddBtn.addEventListener('click', () => {
+      const name = gradedName.value.trim();
+      const val  = parseFloat(gradedValue.value);
+      if (!name) { alert('Please enter a card name.'); gradedName.focus(); return; }
+      if (isNaN(val) || val <= 0) { alert('Please enter an estimated value.'); gradedValue.focus(); return; }
+      cards.push({
+        id: 'graded_' + Date.now(),
+        type: 'graded',
+        name: name,
+        set: 'Graded',
+        number: '',
+        image: '',
+        market: val,
+        condition: selectedGrade,
+      });
+      gradedName.value = ''; gradedValue.value = '';
+      gradedForm.classList.remove('open');
+      renderList();
+    });
+
     // Payment preference toggle
     let paymentPref = 'Either';
     document.querySelectorAll('#prefGroup button').forEach(btn => {
@@ -1029,8 +1145,9 @@
 
       // Calculate totals + build formatted sections
       let market = 0, cash = 0, credit = 0;
-      const cardItems   = cards.filter(c => c.type !== 'sealed');
+      const cardItems   = cards.filter(c => c.type === 'card' || c.type === undefined);
       const sealedItems = cards.filter(c => c.type === 'sealed');
+      const gradedItems = cards.filter(c => c.type === 'graded');
 
       const formatItem = (c, i) => {
         const idx = (i+1) + '.';
@@ -1049,6 +1166,7 @@
 
       const singlesText = cardItems.length ? cardItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
       const sealedText  = sealedItems.length ? sealedItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
+      const gradedText  = gradedItems.length ? gradedItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
 
       // FormSubmit payload
       const payload = {
@@ -1066,6 +1184,7 @@
         'Item Count': String(cards.length),
         Singles: singlesText,
         Sealed: sealedText,
+        Graded: gradedText,
         Notes: notes || '(none)',
       };
 
