@@ -313,6 +313,30 @@
     .vendor-mini h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
     .vendor-mini p { font-size: 12px; color: var(--orange); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
 
+    /* Gold Star Seller badge */
+    .gold-star-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      background: linear-gradient(135deg, rgba(255,204,0,0.14), rgba(255,150,0,0.08));
+      border: 1px solid rgba(255,204,0,0.5);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffcc00;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 14px 0 6px;
+    }
+    .gs-star {
+      color: #ffcc00;
+      font-size: 15px;
+      text-shadow: 0 0 12px rgba(255,204,0,0.7);
+      line-height: 1;
+    }
+    .gold-star-badge a { color: inherit; text-decoration: none; }
+
     /* Testimonials */
     .testimonials-grid {
       display: grid;
@@ -523,7 +547,11 @@
       <div class="center-heading">
         <h2 class="section-title">What Collectors Are Saying</h2>
         <div class="divider"></div>
-        <p class="section-sub">Recent 5-star feedback from verified TCGPlayer buyers.</p>
+        <div class="gold-star-badge" aria-label="Gold Star Seller on TCGPlayer">
+          <span class="gs-star">★</span>
+          <span>Gold Star Seller on TCGPlayer</span>
+        </div>
+        <p class="section-sub" style="margin-top:6px">Recent 5-star feedback from verified TCGPlayer buyers.</p>
       </div>
       <div class="testimonials-grid">
         <div class="testimonial-card">
