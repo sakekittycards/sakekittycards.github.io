@@ -8,7 +8,85 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=23" />
+  <link rel="stylesheet" href="style.css?v=24" />
+  <style>
+    /* ── Grading Prep card intake form ── */
+    .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
+    .gp-col { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:22px; }
+    .gp-col-title { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.04em; background:linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px; }
+
+    .gp-search-wrap { position:relative; margin-bottom:14px; }
+    .gp-search { width:100%; padding:13px 18px 13px 44px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:var(--r-pill); color:var(--text); font-size:15px; font-family:'Inter',sans-serif; outline:none; transition:border-color .2s,box-shadow .2s; }
+    .gp-search:focus { border-color:rgba(255,106,0,.55); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
+    .gp-search::placeholder { color:var(--dim); }
+    .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:17px; height:17px; opacity:.4; pointer-events:none; color:var(--text); }
+    .gp-search-icon svg { width:100%; height:100%; }
+
+    .gp-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:rgba(12,12,18,.97); border:1px solid var(--border); border-radius:var(--r); max-height:360px; overflow-y:auto; z-index:20; backdrop-filter:blur(16px); box-shadow:0 10px 40px rgba(0,0,0,.5); display:none; }
+    .gp-results.open { display:block; }
+    .gp-result { display:flex; gap:12px; align-items:center; padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .15s; }
+    .gp-result:last-child { border-bottom:none; }
+    .gp-result:hover { background:rgba(255,106,0,.08); }
+    .gp-result img { width:38px; height:54px; object-fit:cover; border-radius:4px; flex-shrink:0; background:#1a1a2e; }
+    .gp-result-info { flex:1; min-width:0; }
+    .gp-result-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .gp-result-set { font-size:11px; color:var(--dim); }
+    .gp-status { text-align:center; padding:16px; font-size:13px; color:var(--dim); }
+    .gp-status.err { color:#ff6b6b; }
+
+    .gp-list { display:flex; flex-direction:column; gap:8px; min-height:60px; }
+    .gp-empty { padding:36px 20px; text-align:center; color:var(--dim); font-size:13px; line-height:1.7; }
+    .gp-empty .icon { font-size:30px; margin-bottom:8px; opacity:.35; display:block; }
+
+    .gp-item { display:grid; grid-template-columns:44px 1fr auto; gap:12px; align-items:start; padding:10px 12px; background:rgba(255,255,255,.025); border:1px solid var(--border); border-radius:var(--r-sm); }
+    .gp-item img { width:44px; height:62px; object-fit:cover; border-radius:4px; }
+    .gp-item-info h4 { font-size:13px; font-weight:700; line-height:1.3; margin-bottom:2px; }
+    .gp-item-info .gp-set { font-size:11px; color:var(--dim); margin-bottom:7px; }
+    .gp-item-svc { display:flex; flex-direction:column; gap:5px; }
+    .gp-svc-row { display:flex; gap:6px; flex-wrap:wrap; }
+
+    .gp-radio-label, .gp-check-label { display:inline-flex; align-items:center; gap:5px; cursor:pointer; font-size:11px; font-weight:600; color:var(--muted); padding:4px 9px; border:1px solid var(--border); border-radius:6px; transition:border-color .15s,background .15s,color .15s; user-select:none; line-height:1.4; }
+    .gp-radio-label:hover { border-color:rgba(255,106,0,.35); color:var(--text); }
+    .gp-check-label:hover { border-color:rgba(0,212,255,.35); color:var(--text); }
+    .gp-radio-label input, .gp-check-label input { accent-color:var(--orange); margin:0; }
+    .gp-radio-label.active { border-color:var(--orange); background:rgba(255,106,0,.1); color:var(--text); }
+    .gp-check-label.active { border-color:var(--cyan); background:rgba(0,212,255,.07); color:var(--text); }
+    .gp-price-tag { font-family:'Bangers',cursive; font-size:13px; letter-spacing:.04em; color:var(--orange); }
+    .gp-price-tag.cyan { color:var(--cyan); }
+
+    .gp-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+    .gp-item-cost { font-family:'Bangers',cursive; font-size:20px; color:var(--orange); letter-spacing:.04em; line-height:1; }
+    .gp-remove { background:none; border:none; color:var(--dim); cursor:pointer; font-size:20px; padding:2px 4px; line-height:1; transition:color .15s; }
+    .gp-remove:hover { color:#ff6b6b; }
+
+    .gp-totals { margin-bottom:16px; }
+    .gp-totals-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    .gp-totals-row:last-child { border-bottom:none; }
+    .gp-totals-label { font-size:13px; color:var(--muted); }
+    .gp-totals-val { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.5px; }
+    .gp-total-orange { color:var(--orange); }
+
+    .gp-contact { padding-top:14px; margin-top:2px; border-top:1px solid var(--border); margin-bottom:14px; }
+    .gp-contact-label { font-size:10px; font-weight:700; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
+    .gp-input, .gp-textarea { width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:'Inter',sans-serif; outline:none; transition:border-color .15s,box-shadow .15s; margin-bottom:8px; }
+    .gp-input:focus, .gp-textarea:focus { border-color:rgba(255,106,0,.5); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
+    .gp-input::placeholder, .gp-textarea::placeholder { color:var(--dim); }
+    .gp-textarea { resize:vertical; min-height:60px; }
+    .gp-disclaimer { font-size:11px; color:var(--dim); line-height:1.6; margin-top:12px; }
+
+    @media (max-width:768px) {
+      .gp-layout { grid-template-columns:1fr; }
+    }
+
+    /* ── Conditioning standards modal ── */
+    .cond-modal { display:none; position:fixed; inset:0; z-index:1000; }
+    .cond-modal.open { display:flex; align-items:center; justify-content:center; }
+    .cond-modal-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.92); backdrop-filter:blur(10px); }
+    .cond-modal-content { position:relative; z-index:2; max-width:92vw; max-height:92vh; overflow:auto; -webkit-overflow-scrolling:touch; }
+    .cond-modal-content img { display:block; max-width:100%; width:900px; height:auto; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+    .cond-modal-close { position:absolute; top:-44px; right:0; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+    .cond-modal-close:hover { background:rgba(255,255,255,.2); }
+  </style>
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -45,10 +123,10 @@
 
     <!-- Service tiers -->
     <div class="section" style="padding-top:0">
-      <div class="section-header">
-        <h2 class="section-title">Choose Your Service</h2>
-        <p class="section-sub">All services available by mail or in person at events. Results within 2 business days.</p>
-        <div class="divider"></div>
+      <div class="section-header" style="text-align:center">
+        <h2 class="section-title" style="display:inline-block">Choose Your Service</h2>
+        <p class="section-sub" style="margin:8px auto 0">All services available by mail or in person at events. Results within 2 business days.</p>
+        <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
       <div class="service-grid">
@@ -62,11 +140,11 @@
           <div class="service-divider"></div>
           <ul class="service-includes">
             <li>Pass or fail verdict on each card</li>
-            <li>Evaluated against PSA / SGC / CGC standards</li>
+            <li>Evaluated against PSA, CGC, and Beckett standards</li>
             <li>Results sent by email</li>
             <li>Best for large lots where you just need to cull the obvious misses</li>
           </ul>
-          <a href="contact.html" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
+          <a href="#submitSection" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
         </div>
 
         <!-- Detailed Screen -->
@@ -82,9 +160,10 @@
             <li>Written notes on any card that fails</li>
             <li>Photos marking the specific imperfections</li>
             <li>Honest recommendation — hold, sell, or resubmit</li>
+            <li>Recommended grading company based on card type and value</li>
             <li>Best for high-value cards where details matter</li>
           </ul>
-          <a href="contact.html" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
+          <a href="#submitSection" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
         </div>
 
         <!-- Card Prep -->
@@ -96,12 +175,10 @@
           <div class="service-divider"></div>
           <ul class="service-includes">
             <li>Light surface cleaning with card-safe materials</li>
-            <li>Edge and corner inspection</li>
             <li>Proper sleeving and protective packaging for submission</li>
-            <li>Recommended grading company based on card type and value</li>
             <li>Can be added to either screen tier or ordered on its own</li>
           </ul>
-          <a href="contact.html" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
+          <a href="#submitSection" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center;text-align:center">Get Started →</a>
         </div>
 
       </div>
@@ -113,38 +190,94 @@
         <div class="combine-box-icon">💡</div>
         <div>
           <h3>Stack Your Services</h3>
-          <p>Pair <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for the full package — we evaluate the card, mark any issues, prep it for submission, and send it back ready to go. Just tell us what you want when you reach out.</p>
+          <p>Pair <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for the full package — we evaluate the card, mark any issues, prep it for submission, and send it back ready to go. Just check both options when you build your list below.</p>
         </div>
       </div>
     </div>
 
     <!-- How it works -->
     <div class="section" style="padding-top:0">
-      <div class="section-header">
-        <h2 class="section-title">How It Works</h2>
-        <div class="divider"></div>
+      <div class="section-header" style="text-align:center">
+        <h2 class="section-title" style="display:inline-block">How It Works</h2>
+        <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
       <div class="prep-steps">
         <div class="prep-step">
           <div class="prep-step-num">1</div>
-          <h4>Send Us Your Cards</h4>
-          <p>Mail them in or hand them off at an event. Include your name, email, and which service you want on each card.</p>
+          <h4>Build Your List</h4>
+          <p>Use the form below to search each card, pick Standard or Detailed screening, and check the Prep box if you want cleaning too.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">2</div>
-          <h4>We Evaluate Within 2 Days</h4>
-          <p>Every card gets reviewed against current grading standards for PSA, SGC, and CGC.</p>
+          <h4>Send Us Your Cards</h4>
+          <p>Mail them in or hand them off at an event. We'll confirm receipt and send payment instructions.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">3</div>
-          <h4>You Get Your Results</h4>
-          <p>Pass/fail by email. Detailed tier includes photos and written notes on every fail. Prep tier ships cards back submission-ready.</p>
+          <h4>We Evaluate Within 2 Days</h4>
+          <p>Every card gets reviewed against current grading standards for PSA, CGC, and Beckett.</p>
         </div>
         <div class="prep-step">
           <div class="prep-step-num">4</div>
-          <h4>Cards Come Back to You</h4>
-          <p>We return your cards securely, or forward them directly to your grading company if you're ready to submit.</p>
+          <h4>You Get Your Results</h4>
+          <p>Pass/fail by email. Detailed tier includes photos and notes on every fail. Prepped cards ship back submission-ready.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card intake form -->
+    <div class="section" style="padding-top:0" id="submitSection">
+      <div class="section-header" style="text-align:center">
+        <h2 class="section-title" style="display:inline-block">Submit Your Cards</h2>
+        <p class="section-sub" style="margin:8px auto 0">Search each card, pick your service, and send us your list. We'll confirm and follow up within 1 business day.</p>
+        <div class="divider" style="margin:10px auto 0"></div>
+      </div>
+
+      <div id="gpFormInner">
+        <div class="gp-layout">
+
+          <!-- Left: search + card list -->
+          <div class="gp-col">
+            <h3 class="gp-col-title">Your Cards</h3>
+            <div class="gp-search-wrap" id="gpSearchWrap">
+              <div class="gp-search-icon">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </div>
+              <input type="text" class="gp-search" id="gpSearch" placeholder="Search card name…" autocomplete="off" />
+              <div class="gp-results" id="gpResults"></div>
+            </div>
+            <div class="gp-list" id="gpList">
+              <div class="gp-empty"><span class="icon">🎴</span>Search for a card above to add it to your list.</div>
+            </div>
+          </div>
+
+          <!-- Right: order summary + contact -->
+          <div class="gp-col">
+            <h3 class="gp-col-title">Your Order</h3>
+
+            <div class="gp-totals">
+              <div class="gp-totals-row">
+                <span class="gp-totals-label">Cards</span>
+                <span class="gp-totals-val" id="gpCardCount">0</span>
+              </div>
+              <div class="gp-totals-row">
+                <span class="gp-totals-label">Estimated Total</span>
+                <span class="gp-totals-val gp-total-orange" id="gpTotal">$0.00</span>
+              </div>
+            </div>
+
+            <div class="gp-contact">
+              <div class="gp-contact-label">Your Info</div>
+              <input type="text"  id="gpName"  class="gp-input" placeholder="Your name *" />
+              <input type="email" id="gpEmail" class="gp-input" placeholder="Email address *" />
+              <textarea id="gpNotes" class="gp-textarea" placeholder="Notes — mail-in or in-person, any specific concerns…"></textarea>
+            </div>
+
+            <button id="gpSendBtn" class="btn btn-primary" disabled style="width:100%;justify-content:center">Send Request</button>
+            <p class="gp-disclaimer">Totals are estimates. Final invoice sent after we receive and confirm your cards.</p>
+          </div>
+
         </div>
       </div>
     </div>
@@ -154,15 +287,15 @@
       <div class="tcg-banner">
         <div class="tcg-banner-text">
           <h2>See Our Conditioning Standards</h2>
-          <p>Curious how we evaluate cards? Our full grading rubric — imperfection types, a points system for severity, and condition tier breakdowns — is on our Sell / Trade page.</p>
+          <p>Our full grading rubric — imperfection types, a points system for severity, and condition tier breakdowns — is exactly what we use to evaluate your cards.</p>
         </div>
-        <a href="trade-in.html#conditioning" class="btn btn-secondary btn-lg">View Standards →</a>
+        <button type="button" id="openCondBtn" class="btn btn-secondary btn-lg">View Standards →</button>
       </div>
     </div>
 
     <!-- CTA -->
     <div class="section" style="padding-top:0;text-align:center">
-      <p style="font-size:15px;color:var(--muted);margin-bottom:20px">Ready to get started? Reach out and we'll walk you through it.</p>
+      <p style="font-size:15px;color:var(--muted);margin-bottom:20px">Questions before you submit? Reach out and we'll walk you through it.</p>
       <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
         <a href="contact.html" class="btn btn-primary btn-lg">Contact Us</a>
         <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">DM on Instagram</a>
@@ -197,6 +330,233 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
+  <div class="cond-modal" id="condModal" role="dialog" aria-modal="true" aria-label="Card Conditioning Standards" aria-hidden="true">
+    <div class="cond-modal-backdrop" data-cond-dismiss></div>
+    <div class="cond-modal-content">
+      <button type="button" class="cond-modal-close" id="condModalClose" aria-label="Close">×</button>
+      <img src="conditioning-standards.png" alt="Sake Kitty Cards conditioning standards — NM through DMG, imperfection types, points system" />
+    </div>
+  </div>
+
   <script src="main.js?v=22"></script>
+  <script>
+    (function () {
+      const modal   = document.getElementById('condModal');
+      const openBtn = document.getElementById('openCondBtn');
+      const closeBtn = document.getElementById('condModalClose');
+      if (!modal || !openBtn) return;
+      const open  = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+      const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+      openBtn.addEventListener('click', open);
+      closeBtn?.addEventListener('click', close);
+      modal.querySelectorAll('[data-cond-dismiss]').forEach(el => el.addEventListener('click', close));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+    })();
+  </script>
+  <script>
+    (function () {
+      const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
+      const SVC = { standard: 3, detailed: 5, prep: 5 };
+
+      let gpCards = [];
+      let gpSearchResults = [];
+      let gpTimeout;
+
+      const gpSearchEl = document.getElementById('gpSearch');
+      const gpResultsEl = document.getElementById('gpResults');
+      const gpListEl = document.getElementById('gpList');
+      const gpCountEl = document.getElementById('gpCardCount');
+      const gpTotalEl = document.getElementById('gpTotal');
+      const gpSendBtn = document.getElementById('gpSendBtn');
+      const gpNameEl = document.getElementById('gpName');
+      const gpEmailEl = document.getElementById('gpEmail');
+
+      function fmt(n) { return '$' + n.toFixed(2); }
+      function cardCost(c) { return SVC[c.svc] + (c.prep ? SVC.prep : 0); }
+
+      function recalc() {
+        const total = gpCards.reduce((s, c) => s + cardCost(c), 0);
+        gpCountEl.textContent = gpCards.length;
+        gpTotalEl.textContent = fmt(total);
+        gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim();
+      }
+
+      function renderList() {
+        if (!gpCards.length) {
+          gpListEl.innerHTML = '<div class="gp-empty"><span class="icon">🎴</span>Search for a card above to add it to your list.</div>';
+          recalc();
+          return;
+        }
+
+        gpListEl.innerHTML = gpCards.map((c, i) => `
+          <div class="gp-item">
+            <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" />
+            <div class="gp-item-info">
+              <h4>${c.name}</h4>
+              <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
+              <div class="gp-item-svc">
+                <div class="gp-svc-row">
+                  <label class="gp-radio-label${c.svc === 'standard' ? ' active' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}> Standard <span class="gp-price-tag">$3</span>
+                  </label>
+                  <label class="gp-radio-label${c.svc === 'detailed' ? ' active' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}> Detailed <span class="gp-price-tag">$5</span>
+                  </label>
+                </div>
+                <div class="gp-svc-row">
+                  <label class="gp-check-label${c.prep ? ' active' : ''}">
+                    <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}> + Prep <span class="gp-price-tag cyan">$5</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="gp-item-right">
+              <div class="gp-item-cost">${fmt(cardCost(c))}</div>
+              <button class="gp-remove" data-rm="${i}" aria-label="Remove card">×</button>
+            </div>
+          </div>
+        `).join('');
+
+        gpListEl.querySelectorAll('input[type="radio"]').forEach(r => {
+          r.addEventListener('change', () => {
+            const i = +r.dataset.idx;
+            gpCards[i].svc = r.value;
+            gpListEl.querySelectorAll(`[name="gpsvc${i}"]`).forEach(rb => {
+              rb.closest('.gp-radio-label').classList.toggle('active', rb.checked);
+            });
+            gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
+            recalc();
+          });
+        });
+
+        gpListEl.querySelectorAll('[data-prep]').forEach(cb => {
+          cb.addEventListener('change', () => {
+            const i = +cb.dataset.prep;
+            gpCards[i].prep = cb.checked;
+            cb.closest('.gp-check-label').classList.toggle('active', cb.checked);
+            gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
+            recalc();
+          });
+        });
+
+        gpListEl.querySelectorAll('[data-rm]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            gpCards.splice(+btn.dataset.rm, 1);
+            renderList();
+          });
+        });
+
+        recalc();
+      }
+
+      async function doSearch(q) {
+        q = q.trim();
+        if (q.length < 2) { gpResultsEl.classList.remove('open'); return; }
+        gpResultsEl.innerHTML = '<div class="gp-status">Searching…</div>';
+        gpResultsEl.classList.add('open');
+        try {
+          const tokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+          const lucene = tokens.map(t => {
+            const c = t.replace(/[^\w\d&'.-]/g, '');
+            return c ? `(name:*${c}* OR set.name:*${c}*)` : '';
+          }).filter(Boolean).join(' ');
+          if (!lucene) { gpResultsEl.classList.remove('open'); return; }
+          const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`);
+          const data = res.ok ? await res.json() : {};
+          gpSearchResults = data.data || [];
+          if (!gpSearchResults.length) {
+            gpResultsEl.innerHTML = '<div class="gp-status">No results. Try a different spelling.</div>';
+            return;
+          }
+          gpResultsEl.innerHTML = gpSearchResults.map((c, i) => `
+            <div class="gp-result" data-ri="${i}">
+              <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
+              <div class="gp-result-info">
+                <div class="gp-result-name">${c.name}</div>
+                <div class="gp-result-set">${c.set?.name || ''}${c.number ? ' · #' + c.number : ''}</div>
+              </div>
+            </div>
+          `).join('');
+          gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
+            el.addEventListener('click', () => {
+              const c = gpSearchResults[+el.dataset.ri];
+              gpCards.push({ name: c.name, set: c.set?.name || '', num: c.number || '', img: c.images?.small || '', svc: 'standard', prep: false });
+              gpSearchEl.value = '';
+              gpResultsEl.classList.remove('open');
+              renderList();
+            });
+          });
+        } catch (e) {
+          gpResultsEl.innerHTML = '<div class="gp-status err">Search failed. Try again.</div>';
+        }
+      }
+
+      gpSearchEl.addEventListener('input', () => {
+        clearTimeout(gpTimeout);
+        gpTimeout = setTimeout(() => doSearch(gpSearchEl.value), 320);
+      });
+
+      document.addEventListener('click', e => {
+        if (!e.target.closest('#gpSearchWrap')) gpResultsEl.classList.remove('open');
+      });
+
+      gpNameEl.addEventListener('input', recalc);
+      gpEmailEl.addEventListener('input', recalc);
+
+      gpSendBtn.addEventListener('click', async () => {
+        const name = gpNameEl.value.trim();
+        const email = gpEmailEl.value.trim();
+        const notes = document.getElementById('gpNotes').value.trim();
+        if (!gpCards.length || !name || !email) return;
+
+        const total = gpCards.reduce((s, c) => s + cardCost(c), 0);
+        const cardLines = gpCards.map((c, i) => {
+          const svcLabel = c.svc === 'standard' ? 'Standard Screen ($3)' : 'Detailed Screen ($5)';
+          const prepLabel = c.prep ? ' + Card Prep ($5)' : '';
+          return `${i + 1}. ${c.name} (${c.set}${c.num ? ' #' + c.num : ''}) — ${svcLabel}${prepLabel} = ${fmt(cardCost(c))}`;
+        }).join('\n');
+
+        gpSendBtn.disabled = true;
+        gpSendBtn.textContent = 'Sending…';
+
+        try {
+          const res = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              access_key: WEB3FORMS_KEY,
+              subject: `Grading Prep Request from ${name} (${gpCards.length} card${gpCards.length !== 1 ? 's' : ''})`,
+              from_name: 'Sake Kitty Grading Prep',
+              replyto: email,
+              Name: name,
+              Email: email,
+              'Card Count': String(gpCards.length),
+              'Estimated Total': fmt(total),
+              Cards: cardLines,
+              Notes: notes || '(none)',
+              _captcha: 'false',
+              _template: 'table',
+            }),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (!res.ok || !json.success) throw new Error(json.message || 'failed');
+
+          document.getElementById('gpFormInner').innerHTML = `
+            <div style="text-align:center;padding:48px 24px">
+              <div style="font-size:48px;margin-bottom:16px">✅</div>
+              <h3 style="font-family:'Bangers',cursive;font-size:30px;letter-spacing:.04em;margin-bottom:10px;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Request Sent!</h3>
+              <p style="font-size:14px;color:var(--muted);max-width:340px;margin:0 auto;line-height:1.7">We got your list. Expect a reply at <strong style="color:var(--text)">${email}</strong> within 1 business day with next steps.</p>
+            </div>
+          `;
+        } catch (err) {
+          gpSendBtn.disabled = false;
+          gpSendBtn.textContent = 'Send Request';
+          alert('Submission failed. Please try again or email us at sakekittycards@gmail.com');
+        }
+      });
+
+      renderList();
+    })();
+  </script>
 </body>
 </html>

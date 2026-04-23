@@ -895,14 +895,16 @@ body.drip-unlocked { position: relative; }
 
 /* ── Grading Prep / Service tiers ── */
 .service-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; align-items: start; }
-.service-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px 28px; display: flex; flex-direction: column; transition: border-color .2s, transform .2s; }
-.service-card:hover { transform: translateY(-4px); }
+.service-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px 28px; display: flex; flex-direction: column; transition: border-color .2s, transform .2s, background .2s; }
+.service-card:hover { transform: translateY(-4px); border-color: rgba(255,106,0,0.25); background: var(--bg-card-hover); }
 .service-card.featured { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 8px 32px rgba(255,106,0,.18); }
+.service-card.featured:hover { border-color: var(--orange); }
 .service-badge { display: inline-block; background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--r-pill); margin-bottom: 14px; align-self: flex-start; }
 .service-name { font-family: 'Bangers',cursive; font-size: 28px; letter-spacing: .04em; margin-bottom: 4px; }
 .service-tagline { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
-.service-price { font-size: 42px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
-.service-price sub { font-size: 16px; font-weight: 400; color: var(--muted); vertical-align: baseline; }
+.service-price { font-family: 'Bangers', cursive; font-size: 48px; letter-spacing: .04em; line-height: 1; margin-bottom: 2px; }
+.service-price sub { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 400; color: var(--muted); vertical-align: baseline; letter-spacing: 0; }
+.service-card.featured .service-price { color: var(--orange); filter: drop-shadow(0 0 10px rgba(255,106,0,.4)); }
 .service-unit { font-size: 13px; color: var(--dim); margin-bottom: 20px; }
 .service-divider { height: 1px; background: var(--border); margin: 20px 0; }
 .service-includes { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 24px; }
