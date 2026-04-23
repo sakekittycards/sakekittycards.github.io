@@ -113,9 +113,10 @@
       margin-top: 30px;
       padding-top: 22px;
       border-top: 1px solid var(--border);
-      font-size: 14px; line-height: 1.7; color: var(--muted);
-      white-space: pre-wrap;
+      font-size: 14px; line-height: 1.65; color: var(--muted);
     }
+    .pdp-desc p { margin: 0 0 10px; }
+    .pdp-desc p:last-child { margin-bottom: 0; }
 
     /* Status states */
     .pdp-status {
@@ -156,7 +157,7 @@
   </nav>
 
   <main class="page-content">
-    <div class="section" style="padding-top:0">
+    <div class="section" style="padding-top:calc(var(--nav-h) + 48px)">
       <div id="pdpStatus" class="pdp-status">
         <div class="shop-spinner" aria-hidden="true"></div>
         <p>Loading product…</p>
@@ -232,16 +233,38 @@
       const defaultIdx = hasVars ? Math.max(0, vars.findIndex(v => v.inStock)) : 0;
       const oos        = item.inStock === false;
 
-      // Build gallery image list — product images + any per-variation images, dedupped
-      const galleryUrls = [
-        ...(Array.isArray(item.imageUrls) ? item.imageUrls : []),
-        ...vars.map(v => v.imageUrl).filter(Boolean),
-      ].filter((u, i, arr) => u && arr.indexOf(u) === i);
+      // For apparel, many variants share the same color (e.g. Black/S, Black/M,
+      // Black/L all use the same mockup). We group by the leading color name so
+      // selecting any size pulls up that color's photo set.
+      const colorOf = (v) => String(v.name || '').split(',')[0].trim().toLowerCase() || '__default__';
 
-      // Fallback if no gallery images
-      if (galleryUrls.length === 0 && item.imageUrl) galleryUrls.push(item.imageUrl);
+      // Images that belong to a given variant = every distinct mockup URL across
+      // all same-color variants. With current Printful data that's usually just
+      // one URL per color; if multiple angles get added later, the gallery grows.
+      const galleryForVariant = (v) => {
+        if (!v) return item.imageUrl ? [item.imageUrl] : [];
+        const color = colorOf(v);
+        const urls = vars
+          .filter(x => colorOf(x) === color)
+          .map(x => x.imageUrl)
+          .filter(Boolean);
+        // Dedup, preserving order
+        const seen = new Set();
+        const deduped = urls.filter(u => { if (seen.has(u)) return false; seen.add(u); return true; });
+        return deduped.length ? deduped : (item.imageUrl ? [item.imageUrl] : []);
+      };
+
+      // Render description as real paragraphs: split on blank lines, drop empties.
+      const descHtml = (item.description || '')
+        .split(/\n{2,}/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`)
+        .join('');
 
       document.title = `${item.name} — Sake Kitty Cards`;
+
+      const initialGallery = galleryForVariant(vars[defaultIdx]);
 
       root.innerHTML = `
         <div class="pdp-breadcrumb">
@@ -250,17 +273,11 @@
         <div class="pdp">
           <div class="pdp-gallery">
             <div class="pdp-main-img-wrap">
-              ${galleryUrls.length
-                ? `<img src="${esc(galleryUrls[0])}" alt="${esc(item.name)}" class="pdp-main-img" id="pdpMainImg" />`
+              ${initialGallery.length
+                ? `<img src="${esc(initialGallery[0])}" alt="${esc(item.name)}" class="pdp-main-img" id="pdpMainImg" />`
                 : `<div class="pdp-main-placeholder">📦</div>`}
             </div>
-            ${galleryUrls.length > 1 ? `
-              <div class="pdp-thumbs" id="pdpThumbs">
-                ${galleryUrls.map((u, i) => `
-                  <button type="button" class="pdp-thumb${i === 0 ? ' active' : ''}" data-url="${esc(u)}" aria-label="View image ${i + 1}">
-                    <img src="${esc(u)}" alt="" />
-                  </button>`).join('')}
-              </div>` : ''}
+            <div class="pdp-thumbs" id="pdpThumbs" ${initialGallery.length > 1 ? '' : 'hidden'}></div>
           </div>
           <div class="pdp-info">
             <h1 class="pdp-name">${esc(item.name)}</h1>
@@ -287,33 +304,48 @@
                 : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>`}
             </div>
 
-            ${item.description ? `<div class="pdp-desc">${esc(item.description)}</div>` : ''}
+            ${descHtml ? `<div class="pdp-desc">${descHtml}</div>` : ''}
           </div>
         </div>`;
 
       statusEl.hidden = true;
       root.hidden = false;
 
-      const mainImg = document.getElementById('pdpMainImg');
-      const priceEl = document.getElementById('pdpPrice');
+      const mainImg  = document.getElementById('pdpMainImg');
+      const priceEl  = document.getElementById('pdpPrice');
+      const thumbsEl = document.getElementById('pdpThumbs');
 
       let selectedIdx = defaultIdx;
 
       const setMainImage = (url) => {
         if (!mainImg || !url) return;
         mainImg.src = url;
-        // sync thumb highlight
-        document.querySelectorAll('.pdp-thumb').forEach(t => {
+        thumbsEl?.querySelectorAll('.pdp-thumb').forEach(t => {
           t.classList.toggle('active', t.dataset.url === url);
         });
       };
 
-      // Thumb clicks swap main image
-      document.querySelectorAll('.pdp-thumb').forEach(t => {
-        t.addEventListener('click', () => setMainImage(t.dataset.url));
-      });
+      const renderThumbs = (urls) => {
+        if (!thumbsEl) return;
+        if (urls.length <= 1) {
+          thumbsEl.hidden = true;
+          thumbsEl.innerHTML = '';
+          return;
+        }
+        thumbsEl.hidden = false;
+        thumbsEl.innerHTML = urls.map((u, i) => `
+          <button type="button" class="pdp-thumb${i === 0 ? ' active' : ''}" data-url="${esc(u)}" aria-label="View image ${i + 1}">
+            <img src="${esc(u)}" alt="" />
+          </button>`).join('');
+        thumbsEl.querySelectorAll('.pdp-thumb').forEach(t => {
+          t.addEventListener('click', () => setMainImage(t.dataset.url));
+        });
+      };
 
-      // Variant clicks swap main image (if variant has its own) + update price + active state
+      renderThumbs(initialGallery);
+
+      // Variant clicks: rebuild the gallery for the new color, swap main image,
+      // update price, sync active state.
       document.querySelectorAll('.pdp-variant-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           if (btn.disabled) return;
@@ -327,12 +359,12 @@
             b.setAttribute('aria-checked', active ? 'true' : 'false');
           });
 
-          // Update price if variant has a different price
           const varPrice = v.price != null ? v.price : item.price;
           priceEl.innerHTML = `${fmt(varPrice)}${!v.inStock ? ' <span class="oos-flag">Sold Out</span>' : ''}`;
 
-          // Swap main image if variant has one
-          if (v.imageUrl) setMainImage(v.imageUrl);
+          const gallery = galleryForVariant(v);
+          if (gallery[0]) setMainImage(gallery[0]);
+          renderThumbs(gallery);
         });
       });
 
