@@ -109,30 +109,65 @@ function paintSplatter(x, y) {
 }
 
 document.addEventListener('click', (e) => {
+  // Splatter on page-content action buttons only — NOT on nav-scoped buttons,
+  // which would visually spill outside the nav frame.
+  if (e.target.closest('.site-nav')) return;
   const target = e.target.closest(
-    '.btn-primary, .btn-venmo, .btn-paypal, .btn-paylater, .btn-tcg, .nav-cta, .btn-outline, .qty-btn'
+    '.btn-primary, .btn-venmo, .btn-paypal, .btn-paylater, .btn-tcg, .btn-outline, .qty-btn'
   );
   if (!target) return;
   paintSplatter(e.clientX, e.clientY);
 });
 
-// Nav logo — extra splatter on click (kind of a brand easter egg)
-document.querySelector('.nav-logo')?.addEventListener('click', (e) => {
-  const rect = e.currentTarget.getBoundingClientRect();
-  paintSplatter(rect.left + rect.width / 2, rect.top + rect.height / 2);
-});
+// ── Page-wide drip system ──
+// Paint "drips" out of the top of the page (underneath the nav), falls through
+// the whole viewport, pools at the bottom, and fades off to make room for more.
+(function initPageDrip() {
+  const COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff4e00'];
+  const HOLES  = [12, 28, 50, 72, 88]; // horizontal positions (vw %)
 
-// Clicking the empty space of the nav = popping a lava blob
-document.querySelector('.site-nav')?.addEventListener('click', (e) => {
-  // Don't double-fire for link/button/logo clicks (they have their own splatter)
-  if (e.target.closest('a, button')) return;
-  paintSplatter(e.clientX, e.clientY);
-});
-// Make the nav feel interactive — pointer changes when hovering an open area
-(function() {
-  const nav = document.querySelector('.site-nav');
-  if (!nav) return;
-  nav.style.cursor = 'pointer';
-  // Revert cursor on links/buttons so they still feel clickable
-  nav.querySelectorAll('a, button').forEach(el => el.style.cursor = '');
+  const container = document.createElement('div');
+  container.className = 'page-drip-layer';
+  document.body.appendChild(container);
+
+  function spawnDrip() {
+    const x      = HOLES[Math.floor(Math.random() * HOLES.length)];
+    const jitter = (Math.random() - 0.5) * 8; // small horizontal variance
+    const color  = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const size   = 70 + Math.random() * 50;
+    const dur    = 16 + Math.random() * 8;
+
+    const blob = document.createElement('div');
+    blob.className = 'page-drip';
+    blob.style.left  = `calc(${x}vw + ${jitter}px)`;
+    blob.style.width = blob.style.height = size + 'px';
+    blob.style.backgroundColor = color;
+    blob.style.boxShadow = `0 0 22px ${color}`;
+    blob.style.animationDuration = dur + 's';
+
+    blob.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Click "catches" the blob — pause + brighten + gentle bounce
+      blob.classList.add('caught');
+      setTimeout(() => blob.classList.remove('caught'), 650);
+    });
+
+    container.appendChild(blob);
+    // Auto-cleanup once animation has completed
+    setTimeout(() => blob.remove(), (dur + 1) * 1000);
+  }
+
+  // Initial burst so things look alive immediately
+  for (let i = 0; i < 3; i++) setTimeout(spawnDrip, i * 1800);
+  // Steady spawn cadence
+  setInterval(spawnDrip, 2600);
 })();
+
+// Make the existing in-nav lava blobs clickable too
+document.querySelectorAll('.nav-lava-blob').forEach(blob => {
+  blob.addEventListener('click', (e) => {
+    e.stopPropagation();
+    blob.classList.add('caught');
+    setTimeout(() => blob.classList.remove('caught'), 650);
+  });
+});
