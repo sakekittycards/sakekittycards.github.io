@@ -419,6 +419,72 @@
       .bulk-jump-banner .bjb-text span { font-size: 12px; }
     }
 
+    /* Card Conditioning Standards callout — same structure as bulk-jump-banner but cyan/purple accent */
+    .cond-standards-btn {
+      display: flex; align-items: center; gap: 16px;
+      width: 100%;
+      padding: 16px 22px;
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.10));
+      border: 1.5px solid rgba(0,212,255,0.4);
+      border-radius: var(--r);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      transition: transform .15s, border-color .15s, box-shadow .2s;
+      box-shadow: 0 4px 18px rgba(0,212,255,0.06);
+    }
+    .cond-standards-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(0,212,255,0.85);
+      box-shadow: 0 8px 26px rgba(0,212,255,0.18);
+    }
+    .cond-standards-btn .csb-icon { font-size: 26px; flex-shrink: 0; }
+    .cond-standards-btn .csb-text { flex: 1; min-width: 0; line-height: 1.4; }
+    .cond-standards-btn .csb-text strong {
+      display: block; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+    }
+    .cond-standards-btn .csb-text span { display: block; font-size: 13px; color: var(--muted); }
+    .cond-standards-btn .csb-arrow {
+      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #00d4ff, #7b2fff);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      box-shadow: 0 3px 12px rgba(0,212,255,0.35);
+    }
+    @media (max-width: 560px) {
+      .cond-standards-btn { padding: 14px 16px; gap: 12px; }
+      .cond-standards-btn .csb-icon { font-size: 22px; }
+      .cond-standards-btn .csb-text strong { font-size: 14px; }
+      .cond-standards-btn .csb-text span { font-size: 12px; }
+    }
+
+    /* Conditioning-standards modal */
+    .cond-modal { display: none; position: fixed; inset: 0; z-index: 1000; }
+    .cond-modal.open { display: flex; align-items: center; justify-content: center; }
+    .cond-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); }
+    .cond-modal-content {
+      position: relative; z-index: 2;
+      max-width: 92vw; max-height: 92vh; overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .cond-modal-content img {
+      display: block; max-width: 100%; width: 900px; height: auto;
+      border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .cond-modal-close {
+      position: absolute; top: -44px; right: 0;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      font-size: 22px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .cond-modal-close:hover { background: rgba(255,255,255,0.2); }
+
     /* ── Bulk section ─────────────────────────────────────── */
     .bulk-section {
       margin-top: 48px;
@@ -555,6 +621,16 @@
         </div>
         <span class="bjb-arrow">↓</span>
       </a>
+
+      <!-- Card Conditioning Standards reference — opens the infographic in a modal -->
+      <button type="button" class="cond-standards-btn" id="openCondBtn" aria-haspopup="dialog">
+        <span class="csb-icon">📏</span>
+        <div class="csb-text">
+          <strong>Card Conditioning Standards</strong>
+          <span>TCGPlayer-aligned reference — see how we grade NM through DMG.</span>
+        </div>
+        <span class="csb-arrow">→</span>
+      </button>
 
       <div class="trade-layout">
 
@@ -763,7 +839,31 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
+  <!-- Conditioning standards modal -->
+  <div class="cond-modal" id="condModal" role="dialog" aria-modal="true" aria-label="Card Conditioning Standards" aria-hidden="true">
+    <div class="cond-modal-backdrop" data-cond-dismiss></div>
+    <div class="cond-modal-content">
+      <button type="button" class="cond-modal-close" id="condModalClose" aria-label="Close">×</button>
+      <img src="conditioning-standards.png" alt="Sake Kitty Cards conditioning standards — NM through DMG, imperfection types, points system" />
+    </div>
+  </div>
+
   <script src="main.js?v=20"></script>
+  <script>
+    // Conditioning standards modal — open/close wiring
+    (function() {
+      const modal    = document.getElementById('condModal');
+      const openBtn  = document.getElementById('openCondBtn');
+      const closeBtn = document.getElementById('condModalClose');
+      if (!modal || !openBtn) return;
+      const open  = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+      const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+      openBtn.addEventListener('click', open);
+      closeBtn?.addEventListener('click', close);
+      modal.querySelectorAll('[data-cond-dismiss]').forEach(el => el.addEventListener('click', close));
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+    })();
+  </script>
   <script>
     // Bulk-per-card rates (used by the bulk section below the card search)
     const BULK_RATES = [
