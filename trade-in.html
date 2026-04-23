@@ -572,12 +572,11 @@
     // Once you have it, replace the placeholder below.
     const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
 
-    // TCG CSV (free public mirror of TCGPlayer data, incl. sealed).
-    // TCG CSV doesn't allow cross-origin requests, so all calls go through AllOrigins.
-    const TCGCSV_RAW = 'https://tcgcsv.com/tcgplayer/3';
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    // TCG CSV (free public mirror of TCGPlayer data, incl. sealed) — served
+    // through our own Cloudflare Worker for proper CORS + edge caching.
+    const TCGCSV_BASE = 'https://tcgcsv-proxy.nwilliams23999.workers.dev';
     function tcgcsvUrl(path) {
-      return CORS_PROXY + encodeURIComponent(`${TCGCSV_RAW}/${path}`);
+      return `${TCGCSV_BASE}/${path}`;
     }
     const SEALED_KEYWORDS = [
       'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
