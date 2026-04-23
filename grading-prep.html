@@ -45,14 +45,16 @@
     .gp-item-svc { display:flex; flex-direction:column; gap:5px; }
     .gp-svc-row { display:flex; gap:6px; flex-wrap:wrap; }
 
-    .gp-radio-label, .gp-check-label { display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; font-weight:600; color:var(--muted); padding:5px 11px; border:1px solid var(--border); border-radius:6px; transition:border-color .15s,background .15s,color .15s; user-select:none; line-height:1.4; }
-    .gp-radio-label:hover { border-color:rgba(255,106,0,.35); color:var(--text); }
-    .gp-check-label:hover { border-color:rgba(0,212,255,.35); color:var(--text); }
-    .gp-radio-label input, .gp-check-label input { accent-color:var(--orange); margin:0; }
-    .gp-radio-label.active { border-color:var(--orange); background:rgba(255,106,0,.1); color:var(--text); }
-    .gp-check-label.active { border-color:var(--cyan); background:rgba(0,212,255,.07); color:var(--text); }
-    .gp-price-tag { font-family:'Bangers',cursive; font-size:16px; letter-spacing:.04em; color:var(--orange); line-height:1; }
-    .gp-price-tag.cyan { color:var(--cyan); }
+    .gp-radio-label, .gp-check-label { display:inline-flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:8px 16px; border:1px solid var(--border); border-radius:8px; transition:border-color .15s,background .15s; user-select:none; min-width:80px; text-align:center; }
+    .gp-radio-label:hover { border-color:rgba(255,106,0,.35); }
+    .gp-check-label:hover { border-color:rgba(0,212,255,.35); }
+    .gp-radio-label input, .gp-check-label input { display:none; }
+    .gp-radio-label.active { border-color:var(--orange); background:rgba(255,106,0,.1); }
+    .gp-check-label.active { border-color:var(--cyan); background:rgba(0,212,255,.07); }
+    .gp-svc-name { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+    .gp-radio-label.active .gp-svc-name, .gp-check-label.active .gp-svc-name { color:var(--text); }
+    .gp-svc-price { font-family:'Bangers',cursive; font-size:24px; letter-spacing:.04em; color:var(--orange); line-height:1.1; }
+    .gp-svc-price.cyan { color:var(--cyan); }
 
     .gp-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
     .gp-item-cost { font-family:'Bangers',cursive; font-size:20px; color:var(--orange); letter-spacing:.04em; line-height:1; }
@@ -393,15 +395,19 @@
               <div class="gp-item-svc">
                 <div class="gp-svc-row">
                   <label class="gp-radio-label${c.svc === 'standard' ? ' active' : ''}">
-                    <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}> Standard <span class="gp-price-tag">$3</span>
+                    <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
+                    <span class="gp-svc-name">Standard</span>
+                    <span class="gp-svc-price">$3</span>
                   </label>
                   <label class="gp-radio-label${c.svc === 'detailed' ? ' active' : ''}">
-                    <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}> Detailed <span class="gp-price-tag">$5</span>
+                    <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
+                    <span class="gp-svc-name">Detailed</span>
+                    <span class="gp-svc-price">$5</span>
                   </label>
-                </div>
-                <div class="gp-svc-row">
                   <label class="gp-check-label${c.prep ? ' active' : ''}">
-                    <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}> + Prep <span class="gp-price-tag cyan">$5</span>
+                    <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
+                    <span class="gp-svc-name">+ Prep</span>
+                    <span class="gp-svc-price cyan">$5</span>
                   </label>
                 </div>
               </div>
