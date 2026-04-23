@@ -39,7 +39,12 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 
 ## In-flight / next up
 
-- **Square cart integration.** User chose hosted-checkout flow (Cloudflare Worker generates Payment Links on demand, customer redirects to Square). User wants a real cart system: add-to-cart buttons, drawer UI, localStorage persistence, not per-item buy buttons. Plan: products live in Square Items API (one source of truth, sync with future Square POS at events). Worker code not yet written. Still need from user: Square Application ID, Location ID, Access Token (as Worker secret).
+- **Square cart integration.** User chose hosted-checkout flow (Cloudflare Worker generates Payment Links on demand, customer redirects to Square). User wants a real cart system: add-to-cart buttons, drawer UI, localStorage persistence, not per-item buy buttons. Plan: products live in Square Items API (one source of truth, sync with future Square POS at events). Worker code not yet written.
+  - **Sandbox Application ID:** `sandbox-sq0idb-yd8K60RrJoZVHoyWjCJVxQ`
+  - **Sandbox Location ID:** `L609TAK1JWN13`
+  - **Production Location ID:** `LWJ5EY6TCBCGV` (for swap when we go live)
+  - **Production Application ID:** TBD — user grabs from Developer Dashboard when we flip to production
+  - **Access tokens** live as Cloudflare Worker secrets (`wrangler secret put SQUARE_ACCESS_TOKEN`), never in repo. Sandbox token was briefly leaked in chat and should be regenerated before going further.
 - **First plushie / merch product** not yet in the site. Will seed the cart when user adds the first product.
 - **Store credit.** Leaning toward manual ledger until customer volume justifies Square Gift Cards.
 - **eBay developer API** — pending approval; will wire up graded card live pricing + sealed price comparison when access is granted.
