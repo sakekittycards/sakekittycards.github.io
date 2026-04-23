@@ -22,25 +22,37 @@
       transform: translate(-50%, -50%) scale(0);
       transform-origin: center;
       pointer-events: none;
-      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6));
-      transition: none;
+      /* Layered drop-shadows: thin white rim for edge visibility + warm brand glow to
+         pop it off the dark photo background. Dark-on-dark problem solved. */
+      filter:
+        drop-shadow(0 0 1.5px rgba(255,255,255,0.95))
+        drop-shadow(0 0 8px  rgba(255,106,0,0.75))
+        drop-shadow(0 0 22px rgba(255,0,128,0.55))
+        drop-shadow(0 4px 6px rgba(0,0,0,0.6));
       z-index: 2;
     }
+    /* Grow → wiggle → fade out. Lives ~5.5s total then disappears cleanly. */
     .mustache.grown {
       animation:
-        mustacheGrow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-        mustacheWiggle 2.4s ease-in-out infinite 0.7s;
+        mustacheGrow   0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+        mustacheWiggle 2.2s ease-in-out 0.7s 2,
+        mustachePoof   0.55s ease-in 5.1s forwards;
     }
     @keyframes mustacheGrow {
-      0%   { transform: translate(-50%, -50%) scale(0) rotate(-25deg); }
-      60%  { transform: translate(-50%, -50%) scale(1.25) rotate(6deg); }
-      100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+      0%   { transform: translate(-50%, -50%) scale(0)    rotate(-25deg); }
+      60%  { transform: translate(-50%, -50%) scale(1.25) rotate(6deg);   }
+      100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg);   }
     }
     @keyframes mustacheWiggle {
-      0%, 100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg); }
+      0%, 100% { transform: translate(-50%, -50%) scale(1)    rotate(0deg);  }
       25%      { transform: translate(-50%, -48%) scale(1.03) rotate(3deg); }
       50%      { transform: translate(-50%, -50%) scale(1)    rotate(-2deg); }
       75%      { transform: translate(-50%, -52%) scale(1.02) rotate(2deg); }
+    }
+    @keyframes mustachePoof {
+      0%   { transform: translate(-50%, -50%) scale(1)   rotate(0deg);  opacity: 1; }
+      40%  { transform: translate(-50%, -60%) scale(1.1) rotate(-8deg); opacity: 0.85; }
+      100% { transform: translate(-50%, -90%) scale(0.4) rotate(18deg); opacity: 0;    }
     }
     @media (prefers-reduced-motion: reduce) {
       .mustache.grown { animation: mustacheGrow 0.4s ease-out forwards; }
@@ -165,15 +177,27 @@
   <script src="main.js?v=20"></script>
   <script>
     // Easter egg: 69 clicks on Jonathan's avatar grows him an animated mustache.
+    // Mustache springs in, wiggles, then poofs away after ~5.5s — so the egg can be
+    // re-triggered by another 69 clicks rather than sticking around forever.
     (function() {
       const avatar   = document.getElementById('deliaAvatar');
       const mustache = document.getElementById('deliaMustache');
       if (!avatar || !mustache) return;
       let count = 0;
+      let growing = false;
       avatar.addEventListener('click', () => {
-        if (mustache.classList.contains('grown')) return;
+        if (growing) return;
         count++;
-        if (count >= 69) mustache.classList.add('grown');
+        if (count >= 69) {
+          growing = true;
+          mustache.classList.add('grown');
+          // Match the 5.1s poof animation-delay + 0.55s duration = ~5.7s total
+          setTimeout(() => {
+            mustache.classList.remove('grown');
+            growing = false;
+            count = 0;
+          }, 5800);
+        }
       });
     })();
   </script>
