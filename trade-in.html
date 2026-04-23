@@ -598,8 +598,8 @@
               <input type="number" class="ti-input" id="gradedValue" placeholder="Estimated value ($)" step="0.01" min="0" style="flex:1" />
             </div>
             <div style="display:flex;align-items:center;gap:10px;margin:-2px 0 8px;flex-wrap:wrap">
-              <button type="button" id="gradedLookupBtn" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px">🔎 Look up on Card Ladder</button>
-              <span style="font-size:11px;color:var(--dim);line-height:1.5;flex:1;min-width:200px">Opens Card Ladder in a new tab — paste the value back here. We'll verify on intake.</span>
+              <button type="button" id="gradedLookupBtn" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px">🔎 Check recent sold prices on eBay</button>
+              <span style="font-size:11px;color:var(--dim);line-height:1.5;flex:1;min-width:200px">Opens eBay sold listings in a new tab. Paste a value back here — we verify on intake.</span>
             </div>
             <div class="ti-sealed-actions">
               <button type="button" class="btn btn-primary btn-sm" id="gradedAddBtn">Add to List</button>
@@ -1517,13 +1517,15 @@
       if (gradedForm.classList.contains('open')) gradedName.focus();
     });
 
-    // Card Ladder quick-lookup: opens their search with the current card name + grade pre-filled.
+    // eBay sold-listings quick-lookup: public, no login needed, reference most collectors trust.
     const gradedLookupBtn = document.getElementById('gradedLookupBtn');
     gradedLookupBtn?.addEventListener('click', () => {
       const name = gradedName.value.trim();
       if (!name) { alert('Enter a card name first.'); gradedName.focus(); return; }
       const q = `${name} ${selectedGrade}`.trim();
-      window.open(`https://www.cardladder.com/search?query=${encodeURIComponent(q)}`, '_blank', 'noopener');
+      // _nkw = keyword, LH_Sold + LH_Complete = sold/completed listings only
+      const url = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Sold=1&LH_Complete=1`;
+      window.open(url, '_blank', 'noopener');
     });
     gradedCancelBtn.addEventListener('click', () => {
       gradedForm.classList.remove('open');
