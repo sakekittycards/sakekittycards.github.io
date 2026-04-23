@@ -56,65 +56,73 @@ button { font-family: inherit; }
   border-radius: 50%;
   will-change: transform;
 }
-/* 5 blobs, each on a unique organic path + scale pulse */
+/* 5 blobs each falling top → bottom on their own schedule, looping forever.
+   Start + end positions are outside the nav so the loop reset is invisible. */
 .nav-lava-blob:nth-child(1) {
   width: 150px; height: 150px;
   background: #ff6a00;
-  top: -45%; left: 3%;
-  animation: lava1 22s ease-in-out infinite;
+  top: 0; left: 3%;
+  animation: lavaFall1 24s linear infinite;
 }
 .nav-lava-blob:nth-child(2) {
   width: 130px; height: 130px;
   background: #ff0080;
-  top: -20%; left: 22%;
-  animation: lava2 26s ease-in-out infinite;
-  animation-delay: -5s;
+  top: 0; left: 22%;
+  animation: lavaFall2 28s linear infinite;
+  animation-delay: -7s;
 }
 .nav-lava-blob:nth-child(3) {
   width: 160px; height: 160px;
   background: #7b2fff;
-  top: -40%; left: 45%;
-  animation: lava3 28s ease-in-out infinite;
-  animation-delay: -12s;
+  top: 0; left: 45%;
+  animation: lavaFall3 26s linear infinite;
+  animation-delay: -14s;
 }
 .nav-lava-blob:nth-child(4) {
   width: 140px; height: 140px;
   background: #00d4ff;
-  top: -25%; left: 68%;
-  animation: lava4 24s ease-in-out infinite;
-  animation-delay: -8s;
+  top: 0; left: 68%;
+  animation: lavaFall4 30s linear infinite;
+  animation-delay: -10s;
 }
 .nav-lava-blob:nth-child(5) {
-  width: 130px; height: 130px;
+  width: 135px; height: 135px;
   background: #ff4e00;
-  top: -35%; left: 88%;
-  animation: lava5 25s ease-in-out infinite;
-  animation-delay: -3s;
+  top: 0; left: 88%;
+  animation: lavaFall5 22s linear infinite;
+  animation-delay: -4s;
 }
-@keyframes lava1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  30%      { transform: translate(90px, 30px) scale(1.3); }
-  60%      { transform: translate(-40px, 10px) scale(0.8); }
+@keyframes lavaFall1 {
+  0%   { transform: translate(0,    -180px) scale(1); }
+  20%  { transform: translate(20px, -80px)  scale(1.15); }
+  50%  { transform: translate(-10px, 40px)  scale(1); }
+  80%  { transform: translate(15px, 150px)  scale(1.08); }
+  100% { transform: translate(0,    260px)  scale(0.95); }
 }
-@keyframes lava2 {
-  0%, 100% { transform: translate(0, 0) scale(1.1); }
-  40%      { transform: translate(130px, -20px) scale(0.9); }
-  70%      { transform: translate(-50px, 30px) scale(1.3); }
+@keyframes lavaFall2 {
+  0%   { transform: translate(0,   -200px) scale(1.1); }
+  30%  { transform: translate(-30px, -60px) scale(0.95); }
+  60%  { transform: translate(25px,  60px)  scale(1.18); }
+  100% { transform: translate(0,    270px)  scale(1); }
 }
-@keyframes lava3 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  25%      { transform: translate(-70px, 20px) scale(1.2); }
-  50%      { transform: translate(80px, -15px) scale(0.85); }
-  75%      { transform: translate(30px, 25px) scale(1.15); }
+@keyframes lavaFall3 {
+  0%   { transform: translate(0,   -170px) scale(1); }
+  25%  { transform: translate(25px, -50px) scale(1.2); }
+  50%  { transform: translate(-15px, 60px) scale(0.9); }
+  75%  { transform: translate(20px, 160px) scale(1.1); }
+  100% { transform: translate(0,    280px) scale(1); }
 }
-@keyframes lava4 {
-  0%, 100% { transform: translate(0, 0) scale(0.95); }
-  35%      { transform: translate(-100px, 15px) scale(1.25); }
-  70%      { transform: translate(60px, -10px) scale(0.9); }
+@keyframes lavaFall4 {
+  0%   { transform: translate(0,   -190px) scale(0.95); }
+  40%  { transform: translate(-30px, -10px) scale(1.12); }
+  80%  { transform: translate(20px, 170px)  scale(1); }
+  100% { transform: translate(0,    270px)  scale(1.05); }
 }
-@keyframes lava5 {
-  0%, 100% { transform: translate(0, 0) scale(1.05); }
-  50%      { transform: translate(-150px, 25px) scale(1.3); }
+@keyframes lavaFall5 {
+  0%   { transform: translate(0,   -170px) scale(1.05); }
+  35%  { transform: translate(-20px, 20px)  scale(1.2); }
+  70%  { transform: translate(18px,  140px) scale(0.95); }
+  100% { transform: translate(0,    260px)  scale(1); }
 }
 /* Paint-drip stripe along the bottom edge */
 .site-nav::after {
