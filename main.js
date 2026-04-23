@@ -95,11 +95,68 @@ document.addEventListener('click', (e) => {
   clickFlash(target);
 });
 
-// Make the in-nav lava blobs clickable — click to "catch" one (pause + glow)
+// Make the in-nav lava blobs clickable — click to "catch" one (pause + glow).
+// Hidden easter egg: click the same blob 5 times → unlock the page-wide drip.
+const blobClickCounts = new WeakMap();
+const UNLOCK_AT = 5;
+
 document.querySelectorAll('.nav-lava-blob').forEach(blob => {
   blob.addEventListener('click', (e) => {
     e.stopPropagation();
     blob.classList.add('caught');
     setTimeout(() => blob.classList.remove('caught'), 650);
+
+    const count = (blobClickCounts.get(blob) || 0) + 1;
+    blobClickCounts.set(blob, count);
+    if (count >= UNLOCK_AT && !document.body.classList.contains('drip-unlocked')) {
+      unlockPageDrip();
+    }
   });
 });
+
+function unlockPageDrip() {
+  document.body.classList.add('drip-unlocked');
+  initPageDripSystem();
+}
+
+function initPageDripSystem() {
+  if (document.querySelector('.page-drip-bg')) return;
+
+  const container = document.createElement('div');
+  container.className = 'page-drip-bg';
+  document.body.appendChild(container);
+
+  const COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff4e00'];
+
+  function spawnDrip() {
+    const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const x       = 6 + Math.random() * 88; // 6–94% across
+    const size    = 55 + Math.random() * 50;
+    const docH    = document.documentElement.scrollHeight;
+    const fallDur = Math.max(16, docH / 80); // slower on taller pages
+
+    const blob = document.createElement('div');
+    blob.className = 'page-drip-blob';
+    blob.style.left   = x + 'vw';
+    blob.style.width  = size + 'px';
+    blob.style.height = size + 'px';
+    blob.style.backgroundColor = color;
+    blob.style.boxShadow = `0 0 22px ${color}`;
+    blob.style.animationDuration = fallDur + 's';
+    blob.style.setProperty('--fall-end', (docH - 40) + 'px');
+
+    // Organic, non-spherical
+    const r1 = 40 + Math.random() * 35;
+    const r2 = 50 + Math.random() * 30;
+    const r3 = 45 + Math.random() * 35;
+    const r4 = 55 + Math.random() * 25;
+    blob.style.borderRadius = `${r1}% ${r2}% ${r3}% ${r4}% / ${r4}% ${r3}% ${r2}% ${r1}%`;
+
+    container.appendChild(blob);
+    setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
+  }
+
+  // Initial spawn + steady cadence
+  for (let i = 0; i < 2; i++) setTimeout(spawnDrip, i * 2200);
+  setInterval(spawnDrip, 3500);
+}
