@@ -572,8 +572,13 @@
     // Once you have it, replace the placeholder below.
     const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
 
-    // TCG CSV (free public mirror of TCGPlayer data, incl. sealed)
-    const TCGCSV_BASE = 'https://tcgcsv.com/tcgplayer/3';
+    // TCG CSV (free public mirror of TCGPlayer data, incl. sealed).
+    // TCG CSV doesn't allow cross-origin requests, so all calls go through AllOrigins.
+    const TCGCSV_RAW = 'https://tcgcsv.com/tcgplayer/3';
+    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    function tcgcsvUrl(path) {
+      return CORS_PROXY + encodeURIComponent(`${TCGCSV_RAW}/${path}`);
+    }
     const SEALED_KEYWORDS = [
       'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
       'elite trainer','etb','premium collection','ultra premium','upc',
@@ -589,7 +594,7 @@
     async function loadGroups() {
       if (groupsCache) return groupsCache;
       try {
-        const res = await fetch(`${TCGCSV_BASE}/groups`);
+        const res = await fetch(tcgcsvUrl('groups'));
         const data = await res.json();
         groupsCache = data.results || [];
       } catch (err) {
@@ -603,8 +608,8 @@
       if (productsCache[groupId]) return productsCache[groupId];
       try {
         const [productsRes, pricesRes] = await Promise.all([
-          fetch(`${TCGCSV_BASE}/${groupId}/products`),
-          fetch(`${TCGCSV_BASE}/${groupId}/prices`),
+          fetch(tcgcsvUrl(`${groupId}/products`)),
+          fetch(tcgcsvUrl(`${groupId}/prices`)),
         ]);
         const [productsData, pricesData] = await Promise.all([
           productsRes.json(), pricesRes.json(),
