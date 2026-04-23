@@ -119,51 +119,7 @@ document.addEventListener('click', (e) => {
   paintSplatter(e.clientX, e.clientY);
 });
 
-// ── Page-wide drip system ──
-// Paint "drips" out of the top of the page (underneath the nav), falls through
-// the whole viewport, pools at the bottom, and fades off to make room for more.
-(function initPageDrip() {
-  const COLORS = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ff4e00'];
-  const HOLES  = [12, 28, 50, 72, 88]; // horizontal positions (vw %)
-
-  const container = document.createElement('div');
-  container.className = 'page-drip-layer';
-  document.body.appendChild(container);
-
-  function spawnDrip() {
-    const x      = HOLES[Math.floor(Math.random() * HOLES.length)];
-    const jitter = (Math.random() - 0.5) * 8; // small horizontal variance
-    const color  = COLORS[Math.floor(Math.random() * COLORS.length)];
-    const size   = 70 + Math.random() * 50;
-    const dur    = 16 + Math.random() * 8;
-
-    const blob = document.createElement('div');
-    blob.className = 'page-drip';
-    blob.style.left  = `calc(${x}vw + ${jitter}px)`;
-    blob.style.width = blob.style.height = size + 'px';
-    blob.style.backgroundColor = color;
-    blob.style.boxShadow = `0 0 22px ${color}`;
-    blob.style.animationDuration = dur + 's';
-
-    blob.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // Click "catches" the blob — pause + brighten + gentle bounce
-      blob.classList.add('caught');
-      setTimeout(() => blob.classList.remove('caught'), 650);
-    });
-
-    container.appendChild(blob);
-    // Auto-cleanup once animation has completed
-    setTimeout(() => blob.remove(), (dur + 1) * 1000);
-  }
-
-  // Initial burst so things look alive immediately
-  for (let i = 0; i < 3; i++) setTimeout(spawnDrip, i * 1800);
-  // Steady spawn cadence
-  setInterval(spawnDrip, 2600);
-})();
-
-// Make the existing in-nav lava blobs clickable too
+// Make the in-nav lava blobs clickable — click to "catch" one (pause + glow)
 document.querySelectorAll('.nav-lava-blob').forEach(blob => {
   blob.addEventListener('click', (e) => {
     e.stopPropagation();
