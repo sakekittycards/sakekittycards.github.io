@@ -168,7 +168,7 @@ function spawnSingleDrip() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SK_CART_KEY        = 'sk_cart_v1';
-const SK_SHIP_FREE_OVER  = 50;
+const SK_SHIP_FREE_OVER  = 100;
 const SK_SHIP_FLAT_FEE   = 5;
 const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
 const SK_VENMO_HANDLE    = 'sakekittycards';
