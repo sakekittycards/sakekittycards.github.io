@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product — Sake Kitty Cards</title>
+  <meta name="description" content="Product details — Sake Kitty Cards." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=25" />
+  <style>
+    /* ── Product page layout ── */
+    .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
+    @media (max-width: 900px) { .pdp { grid-template-columns: 1fr; gap: 28px; } }
+
+    .pdp-breadcrumb { font-size: 13px; color: var(--dim); margin-bottom: 18px; }
+    .pdp-breadcrumb a { color: var(--muted); text-decoration: none; transition: color .15s; }
+    .pdp-breadcrumb a:hover { color: var(--orange); }
+    .pdp-breadcrumb .sep { margin: 0 8px; opacity: 0.5; }
+
+    /* Gallery */
+    .pdp-gallery { display: flex; flex-direction: column; gap: 12px; }
+    .pdp-main-img-wrap {
+      aspect-ratio: 1/1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .pdp-main-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .pdp-main-placeholder { font-size: 72px; opacity: 0.3; }
+    .pdp-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pdp-thumb {
+      width: 72px; height: 72px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      padding: 0;
+      transition: border-color .15s, transform .15s;
+    }
+    .pdp-thumb:hover { border-color: rgba(255,106,0,.45); transform: translateY(-2px); }
+    .pdp-thumb.active { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,106,0,.15); }
+    .pdp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* Info panel */
+    .pdp-info { padding-top: 4px; }
+    .pdp-name {
+      font-family: 'Bangers',cursive;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      background: linear-gradient(135deg,var(--orange),var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 10px;
+    }
+    .pdp-price {
+      font-family: 'Bangers',cursive;
+      font-size: 32px;
+      letter-spacing: 1px;
+      color: var(--orange);
+      margin-bottom: 20px;
+    }
+    .pdp-price .oos-flag {
+      display: inline-block; margin-left: 10px;
+      font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--dim); letter-spacing: 2px; text-transform: uppercase;
+      padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
+      vertical-align: middle;
+    }
+
+    .pdp-section-label {
+      font-size: 11px; font-weight: 700;
+      color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 10px; margin-top: 22px;
+    }
+
+    /* Variant buttons */
+    .pdp-variants { display: flex; flex-wrap: wrap; gap: 9px; }
+    .pdp-variant-btn {
+      padding: 10px 16px;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px; font-weight: 600;
+      font-family: 'Inter',sans-serif;
+      cursor: pointer;
+      transition: border-color .15s, background .15s, color .15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .pdp-variant-btn:hover:not(:disabled) { border-color: rgba(255,106,0,.45); }
+    .pdp-variant-btn.active { border-color: var(--orange); background: rgba(255,106,0,.09); }
+    .pdp-variant-btn:disabled {
+      opacity: 0.45; cursor: not-allowed;
+      text-decoration: line-through; text-decoration-color: var(--dim);
+    }
+    .pdp-variant-btn .oos-mini {
+      font-size: 10px; font-weight: 700; color: var(--dim);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* Add to cart */
+    .pdp-actions { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .pdp-add-btn { flex: 1; min-width: 220px; justify-content: center; }
+
+    /* Description */
+    .pdp-desc {
+      margin-top: 30px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      font-size: 14px; line-height: 1.7; color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    /* Status states */
+    .pdp-status {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      padding: 80px 20px; text-align: center;
+      color: var(--muted); font-size: 14px;
+    }
+    .pdp-status .shop-spinner { margin-bottom: 4px; }
+    .pdp-status h3 { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+    .pdp-status a { color: var(--orange); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="section" style="padding-top:0">
+      <div id="pdpStatus" class="pdp-status">
+        <div class="shop-spinner" aria-hidden="true"></div>
+        <p>Loading product…</p>
+      </div>
+      <div id="pdpRoot" hidden></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
+  </footer>
+
+  <script src="main.js?v=23"></script>
+  <script>
+    (async function loadProduct() {
+      const statusEl = document.getElementById('pdpStatus');
+      const root     = document.getElementById('pdpRoot');
+      const esc      = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const fmt      = n => `$${n.toFixed(2)}`;
+
+      const params = new URLSearchParams(window.location.search);
+      const id     = params.get('id');
+
+      const renderError = (title, msg) => {
+        statusEl.innerHTML = `
+          <div class="shop-empty-icon">📦</div>
+          <h3>${esc(title)}</h3>
+          <p>${msg}</p>
+          <p style="margin-top:14px"><a href="shop.html">← Back to shop</a></p>`;
+      };
+
+      if (!id) { renderError('Product not found', 'No product ID was provided.'); return; }
+
+      let items;
+      try {
+        const res = await fetch(`${window.SK.WORKER_BASE}/items`);
+        if (!res.ok) throw new Error(`worker ${res.status}`);
+        const data = await res.json();
+        items = Array.isArray(data.items) ? data.items : [];
+      } catch (err) {
+        renderError('Could not load product', 'Please try again in a moment.');
+        return;
+      }
+
+      const item = items.find(i => i.id === id);
+      if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
+
+      const vars       = Array.isArray(item.variations) ? item.variations : [];
+      const hasVars    = vars.length > 1;
+      const defaultIdx = hasVars ? Math.max(0, vars.findIndex(v => v.inStock)) : 0;
+      const oos        = item.inStock === false;
+
+      // Build gallery image list — product images + any per-variation images, dedupped
+      const galleryUrls = [
+        ...(Array.isArray(item.imageUrls) ? item.imageUrls : []),
+        ...vars.map(v => v.imageUrl).filter(Boolean),
+      ].filter((u, i, arr) => u && arr.indexOf(u) === i);
+
+      // Fallback if no gallery images
+      if (galleryUrls.length === 0 && item.imageUrl) galleryUrls.push(item.imageUrl);
+
+      document.title = `${item.name} — Sake Kitty Cards`;
+
+      root.innerHTML = `
+        <div class="pdp-breadcrumb">
+          <a href="shop.html">Shop</a><span class="sep">›</span><span>${esc(item.name)}</span>
+        </div>
+        <div class="pdp">
+          <div class="pdp-gallery">
+            <div class="pdp-main-img-wrap">
+              ${galleryUrls.length
+                ? `<img src="${esc(galleryUrls[0])}" alt="${esc(item.name)}" class="pdp-main-img" id="pdpMainImg" />`
+                : `<div class="pdp-main-placeholder">📦</div>`}
+            </div>
+            ${galleryUrls.length > 1 ? `
+              <div class="pdp-thumbs" id="pdpThumbs">
+                ${galleryUrls.map((u, i) => `
+                  <button type="button" class="pdp-thumb${i === 0 ? ' active' : ''}" data-url="${esc(u)}" aria-label="View image ${i + 1}">
+                    <img src="${esc(u)}" alt="" />
+                  </button>`).join('')}
+              </div>` : ''}
+          </div>
+          <div class="pdp-info">
+            <h1 class="pdp-name">${esc(item.name)}</h1>
+            <div class="pdp-price" id="pdpPrice">
+              ${fmt(item.price)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
+            </div>
+
+            ${hasVars ? `
+              <div class="pdp-section-label">Options</div>
+              <div class="pdp-variants" id="pdpVariants" role="radiogroup" aria-label="Variant">
+                ${vars.map((v, i) => `
+                  <button type="button" class="pdp-variant-btn${i === defaultIdx ? ' active' : ''}"
+                          data-idx="${i}"
+                          role="radio" aria-checked="${i === defaultIdx}"
+                          ${!v.inStock ? 'disabled' : ''}>
+                    <span>${esc(v.name)}</span>
+                    ${!v.inStock ? '<span class="oos-mini">Out</span>' : ''}
+                  </button>`).join('')}
+              </div>` : ''}
+
+            <div class="pdp-actions">
+              ${oos
+                ? `<button type="button" class="btn btn-sm btn-disabled pdp-add-btn" disabled>Out of Stock</button>`
+                : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>`}
+            </div>
+
+            ${item.description ? `<div class="pdp-desc">${esc(item.description)}</div>` : ''}
+          </div>
+        </div>`;
+
+      statusEl.hidden = true;
+      root.hidden = false;
+
+      const mainImg = document.getElementById('pdpMainImg');
+      const priceEl = document.getElementById('pdpPrice');
+
+      let selectedIdx = defaultIdx;
+
+      const setMainImage = (url) => {
+        if (!mainImg || !url) return;
+        mainImg.src = url;
+        // sync thumb highlight
+        document.querySelectorAll('.pdp-thumb').forEach(t => {
+          t.classList.toggle('active', t.dataset.url === url);
+        });
+      };
+
+      // Thumb clicks swap main image
+      document.querySelectorAll('.pdp-thumb').forEach(t => {
+        t.addEventListener('click', () => setMainImage(t.dataset.url));
+      });
+
+      // Variant clicks swap main image (if variant has its own) + update price + active state
+      document.querySelectorAll('.pdp-variant-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          const idx = +btn.dataset.idx;
+          selectedIdx = idx;
+          const v = vars[idx];
+
+          document.querySelectorAll('.pdp-variant-btn').forEach(b => {
+            const active = b === btn;
+            b.classList.toggle('active', active);
+            b.setAttribute('aria-checked', active ? 'true' : 'false');
+          });
+
+          // Update price if variant has a different price
+          const varPrice = v.price != null ? v.price : item.price;
+          priceEl.innerHTML = `${fmt(varPrice)}${!v.inStock ? ' <span class="oos-flag">Sold Out</span>' : ''}`;
+
+          // Swap main image if variant has one
+          if (v.imageUrl) setMainImage(v.imageUrl);
+        });
+      });
+
+      // Add to cart
+      const addBtn = document.getElementById('pdpAddBtn');
+      addBtn?.addEventListener('click', () => {
+        let cartItem = item;
+        if (hasVars) {
+          const v = vars[selectedIdx] || vars[0];
+          cartItem = {
+            id:          item.id + '__' + v.id,
+            variationId: v.id,
+            name:        item.name + ' – ' + v.name,
+            price:       v.price != null ? v.price : item.price,
+            imageUrl:    v.imageUrl || item.imageUrl,
+            inStock:     v.inStock,
+          };
+        }
+        window.SK.addToCart(cartItem);
+        const orig = addBtn.textContent;
+        addBtn.textContent = '✓ Added to Cart';
+        setTimeout(() => { addBtn.textContent = orig; }, 1400);
+      });
+    })();
+  </script>
+</body>
+</html>

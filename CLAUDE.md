@@ -15,7 +15,8 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 ## Pages
 
 - `index.html` — home, glowing hero, feature grid
-- `shop.html` — placeholder product grid; will become cart-based storefront once Square is wired
+- `shop.html` — product grid pulled from Square via the worker. Each card is a link to `product.html?id=<productId>` — no inline variant selector or Add-to-Cart (moved to PDP).
+- `product.html` — product detail page. URL: `?id=<productId>`. Pulls from `/items` and filters client-side. Renders image gallery (product + per-variation images, dedupped), variant buttons (color/size), and Add to Cart. Main image auto-swaps to variant image when a variant with its own photo is selected.
 - `events.html` — interactive calendar + event list; event schema supports optional `hours` and `type: 'whatnot'`
 - `team.html` — Nick, Jonathan Delia, Joshua Noplis (nav links this page as "Our Team")
 - `vendors.html` — **redirect only** to team.html (legacy link support). Don't restore old content.

@@ -113,10 +113,11 @@ async function listItems(base, headers, locationId) {
           const cents = vd?.price_money?.amount;
           if (cents == null) return null;
           return {
-            id:      v.id,
-            name:    vd?.name || '',
-            price:   cents / 100,
-            inStock: !(v.id in stockCounts) || stockCounts[v.id] > 0,
+            id:       v.id,
+            name:     vd?.name || '',
+            price:    cents / 100,
+            inStock:  !(v.id in stockCounts) || stockCounts[v.id] > 0,
+            imageUrl: vd?.image_ids?.[0] ? (images[vd.image_ids[0]] || null) : null,
           };
         })
         .filter(Boolean);
@@ -126,6 +127,10 @@ async function listItems(base, headers, locationId) {
       // Top-level fields point to the first in-stock variation for backward compat.
       const primary = variations.find(v => v.inStock) || variations[0];
 
+      const imageUrls = (o.item_data?.image_ids || [])
+        .map(id => images[id])
+        .filter(Boolean);
+
       return {
         id:          o.id,
         variationId: primary.id,
@@ -134,6 +139,7 @@ async function listItems(base, headers, locationId) {
         price:       primary.price,
         currency:    o.item_data?.variations?.[0]?.item_variation_data?.price_money?.currency || 'USD',
         imageUrl,
+        imageUrls,
         categoryId:  o.item_data?.category_id || null,
         inStock:     variations.some(v => v.inStock),
         variations,
