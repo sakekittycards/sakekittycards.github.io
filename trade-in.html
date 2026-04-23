@@ -412,7 +412,7 @@
           </div>
 
           <p style="font-size:12px;color:var(--dim);margin-top:12px;line-height:1.6">
-            Selling sealed product (booster boxes, ETBs, etc.)? Mention it in the notes below or <a href="contact.html" style="color:var(--orange)">contact us directly</a> for a quote — sealed pricing isn't available in the card database this tool uses.
+            Search covers singles <strong style="color:var(--muted)">and sealed product</strong> (booster boxes, ETBs, bundles, tins, etc.) — try something like <em>"Obsidian Flames ETB"</em> or <em>"Evolving Skies Booster Box"</em>.
           </p>
 
           <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
@@ -527,6 +527,124 @@
     // Web3Forms — get a free access key at https://web3forms.com/ (takes 30 seconds)
     // Once you have it, replace the placeholder below.
     const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
+
+    // TCG CSV (free public mirror of TCGPlayer data, incl. sealed)
+    const TCGCSV_BASE = 'https://tcgcsv.com/tcgplayer/3';
+    const SEALED_KEYWORDS = [
+      'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
+      'elite trainer','etb','premium collection','ultra premium','upc',
+      'collection box','special collection','premium playmat',
+      'tin','mini tin','pin collection','pin tin',
+      'build & battle','build and battle','trainer kit','theme deck','battle deck','league battle',
+      'gift set','deluxe','display case','case file','stadium',
+      'v box','vmax box','vstar box','v battle','starter set','starter collection',
+    ];
+    let groupsCache = null;
+    const productsCache = {}; // { groupId: [ {...product, prices: [...]} ] }
+
+    async function loadGroups() {
+      if (groupsCache) return groupsCache;
+      try {
+        const res = await fetch(`${TCGCSV_BASE}/groups.json`);
+        const data = await res.json();
+        groupsCache = data.results || [];
+      } catch (err) {
+        console.warn('TCG CSV groups fetch failed:', err);
+        groupsCache = [];
+      }
+      return groupsCache;
+    }
+
+    async function loadProductsForGroup(groupId) {
+      if (productsCache[groupId]) return productsCache[groupId];
+      try {
+        const [productsRes, pricesRes] = await Promise.all([
+          fetch(`${TCGCSV_BASE}/${groupId}/products.json`),
+          fetch(`${TCGCSV_BASE}/${groupId}/prices.json`),
+        ]);
+        const [productsData, pricesData] = await Promise.all([
+          productsRes.json(), pricesRes.json(),
+        ]);
+        const priceMap = {};
+        (pricesData.results || []).forEach(p => {
+          if (!priceMap[p.productId]) priceMap[p.productId] = [];
+          priceMap[p.productId].push(p);
+        });
+        const products = (productsData.results || []).map(product => ({
+          ...product,
+          prices: priceMap[product.productId] || [],
+        }));
+        productsCache[groupId] = products;
+        return products;
+      } catch (err) {
+        console.warn(`TCG CSV products fetch failed for group ${groupId}:`, err);
+        productsCache[groupId] = [];
+        return [];
+      }
+    }
+
+    function isSealedProduct(product) {
+      const name = (product.name || '').toLowerCase();
+      return SEALED_KEYWORDS.some(kw => name.includes(kw));
+    }
+
+    function getSealedMarketPrice(product) {
+      if (!product.prices?.length) return null;
+      // Prefer "market" price; fall back to mid/low
+      for (const p of product.prices) if (p.marketPrice) return p.marketPrice;
+      for (const p of product.prices) {
+        if (p.midPrice) return p.midPrice;
+        if (p.lowPrice) return p.lowPrice;
+      }
+      return null;
+    }
+
+    async function searchSealed(query) {
+      const groups = await loadGroups();
+      if (!groups.length) return [];
+
+      const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      if (!tokens.length) return [];
+
+      // Find groups whose name matches any token
+      const matchingGroups = groups.filter(g => {
+        const name = (g.name || '').toLowerCase();
+        const abbr = (g.abbreviation || '').toLowerCase();
+        return tokens.some(t => name.includes(t) || abbr.includes(t));
+      }).slice(0, 8); // cap to keep load manageable
+
+      if (!matchingGroups.length) return [];
+
+      // Fetch products for matching groups in parallel
+      const productArrays = await Promise.all(
+        matchingGroups.map(g => loadProductsForGroup(g.groupId))
+      );
+      const groupById = {};
+      groups.forEach(g => { groupById[g.groupId] = g; });
+
+      // Flatten + filter
+      const matched = [];
+      productArrays.forEach((products, idx) => {
+        const group = matchingGroups[idx];
+        for (const p of products) {
+          if (!isSealedProduct(p)) continue;
+          const haystack = `${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase();
+          if (!tokens.every(t => haystack.includes(t))) continue;
+          matched.push({ product: p, group });
+        }
+      });
+
+      // Map to unified sealed result format
+      return matched.slice(0, 14).map(({ product, group }) => ({
+        source: 'sealed',
+        productId: product.productId,
+        name: product.name,
+        set: group.name || '',
+        image: product.imageUrl || '',
+        market: getSealedMarketPrice(product),
+        url: product.url || '',
+      }));
+    }
     // FormSubmit fallback (keep if user hasn't set up Web3Forms yet)
     const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
 
@@ -588,60 +706,113 @@
       if (q.length < 2) { resultsEl.classList.remove('open'); return; }
       const lucene = buildQuery(q);
       if (!lucene) { resultsEl.classList.remove('open'); return; }
-      resultsEl.innerHTML = '<div class="ti-status">Searching…</div>';
+      resultsEl.innerHTML = '<div class="ti-status">Searching cards and sealed…</div>';
       resultsEl.classList.add('open');
       try {
-        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('API error');
-        const data = await res.json();
-        renderResults(data.data || []);
+        const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
+        const [cardRes, sealedRes] = await Promise.allSettled([
+          fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
+          searchSealed(q),
+        ]);
+        const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || [])   : [];
+        const sealed = sealedRes.status === 'fulfilled' ? sealedRes.value              : [];
+        renderResults(cards, sealed);
       } catch (err) {
         resultsEl.innerHTML = '<div class="ti-status err">Search failed. Please try again.</div>';
       }
     }
 
-    function renderResults(results) {
-      if (!results.length) {
-        resultsEl.innerHTML = '<div class="ti-status">No cards found. Try a different spelling.</div>';
+    function renderResults(cardResults, sealedResults) {
+      const cardRows = [];
+      for (const c of (cardResults || [])) {
+        for (const r of expandVariants(c)) cardRows.push({ kind: 'card', ...r });
+      }
+      const sealedRows = (sealedResults || []).map(s => ({ kind: 'sealed', ...s }));
+
+      if (!cardRows.length && !sealedRows.length) {
+        resultsEl.innerHTML = '<div class="ti-status">No results found. Try a different spelling or search by set name.</div>';
         return;
       }
-      // Flatten all cards into variant rows (1st Edition, Holofoil, Reverse Holo, etc.)
-      const rows = [];
-      for (const c of results) {
-        for (const r of expandVariants(c)) rows.push(r);
-      }
-      // Show up to 24 rows to keep UI tidy
-      const shown = rows.slice(0, 24);
 
-      resultsEl.innerHTML = shown.map((r, i) => {
-        const c = r.card;
-        const priceHTML = r.price != null
-          ? `<span class="ti-result-price">${fmt(r.price)}</span>`
-          : `<span class="ti-result-price nomarket">No price</span>`;
-        const setName = c.set?.name || '';
-        const num = c.number ? ` · #${c.number}` : '';
-        const variantTag = r.variantLabel
-          ? ` <span style="color:var(--orange);font-weight:600;font-size:12px">· ${r.variantLabel}</span>`
-          : '';
-        return `
-          <div class="ti-result" data-idx="${i}">
-            <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
-            <div class="ti-result-info">
-              <div class="ti-result-name">${c.name}${variantTag}</div>
-              <div class="ti-result-set">${setName}${num}</div>
+      // Show up to 16 cards and 10 sealed, sealed first if they dominate the query
+      const cards  = cardRows.slice(0, 16);
+      const sealed = sealedRows.slice(0, 10);
+
+      const html = [];
+      if (sealed.length) {
+        html.push(`<div style="padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);background:rgba(255,106,0,0.08);border-bottom:1px solid var(--border)">📦 Sealed Product</div>`);
+        html.push(...sealed.map((r, i) => {
+          const priceHTML = r.market != null
+            ? `<span class="ti-result-price">${fmt(r.market)}</span>`
+            : `<span class="ti-result-price nomarket">No price</span>`;
+          return `
+            <div class="ti-result" data-sealed-idx="${i}">
+              <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+              <div class="ti-result-info">
+                <div class="ti-result-name">${r.name}</div>
+                <div class="ti-result-set">${r.set}</div>
+              </div>
+              ${priceHTML}
             </div>
-            ${priceHTML}
-          </div>
-        `;
-      }).join('');
+          `;
+        }));
+      }
+      if (cards.length) {
+        if (sealed.length) {
+          html.push(`<div style="padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--cyan);background:rgba(0,212,255,0.05);border-bottom:1px solid var(--border);border-top:1px solid var(--border)">🎴 Singles</div>`);
+        }
+        html.push(...cards.map((r, i) => {
+          const c = r.card;
+          const priceHTML = r.price != null
+            ? `<span class="ti-result-price">${fmt(r.price)}</span>`
+            : `<span class="ti-result-price nomarket">No price</span>`;
+          const setName = c.set?.name || '';
+          const num = c.number ? ` · #${c.number}` : '';
+          const variantTag = r.variantLabel
+            ? ` <span style="color:var(--orange);font-weight:600;font-size:12px">· ${r.variantLabel}</span>`
+            : '';
+          return `
+            <div class="ti-result" data-card-idx="${i}">
+              <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
+              <div class="ti-result-info">
+                <div class="ti-result-name">${c.name}${variantTag}</div>
+                <div class="ti-result-set">${setName}${num}</div>
+              </div>
+              ${priceHTML}
+            </div>
+          `;
+        }));
+      }
+      resultsEl.innerHTML = html.join('');
 
-      resultsEl.querySelectorAll('.ti-result').forEach(el => {
+      resultsEl.querySelectorAll('[data-card-idx]').forEach(el => {
         el.addEventListener('click', () => {
-          const r = shown[+el.dataset.idx];
+          const r = cards[+el.dataset.cardIdx];
           if (r) addCard(r.card, r.variantKey, r.variantLabel, r.price);
         });
       });
+      resultsEl.querySelectorAll('[data-sealed-idx]').forEach(el => {
+        el.addEventListener('click', () => {
+          const r = sealed[+el.dataset.sealedIdx];
+          if (r) addSealedFromSearch(r);
+        });
+      });
+    }
+
+    function addSealedFromSearch(sealedRow) {
+      cards.push({
+        id: 'sealed_' + sealedRow.productId + '_' + Date.now(),
+        type: 'sealed',
+        name: sealedRow.name,
+        set: sealedRow.set || 'Sealed Product',
+        number: '',
+        image: sealedRow.image || '',
+        market: sealedRow.market,
+        condition: 'Sealed',
+      });
+      searchInput.value = '';
+      resultsEl.classList.remove('open');
+      renderList();
     }
 
     function addCard(card, variantKey, variantLabel, price) {
@@ -937,6 +1108,8 @@
     });
 
     renderList();
+    // Warm the groups cache so the first sealed search feels instant
+    loadGroups();
   </script>
 
 </body>
