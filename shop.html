@@ -10,11 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=25" />
   <style>
-    .variant-pills { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 10px; }
-    .variant-pill { padding:4px 10px; font-size:11px; font-weight:600; color:var(--muted); background:transparent; border:1px solid var(--border); border-radius:6px; cursor:pointer; font-family:'Inter',sans-serif; transition:border-color .15s,background .15s,color .15s; line-height:1.4; }
-    .variant-pill:hover:not(:disabled) { border-color:rgba(255,106,0,.35); color:var(--text); }
-    .variant-pill.active { border-color:var(--orange); background:rgba(255,106,0,.1); color:var(--text); }
-    .variant-pill.oos { opacity:.35; cursor:not-allowed; text-decoration:line-through; }
+    .variant-select { width:100%; padding:8px 32px 8px 12px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; font-family:'Inter',sans-serif; outline:none; cursor:pointer; margin:8px 0 10px; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; transition:border-color .15s,box-shadow .15s; }
+    .variant-select:focus { border-color:rgba(255,106,0,.55); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
+    .variant-select option { background:#14142a; color:#fff; }
   </style>
 </head>
 <body>
@@ -152,9 +150,9 @@
             : '';
 
           const varBlock = hasVars
-            ? `<div class="variant-pills">${vars.map((v, vi) =>
-                `<button class="variant-pill${vi === defaultIdx ? ' active' : ''}${!v.inStock ? ' oos' : ''}" data-var-idx="${vi}"${!v.inStock ? ' disabled' : ''}>${esc(v.name)}</button>`
-              ).join('')}</div>`
+            ? `<select class="variant-select">${vars.map((v, vi) =>
+                `<option value="${vi}"${vi === defaultIdx ? ' selected' : ''}${!v.inStock ? ' disabled' : ''}>${esc(v.name)}${!v.inStock ? ' (Out of Stock)' : ''}</option>`
+              ).join('')}</select>`
             : '';
 
           const badge  = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
@@ -178,17 +176,7 @@
             </div>`;
         }).join('');
 
-        // Wire variant pill selection
-        grid.querySelectorAll('.variant-pills').forEach(pillsEl => {
-          pillsEl.querySelectorAll('.variant-pill:not(:disabled)').forEach(pill => {
-            pill.addEventListener('click', () => {
-              pillsEl.querySelectorAll('.variant-pill').forEach(p => p.classList.remove('active'));
-              pill.classList.add('active');
-            });
-          });
-        });
-
-        // Wire Add to Cart — reads active variant pill at click time
+        // Wire Add to Cart — reads selected dropdown option at click time
         grid.querySelectorAll('.shop-add-btn').forEach(btn => {
           const card = btn.closest('.product-card');
           const item = items.find(i => i.id === card.dataset.productId);
@@ -196,8 +184,8 @@
             const vars = Array.isArray(item.variations) ? item.variations : [];
             let cartItem = item;
             if (vars.length > 1) {
-              const activePill = card.querySelector('.variant-pill.active');
-              const v = vars[activePill ? +activePill.dataset.varIdx : 0] || vars[0];
+              const sel = card.querySelector('.variant-select');
+              const v   = vars[sel ? +sel.value : 0] || vars[0];
               cartItem = {
                 id:          item.id + '__' + v.id,
                 variationId: v.id,
