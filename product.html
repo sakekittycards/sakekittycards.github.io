@@ -119,8 +119,42 @@
       border-top: 1px solid var(--border);
       font-size: 14px; line-height: 1.65; color: var(--muted);
     }
-    .pdp-desc p { margin: 0 0 10px; }
+    .pdp-desc p { margin: 0 0 12px; }
     .pdp-desc p:last-child { margin-bottom: 0; }
+    .pdp-desc-heading {
+      font-family: 'Inter',sans-serif; font-weight: 700;
+      font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--orange);
+      margin: 22px 0 10px;
+    }
+    .pdp-desc-heading:first-child { margin-top: 0; }
+    .pdp-desc-list {
+      list-style: none; padding: 0; margin: 0 0 12px;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    .pdp-desc-list li {
+      position: relative; padding-left: 18px;
+      color: var(--muted);
+    }
+    .pdp-desc-list li::before {
+      content: ''; position: absolute;
+      left: 3px; top: 9px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: linear-gradient(135deg,var(--orange),var(--pink));
+    }
+    .pdp-desc-specs {
+      list-style: none; padding: 14px 0 0; margin: 18px 0 0;
+      border-top: 1px dashed var(--border);
+      font-size: 13px; color: var(--dim); line-height: 1.75;
+    }
+    .pdp-desc-specs li { display: inline; }
+    .pdp-desc-specs li::after {
+      content: ' · ';
+      color: var(--border);
+      margin: 0 2px;
+      font-weight: 700;
+    }
+    .pdp-desc-specs li:last-child::after { content: ''; margin: 0; }
 
     /* Status states */
     .pdp-status {
@@ -289,13 +323,71 @@
         return deduped.length ? deduped : (item.imageUrl ? [item.imageUrl] : []);
       };
 
-      // Render description as real paragraphs: split on blank lines, drop empties.
-      const descHtml = (item.description || '')
-        .split(/\n{2,}/)
-        .map(p => p.trim())
-        .filter(Boolean)
-        .map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`)
-        .join('');
+      // Render the description with structure preserved. Printful ships these
+      // as a loose stream of lines where:
+      //   - opening lines are prose paragraphs
+      //   - a single-word-or-two line like "Features" or "Made For" is a section
+      //     heading, and short lines after it are bullet items until the next
+      //     heading or specs line
+      //   - a line dense with "•" or "·" separators is a specs list at the end
+      const descHtml = (() => {
+        const SECTION_HEADERS = new Set([
+          'features', 'made for', 'details', 'care', 'fabric',
+          'fit', 'sizing', 'specs', 'specifications'
+        ]);
+        const isHeader = (line) => {
+          const t = line.trim();
+          return t.length <= 30 && SECTION_HEADERS.has(t.toLowerCase());
+        };
+        const bulletCount = (s) => (s.match(/[•·]/g) || []).length;
+        const isSpecLine = (line) => bulletCount(line) >= 2;
+        const stripBullet = (s) => s.replace(/^[\s•·\-*]+/, '').trim();
+
+        const lines = (item.description || '')
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean);
+        if (!lines.length) return '';
+
+        let out = '';
+        let inList = false;
+        let listBuf = [];
+        const flushList = () => {
+          if (listBuf.length) {
+            out += `<ul class="pdp-desc-list">${listBuf.map(li => `<li>${li}</li>`).join('')}</ul>`;
+            listBuf = [];
+          }
+          inList = false;
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (isHeader(line)) {
+            flushList();
+            out += `<h4 class="pdp-desc-heading">${esc(line)}</h4>`;
+            inList = true;
+            continue;
+          }
+          if (isSpecLine(line)) {
+            flushList();
+            // Strip a "Details" / "Specs" prefix if present on the same line
+            let text = line.replace(/^(Details|Specs|Specifications)\s*/i, '');
+            const items = text.split(/\s*[•·]\s*/).map(s => s.trim()).filter(Boolean);
+            if (items.length) {
+              out += `<ul class="pdp-desc-specs">${items.map(s => `<li>${esc(s)}</li>`).join('')}</ul>`;
+            }
+            continue;
+          }
+          if (inList && line.length <= 150) {
+            listBuf.push(esc(stripBullet(line)));
+            continue;
+          }
+          flushList();
+          out += `<p>${esc(line)}</p>`;
+        }
+        flushList();
+        return out;
+      })();
 
       document.title = `${item.name} — Sake Kitty Cards`;
 
