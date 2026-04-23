@@ -89,38 +89,21 @@ img.paste(radial_blob(550, '#7b2fff', '#ff0080', alpha_max=120), (W // 2 - 200, 
 # Extra glow under the title area (right side) to lift the text
 img.paste(radial_blob(700, '#ff6a00', '#7b2fff', alpha_max=110), (W - 850, -250), radial_blob(700, '#ff6a00', '#7b2fff', alpha_max=110))
 
-# ─── Floating card silhouettes (background depth) ──────────────────────────
-random.seed(13)
-card_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-# Manually placed so they don't crowd the title or the profile-pic zone
-card_specs = [
-    # (x, y, w, h, rotation_deg, color, alpha)
-    (W - 280, 50,   180, 250, -16, '#ff6a00',  85),
-    (W - 130, 200,  170, 240,  12, '#ff0080',  75),
-    (W - 420, 280,  150, 210,  -6, '#7b2fff',  65),
-    (W - 590, 80,   140, 200,  18, '#00d4ff',  55),
-]
-for x, y, cw, ch, rot, color, a in card_specs:
-    card = card_silhouette(cw, ch, color, alpha=a)
-    card = card.rotate(rot, resample=Image.BICUBIC, expand=True)
-    card_layer.paste(card, (x, y), card)
-img.paste(card_layer, (0, 0), card_layer)
-
-# ─── Diagonal holofoil shine across the upper-right area ───────────────────
-shine = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-sd = ImageDraw.Draw(shine)
-shine_cols = [hex_rgb(c) for c in ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff']]
-for i, color in enumerate(shine_cols):
-    # Each band is a thin diagonal ribbon
-    offset_x = 350 + i * 70
-    sd.polygon([
-        (W,             0),
-        (W,             40),
-        (offset_x + 60, H),
-        (offset_x,      H),
-    ], fill=(*color, 22))
-shine = shine.filter(ImageFilter.GaussianBlur(8))
-img.paste(shine, (0, 0), shine)
+# ─── Soft Pokéball silhouette in the right half (atmospheric, no hard edges) ─
+ball_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+bd = ImageDraw.Draw(ball_layer)
+ball_cx, ball_cy, ball_r = W - 350, H // 2 + 20, 320
+# Outer ring
+bd.ellipse([ball_cx - ball_r, ball_cy - ball_r, ball_cx + ball_r, ball_cy + ball_r],
+           outline=(255, 255, 255, 40), width=14)
+# Equator band
+bd.rectangle([ball_cx - ball_r, ball_cy - 10, ball_cx + ball_r, ball_cy + 10],
+             fill=(255, 255, 255, 32))
+# Inner button
+bd.ellipse([ball_cx - 60, ball_cy - 60, ball_cx + 60, ball_cy + 60],
+           outline=(255, 255, 255, 50), width=8)
+ball_layer = ball_layer.filter(ImageFilter.GaussianBlur(6))
+img.paste(ball_layer, (0, 0), ball_layer)
 
 # ─── Sparkle particles (subtle, scattered) ─────────────────────────────────
 random.seed(7)
@@ -150,9 +133,9 @@ def measure(text, font):
     bbox = draw.textbbox((0, 0), text, font=font)
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-# Right-anchor horizontally, vertically centered
-text_right = W - 90
-text_anchor_x = text_right       # right edge of text
+# Right-anchored but pulled in from the edge for breathing room
+text_right = W - 140
+text_anchor_x = text_right
 
 # Big brand title (single line, gradient, right-aligned)
 title  = 'SAKE KITTY CARDS'
