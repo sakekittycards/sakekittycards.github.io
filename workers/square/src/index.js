@@ -1,13 +1,17 @@
 // Sake Kitty Square Worker
 // Proxies calls to the Square API so the site never sees the access token.
+// Also pulls per-variant mockup images from Printful and merges them into
+// the /items response so the shop can swap photos on color/variant select.
 //
 // Endpoints:
-//   GET  /items            — list products from Square catalog
+//   GET  /items            — list products from Square catalog (+ Printful mockups)
 //   POST /checkout         — create a Square Payment Link from a cart
 //   GET  /health           — liveness check
 //
-// Secret: SQUARE_ACCESS_TOKEN (set via `wrangler secret put SQUARE_ACCESS_TOKEN`)
-// Vars:   SQUARE_ENV ("sandbox" | "production"), SQUARE_LOCATION_ID, SQUARE_APPLICATION_ID
+// Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN
+//          (set via `wrangler secret put <NAME>`)
+// Vars:   SQUARE_ENV ("sandbox" | "production"), SQUARE_LOCATION_ID,
+//         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -47,7 +51,7 @@ export default {
       }
 
       if (path === '/items' && request.method === 'GET') {
-        return await listItems(base, squareHeaders, env.SQUARE_LOCATION_ID);
+        return await listItems(base, squareHeaders, env.SQUARE_LOCATION_ID, env);
       }
 
       if (path === '/checkout' && request.method === 'POST') {
@@ -85,9 +89,13 @@ export default {
 
 // ─── Handlers ──────────────────────────────────────────────────────────────
 
-async function listItems(base, headers, locationId) {
-  const res = await fetch(`${base}/v2/catalog/list?types=ITEM,IMAGE`, { headers });
-  const data = await res.json();
+async function listItems(base, headers, locationId, env) {
+  // Square catalog and Printful mockups fetched in parallel.
+  const [squareRes, printfulMockups] = await Promise.all([
+    fetch(`${base}/v2/catalog/list?types=ITEM,IMAGE`, { headers }).then(r => r.json().then(d => [r, d])),
+    fetchPrintfulVariantImages(env).catch(() => ({})),  // fail open
+  ]);
+  const [res, data] = squareRes;
   if (!res.ok) return json({ error: 'square_api_error', detail: data }, res.status);
 
   const objects = data.objects || [];
@@ -105,19 +113,23 @@ async function listItems(base, headers, locationId) {
 
   const items = catalogItems
     .map(o => {
-      const imageUrl = images[o.item_data?.image_ids?.[0]] || null;
+      const squareHero = images[o.item_data?.image_ids?.[0]] || null;
 
       const variations = (o.item_data?.variations || [])
         .map(v => {
           const vd    = v.item_variation_data;
           const cents = vd?.price_money?.amount;
           if (cents == null) return null;
+          // Prefer Printful mockup (has the logo printed), fall back to per-variation
+          // image in Square (rare), then to null.
+          const printfulImg = printfulMockups[v.id] || null;
+          const squareVarImg = vd?.image_ids?.[0] ? (images[vd.image_ids[0]] || null) : null;
           return {
             id:       v.id,
             name:     vd?.name || '',
             price:    cents / 100,
             inStock:  !(v.id in stockCounts) || stockCounts[v.id] > 0,
-            imageUrl: vd?.image_ids?.[0] ? (images[vd.image_ids[0]] || null) : null,
+            imageUrl: printfulImg || squareVarImg || null,
           };
         })
         .filter(Boolean);
@@ -127,9 +139,16 @@ async function listItems(base, headers, locationId) {
       // Top-level fields point to the first in-stock variation for backward compat.
       const primary = variations.find(v => v.inStock) || variations[0];
 
-      const imageUrls = (o.item_data?.image_ids || [])
-        .map(id => images[id])
-        .filter(Boolean);
+      // Product gallery: dedupped Square item images + any variation (Printful) mockups.
+      const seen = new Set();
+      const imageUrls = [
+        ...(o.item_data?.image_ids || []).map(id => images[id]).filter(Boolean),
+        ...variations.map(v => v.imageUrl).filter(Boolean),
+      ].filter(u => { if (!u || seen.has(u)) return false; seen.add(u); return true; });
+
+      // Top-level imageUrl prefers the primary variation's Printful mockup when available,
+      // so the grid shows the default color's printed shot.
+      const imageUrl = primary.imageUrl || squareHero;
 
       return {
         id:          o.id,
@@ -148,6 +167,69 @@ async function listItems(base, headers, locationId) {
     .filter(Boolean);
 
   return json({ items });
+}
+
+// Fetch all Printful sync products for the store, then each product's variants,
+// and build a map of { squareVariationId: printfulMockupUrl }.
+// Returns {} on any failure so the /items endpoint still works without Printful.
+//
+// Cached in Cloudflare's edge cache for 5 minutes so shop page views don't
+// trigger 7+ Printful API calls per request.
+async function fetchPrintfulVariantImages(env) {
+  const token   = env.PRINTFUL_ACCESS_TOKEN;
+  const storeId = env.PRINTFUL_STORE_ID;
+  if (!token || !storeId) return {};
+
+  const cacheKey = new Request('https://internal.cache/printful-mockups/v1');
+  const cached   = await caches.default.match(cacheKey);
+  if (cached) {
+    try { return await cached.json(); } catch {}
+  }
+
+  const pfHeaders = {
+    'Authorization': `Bearer ${token}`,
+    'X-PF-Store-Id': String(storeId),
+  };
+
+  // List sync products (enough to know their IDs; variants come from the per-product call).
+  const listRes = await fetch('https://api.printful.com/sync/products?limit=100', { headers: pfHeaders });
+  if (!listRes.ok) return {};
+  const listData = await listRes.json();
+  const products = Array.isArray(listData.result) ? listData.result : [];
+
+  // Fetch per-product details in parallel (each returns sync_variants with external_id + files).
+  const details = await Promise.all(products.map(async p => {
+    try {
+      const r = await fetch(`https://api.printful.com/sync/products/${p.id}`, { headers: pfHeaders });
+      if (!r.ok) return null;
+      const d = await r.json();
+      return d.result;
+    } catch { return null; }
+  }));
+
+  const map = {};
+  for (const d of details) {
+    const variants = d?.sync_variants || [];
+    for (const v of variants) {
+      // external_id is the Square variation ID.
+      const squareVarId = v.external_id;
+      if (!squareVarId) continue;
+
+      // Prefer the "preview" file (branded mockup with the logo printed on the garment).
+      // Fall back to product.image (plain Printful catalog shot of that color).
+      const preview = (v.files || []).find(f => f.type === 'preview');
+      const url = preview?.preview_url || v.product?.image || null;
+      if (url) map[squareVarId] = url;
+    }
+  }
+
+  // Cache at the edge for 5 min. Long enough to absorb traffic bursts,
+  // short enough that Printful edits show up within minutes.
+  const cacheResponse = new Response(JSON.stringify(map), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' },
+  });
+  await caches.default.put(cacheKey, cacheResponse);
+  return map;
 }
 
 async function fetchStockCounts(base, headers, variationIds, locationId) {

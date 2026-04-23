@@ -9,6 +9,7 @@ compatibility_date = "2025-10-01"
 SQUARE_APPLICATION_ID = "sq0idp-vogl03F5qlpHSwThMKSjdQ"
 SQUARE_LOCATION_ID    = "LWJ5EY6TCBCGV"
 SQUARE_ENV            = "production"
+PRINTFUL_STORE_ID     = "18064906"
 
 # When flipping to production:
 #   1. wrangler secret put SQUARE_ACCESS_TOKEN       (paste the PRODUCTION token)

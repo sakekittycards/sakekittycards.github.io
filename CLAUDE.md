@@ -41,13 +41,16 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 
 ## In-flight / next up
 
-- **Square cart integration.** Hosted-checkout flow: Cloudflare Worker generates Square Payment Links on demand, customer redirects to Square. Worker deployed at `https://sakekitty-square.nwilliams23999.workers.dev` (sandbox). Endpoints: `/health`, `/items`, `POST /checkout`. Code in `workers/square/`.
+- **Square cart integration.** Hosted-checkout flow: Cloudflare Worker generates Square Payment Links on demand, customer redirects to Square. Worker deployed at `https://sakekitty-square.nwilliams23999.workers.dev`. Endpoints: `/health`, `/items`, `POST /checkout`. Code in `workers/square/`. `/items` enriches Square catalog data with per-variant mockup URLs from Printful (see below) so apparel color swatches on product.html can swap the main image.
   - **Sandbox Application ID:** `sandbox-sq0idb-yd8K60RrJoZVHoyWjCJVxQ`
   - **Sandbox Location ID:** `L609TAK1JWN13`
   - **Production Location ID:** `LWJ5EY6TCBCGV` (for swap when we go live)
   - **Production Application ID:** TBD — user grabs from Developer Dashboard when we flip to production
   - **Access token** lives as Cloudflare Worker secret (`wrangler secret put SQUARE_ACCESS_TOKEN`), never in repo. Has been rotated due to a chat leak during setup.
   - **Cart UI not yet built.** Plan: shop.html pulls products from Worker `/items`; cart drawer UI in main.js with localStorage persistence; checkout button POSTs cart to Worker `/checkout` → redirect to Square hosted checkout.
+- **Printful integration** (live). Worker merges Printful per-variant mockups into the `/items` response. Source: `GET /sync/products` and `GET /sync/products/{id}` with `X-PF-Store-Id` header. Mapping key: Printful's `sync_variant.external_id` == Square's variation ID. Mockup preference: `files[type=preview].preview_url` (branded mockup with logo), fallback `product.image` (plain color shot). Results cached at the Cloudflare edge for 5 min so shop loads don't trigger 7+ Printful calls per request. If Printful call fails, `/items` still returns Square data without mockups (fail-open).
+  - **Printful Store ID:** `18064906` (Square-connected store)
+  - **Secret:** `PRINTFUL_ACCESS_TOKEN` (set via `wrangler secret put`, never committed)
 - **First plushie / merch product** not yet in the site. Will seed the cart when user adds the first product.
 - **Store credit.** Leaning toward manual ledger until customer volume justifies Square Gift Cards.
 - **eBay developer API** — pending approval; will wire up graded card live pricing + sealed price comparison when access is granted.
