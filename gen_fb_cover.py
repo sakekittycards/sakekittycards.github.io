@@ -79,31 +79,8 @@ def card_silhouette(w, h, color_hex, alpha=110):
     d.rounded_rectangle((pad, pad, pad + w, pad + h), radius=14, fill=(*rgb, alpha))
     return img_.filter(ImageFilter.GaussianBlur(4))
 
-# ─── Background + brand glow blobs ─────────────────────────────────────────
-img = Image.new('RGB', (W, H), '#060608')
-
-img.paste(radial_blob(900, '#ff4e00', '#ff0080'),                (-300, -350), radial_blob(900, '#ff4e00', '#ff0080'))
-img.paste(radial_blob(800, '#3a00ff', '#00d4ff'),                (W - 500, H - 450), radial_blob(800, '#3a00ff', '#00d4ff'))
-img.paste(radial_blob(550, '#7b2fff', '#ff0080', alpha_max=120), (W // 2 - 200, H // 2 - 200), radial_blob(550, '#7b2fff', '#ff0080', alpha_max=120))
-
-# Extra glow under the title area (right side) to lift the text
-img.paste(radial_blob(700, '#ff6a00', '#7b2fff', alpha_max=110), (W - 850, -250), radial_blob(700, '#ff6a00', '#7b2fff', alpha_max=110))
-
-# ─── Soft Pokéball silhouette in the right half (atmospheric, no hard edges) ─
-ball_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-bd = ImageDraw.Draw(ball_layer)
-ball_cx, ball_cy, ball_r = W - 350, H // 2 + 20, 320
-# Outer ring
-bd.ellipse([ball_cx - ball_r, ball_cy - ball_r, ball_cx + ball_r, ball_cy + ball_r],
-           outline=(255, 255, 255, 40), width=14)
-# Equator band
-bd.rectangle([ball_cx - ball_r, ball_cy - 10, ball_cx + ball_r, ball_cy + 10],
-             fill=(255, 255, 255, 32))
-# Inner button
-bd.ellipse([ball_cx - 60, ball_cy - 60, ball_cx + 60, ball_cy + 60],
-           outline=(255, 255, 255, 50), width=8)
-ball_layer = ball_layer.filter(ImageFilter.GaussianBlur(6))
-img.paste(ball_layer, (0, 0), ball_layer)
+# ─── Pure black background ─────────────────────────────────────────────────
+img = Image.new('RGB', (W, H), '#000000')
 
 # ─── Sparkle particles (subtle, scattered) ─────────────────────────────────
 random.seed(7)
@@ -121,59 +98,56 @@ for _ in range(55):
 sparkle = sparkle.filter(ImageFilter.GaussianBlur(0.6))
 img.paste(sparkle, (0, 0), sparkle)
 
-# ─── Text block (right-weighted) ───────────────────────────────────────────
-font_brand = load_font(FONT_PATH, 170)
-font_sub   = load_font(FONT_PATH, 56)
-font_tag   = load_font('C:/Windows/Fonts/arialbd.ttf', 28)
-font_handle= load_font('C:/Windows/Fonts/arial.ttf',   24)
+# ─── Text block (centered, larger secondary text) ──────────────────────────
+font_brand  = load_font(FONT_PATH, 180)
+font_sub    = load_font(FONT_PATH, 80)
+font_tag    = load_font('C:/Windows/Fonts/arialbd.ttf', 38)
+font_handle = load_font('C:/Windows/Fonts/arial.ttf',   32)
 
 draw = ImageDraw.Draw(img)
+center_x = W // 2
 
 def measure(text, font):
     bbox = draw.textbbox((0, 0), text, font=font)
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-# Right-anchored but pulled in from the edge for breathing room
-text_right = W - 140
-text_anchor_x = text_right
-
-# Big brand title (single line, gradient, right-aligned)
+# Big brand title (centered, gradient)
 title  = 'SAKE KITTY CARDS'
 gtxt   = gradient_text_image(title, font_brand, BRAND_GRADIENT)
 gw, gh = gtxt.size
-title_y = 80
+title_y = 50
 
 # Soft drop shadow
 shadow_alpha = gtxt.split()[-1].point(lambda p: int(p * 0.55))
 shadow = Image.new('RGBA', gtxt.size, (0, 0, 0, 0))
 shadow.putalpha(shadow_alpha)
 shadow = shadow.filter(ImageFilter.GaussianBlur(12))
-title_x = text_anchor_x - gw
+title_x = center_x - gw // 2
 img.paste(shadow, (title_x + 8, title_y + 12), shadow)
 img.paste(gtxt,   (title_x,     title_y),      gtxt)
 
-# Subtitle (right-aligned)
+# Subtitle (centered, larger)
 sub_text = 'Collecting, Done Right.'
 sw, sh   = measure(sub_text, font_sub)
-sub_y    = title_y + gh - 6
-draw.text((text_anchor_x - sw, sub_y), sub_text, font=font_sub, fill=(255, 255, 255, 255))
+sub_y    = title_y + gh - 8
+draw.text((center_x - sw // 2, sub_y), sub_text, font=font_sub, fill=(255, 255, 255, 255))
 
-# Divider (right-aligned)
-div_w = 220
-div_y = sub_y + sh + 22
-draw.rectangle([text_anchor_x - div_w, div_y, text_anchor_x, div_y + 4], fill='#7b2fff')
+# Divider (centered)
+div_w = 280
+div_y = sub_y + sh + 26
+draw.rectangle([center_x - div_w // 2, div_y, center_x + div_w // 2, div_y + 5], fill='#7b2fff')
 
-# Offerings (right-aligned)
+# Offerings (centered, larger)
 tag_text = 'Singles  ·  Sealed  ·  Trade-Ins  ·  Live Events'
 tw, th   = measure(tag_text, font_tag)
-tag_y    = div_y + 22
-draw.text((text_anchor_x - tw, tag_y), tag_text, font=font_tag, fill=(255, 255, 255, 230))
+tag_y    = div_y + 28
+draw.text((center_x - tw // 2, tag_y), tag_text, font=font_tag, fill=(255, 255, 255, 235))
 
-# Handle row (right-aligned)
+# Handle row (centered, larger)
 handle_text = 'sakekittycards.com   ·   @sakekittycards'
 hw, hh = measure(handle_text, font_handle)
-handle_y = tag_y + th + 14
-draw.text((text_anchor_x - hw, handle_y), handle_text, font=font_handle, fill=(255, 255, 255, 175))
+handle_y = tag_y + th + 18
+draw.text((center_x - hw // 2, handle_y), handle_text, font=font_handle, fill=(255, 255, 255, 190))
 
 # ─── Save ──────────────────────────────────────────────────────────────────
 os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
