@@ -101,6 +101,10 @@
     .cond-modal-content img { display:block; max-width:100%; width:900px; height:auto; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
     .cond-modal-close { position:absolute; top:-44px; right:0; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.3); color:#fff; font-size:22px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
     .cond-modal-close:hover { background:rgba(255,255,255,.2); }
+    .cond-modal-zoom { position:absolute; top:-44px; right:44px; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.3); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+    .cond-modal-zoom:hover { background:rgba(255,255,255,.2); }
+    .cond-modal-content:not(.zoomed) img { cursor:zoom-in; }
+    .cond-modal-content.zoomed img { width:1800px; max-width:none; cursor:zoom-out; }
   </style>
 </head>
 <body>
@@ -359,6 +363,7 @@
   <div class="cond-modal" id="condModal" role="dialog" aria-modal="true" aria-label="Card Conditioning Standards" aria-hidden="true">
     <div class="cond-modal-backdrop" data-cond-dismiss></div>
     <div class="cond-modal-content">
+      <button type="button" class="cond-modal-zoom" id="condModalZoom" aria-label="Zoom in"></button>
       <button type="button" class="cond-modal-close" id="condModalClose" aria-label="Close">×</button>
       <img src="conditioning-standards.png" alt="Sake Kitty Cards conditioning standards — NM through DMG, imperfection types, points system" />
     </div>
@@ -367,16 +372,34 @@
   <script src="main.js?v=22"></script>
   <script>
     (function () {
-      const modal   = document.getElementById('condModal');
-      const openBtn = document.getElementById('openCondBtn');
+      const modal    = document.getElementById('condModal');
+      const openBtn  = document.getElementById('openCondBtn');
       const closeBtn = document.getElementById('condModalClose');
+      const zoomBtn  = document.getElementById('condModalZoom');
+      const content  = modal?.querySelector('.cond-modal-content');
+      const img      = modal?.querySelector('img');
       if (!modal || !openBtn) return;
+
+      const ICON_IN  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>`;
+      const ICON_OUT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:15px;height:15px"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35M8 11h6"/></svg>`;
+
+      const setZoom = (z) => {
+        content.classList.toggle('zoomed', z);
+        zoomBtn.innerHTML = z ? ICON_OUT : ICON_IN;
+        zoomBtn.setAttribute('aria-label', z ? 'Zoom out' : 'Zoom in');
+      };
+
       const open  = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
-      const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+      const close = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); setZoom(false); };
+
       openBtn.addEventListener('click', open);
       closeBtn?.addEventListener('click', close);
+      zoomBtn?.addEventListener('click', () => setZoom(!content.classList.contains('zoomed')));
+      img?.addEventListener('click', () => setZoom(!content.classList.contains('zoomed')));
       modal.querySelectorAll('[data-cond-dismiss]').forEach(el => el.addEventListener('click', close));
       document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
+
+      setZoom(false);
     })();
   </script>
   <script>
