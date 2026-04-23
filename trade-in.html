@@ -809,8 +809,18 @@
       resultsEl.innerHTML = '<div class="ti-status">Searching cards and sealed…</div>';
       resultsEl.classList.add('open');
 
+      // If the user's variant filter only exists in vintage sets (1st Edition / Unlimited),
+      // sort oldest-first and cast a wider net so vintage cards actually make it into results.
+      const VINTAGE_VARIANT_KEYS = new Set([
+        '1stEdition', '1stEditionNormal', '1stEditionHolofoil',
+        'unlimited', 'unlimitedHolofoil',
+      ]);
+      const wantsVintage = variantFilter && [...variantFilter].some(v => VINTAGE_VARIANT_KEYS.has(v));
+      const orderBy  = wantsVintage ? 'set.releaseDate' : '-set.releaseDate';
+      const pageSize = wantsVintage ? 40 : 12;
+
       try {
-        const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
+        const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
         const [cardRes, sealedRes] = await Promise.allSettled([
           fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
           searchSealed(searchTokens.join(' ')),
