@@ -377,24 +377,75 @@
       body.has-sticky-bar { padding-bottom: 80px; }
     }
 
+    /* ── "Got bulk?" jump banner ──────────────────────────── */
+    .bulk-jump-banner {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 22px;
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(255,78,106,0.10));
+      border: 1.5px solid rgba(255,106,0,0.45);
+      border-radius: var(--r);
+      text-decoration: none;
+      color: var(--text);
+      transition: transform .15s, border-color .15s, box-shadow .2s;
+      box-shadow: 0 4px 18px rgba(255,106,0,0.08);
+    }
+    .bulk-jump-banner:hover {
+      transform: translateY(-1px);
+      border-color: var(--orange);
+      box-shadow: 0 8px 26px rgba(255,106,0,0.18);
+    }
+    .bulk-jump-banner .bjb-icon { font-size: 26px; flex-shrink: 0; }
+    .bulk-jump-banner .bjb-text { flex: 1; min-width: 0; line-height: 1.4; }
+    .bulk-jump-banner .bjb-text strong {
+      display: block; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+    }
+    .bulk-jump-banner .bjb-text span {
+      display: block; font-size: 13px; color: var(--muted);
+    }
+    .bulk-jump-banner .bjb-arrow {
+      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      box-shadow: 0 3px 12px rgba(255,106,0,0.35);
+    }
+    @media (max-width: 560px) {
+      .bulk-jump-banner { padding: 14px 16px; gap: 12px; }
+      .bulk-jump-banner .bjb-icon { font-size: 22px; }
+      .bulk-jump-banner .bjb-text strong { font-size: 14px; }
+      .bulk-jump-banner .bjb-text span { font-size: 12px; }
+    }
+
     /* ── Bulk section ─────────────────────────────────────── */
     .bulk-section {
-      margin-top: 40px;
-      padding: 26px 28px;
+      margin-top: 48px;
+      padding: 30px 32px;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255,106,0,0.3);
       border-radius: var(--r);
+      scroll-margin-top: calc(var(--nav-h) + 20px);
+      position: relative;
+    }
+    .bulk-section::before {
+      content: '';
+      position: absolute; top: -1px; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--pink), var(--purple));
+      border-radius: var(--r) var(--r) 0 0;
     }
     .bulk-section > h3 {
       font-family: 'Bangers', cursive;
-      font-size: clamp(20px,4vw,26px);
+      font-size: clamp(26px,5vw,36px);
       letter-spacing: 0.04em;
       background: linear-gradient(135deg,var(--orange),var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
     .bulk-section > .bulk-sub {
-      font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.6;
+      font-size: 14px; color: var(--muted); margin-bottom: 22px; line-height: 1.7;
     }
     .bulk-qty {
       width: 64px; padding: 6px 8px; text-align: center;
@@ -495,11 +546,21 @@
 
     <div class="section" style="padding-top:0">
 
+      <!-- Jump-to-bulk banner: makes the bulk section impossible to miss -->
+      <a href="#bulkSection" class="bulk-jump-banner">
+        <span class="bjb-icon">📦</span>
+        <div class="bjb-text">
+          <strong>Got a pile of bulk to sell too?</strong>
+          <span>Singles, sealed, graded, and bulk all go in one submission. Jump to bulk rates below.</span>
+        </div>
+        <span class="bjb-arrow">↓</span>
+      </a>
+
       <div class="trade-layout">
 
         <!-- Search + list -->
         <div class="trade-col">
-          <h3>1. Find Your Products</h3>
+          <h3>Find Specific Cards</h3>
           <div class="ti-search-wrap">
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
@@ -543,13 +604,13 @@
             </div>
           </div>
 
-          <h3 style="margin-top:28px">2. Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
+          <h3 style="margin-top:28px">Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
           <div id="tradeList" class="ti-list"></div>
         </div>
 
         <!-- Totals + actions -->
         <div class="trade-col" id="totalsCol">
-          <h3>3. Your Estimate</h3>
+          <h3>Your Estimate</h3>
 
           <div class="ti-totals-row">
             <div class="ti-totals-label">Market Total <small>(Cards)</small></div>
@@ -627,8 +688,8 @@
 
       <!-- Bulk section -->
       <div class="bulk-section" id="bulkSection">
-        <h3>Also Selling Bulk?</h3>
-        <p class="bulk-sub">Enter quantities below for any bulk you're including. Rates are per card for NM/LP bulk — heavily played or damaged cards may receive reduced rates. Your bulk totals are added to your cards list in the estimate to the right.</p>
+        <h3>Add Any Bulk</h3>
+        <p class="bulk-sub">Enter quantities below for any bulk you're including. Rates are per card for NM/LP bulk — heavily played or damaged cards may receive reduced rates. <strong style="color:var(--text)">Your bulk totals automatically get added to your estimate above and submit as one request.</strong></p>
 
         <div style="overflow-x:auto">
           <table class="bulk-table">
