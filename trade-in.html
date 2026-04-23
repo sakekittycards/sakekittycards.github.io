@@ -90,6 +90,21 @@
     }
     .ti-status.err { color: #ff6b6b; }
 
+    .example-chip {
+      padding: 6px 11px;
+      background: rgba(255,106,0,0.08);
+      border: 1px solid rgba(255,106,0,0.3);
+      color: var(--orange);
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .1s;
+    }
+    .example-chip:hover { background: rgba(255,106,0,0.18); }
+    .example-chip:active { transform: scale(0.96); }
+
     /* List */
     .ti-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
     .ti-empty {
@@ -810,8 +825,26 @@
 
       // If the user only typed variant words, we need some search terms too
       if (searchTokens.length === 0) {
-        resultsEl.innerHTML = '<div class="ti-status">Add a card or set name (e.g. "charizard 1st edition").</div>';
+        resultsEl.innerHTML = `
+          <div style="padding:18px 16px;color:var(--muted);font-size:13px;line-height:1.7">
+            <div style="color:var(--orange);font-weight:700;margin-bottom:6px">Add a card or set name to search</div>
+            <div style="color:var(--dim);margin-bottom:10px">"1st Edition" is a variant — we also need to know <em>which</em> card. Try one of:</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button type="button" class="example-chip" data-q="charizard 1st edition">charizard 1st edition</button>
+              <button type="button" class="example-chip" data-q="blastoise 1st edition">blastoise 1st edition</button>
+              <button type="button" class="example-chip" data-q="base set 1st edition">base set 1st edition</button>
+              <button type="button" class="example-chip" data-q="neo genesis 1st">neo genesis 1st</button>
+            </div>
+          </div>
+        `;
         resultsEl.classList.add('open');
+        // Wire up example chips
+        resultsEl.querySelectorAll('.example-chip').forEach(btn => {
+          btn.addEventListener('click', () => {
+            searchInput.value = btn.dataset.q;
+            searchCards(btn.dataset.q);
+          });
+        });
         return;
       }
 
