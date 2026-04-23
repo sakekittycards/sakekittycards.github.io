@@ -95,15 +95,21 @@ async function listItems(base, headers, locationId) {
     objects.filter(o => o.type === 'IMAGE').map(o => [o.id, o.image_data?.url])
   );
 
-  const items = objects
-    .filter(o => o.type === 'ITEM')
+  const catalogItems = objects.filter(o => o.type === 'ITEM');
+
+  // Fetch real inventory counts for all variations.
+  // Items with no count record are untracked (e.g. Printful POD) — treat as in-stock.
+  const variationIds = catalogItems.map(o => o.item_data?.variations?.[0]?.id).filter(Boolean);
+  const stockCounts  = await fetchStockCounts(base, headers, variationIds, locationId);
+
+  const items = catalogItems
     .map(o => {
-      const variation = o.item_data?.variations?.[0]?.item_variation_data;
+      const variation   = o.item_data?.variations?.[0]?.item_variation_data;
       const variationId = o.item_data?.variations?.[0]?.id;
       const amountCents = variation?.price_money?.amount;
-      // All current items are Printful print-on-demand — never out of stock.
-      // Printful inconsistently enables track_inventory during sync, so we ignore it.
-      const inStock = true;
+      // Untracked items (not in stockCounts) are assumed in-stock (POD, etc.).
+      // Tracked items are in-stock only if quantity > 0.
+      const inStock = !(variationId in stockCounts) || stockCounts[variationId] > 0;
       return {
         id:          o.id,
         variationId,
