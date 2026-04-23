@@ -39,12 +39,13 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 
 ## In-flight / next up
 
-- **Square cart integration.** User chose hosted-checkout flow (Cloudflare Worker generates Payment Links on demand, customer redirects to Square). User wants a real cart system: add-to-cart buttons, drawer UI, localStorage persistence, not per-item buy buttons. Plan: products live in Square Items API (one source of truth, sync with future Square POS at events). Worker code not yet written.
+- **Square cart integration.** Hosted-checkout flow: Cloudflare Worker generates Square Payment Links on demand, customer redirects to Square. Worker deployed at `https://sakekitty-square.nwilliams23999.workers.dev` (sandbox). Endpoints: `/health`, `/items`, `POST /checkout`. Code in `workers/square/`.
   - **Sandbox Application ID:** `sandbox-sq0idb-yd8K60RrJoZVHoyWjCJVxQ`
   - **Sandbox Location ID:** `L609TAK1JWN13`
   - **Production Location ID:** `LWJ5EY6TCBCGV` (for swap when we go live)
   - **Production Application ID:** TBD — user grabs from Developer Dashboard when we flip to production
-  - **Access tokens** live as Cloudflare Worker secrets (`wrangler secret put SQUARE_ACCESS_TOKEN`), never in repo. Sandbox token was briefly leaked in chat and should be regenerated before going further.
+  - **Access token** lives as Cloudflare Worker secret (`wrangler secret put SQUARE_ACCESS_TOKEN`), never in repo. Has been rotated due to a chat leak during setup.
+  - **Cart UI not yet built.** Plan: shop.html pulls products from Worker `/items`; cart drawer UI in main.js with localStorage persistence; checkout button POSTs cart to Worker `/checkout` → redirect to Square hosted checkout.
 - **First plushie / merch product** not yet in the site. Will seed the cart when user adds the first product.
 - **Store credit.** Leaning toward manual ledger until customer volume justifies Square Gift Cards.
 - **eBay developer API** — pending approval; will wire up graded card live pricing + sealed price comparison when access is granted.

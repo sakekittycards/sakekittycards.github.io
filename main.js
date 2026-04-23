@@ -249,9 +249,9 @@ window.SK = {
   const navInner = document.querySelector('.site-nav .nav-inner');
   if (!navInner) return;
 
-  // 1) Cart icon — inserted after the logo so CSS can push it right
-  const navLogo = navInner.querySelector('.nav-logo');
-  if (navLogo && !navInner.querySelector('.nav-cart')) {
+  // 1) Cart icon — appended at the END of nav-inner so it sits after the menu
+  //    links on desktop; mobile reorders it before the hamburger via CSS.
+  if (!navInner.querySelector('.nav-cart')) {
     const cartBtn = document.createElement('button');
     cartBtn.type = 'button';
     cartBtn.className = 'nav-cart';
@@ -263,7 +263,7 @@ window.SK = {
       </svg>
       <span class="nav-cart-badge" id="navCartBadge" hidden></span>
     `;
-    navLogo.after(cartBtn);
+    navInner.appendChild(cartBtn);
   }
 
   // 2) Drawer + backdrop at end of body
