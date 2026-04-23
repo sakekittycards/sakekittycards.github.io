@@ -78,6 +78,10 @@
       color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase;
       margin-bottom: 10px; margin-top: 22px;
     }
+    .pdp-section-val {
+      color: var(--muted); font-weight: 500;
+      letter-spacing: 0.05em; text-transform: none;
+    }
 
     /* Variant buttons */
     .pdp-variants { display: flex; flex-wrap: wrap; gap: 9px; }
@@ -228,27 +232,58 @@
       const item = items.find(i => i.id === id);
       if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
 
-      const vars       = Array.isArray(item.variations) ? item.variations : [];
-      const hasVars    = vars.length > 1;
-      const defaultIdx = hasVars ? Math.max(0, vars.findIndex(v => v.inStock)) : 0;
-      const oos        = item.inStock === false;
+      const vars = Array.isArray(item.variations) ? item.variations : [];
+      const oos  = item.inStock === false;
 
-      // For apparel, many variants share the same color (e.g. Black/S, Black/M,
-      // Black/L all use the same mockup). We group by the leading color name so
-      // selecting any size pulls up that color's photo set.
-      const colorOf = (v) => String(v.name || '').split(',')[0].trim().toLowerCase() || '__default__';
+      // Parse each variant name into {color, size}. "Black, M" → color=Black, size=M.
+      // Single-axis names (or empty) → size=null; name used as color label.
+      const parsed = vars.map(v => {
+        const parts = (v.name || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (parts.length >= 2) return { color: parts[0], size: parts[1], v };
+        return { color: parts[0] || 'Default', size: null, v };
+      });
+      const hasSizes = parsed.some(p => p.size);
 
-      // Images that belong to a given variant = every distinct mockup URL across
-      // all same-color variants. With current Printful data that's usually just
-      // one URL per color; if multiple angles get added later, the gallery grows.
-      const galleryForVariant = (v) => {
-        if (!v) return item.imageUrl ? [item.imageUrl] : [];
-        const color = colorOf(v);
-        const urls = vars
-          .filter(x => colorOf(x) === color)
-          .map(x => x.imageUrl)
+      // Colors in first-seen order.
+      const colorList = [];
+      const colorSeen = new Set();
+      for (const p of parsed) {
+        if (!colorSeen.has(p.color)) { colorSeen.add(p.color); colorList.push(p.color); }
+      }
+
+      // Sizes in canonical apparel order; anything unrecognized falls to the end.
+      const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+      const sizeList = hasSizes
+        ? [...new Set(parsed.map(p => p.size).filter(Boolean))].sort((a, b) => {
+            const ai = SIZE_ORDER.indexOf(a);
+            const bi = SIZE_ORDER.indexOf(b);
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          })
+        : [];
+
+      const showColors = colorList.length > 1;
+      const showSizes  = sizeList.length > 1;
+
+      const findVariant = (color, size) =>
+        parsed.find(p => p.color === color && p.size === size)?.v;
+
+      const firstInStockSizeFor = (color) =>
+        sizeList.find(s => findVariant(color, s)?.inStock) || sizeList[0] || null;
+
+      // Defaults: first color with any in-stock variant; within that, first in-stock size.
+      const defaultColor = colorList.find(c => parsed.some(p => p.color === c && p.v.inStock))
+                         || colorList[0] || null;
+      const defaultSize  = hasSizes ? firstInStockSizeFor(defaultColor) : null;
+
+      let selectedColor = defaultColor;
+      let selectedSize  = defaultSize;
+
+      // Gallery for a color = dedupped mockup URLs across all variants with that color.
+      const galleryForColor = (color) => {
+        const urls = parsed
+          .filter(p => p.color === color)
+          .map(p => p.v.imageUrl)
           .filter(Boolean);
-        // Dedup, preserving order
         const seen = new Set();
         const deduped = urls.filter(u => { if (seen.has(u)) return false; seen.add(u); return true; });
         return deduped.length ? deduped : (item.imageUrl ? [item.imageUrl] : []);
@@ -264,7 +299,9 @@
 
       document.title = `${item.name} — Sake Kitty Cards`;
 
-      const initialGallery = galleryForVariant(vars[defaultIdx]);
+      const initialGallery = galleryForColor(selectedColor);
+      const curVar0 = findVariant(selectedColor, selectedSize) || vars[0];
+      const initialPrice = curVar0?.price != null ? curVar0.price : item.price;
 
       root.innerHTML = `
         <div class="pdp-breadcrumb">
@@ -282,20 +319,39 @@
           <div class="pdp-info">
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
-              ${fmt(item.price)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
+              ${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
             </div>
 
-            ${hasVars ? `
-              <div class="pdp-section-label">Options</div>
-              <div class="pdp-variants" id="pdpVariants" role="radiogroup" aria-label="Variant">
-                ${vars.map((v, i) => `
-                  <button type="button" class="pdp-variant-btn${i === defaultIdx ? ' active' : ''}"
-                          data-idx="${i}"
-                          role="radio" aria-checked="${i === defaultIdx}"
-                          ${!v.inStock ? 'disabled' : ''}>
-                    <span>${esc(v.name)}</span>
-                    ${!v.inStock ? '<span class="oos-mini">Out</span>' : ''}
-                  </button>`).join('')}
+            ${showColors ? `
+              <div class="pdp-section-label">Color<span class="pdp-section-val" id="pdpColorVal"> — ${esc(selectedColor)}</span></div>
+              <div class="pdp-variants" id="pdpColors" role="radiogroup" aria-label="Color">
+                ${colorList.map(c => {
+                  const anyInStock = parsed.some(p => p.color === c && p.v.inStock);
+                  return `
+                    <button type="button" class="pdp-variant-btn${c === selectedColor ? ' active' : ''}"
+                            data-color="${esc(c)}"
+                            role="radio" aria-checked="${c === selectedColor}"
+                            ${!anyInStock ? 'disabled' : ''}>
+                      <span>${esc(c)}</span>
+                      ${!anyInStock ? '<span class="oos-mini">Out</span>' : ''}
+                    </button>`;
+                }).join('')}
+              </div>` : ''}
+
+            ${showSizes ? `
+              <div class="pdp-section-label">Size<span class="pdp-section-val" id="pdpSizeVal"> — ${esc(selectedSize || '')}</span></div>
+              <div class="pdp-variants" id="pdpSizes" role="radiogroup" aria-label="Size">
+                ${sizeList.map(s => {
+                  const v = findVariant(selectedColor, s);
+                  const unavailable = !v || !v.inStock;
+                  return `
+                    <button type="button" class="pdp-variant-btn${s === selectedSize ? ' active' : ''}"
+                            data-size="${esc(s)}"
+                            role="radio" aria-checked="${s === selectedSize}"
+                            ${unavailable ? 'disabled' : ''}>
+                      <span>${esc(s)}</span>
+                    </button>`;
+                }).join('')}
               </div>` : ''}
 
             <div class="pdp-actions">
@@ -311,11 +367,13 @@
       statusEl.hidden = true;
       root.hidden = false;
 
-      const mainImg  = document.getElementById('pdpMainImg');
-      const priceEl  = document.getElementById('pdpPrice');
-      const thumbsEl = document.getElementById('pdpThumbs');
-
-      let selectedIdx = defaultIdx;
+      const mainImg     = document.getElementById('pdpMainImg');
+      const priceEl     = document.getElementById('pdpPrice');
+      const thumbsEl    = document.getElementById('pdpThumbs');
+      const colorsEl    = document.getElementById('pdpColors');
+      const sizesEl     = document.getElementById('pdpSizes');
+      const colorValEl  = document.getElementById('pdpColorVal');
+      const sizeValEl   = document.getElementById('pdpSizeVal');
 
       const setMainImage = (url) => {
         if (!mainImg || !url) return;
@@ -344,36 +402,82 @@
 
       renderThumbs(initialGallery);
 
-      // Variant clicks: rebuild the gallery for the new color, swap main image,
-      // update price, sync active state.
-      document.querySelectorAll('.pdp-variant-btn').forEach(btn => {
+      // Refresh the size button row: mark the active size and disable sizes that
+      // aren't in stock for the currently selected color. Called after every
+      // color change.
+      const refreshSizeButtons = () => {
+        if (!sizesEl) return;
+        sizesEl.querySelectorAll('.pdp-variant-btn').forEach(btn => {
+          const s = btn.dataset.size;
+          const v = findVariant(selectedColor, s);
+          const unavailable = !v || !v.inStock;
+          btn.disabled = unavailable;
+          const isActive = s === selectedSize;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+      };
+
+      const refreshColorButtons = () => {
+        if (!colorsEl) return;
+        colorsEl.querySelectorAll('.pdp-variant-btn').forEach(btn => {
+          const c = btn.dataset.color;
+          const isActive = c === selectedColor;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+      };
+
+      const refreshPriceAndAdd = () => {
+        const v = findVariant(selectedColor, selectedSize);
+        const p = v?.price != null ? v.price : item.price;
+        const flag = v && !v.inStock ? ' <span class="oos-flag">Sold Out</span>' : '';
+        priceEl.innerHTML = `${fmt(p)}${flag}`;
+        if (colorValEl) colorValEl.textContent = ` — ${selectedColor || ''}`;
+        if (sizeValEl)  sizeValEl.textContent  = ` — ${selectedSize || ''}`;
+      };
+
+      colorsEl?.querySelectorAll('.pdp-variant-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           if (btn.disabled) return;
-          const idx = +btn.dataset.idx;
-          selectedIdx = idx;
-          const v = vars[idx];
+          const c = btn.dataset.color;
+          if (c === selectedColor) return;
+          selectedColor = c;
 
-          document.querySelectorAll('.pdp-variant-btn').forEach(b => {
-            const active = b === btn;
-            b.classList.toggle('active', active);
-            b.setAttribute('aria-checked', active ? 'true' : 'false');
-          });
+          // If the current size isn't available in the new color, shift to one that is.
+          if (hasSizes) {
+            const cur = findVariant(selectedColor, selectedSize);
+            if (!cur || !cur.inStock) {
+              selectedSize = firstInStockSizeFor(selectedColor);
+            }
+          }
 
-          const varPrice = v.price != null ? v.price : item.price;
-          priceEl.innerHTML = `${fmt(varPrice)}${!v.inStock ? ' <span class="oos-flag">Sold Out</span>' : ''}`;
-
-          const gallery = galleryForVariant(v);
+          const gallery = galleryForColor(selectedColor);
           if (gallery[0]) setMainImage(gallery[0]);
           renderThumbs(gallery);
+          refreshColorButtons();
+          refreshSizeButtons();
+          refreshPriceAndAdd();
+        });
+      });
+
+      sizesEl?.querySelectorAll('.pdp-variant-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          const s = btn.dataset.size;
+          if (s === selectedSize) return;
+          selectedSize = s;
+          refreshSizeButtons();
+          refreshPriceAndAdd();
         });
       });
 
       // Add to cart
       const addBtn = document.getElementById('pdpAddBtn');
       addBtn?.addEventListener('click', () => {
+        const v = findVariant(selectedColor, selectedSize);
         let cartItem = item;
-        if (hasVars) {
-          const v = vars[selectedIdx] || vars[0];
+        if (v) {
           cartItem = {
             id:          item.id + '__' + v.id,
             variationId: v.id,
