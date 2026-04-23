@@ -568,6 +568,47 @@
       unlimited:            'Unlimited',
       unlimitedHolofoil:    'Unlimited Holo',
     };
+
+    // Words the user might type that should filter variants (not search terms).
+    // Keys are lowercase, values are the variant keys (from VARIANT_LABELS) they imply.
+    const VARIANT_KEYWORDS = {
+      '1st':              ['1stEdition', '1stEditionNormal', '1stEditionHolofoil'],
+      'first':            ['1stEdition', '1stEditionNormal', '1stEditionHolofoil'],
+      'firstedition':     ['1stEdition', '1stEditionNormal', '1stEditionHolofoil'],
+      'edition':          ['1stEdition', '1stEditionNormal', '1stEditionHolofoil'],
+      'unlimited':        ['unlimited', 'unlimitedHolofoil'],
+      'holo':             ['holofoil', '1stEditionHolofoil', 'unlimitedHolofoil'],
+      'holofoil':         ['holofoil', '1stEditionHolofoil', 'unlimitedHolofoil'],
+      'foil':             ['holofoil', '1stEditionHolofoil', 'unlimitedHolofoil'],
+      'reverse':          ['reverseHolofoil'],
+      'reverseholo':      ['reverseHolofoil'],
+      'reverseholofoil':  ['reverseHolofoil'],
+      'normal':           ['normal', '1stEditionNormal'],
+      'shadowless':       ['unlimited', 'unlimitedHolofoil'],
+      // noise words to strip completely
+      'the': [], 'a': [], 'an': [], 'and': [], 'pokemon': [], 'card': [], 'cards': [],
+    };
+
+    // Pull variant-intent words out of the query; return the surviving
+    // search tokens and the union of variant keys the user implied.
+    function parseVariantIntent(tokens) {
+      const search = [];
+      const variantSet = new Set();
+      let hasVariantIntent = false;
+      for (const t of tokens) {
+        const clean = t.replace(/[-_.\s]/g, '');
+        if (VARIANT_KEYWORDS.hasOwnProperty(clean)) {
+          hasVariantIntent = true;
+          VARIANT_KEYWORDS[clean].forEach(v => variantSet.add(v));
+        } else {
+          search.push(t);
+        }
+      }
+      return {
+        searchTokens: search,
+        variantFilter: hasVariantIntent ? variantSet : null,
+      };
+    }
     // Web3Forms — get a free access key at https://web3forms.com/ (takes 30 seconds)
     // Once you have it, replace the placeholder below.
     const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -731,36 +772,48 @@
       return rows;
     }
 
-    function buildQuery(input) {
-      // Split on whitespace into tokens, each token must match somewhere
-      // (name, set name, or card number) — AND across tokens, OR within fields.
-      const tokens = input.trim().split(/\s+/).filter(Boolean);
+    function buildQuery(tokens) {
       if (!tokens.length) return '';
       return tokens.map(tok => {
-        // Strip characters that would break the Lucene query
         const clean = tok.replace(/[^\w\d&'.-]/g, '');
         if (!clean) return '';
         const isNum = /^\d+$/.test(clean);
         if (isNum) {
-          // Treat purely numeric tokens as possible card numbers OR contained in name/set
           return `(number:${clean} OR name:*${clean}* OR set.name:*${clean}*)`;
         }
         return `(name:*${clean}* OR set.name:*${clean}* OR set.series:*${clean}*)`;
       }).filter(Boolean).join(' ');
     }
 
+    let currentVariantFilter = null;
+
     async function searchCards(query) {
       const q = query.trim();
       if (q.length < 2) { resultsEl.classList.remove('open'); return; }
-      const lucene = buildQuery(q);
+
+      // Tokenize + split search terms from variant intent
+      const rawTokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      const { searchTokens, variantFilter } = parseVariantIntent(rawTokens);
+      currentVariantFilter = variantFilter;
+
+      // If the user only typed variant words, we need some search terms too
+      if (searchTokens.length === 0) {
+        resultsEl.innerHTML = '<div class="ti-status">Add a card or set name (e.g. "charizard 1st edition").</div>';
+        resultsEl.classList.add('open');
+        return;
+      }
+
+      const lucene = buildQuery(searchTokens);
       if (!lucene) { resultsEl.classList.remove('open'); return; }
+
       resultsEl.innerHTML = '<div class="ti-status">Searching cards and sealed…</div>';
       resultsEl.classList.add('open');
+
       try {
         const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
         const [cardRes, sealedRes] = await Promise.allSettled([
           fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
-          searchSealed(q),
+          searchSealed(searchTokens.join(' ')),
         ]);
         const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || [])   : [];
         const sealed = sealedRes.status === 'fulfilled' ? sealedRes.value              : [];
@@ -773,7 +826,12 @@
     function renderResults(cardResults, sealedResults) {
       const cardRows = [];
       for (const c of (cardResults || [])) {
-        for (const r of expandVariants(c)) cardRows.push({ kind: 'card', ...r });
+        for (const r of expandVariants(c)) {
+          // If query included variant intent (e.g. "1st edition"), only keep matching variants
+          if (currentVariantFilter && r.variantKey && !currentVariantFilter.has(r.variantKey)) continue;
+          if (currentVariantFilter && !r.variantKey) continue; // skip unpriced row when filtering
+          cardRows.push({ kind: 'card', ...r });
+        }
       }
       const sealedRows = (sealedResults || []).map(s => ({ kind: 'sealed', ...s }));
 
