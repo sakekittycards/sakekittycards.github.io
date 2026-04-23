@@ -111,11 +111,28 @@ def measure(text, font):
     bbox = draw.textbbox((0, 0), text, font=font)
     return bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-# Big brand title (centered, gradient)
-title  = 'SAKE KITTY CARDS'
+# Pre-measure everything so we can vertically center the whole stack
+title       = 'SAKE KITTY CARDS'
+sub_text    = 'Collecting, Done Right.'
+tag_text    = 'Singles  ·  Sealed  ·  Trade-Ins  ·  Live Events'
+handle_text = 'sakekittycards.com   ·   @sakekittycards'
+
 gtxt   = gradient_text_image(title, font_brand, BRAND_GRADIENT)
 gw, gh = gtxt.size
-title_y = 50
+sw, sh = measure(sub_text,    font_sub)
+tw, th = measure(tag_text,    font_tag)
+hw, hh = measure(handle_text, font_handle)
+
+# Spacing between blocks (must match the offsets used below)
+GAP_TITLE_SUB   = -8
+GAP_SUB_DIV     = 26
+DIV_HEIGHT      = 5
+GAP_DIV_TAG     = 28
+GAP_TAG_HANDLE  = 18
+
+stack_h = (gh + GAP_TITLE_SUB + sh + GAP_SUB_DIV + DIV_HEIGHT
+           + GAP_DIV_TAG + th + GAP_TAG_HANDLE + hh)
+title_y = (H - stack_h) // 2
 
 # Soft drop shadow
 shadow_alpha = gtxt.split()[-1].point(lambda p: int(p * 0.55))
@@ -127,26 +144,20 @@ img.paste(shadow, (title_x + 8, title_y + 12), shadow)
 img.paste(gtxt,   (title_x,     title_y),      gtxt)
 
 # Subtitle (centered, larger)
-sub_text = 'Collecting, Done Right.'
-sw, sh   = measure(sub_text, font_sub)
-sub_y    = title_y + gh - 8
+sub_y = title_y + gh + GAP_TITLE_SUB
 draw.text((center_x - sw // 2, sub_y), sub_text, font=font_sub, fill=(255, 255, 255, 255))
 
 # Divider (centered)
 div_w = 280
-div_y = sub_y + sh + 26
-draw.rectangle([center_x - div_w // 2, div_y, center_x + div_w // 2, div_y + 5], fill='#7b2fff')
+div_y = sub_y + sh + GAP_SUB_DIV
+draw.rectangle([center_x - div_w // 2, div_y, center_x + div_w // 2, div_y + DIV_HEIGHT], fill='#7b2fff')
 
 # Offerings (centered, larger)
-tag_text = 'Singles  ·  Sealed  ·  Trade-Ins  ·  Live Events'
-tw, th   = measure(tag_text, font_tag)
-tag_y    = div_y + 28
+tag_y = div_y + GAP_DIV_TAG
 draw.text((center_x - tw // 2, tag_y), tag_text, font=font_tag, fill=(255, 255, 255, 235))
 
 # Handle row (centered, larger)
-handle_text = 'sakekittycards.com   ·   @sakekittycards'
-hw, hh = measure(handle_text, font_handle)
-handle_y = tag_y + th + 18
+handle_y = tag_y + th + GAP_TAG_HANDLE
 draw.text((center_x - hw // 2, handle_y), handle_text, font=font_handle, fill=(255, 255, 255, 190))
 
 # ─── Save ──────────────────────────────────────────────────────────────────
