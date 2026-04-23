@@ -1,0 +1,7 @@
+name = "sakekitty-prices"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+
+# Public, non-secret configuration.
+[vars]
+CACHE_TTL_SECONDS = "21600"   # 6 hours
