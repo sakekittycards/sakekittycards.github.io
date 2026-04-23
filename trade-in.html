@@ -428,11 +428,11 @@
             <div class="ti-totals-value market" id="totalMarket">$0.00</div>
           </div>
           <div class="ti-totals-row">
-            <div class="ti-totals-label">Cash Offer <small>(60%)</small></div>
+            <div class="ti-totals-label">Cash Offer <small>(singles 60% · sealed 75%)</small></div>
             <div class="ti-totals-value cash" id="totalCash">$0.00</div>
           </div>
           <div class="ti-totals-row">
-            <div class="ti-totals-label">Store Credit <small>(75%)</small></div>
+            <div class="ti-totals-label">Store Credit <small>(singles 75% · sealed 85%)</small></div>
             <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
           </div>
 
@@ -506,8 +506,16 @@
 
   <script src="main.js"></script>
   <script>
-    const CASH_PCT = 0.60;
-    const CREDIT_PCT = 0.75;
+    // Trade-in rates (online — a touch below booth rates to leave room for quotes)
+    //   Booth:  Cards 70/80 cash/credit · Sealed 80/90
+    //   Online: Cards 60/75 · Sealed 75/85
+    const RATES = {
+      card:   { cash: 0.60, credit: 0.75 },
+      sealed: { cash: 0.75, credit: 0.85 },
+    };
+    function ratesFor(item) {
+      return item.type === 'sealed' ? RATES.sealed : RATES.card;
+    }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50,
       Sealed: 1.0, Damaged: 0.6
@@ -859,8 +867,9 @@
         const isSealed = c.type === 'sealed';
         const conditions = isSealed ? SEALED_CONDITIONS : CARD_CONDITIONS;
         const adjusted = c.market != null ? c.market * COND_MULT[c.condition] : null;
-        const cash   = adjusted != null ? adjusted * CASH_PCT   : null;
-        const credit = adjusted != null ? adjusted * CREDIT_PCT : null;
+        const r = ratesFor(c);
+        const cash   = adjusted != null ? adjusted * r.cash   : null;
+        const credit = adjusted != null ? adjusted * r.credit : null;
         const marketStr = c.market != null ? fmt(c.market) : 'N/A';
         const offerStr  = (cash != null && credit != null)
           ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
@@ -928,9 +937,10 @@
       for (const c of cards) {
         if (c.market == null) continue;
         const adj = c.market * COND_MULT[c.condition];
+        const r = ratesFor(c);
         market += c.market;
-        cash   += adj * CASH_PCT;
-        credit += adj * CREDIT_PCT;
+        cash   += adj * r.cash;
+        credit += adj * r.credit;
       }
       totalMarketEl.textContent = fmt(market);
       totalCashEl.textContent   = fmt(cash);
@@ -1030,8 +1040,9 @@
           return `${idx} ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote`;
         }
         const adj = c.market * COND_MULT[c.condition];
-        const lineCash   = adj * CASH_PCT;
-        const lineCredit = adj * CREDIT_PCT;
+        const r = ratesFor(c);
+        const lineCash   = adj * r.cash;
+        const lineCredit = adj * r.credit;
         market += c.market; cash += lineCash; credit += lineCredit;
         return `${idx} ${c.name}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}`;
       };
@@ -1050,8 +1061,8 @@
         Phone: phone || '(not provided)',
         'Payment Preference': paymentPref,
         'Market Total': fmt(market),
-        'Cash Offer (60%)': fmt(cash),
-        'Store Credit (75%)': fmt(credit),
+        'Cash Offer': fmt(cash) + '  (singles 60% · sealed 75%)',
+        'Store Credit': fmt(credit) + '  (singles 75% · sealed 85%)',
         'Item Count': String(cards.length),
         Singles: singlesText,
         Sealed: sealedText,
