@@ -60,6 +60,10 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - OneDrive + git: you'll see benign CRLF / LF warnings on every add. Ignore them.
 - Wake up script: `main.js` injects the lava-lamp SVG goo filter + nav blobs on every page. Easter egg: click same nav blob 5 times to unlock one page-drip animation.
 
+## Local scripts
+
+- `scripts/upload-variant-images.mjs` — batch-upload images to Square and attach them to item variations (e.g., per-color shirt photos). Needs `SQUARE_ACCESS_TOKEN` as an env var and a `mapping.json` inside the target folder. See `scripts/README.md` for the full flow and how to find variation IDs.
+
 ## Repo + deploy flow
 
 - Repo: https://github.com/sakekittycards/sakekittycards.github.io
