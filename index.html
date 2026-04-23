@@ -147,39 +147,42 @@
       transition: opacity 0.4s ease;
     }
     .hero-logo-wrap.logo-animated .paint-drips { opacity: 1; }
-    /* Lava-lamp-style drops: asymmetric border-radius that morphs through the fall, plus gentle rotation */
+    /* Lava-lamp-style drops: dramatic asymmetric border-radius morphs through the fall, plus rotation and stretch */
     .paint-drip {
       position: absolute;
-      width: 24px; height: 30px;
-      border-radius: 58% 42% 55% 45% / 45% 60% 40% 55%;
-      top: -16px;
+      width: 30px; height: 44px;
+      border-radius: 70% 30% 65% 35% / 40% 65% 35% 60%;
+      top: -22px;
       opacity: 0;
     }
     .hero-logo-wrap.logo-animated .paint-drip {
       animation: paintDrop 6s ease-in infinite;
     }
     .paint-drip:nth-child(1) { left: 22%; background: #ff6a00; animation-delay: 0s;   animation-duration: 5.5s; }
-    .paint-drip:nth-child(2) { left: 48%; background: #ff0080; animation-delay: 2.2s; animation-duration: 6.8s; width: 30px; height: 38px; }
+    .paint-drip:nth-child(2) { left: 48%; background: #ff0080; animation-delay: 2.2s; animation-duration: 6.8s; width: 38px; height: 56px; }
     .paint-drip:nth-child(3) { left: 72%; background: #7b2fff; animation-delay: 4s;   animation-duration: 6s; }
-    .paint-drip:nth-child(4) { left: 36%; background: #ff3b9a; animation-delay: 3.1s; animation-duration: 7.2s; width: 20px; height: 26px; }
+    .paint-drip:nth-child(4) { left: 36%; background: #ff3b9a; animation-delay: 3.1s; animation-duration: 7.2s; width: 24px; height: 34px; }
     @keyframes paintDrop {
-      0%   { transform: translateY(-14px) scale(0.55) rotate(-8deg);
-             border-radius: 58% 42% 55% 45% / 50% 58% 42% 50%;
+      0%   { transform: translateY(-18px) scale(0.55) rotate(-14deg);
+             border-radius: 70% 30% 65% 35% / 40% 65% 35% 60%;
              opacity: 0; }
-      14%  { transform: translateY(0)     scale(1)    rotate(-3deg);
-             border-radius: 48% 52% 42% 58% / 58% 42% 55% 45%;
+      14%  { transform: translateY(-4px)  scale(1, 0.92)  rotate(-4deg);
+             border-radius: 30% 70% 40% 60% / 70% 30% 65% 35%;
+             opacity: 0.92; }
+      32%  { transform: translateY(22px)  scale(1.12, 1.05) rotate(9deg);
+             border-radius: 80% 20% 55% 45% / 30% 75% 25% 70%;
              opacity: 0.9; }
-      38%  { transform: translateY(28px)  scale(1.05, 1.15) rotate(6deg);
-             border-radius: 52% 48% 58% 42% / 40% 55% 48% 60%;
-             opacity: 0.88; }
-      65%  { transform: translateY(68px)  scale(0.95, 1.35) rotate(-4deg);
-             border-radius: 46% 54% 38% 62% / 32% 68% 42% 58%;
-             opacity: 0.78; }
-      88%  { transform: translateY(108px) scale(0.55, 1.75) rotate(3deg);
-             border-radius: 50% 50% 60% 40% / 30% 70% 45% 55%;
-             opacity: 0.35; }
-      100% { transform: translateY(130px) scale(0.15, 2.1)  rotate(0deg);
-             border-radius: 50% 50% 50% 50% / 45% 55% 50% 50%;
+      52%  { transform: translateY(52px)  scale(0.85, 1.3)  rotate(-6deg);
+             border-radius: 25% 75% 30% 70% / 80% 20% 75% 25%;
+             opacity: 0.85; }
+      72%  { transform: translateY(82px)  scale(0.7, 1.6)   rotate(4deg);
+             border-radius: 60% 40% 20% 80% / 15% 85% 35% 65%;
+             opacity: 0.68; }
+      90%  { transform: translateY(112px) scale(0.45, 1.95) rotate(-2deg);
+             border-radius: 70% 30% 80% 20% / 20% 80% 30% 70%;
+             opacity: 0.25; }
+      100% { transform: translateY(134px) scale(0.12, 2.3)  rotate(0deg);
+             border-radius: 50% 50% 60% 40% / 30% 70% 40% 60%;
              opacity: 0; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -389,9 +392,9 @@
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <filter id="logo-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
             <feColorMatrix in="blur" mode="matrix"
-              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 18 -7"
+              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 14 -5"
               result="goo" />
             <feComposite in="SourceGraphic" in2="goo" operator="atop" />
           </filter>
