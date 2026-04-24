@@ -4,16 +4,22 @@
 // the /items response so the shop can swap photos on color/variant select.
 // Additionally handles grading-prep submissions and tracker lookups backed
 // by an Airtable "Submissions" table.
+// Finally, accepts webhooks from Square when an order is paid, and
+// submits the order directly to Printful via API (bypassing Printful's
+// Square integration, which only syncs Square Online orders — not
+// Payment Link API orders).
 //
 // Endpoints:
-//   GET  /items            — list products from Square catalog (+ Printful mockups)
-//   POST /checkout         — create a Square Payment Link from a cart
-//   POST /grading/submit   — save a new grading-prep request to Airtable
-//   GET  /grading/track    — fetch public status info for an order number
-//   GET  /health           — liveness check
+//   GET  /items              — list products from Square catalog (+ Printful mockups)
+//   POST /checkout           — create a Square Payment Link from a cart
+//   POST /grading/submit     — save a new grading-prep request to Airtable
+//   GET  /grading/track      — fetch public status info for an order number
+//   POST /webhooks/square    — handle Square order.updated / payment.updated events
+//   GET  /health             — liveness check
 //
-// Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN, AIRTABLE_TOKEN
-//          (set via `wrangler secret put <NAME>`)
+// Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN, AIRTABLE_TOKEN,
+//          SQUARE_WEBHOOK_SIGNATURE_KEY
+//          (all set via `wrangler secret put <NAME>`)
 // Vars:   SQUARE_ENV ("sandbox" | "production"), SQUARE_LOCATION_ID,
 //         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID, AIRTABLE_BASE_ID,
 //         AIRTABLE_TABLE_ID
@@ -72,6 +78,10 @@ export default {
       if (path === '/grading/track' && request.method === 'GET') {
         const order = (url.searchParams.get('order') || '').trim();
         return await trackGradingRequest(order, env);
+      }
+
+      if (path === '/webhooks/square' && request.method === 'POST') {
+        return await handleSquareWebhook(request, base, squareHeaders, env);
       }
 
       // Dev-only: dump raw catalog for inspection.
@@ -544,6 +554,197 @@ async function trackGradingRequest(order, env) {
     psaCerts:     certs,
     createdTime:  record.createdTime,
   });
+}
+
+// ─── Square → Printful order relay (via webhook) ──────────────────────────
+
+// Square fires webhooks when orders and payments change state. When an
+// order reaches a fully-paid state and has a SHIPMENT fulfillment with a
+// recipient address, we submit it to Printful via their /orders API. This
+// bypasses Printful's built-in Square integration, which only syncs orders
+// created through Square Online (not Payment Link API orders).
+async function handleSquareWebhook(request, base, headers, env) {
+  const rawBody = await request.text();
+  const sig = request.headers.get('x-square-hmacsha256-signature') || '';
+
+  // Square signs: HMAC-SHA256(signatureKey, notificationUrl + rawBody), base64.
+  const notificationUrl = 'https://sakekitty-square.nwilliams23999.workers.dev/webhooks/square';
+  const expected = await computeHmacSha256Base64(env.SQUARE_WEBHOOK_SIGNATURE_KEY, notificationUrl + rawBody);
+  if (!timingSafeEqual(sig, expected)) {
+    return new Response('invalid signature', { status: 401 });
+  }
+
+  let event;
+  try { event = JSON.parse(rawBody); } catch { return new Response('bad json', { status: 400 }); }
+
+  const type = event?.type;
+  const squareOrderId =
+    event?.data?.object?.order?.id ||
+    event?.data?.object?.payment?.order_id ||
+    null;
+  if (!squareOrderId) return new Response('no order id', { status: 200 });
+
+  // We only care about events that mean "this order is now paid / worth
+  // relaying." order.updated fires for many state changes; we re-check the
+  // order state after fetching. payment.updated is the stronger signal.
+  if (type !== 'order.updated' && type !== 'payment.updated') {
+    return new Response('ignored', { status: 200 });
+  }
+
+  // Fetch full order.
+  const orderRes = await fetch(`${base}/v2/orders/${squareOrderId}`, { headers });
+  const orderJson = await orderRes.json().catch(() => ({}));
+  if (!orderRes.ok || !orderJson.order) return new Response('order fetch failed', { status: 200 });
+  const order = orderJson.order;
+
+  // Guard: don't relay if not paid, no shipment, or missing address.
+  const paid = (order.total_money?.amount || 0) > 0 &&
+               ((order.tenders || []).length > 0 ||
+                order.state === 'COMPLETED' ||
+                (order.net_amount_due_money?.amount ?? 1) === 0);
+  if (!paid) return new Response('not paid yet', { status: 200 });
+
+  const shipment = (order.fulfillments || []).find(f => f.type === 'SHIPMENT');
+  const recipient = shipment?.shipment_details?.recipient;
+  if (!recipient?.address) return new Response('no shipping address', { status: 200 });
+
+  // Idempotency: if we've already submitted this Square order to Printful,
+  // skip. Printful's /orders supports search by external_id.
+  const existing = await printfulFindOrderByExternalId(squareOrderId, env);
+  if (existing) return new Response('already relayed', { status: 200 });
+
+  // Map Square catalog_object_id → Printful sync_variant_id.
+  const variantMap = await fetchPrintfulSyncVariantIdMap(env);
+
+  const pfItems = (order.line_items || [])
+    .map(li => {
+      const syncVariantId = variantMap[li.catalog_object_id];
+      if (!syncVariantId) return null;  // e.g., the "Shipping" line has no catalog id
+      return {
+        sync_variant_id: syncVariantId,
+        quantity: parseInt(li.quantity, 10) || 1,
+      };
+    })
+    .filter(Boolean);
+
+  if (pfItems.length === 0) return new Response('no printable items', { status: 200 });
+
+  const pfBody = {
+    external_id: squareOrderId,
+    shipping: 'STANDARD',
+    recipient: {
+      name:         recipient.display_name || [recipient.address.first_name, recipient.address.last_name].filter(Boolean).join(' '),
+      email:        recipient.email_address || '',
+      phone:        recipient.phone_number || '',
+      address1:     recipient.address.address_line_1 || '',
+      address2:     recipient.address.address_line_2 || '',
+      city:         recipient.address.locality || '',
+      state_code:   recipient.address.administrative_district_level_1 || '',
+      country_code: recipient.address.country || 'US',
+      zip:          recipient.address.postal_code || '',
+    },
+    items: pfItems,
+  };
+
+  // Create & confirm in one call. `confirm=true` skips the draft step and
+  // sends the order straight to fulfillment.
+  const pfRes = await fetch('https://api.printful.com/orders?confirm=true', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.PRINTFUL_ACCESS_TOKEN}`,
+      'X-PF-Store-Id': String(env.PRINTFUL_STORE_ID),
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify(pfBody),
+  });
+  const pfData = await pfRes.json().catch(() => ({}));
+  if (!pfRes.ok) {
+    // Log and still 200 so Square doesn't retry forever. We can investigate
+    // via worker logs.
+    console.log('PRINTFUL_ORDER_FAIL', squareOrderId, pfRes.status, JSON.stringify(pfData));
+    return new Response('printful error (logged)', { status: 200 });
+  }
+
+  console.log('PRINTFUL_ORDER_OK', squareOrderId, '→ printful#' + (pfData.result?.id || '?'));
+  return new Response('ok', { status: 200 });
+}
+
+// Look up a map of {squareVariationId: printfulSyncVariantId} across all
+// sync products. Uses the edge cache for 10 min.
+async function fetchPrintfulSyncVariantIdMap(env) {
+  const cacheKey = new Request('https://internal.cache/printful-variant-id-map/v1');
+  const cached = await caches.default.match(cacheKey);
+  if (cached) {
+    try { return await cached.json(); } catch {}
+  }
+
+  const pfHeaders = {
+    'Authorization': `Bearer ${env.PRINTFUL_ACCESS_TOKEN}`,
+    'X-PF-Store-Id': String(env.PRINTFUL_STORE_ID),
+  };
+
+  const listRes = await fetch('https://api.printful.com/sync/products?limit=100', { headers: pfHeaders });
+  if (!listRes.ok) return {};
+  const listData = await listRes.json();
+  const products = Array.isArray(listData.result) ? listData.result : [];
+
+  const details = await Promise.all(products.map(async p => {
+    try {
+      const r = await fetch(`https://api.printful.com/sync/products/${p.id}`, { headers: pfHeaders });
+      if (!r.ok) return null;
+      return (await r.json()).result;
+    } catch { return null; }
+  }));
+
+  const map = {};
+  for (const d of details) {
+    for (const v of (d?.sync_variants || [])) {
+      if (v.external_id && v.id) map[v.external_id] = v.id;
+    }
+  }
+
+  await caches.default.put(cacheKey, new Response(JSON.stringify(map), {
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' },
+  }));
+  return map;
+}
+
+async function printfulFindOrderByExternalId(externalId, env) {
+  const pfHeaders = {
+    'Authorization': `Bearer ${env.PRINTFUL_ACCESS_TOKEN}`,
+    'X-PF-Store-Id': String(env.PRINTFUL_STORE_ID),
+  };
+  // Printful's orders list does not filter by external_id directly via
+  // query param; we fetch recent orders and look for a match. Limit 20
+  // should be plenty in practice (webhook retries happen within minutes).
+  const res = await fetch('https://api.printful.com/orders?limit=20', { headers: pfHeaders });
+  if (!res.ok) return null;
+  const data = await res.json();
+  return (data.result || []).find(o => o.external_id === externalId) || null;
+}
+
+// ─── Crypto helpers ────────────────────────────────────────────────────────
+
+async function computeHmacSha256Base64(secret, data) {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data));
+  const bytes = new Uint8Array(sig);
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return mismatch === 0;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
