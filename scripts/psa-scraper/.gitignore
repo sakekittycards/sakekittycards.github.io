@@ -3,7 +3,9 @@
 !.env.example
 *.env.txt
 auth.json
+chrome-profile/
 node_modules/
 discovery/
 playwright-report/
 test-results/
+bootstrap.log

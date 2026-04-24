@@ -1,33 +1,35 @@
 #!/usr/bin/env node
 // Sake Kitty Cards — PSA status scraper
 //
-// Collectors.com uses Cloudflare bot detection, which shadow-rejects
-// automated logins (returns "Invalid password" to bots even when the
-// password is correct). The workaround: log in manually once in a
-// visible browser, save the session state, and reuse it for scrapes.
+// Collectors.com is fronted by Cloudflare's aggressive bot detection.
+// Even with saved cookies, Cloudflare fingerprints a fresh Playwright
+// browser and re-challenges. Solution: use a PERSISTENT Chrome profile
+// saved to ./chrome-profile/. The profile persists cookies, cache,
+// fingerprint markers, etc., so Cloudflare sees the same browser every
+// time and stops challenging after the first manual pass.
 //
 // Flow:
-//   1. `npm run bootstrap` — opens a visible Chrome. You log in manually.
-//      Script saves the session to ./auth.json. Repeat monthly-ish when
-//      the session expires.
-//   2. `npm run discover` — uses ./auth.json to navigate the authenticated
-//      site and save screenshots + HTML for me to build v1 against.
-//   3. `npm start` (future) — full scrape + Airtable update, runs on cron.
+//   1. `npm run bootstrap` — opens Chrome (visible). You log in manually
+//      and click through any Cloudflare challenges. Profile auto-saves
+//      to disk as you interact. When you reach the dashboard, we visit
+//      a few pages to seed clearance, then close.
+//   2. `npm run discover` — reopens the same profile (off-screen), navs
+//      the dashboard, saves screenshots + HTML of pages we find.
+//   3. `npm start` (future) — full scrape + Airtable update on cron.
 
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import readline from 'node:readline';
 
 const __dirname      = dirname(fileURLToPath(import.meta.url));
 const DISCOVERY_DIR  = resolve(__dirname, 'discovery');
-const AUTH_STATE     = resolve(__dirname, 'auth.json');
+const PROFILE_DIR    = resolve(__dirname, 'chrome-profile');
 
-// ─── .env loader ──────────────────────────────────────────────────────────
+// ─── .env loader (Airtable only now) ──────────────────────────────────────
 function loadEnv() {
   const envPath = resolve(__dirname, '.env');
-  if (!existsSync(envPath)) return;  // .env is optional for bootstrap mode
+  if (!existsSync(envPath)) return;
   const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const raw of lines) {
     const line = raw.trim();
@@ -58,95 +60,132 @@ async function main() {
   process.exit(1);
 }
 
-// Bootstrap: open a visible browser, let the user log in manually, save state.
-// Auto-detects successful login by watching for the URL to land on an
-// authenticated path (not /signin). Saves and closes automatically.
+// Common launch options that help Playwright avoid bot fingerprint triggers.
+// - AutomationControlled blink feature is disabled (removes the biggest tell).
+// - Visible browser always — Cloudflare blocks true headless reliably.
+// - Window positioned off-screen during discover so the user doesn't see it.
+function launchOpts({ offScreen }) {
+  const args = [
+    '--disable-blink-features=AutomationControlled',
+    '--disable-infobars',
+  ];
+  if (offScreen) {
+    args.push('--window-position=-2000,-2000');
+    args.push('--window-size=1280,900');
+  }
+  return {
+    headless: false,
+    args,
+    viewport: { width: 1280, height: 900 },
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    // Allow persisted profile to load everything.
+    ignoreHTTPSErrors: false,
+    acceptDownloads: false,
+  };
+}
+
+// Launch a persistent-context browser. Reuses the same Chrome profile every
+// run so Cloudflare sees a consistent browser identity.
+async function openPersistent({ offScreen }) {
+  if (!existsSync(PROFILE_DIR)) mkdirSync(PROFILE_DIR, { recursive: true });
+  const opts = launchOpts({ offScreen });
+  return chromium.launchPersistentContext(PROFILE_DIR, opts);
+}
+
+// Bootstrap: opens a visible browser, lets user log in, then warms up the
+// pages we care about so Cloudflare issues clearance cookies for them.
 async function bootstrap() {
   console.log('Opening a visible Chrome window so you can log in manually…');
-  console.log('(Complete the Cloudflare challenge, enter your email + password, get to the dashboard.)\n');
+  console.log('(Cloudflare challenge → email → password → dashboard.)\n');
 
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
-  });
-  const page = await context.newPage();
+  const context = await openPersistent({ offScreen: false });
+  const page = context.pages()[0] || await context.newPage();
   await page.goto('https://www.psacard.com/myaccount', { waitUntil: 'domcontentloaded' });
 
-  console.log('Chrome is open. Log in as you normally would (Cloudflare → email → password).');
-  console.log('Once you reach the PSA dashboard, this script will auto-detect and save your session.\n');
+  console.log('Chrome is open. Complete the login flow normally.');
+  console.log('This script will auto-detect when you reach your dashboard.\n');
 
-  // Poll every 2s for a URL that indicates we're past login.
-  const TIMEOUT_MS = 10 * 60 * 1000;  // 10 minutes to log in
-  const POLL_MS    = 2000;
+  const TIMEOUT_MS = 10 * 60 * 1000;
   const deadline   = Date.now() + TIMEOUT_MS;
-
   let loggedIn = false;
   while (Date.now() < deadline) {
-    await new Promise(r => setTimeout(r, POLL_MS));
-    let currentUrl = '';
-    try { currentUrl = page.url(); } catch { break; /* page closed */ }
-    if (!currentUrl) continue;
-    // Success: we're on psacard.com/myaccount (not the redirect target) or
-    // any other non-signin page under psacard.com or app.collectors.com.
-    const onSignin = /\/signin|\/login/i.test(currentUrl);
-    const onAuthedDomain = /psacard\.com\/myaccount|app\.collectors\.com\/(?!signin|login)/.test(currentUrl);
-    if (!onSignin && onAuthedDomain) {
-      loggedIn = true;
-      break;
-    }
+    await new Promise(r => setTimeout(r, 2000));
+    let url = '';
+    try { url = page.url(); } catch { break; }
+    if (!url) continue;
+    const onSignin = /\/signin|\/login/i.test(url);
+    const onAuthedDomain = /psacard\.com\/myaccount|app\.collectors\.com\/(?!signin|login)/.test(url);
+    if (!onSignin && onAuthedDomain) { loggedIn = true; break; }
   }
 
   if (!loggedIn) {
-    await browser.close();
-    console.error('\n✗ Timed out waiting for login. Re-run `npm run bootstrap` when you have a few minutes.');
+    await context.close();
+    console.error('\n✗ Timed out waiting for login. Try again when you have a few minutes.');
     process.exit(1);
   }
 
-  // Let the auth cookies settle for a couple seconds before saving.
+  // Warm up the pages where our submissions live. If Cloudflare challenges
+  // any of them, user clicks through — profile persists the clearance.
+  console.log('\nWarming up PSA pages (click through any Cloudflare challenges if prompted)…');
+  const warmupUrls = [
+    'https://www.psacard.com/myaccount/myorders',
+    'https://www.psacard.com/myaccount/customerrequestcenter',
+  ];
+  for (const url of warmupUrls) {
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+      // Wait up to 60s for a non-challenge title.
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 2000));
+        const t = await page.title().catch(() => '');
+        if (t && !/just a moment/i.test(t)) break;
+      }
+      console.log(`  ✓ ${url}`);
+    } catch (err) {
+      console.error(`  ⚠ ${url} (${err.message})`);
+    }
+  }
+
   await new Promise(r => setTimeout(r, 2000));
-  await context.storageState({ path: AUTH_STATE });
-  await browser.close();
-  console.log(`\n✓ Saved session to ${AUTH_STATE}`);
+  await context.close();
+  console.log(`\n✓ Profile saved to ${PROFILE_DIR}`);
   console.log('  Now run: npm run discover');
 }
 
-// Discover: use saved auth state to walk the dashboard and save artifacts.
+// Discover: re-open the saved profile, walk dashboard pages, save artifacts.
 async function discover() {
-  if (!existsSync(AUTH_STATE)) {
-    console.error('✗ No auth.json found. Run `npm run bootstrap` first to log in manually.');
+  if (!existsSync(PROFILE_DIR)) {
+    console.error('✗ No chrome-profile/ found. Run `npm run bootstrap` first.');
     process.exit(1);
   }
 
-  console.log('Launching browser with saved session…');
-  const browser = await chromium.launch({ headless: !MODE_DEBUG, slowMo: MODE_DEBUG ? 200 : 0 });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
-    storageState: AUTH_STATE,
-  });
-  const page = await context.newPage();
+  console.log('Launching browser with saved profile…');
+  const context = await openPersistent({ offScreen: !MODE_DEBUG });
+  const page = context.pages()[0] || await context.newPage();
 
   try {
     const candidates = [
+      'https://www.psacard.com/submissions/dashboard',
       'https://www.psacard.com/myaccount',
       'https://www.psacard.com/myaccount/myorders',
       'https://www.psacard.com/myaccount/customerrequestcenter',
-      'https://app.collectors.com/dashboard',
-      'https://app.collectors.com/orders',
-      'https://app.collectors.com/psa/orders',
     ];
 
     for (const url of candidates) {
       try {
         console.log(`Navigating to ${url}…`);
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20_000 });
-        await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(() => {});
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        // Wait a beat for Turnstile to auto-pass if applicable.
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 1500));
+          const t = await page.title().catch(() => '');
+          if (t && !/just a moment/i.test(t)) break;
+        }
         const slug = url.replace(/[^a-z0-9]/gi, '-').replace(/^-+|-+$/g, '');
         await saveArtifacts(page, slug);
 
-        // If the page kicked us back to signin, the session is expired.
         if (/\/signin/.test(page.url())) {
-          console.error('\n✗ Session expired — the saved auth state is no longer valid.');
-          console.error('  Run `npm run bootstrap` to log in again.');
+          console.error('\n✗ Session expired — run `npm run bootstrap` to log in again.');
           break;
         }
       } catch (err) {
@@ -155,13 +194,12 @@ async function discover() {
     }
 
     console.log('\nDone. Artifacts saved to ./discovery/');
-    console.log('Send me everything in that folder and I\'ll write the real scraper.');
   } catch (err) {
     console.error('\nScraper failed:', err.message);
     try { await saveArtifacts(page, 'crash'); } catch {}
     process.exitCode = 1;
   } finally {
-    await browser.close();
+    await context.close();
   }
 }
 
@@ -171,7 +209,6 @@ async function saveArtifacts(page, slug) {
   if (!existsSync(DISCOVERY_DIR)) mkdirSync(DISCOVERY_DIR, { recursive: true });
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
   const base = `${slug}-${ts}`;
-
   const pngPath  = resolve(DISCOVERY_DIR, `${base}.png`);
   const htmlPath = resolve(DISCOVERY_DIR, `${base}.html`);
   const urlPath  = resolve(DISCOVERY_DIR, `${base}.url.txt`);
@@ -182,16 +219,6 @@ async function saveArtifacts(page, slug) {
   writeFileSync(urlPath, page.url(), 'utf8');
 
   console.log(`  → saved ${base} (png + html + url)`);
-}
-
-function waitForEnter() {
-  return new Promise(resolve => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.question('Press ENTER when you have reached the PSA dashboard…', () => {
-      rl.close();
-      resolve();
-    });
-  });
 }
 
 main();
