@@ -59,6 +59,8 @@ async function main() {
 }
 
 // Bootstrap: open a visible browser, let the user log in manually, save state.
+// Auto-detects successful login by watching for the URL to land on an
+// authenticated path (not /signin). Saves and closes automatically.
 async function bootstrap() {
   console.log('Opening a visible Chrome window so you can log in manually…');
   console.log('(Complete the Cloudflare challenge, enter your email + password, get to the dashboard.)\n');
@@ -71,10 +73,37 @@ async function bootstrap() {
   await page.goto('https://www.psacard.com/myaccount', { waitUntil: 'domcontentloaded' });
 
   console.log('Chrome is open. Log in as you normally would (Cloudflare → email → password).');
-  console.log('When you see your account dashboard, come back here and press ENTER.\n');
+  console.log('Once you reach the PSA dashboard, this script will auto-detect and save your session.\n');
 
-  await waitForEnter();
+  // Poll every 2s for a URL that indicates we're past login.
+  const TIMEOUT_MS = 10 * 60 * 1000;  // 10 minutes to log in
+  const POLL_MS    = 2000;
+  const deadline   = Date.now() + TIMEOUT_MS;
 
+  let loggedIn = false;
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, POLL_MS));
+    let currentUrl = '';
+    try { currentUrl = page.url(); } catch { break; /* page closed */ }
+    if (!currentUrl) continue;
+    // Success: we're on psacard.com/myaccount (not the redirect target) or
+    // any other non-signin page under psacard.com or app.collectors.com.
+    const onSignin = /\/signin|\/login/i.test(currentUrl);
+    const onAuthedDomain = /psacard\.com\/myaccount|app\.collectors\.com\/(?!signin|login)/.test(currentUrl);
+    if (!onSignin && onAuthedDomain) {
+      loggedIn = true;
+      break;
+    }
+  }
+
+  if (!loggedIn) {
+    await browser.close();
+    console.error('\n✗ Timed out waiting for login. Re-run `npm run bootstrap` when you have a few minutes.');
+    process.exit(1);
+  }
+
+  // Let the auth cookies settle for a couple seconds before saving.
+  await new Promise(r => setTimeout(r, 2000));
   await context.storageState({ path: AUTH_STATE });
   await browser.close();
   console.log(`\n✓ Saved session to ${AUTH_STATE}`);
