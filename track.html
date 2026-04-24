@@ -240,7 +240,8 @@
       const esc    = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
       const STAGES = [
-        'Received by Sake Kitty',
+        'Request Submitted',
+        'Received by Sake Kitty Cards',
         'Submitted to PSA',
         'In Research',
         'Grading',
@@ -249,6 +250,9 @@
         'Ready for Return',
         'Delivered',
       ];
+      // Legacy status name from before the rename — always map to step 2 so
+      // any old records still render correctly on the tracker.
+      const LEGACY_STATUS = { 'Received by Sake Kitty': 'Received by Sake Kitty Cards' };
 
       function renderError(title, body) {
         result.innerHTML = `
@@ -268,7 +272,8 @@
       }
 
       function renderTrack(data) {
-        const currentIdx = Math.max(0, STAGES.indexOf(data.status));
+        const normalizedStatus = LEGACY_STATUS[data.status] || data.status || 'Request Submitted';
+        const currentIdx = Math.max(0, STAGES.indexOf(normalizedStatus));
 
         const stepsHtml = STAGES.map((label, i) => {
           let cls = '';

@@ -449,6 +449,10 @@ async function submitGradingRequest(body, env) {
   // exact cards submitted. Each card: { name, set, num, svc, prep, img }.
   const cardsJson = JSON.stringify(cards);
 
+  // Status is left empty on create; the tracker interprets empty/null as
+  // "Request Submitted" (step 1 — form submitted but cards not yet in hand).
+  // Nick sets Status to "Received by Sake Kitty Cards" manually once the
+  // cards physically arrive, which moves the tracker to step 2.
   const payload = {
     fields: {
       'Order Number':      orderNumber,
@@ -456,11 +460,10 @@ async function submitGradingRequest(body, env) {
       'Customer Email':    email,
       'Customer Phone':    phone,
       'Notes':             notes,
-      'Tier':              tier || undefined,  // don't send empty, Airtable rejects unknown select
+      'Tier':              tier || undefined,
       'Cards':             cardsJson,
       'Card Count':        cardCount,
       'Total Cost':        totalCost,
-      'Status':            'Received by Sake Kitty',
     },
   };
 
@@ -483,7 +486,7 @@ async function submitGradingRequest(body, env) {
   return json({
     ok:          true,
     orderNumber,
-    status:      'Received by Sake Kitty',
+    status:      'Request Submitted',
   });
 }
 
@@ -524,7 +527,7 @@ async function trackGradingRequest(order, env) {
     orderNumber:  f['Order Number'] || order,
     customerName: firstName,
     tier:         f['Tier']   || null,
-    status:       f['Status'] || 'Received by Sake Kitty',
+    status:       f['Status'] || 'Request Submitted',
     cardCount:    f['Card Count'] || cards.length,
     cards,
     psaSubmission: f['PSA Submission #'] || null,
