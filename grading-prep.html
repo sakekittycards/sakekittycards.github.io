@@ -76,6 +76,30 @@
     .gp-textarea { resize:vertical; min-height:60px; }
     .gp-disclaimer { font-size:13px; color:var(--dim); line-height:1.6; margin-top:12px; }
 
+    /* ── Preferred turnaround selector ── */
+    .gp-turnaround { padding-top:14px; margin-top:14px; border-top:1px solid var(--border); }
+    .gp-turnaround-row { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
+    .gp-tier-btn {
+      background:rgba(255,255,255,.04);
+      border:1.5px solid var(--border);
+      border-radius:8px;
+      color:var(--text);
+      font-size:13px; font-weight:600;
+      font-family:'Inter',sans-serif;
+      cursor:pointer;
+      padding:8px 6px;
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      transition:border-color .15s,background .15s;
+    }
+    .gp-tier-btn:hover { border-color:rgba(255,106,0,.45); }
+    .gp-tier-btn.active { border-color:var(--orange); background:rgba(255,106,0,.09); }
+    .gp-tier-btn .tier-days { font-size:11px; color:var(--dim); font-weight:500; letter-spacing:.3px; }
+    .gp-tier-btn.active .tier-days { color:var(--muted); }
+    .gp-turnaround-note { font-size:13px; color:var(--dim); line-height:1.55; margin:0; }
+    @media (max-width:520px) {
+      .gp-turnaround-row { grid-template-columns:repeat(2,1fr); }
+    }
+
     /* ── Card Prep add-on strip ── */
     .service-addon { display:flex; align-items:flex-start; gap:40px; margin-top:20px; padding:28px 32px; background:var(--bg-card); border:1.5px dashed rgba(0,212,255,.25); border-radius:var(--r); transition:border-color .2s,background .2s; }
     .service-addon:hover { border-color:rgba(0,212,255,.45); background:var(--bg-card-hover); }
@@ -289,6 +313,19 @@
               </div>
             </div>
 
+            <div class="gp-turnaround" id="gpTurnaround" hidden>
+              <div class="gp-contact-label">Preferred Turnaround (Card Prep)</div>
+              <div class="gp-turnaround-row" id="gpTierRow">
+                <button type="button" class="gp-tier-btn" data-tier="value">Value<span class="tier-days">~75 days</span></button>
+                <button type="button" class="gp-tier-btn" data-tier="value_plus">Value Plus<span class="tier-days">~45 days</span></button>
+                <button type="button" class="gp-tier-btn" data-tier="value_max">Value Max<span class="tier-days">~35 days</span></button>
+                <button type="button" class="gp-tier-btn active" data-tier="regular">Regular<span class="tier-days">~25 days</span></button>
+                <button type="button" class="gp-tier-btn" data-tier="express">Express<span class="tier-days">~15 days</span></button>
+                <button type="button" class="gp-tier-btn" data-tier="super_express">Super Express<span class="tier-days">~7 days</span></button>
+              </div>
+              <p class="gp-turnaround-note">Turnarounds are PSA estimates and set by the grading company — they can shift with volume. We pass along what they publish but can't guarantee exact delivery times.</p>
+            </div>
+
             <div class="gp-contact">
               <div class="gp-contact-label">Your Info</div>
               <input type="text"  id="gpName"  class="gp-input" placeholder="Your name *" />
@@ -358,6 +395,18 @@
       const gpSendBtn = document.getElementById('gpSendBtn');
       const gpNameEl = document.getElementById('gpName');
       const gpEmailEl = document.getElementById('gpEmail');
+      const gpTurnaroundEl = document.getElementById('gpTurnaround');
+
+      // PSA tier labels — shown when a customer picks Card Prep.
+      const TIER_LABELS = {
+        value:         { name: 'Value',         days: '~75 business days' },
+        value_plus:    { name: 'Value Plus',    days: '~45 business days' },
+        value_max:     { name: 'Value Max',     days: '~35 business days' },
+        regular:       { name: 'Regular',       days: '~25 business days' },
+        express:       { name: 'Express',       days: '~15 business days' },
+        super_express: { name: 'Super Express', days: '~7 business days' },
+      };
+      let gpTurnaround = 'regular';
 
       function fmt(n) { return '$' + n.toFixed(2); }
       function cardCost(c) { return SVC[c.svc] + (c.prep ? SVC.prep : 0); }
@@ -367,6 +416,9 @@
         gpCountEl.textContent = gpCards.length;
         gpTotalEl.textContent = fmt(total);
         gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim();
+        // Show the turnaround selector only when at least one card has Card Prep.
+        const anyPrep = gpCards.some(c => c.prep);
+        if (gpTurnaroundEl) gpTurnaroundEl.hidden = !anyPrep;
       }
 
       function renderList() {
@@ -495,6 +547,16 @@
       gpNameEl.addEventListener('input', recalc);
       gpEmailEl.addEventListener('input', recalc);
 
+      // Wire up the preferred turnaround tier buttons.
+      document.querySelectorAll('.gp-tier-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          gpTurnaround = btn.dataset.tier;
+          document.querySelectorAll('.gp-tier-btn').forEach(b => {
+            b.classList.toggle('active', b === btn);
+          });
+        });
+      });
+
       gpSendBtn.addEventListener('click', async () => {
         const name = gpNameEl.value.trim();
         const email = gpEmailEl.value.trim();
@@ -507,6 +569,10 @@
           const prepLabel = c.prep ? ' + Card Prep ($5)' : '';
           return `${i + 1}. ${c.name} (${c.set}${c.num ? ' #' + c.num : ''}) — ${svcLabel}${prepLabel} = ${fmt(cardCost(c))}`;
         }).join('\n');
+
+        const anyPrep = gpCards.some(c => c.prep);
+        const tier = TIER_LABELS[gpTurnaround] || TIER_LABELS.regular;
+        const turnaroundLine = anyPrep ? `${tier.name} (${tier.days})` : '(no Card Prep in this request)';
 
         gpSendBtn.disabled = true;
         gpSendBtn.textContent = 'Sending…';
@@ -524,6 +590,7 @@
               Email: email,
               'Card Count': String(gpCards.length),
               'Estimated Total': fmt(total),
+              'Preferred Turnaround': turnaroundLine,
               Cards: cardLines,
               Notes: notes || '(none)',
               _captcha: 'false',
