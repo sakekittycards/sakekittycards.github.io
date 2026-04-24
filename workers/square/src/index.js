@@ -306,6 +306,16 @@ async function createCheckout(body, base, headers, env, reqUrl) {
     order: {
       location_id: env.SQUARE_LOCATION_ID,
       line_items:  lineItems,
+      // Pre-declare a SHIPMENT fulfillment so Square attaches the
+      // shipping address collected at checkout to the order as a proper
+      // fulfillment. Printful's Square integration only syncs orders
+      // that have a SHIPMENT fulfillment — without this placeholder,
+      // the address ends up on the Customer record but not on the order,
+      // and Printful silently ignores the order.
+      fulfillments: [{
+        type: 'SHIPMENT',
+        state: 'PROPOSED',
+      }],
     },
     checkout_options: {
       allow_tipping:           false,
