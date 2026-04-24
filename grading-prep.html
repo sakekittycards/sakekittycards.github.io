@@ -321,9 +321,8 @@
                 <button type="button" class="gp-tier-btn" data-tier="value_max">Value Max<span class="tier-days">~35 days</span></button>
                 <button type="button" class="gp-tier-btn active" data-tier="regular">Regular<span class="tier-days">~25 days</span></button>
                 <button type="button" class="gp-tier-btn" data-tier="express">Express<span class="tier-days">~15 days</span></button>
-                <button type="button" class="gp-tier-btn" data-tier="super_express">Super Express<span class="tier-days">~7 days</span></button>
               </div>
-              <p class="gp-turnaround-note">Turnarounds are PSA estimates and set by the grading company — they can shift with volume. We pass along what they publish but can't guarantee exact delivery times.</p>
+              <p class="gp-turnaround-note">Turnarounds are PSA estimates and set by the grading company — they can shift with volume. We pass along what they publish but can't guarantee exact delivery times. <strong style="color:var(--muted)">Need different turnarounds for different cards?</strong> Send two separate requests through this form — you can bundle them in one package as long as each printout stays with its own cards.</p>
             </div>
 
             <div class="gp-contact">
@@ -399,12 +398,11 @@
 
       // PSA tier labels — shown when a customer picks Card Prep.
       const TIER_LABELS = {
-        value:         { name: 'Value',         days: '~75 business days' },
-        value_plus:    { name: 'Value Plus',    days: '~45 business days' },
-        value_max:     { name: 'Value Max',     days: '~35 business days' },
-        regular:       { name: 'Regular',       days: '~25 business days' },
-        express:       { name: 'Express',       days: '~15 business days' },
-        super_express: { name: 'Super Express', days: '~7 business days' },
+        value:      { name: 'Value',      days: '~75 business days' },
+        value_plus: { name: 'Value Plus', days: '~45 business days' },
+        value_max:  { name: 'Value Max',  days: '~35 business days' },
+        regular:    { name: 'Regular',    days: '~25 business days' },
+        express:    { name: 'Express',    days: '~15 business days' },
       };
       let gpTurnaround = 'regular';
 
