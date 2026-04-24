@@ -1,0 +1,16 @@
+{
+  "name": "sake-kitty-psa-scraper",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Logs into Collectors.com, scrapes PSA submission statuses, and updates the Sake Kitty Cards Airtable tracker.",
+  "private": true,
+  "scripts": {
+    "start":     "node scraper.mjs",
+    "discover":  "node scraper.mjs --discover",
+    "debug":     "node scraper.mjs --debug",
+    "postinstall": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}
