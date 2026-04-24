@@ -2,16 +2,21 @@
 // Proxies calls to the Square API so the site never sees the access token.
 // Also pulls per-variant mockup images from Printful and merges them into
 // the /items response so the shop can swap photos on color/variant select.
+// Additionally handles grading-prep submissions and tracker lookups backed
+// by an Airtable "Submissions" table.
 //
 // Endpoints:
 //   GET  /items            — list products from Square catalog (+ Printful mockups)
 //   POST /checkout         — create a Square Payment Link from a cart
+//   POST /grading/submit   — save a new grading-prep request to Airtable
+//   GET  /grading/track    — fetch public status info for an order number
 //   GET  /health           — liveness check
 //
-// Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN
+// Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN, AIRTABLE_TOKEN
 //          (set via `wrangler secret put <NAME>`)
 // Vars:   SQUARE_ENV ("sandbox" | "production"), SQUARE_LOCATION_ID,
-//         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID
+//         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID, AIRTABLE_BASE_ID,
+//         AIRTABLE_TABLE_ID
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -57,6 +62,16 @@ export default {
       if (path === '/checkout' && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
         return await createCheckout(body, base, squareHeaders, env, url);
+      }
+
+      if (path === '/grading/submit' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await submitGradingRequest(body, env);
+      }
+
+      if (path === '/grading/track' && request.method === 'GET') {
+        const order = (url.searchParams.get('order') || '').trim();
+        return await trackGradingRequest(order, env);
       }
 
       // Dev-only: dump raw catalog for inspection.
@@ -395,6 +410,127 @@ async function cleanupAllItems(base, headers) {
   if (!delRes.ok) return json({ error: 'square_api_error', detail: delData }, delRes.status);
 
   return json({ ok: true, deleted: ids.length, ids });
+}
+
+// ─── Grading-prep: Airtable-backed submissions + tracker ───────────────────
+
+// Generate a human-friendly order number. Format: SK-<YYYY>-<6 random chars>
+// Char set excludes 0/O/1/I to prevent confusion over the phone / email.
+const ORDER_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function generateOrderNumber() {
+  const year = new Date().getUTCFullYear();
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  let suffix = '';
+  for (const b of bytes) suffix += ORDER_CHARS[b % ORDER_CHARS.length];
+  return `SK-${year}-${suffix}`;
+}
+
+async function submitGradingRequest(body, env) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !env.AIRTABLE_TABLE_ID) {
+    return json({ error: 'grading_store_not_configured' }, 500);
+  }
+
+  const name  = String(body.name  || '').trim();
+  const email = String(body.email || '').trim();
+  if (!name || !email) return json({ error: 'name_and_email_required' }, 400);
+
+  const phone = String(body.phone || '').trim();
+  const notes = String(body.notes || '').trim();
+  const tier  = String(body.tier  || '').trim();
+  const cards = Array.isArray(body.cards) ? body.cards : [];
+  if (cards.length === 0) return json({ error: 'no_cards' }, 400);
+
+  const cardCount = cards.length;
+  const totalCost = Number(body.totalCost) || 0;
+
+  const orderNumber = generateOrderNumber();
+  // Store the full card list as a JSON blob so the tracker can render the
+  // exact cards submitted. Each card: { name, set, num, svc, prep, img }.
+  const cardsJson = JSON.stringify(cards);
+
+  const payload = {
+    fields: {
+      'Order Number':      orderNumber,
+      'Customer Name':     name,
+      'Customer Email':    email,
+      'Customer Phone':    phone,
+      'Notes':             notes,
+      'Tier':              tier || undefined,  // don't send empty, Airtable rejects unknown select
+      'Cards':             cardsJson,
+      'Card Count':        cardCount,
+      'Total Cost':        totalCost,
+      'Status':            'Received by Sake Kitty',
+    },
+  };
+
+  const res = await fetch(
+    `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.AIRTABLE_TOKEN}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return json({ error: 'airtable_error', detail: data }, res.status);
+  }
+
+  return json({
+    ok:          true,
+    orderNumber,
+    status:      'Received by Sake Kitty',
+  });
+}
+
+async function trackGradingRequest(order, env) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !env.AIRTABLE_TABLE_ID) {
+    return json({ error: 'grading_store_not_configured' }, 500);
+  }
+  if (!/^SK-\d{4}-[A-Z0-9]{4,10}$/.test(order)) {
+    return json({ error: 'invalid_order_number' }, 400);
+  }
+
+  // Airtable filter — escape quotes by doubling, per their formula syntax.
+  const safe = order.replace(/"/g, '""');
+  const filter = encodeURIComponent(`{Order Number} = "${safe}"`);
+  const url = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_TABLE_ID}?filterByFormula=${filter}&maxRecords=1`;
+
+  const res = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return json({ error: 'airtable_error', detail: data }, res.status);
+  }
+
+  const record = (data.records || [])[0];
+  if (!record) return json({ error: 'not_found' }, 404);
+
+  const f = record.fields || {};
+  // Mask the customer name to first-name-only for privacy, in case someone
+  // tries order numbers by guessing.
+  const firstName = String(f['Customer Name'] || '').split(/\s+/)[0] || '';
+  let cards = [];
+  try { cards = JSON.parse(f['Cards'] || '[]'); } catch {}
+  let certs = [];
+  try { certs = JSON.parse(f['PSA Cert Numbers'] || '[]'); } catch {}
+
+  return json({
+    orderNumber:  f['Order Number'] || order,
+    customerName: firstName,
+    tier:         f['Tier']   || null,
+    status:       f['Status'] || 'Received by Sake Kitty',
+    cardCount:    f['Card Count'] || cards.length,
+    cards,
+    psaSubmission: f['PSA Submission #'] || null,
+    psaCerts:     certs,
+    createdTime:  record.createdTime,
+  });
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────

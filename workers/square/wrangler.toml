@@ -10,6 +10,8 @@ SQUARE_APPLICATION_ID = "sq0idp-vogl03F5qlpHSwThMKSjdQ"
 SQUARE_LOCATION_ID    = "LWJ5EY6TCBCGV"
 SQUARE_ENV            = "production"
 PRINTFUL_STORE_ID     = "18064906"
+AIRTABLE_BASE_ID      = "appG9mKWxmwq9ZbTq"
+AIRTABLE_TABLE_ID     = "tbldRJdVmABVQskRY"
 
 # When flipping to production:
 #   1. wrangler secret put SQUARE_ACCESS_TOKEN       (paste the PRODUCTION token)

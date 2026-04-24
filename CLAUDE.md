@@ -22,6 +22,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - `vendors.html` — **redirect only** to team.html (legacy link support). Don't restore old content.
 - `trade-in.html` — "Sell / Trade" unified page: card search (singles/sealed/Japanese/graded) AND bulk rates. Submits via Web3Forms with cards + bulk subtotals + grand total.
 - `buylist.html` — **redirect only** to trade-in.html (legacy link support). Don't restore old content.
+- `track.html` — customer-facing grading-prep order tracker. Takes `?order=SK-YYYY-XXXXXX`, shows an 8-stage status bar, card list, and PSA cert numbers once graded. Hits `GET /grading/track` on the worker.
 - `faq.html`, `about.html`, `contact.html` — info pages
 
 ## Conventions
@@ -51,6 +52,10 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - **Printful integration** (live). Worker merges Printful per-variant mockups into the `/items` response. Source: `GET /sync/products` and `GET /sync/products/{id}` with `X-PF-Store-Id` header. Mapping key: Printful's `sync_variant.external_id` == Square's variation ID. Mockup preference: `files[type=preview].preview_url` (branded mockup with logo), fallback `product.image` (plain color shot). Results cached at the Cloudflare edge for 5 min so shop loads don't trigger 7+ Printful calls per request. If Printful call fails, `/items` still returns Square data without mockups (fail-open).
   - **Printful Store ID:** `18064906` (Square-connected store)
   - **Secret:** `PRINTFUL_ACCESS_TOKEN` (set via `wrangler secret put`, never committed)
+- **Grading-prep tracker** (live). Worker exposes `POST /grading/submit` and `GET /grading/track?order=...`, backed by an Airtable `Submissions` table. Submissions from `grading-prep.html` fire-and-forget in parallel: the worker writes a tracking row to Airtable, Web3Forms emails Nick — if either fails the customer still gets served from the other. Order numbers: `SK-YYYY-XXXXXX` (6 random chars, excludes 0/O/1/I). Tracker page `track.html` reads from the worker; `Customer Name` is returned as first name only to keep the guess-a-number attack surface small. **PSA scraping is NOT set up** — the Collectors.com SSO requires JS-rendered auth which Cloudflare Workers can't do. Status updates are manual (Nick edits Airtable) for now; email-based automation via Gmail Apps Script is the future path.
+  - **Airtable base:** `appG9mKWxmwq9ZbTq` → `Submissions` table (`tbldRJdVmABVQskRY`)
+  - **Secret:** `AIRTABLE_TOKEN` (set via `wrangler secret put`, scoped to just this base)
+  - **Schema note:** Airtable API doesn't allow creating formula / createdTime / lastModifiedTime fields. `Order Number` is a plain text field, populated by the worker. Built-in `createdTime` on records is available through the API for auditing.
 - **First plushie / merch product** not yet in the site. Will seed the cart when user adds the first product.
 - **Store credit.** Leaning toward manual ledger until customer volume justifies Square Gift Cards.
 - **eBay developer API** — pending approval; will wire up graded card live pricing + sealed price comparison when access is granted.

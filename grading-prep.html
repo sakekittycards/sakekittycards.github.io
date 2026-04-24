@@ -346,6 +346,7 @@
         <a href="contact.html" class="btn btn-primary btn-lg">Contact Us</a>
         <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">DM on Instagram</a>
       </div>
+      <p style="font-size:13px;color:var(--dim);margin-top:22px">Already submitted? <a href="track.html" style="color:var(--orange);text-decoration:none">Track your order →</a></p>
     </div>
   </main>
 
@@ -575,34 +576,69 @@
         gpSendBtn.disabled = true;
         gpSendBtn.textContent = 'Sending…';
 
+        // Fire the worker (creates tracking record in Airtable) and Web3Forms
+        // (emails Nick) in parallel. Web3Forms is our backstop — if Airtable
+        // write fails for any reason, the request still reaches Nick's inbox.
+        const workerPromise = fetch(`${window.SK.WORKER_BASE}/grading/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, email,
+            phone: '',
+            notes,
+            tier: anyPrep ? tier.name : '',
+            cards: gpCards.map(c => ({ name: c.name, set: c.set, num: c.num || '', svc: c.svc, prep: !!c.prep, img: c.img || '' })),
+            cardCount: gpCards.length,
+            totalCost: total,
+          }),
+        }).then(async r => {
+          const d = await r.json().catch(() => ({}));
+          return r.ok ? d : null;
+        }).catch(() => null);
+
+        const emailPromise = fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: `Grading Prep Request from ${name} (${gpCards.length} card${gpCards.length !== 1 ? 's' : ''})`,
+            from_name: 'Sake Kitty Grading Prep',
+            replyto: email,
+            Name: name,
+            Email: email,
+            'Card Count': String(gpCards.length),
+            'Estimated Total': fmt(total),
+            'Preferred Turnaround': turnaroundLine,
+            Cards: cardLines,
+            Notes: notes || '(none)',
+            _captcha: 'false',
+            _template: 'table',
+          }),
+        }).then(async r => {
+          const d = await r.json().catch(() => ({}));
+          return r.ok && d.success;
+        }).catch(() => false);
+
         try {
-          const res = await fetch('https://api.web3forms.com/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-              access_key: WEB3FORMS_KEY,
-              subject: `Grading Prep Request from ${name} (${gpCards.length} card${gpCards.length !== 1 ? 's' : ''})`,
-              from_name: 'Sake Kitty Grading Prep',
-              replyto: email,
-              Name: name,
-              Email: email,
-              'Card Count': String(gpCards.length),
-              'Estimated Total': fmt(total),
-              'Preferred Turnaround': turnaroundLine,
-              Cards: cardLines,
-              Notes: notes || '(none)',
-              _captcha: 'false',
-              _template: 'table',
-            }),
-          });
-          const json = await res.json().catch(() => ({}));
-          if (!res.ok || !json.success) throw new Error(json.message || 'failed');
+          const [workerData, emailOk] = await Promise.all([workerPromise, emailPromise]);
+          if (!workerData && !emailOk) throw new Error('both failed');
+
+          const orderNum = workerData?.orderNumber || null;
+          const trackLink = orderNum
+            ? `<p style="font-size:14px;color:var(--muted);margin-top:20px;line-height:1.7">Track status anytime at <a href="track.html?order=${encodeURIComponent(orderNum)}" style="color:var(--orange);text-decoration:none"><strong>track.html?order=${orderNum}</strong></a></p>`
+            : '';
+          const orderLine = orderNum
+            ? `<p style="font-size:12px;color:var(--dim);margin-top:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Order Number</p>
+               <p style="font-family:'Bangers',cursive;font-size:28px;letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:4px">${orderNum}</p>`
+            : '';
 
           document.getElementById('gpFormInner').innerHTML = `
             <div style="text-align:center;padding:48px 24px">
               <div style="font-size:48px;margin-bottom:16px">✅</div>
               <h3 style="font-family:'Bangers',cursive;font-size:30px;letter-spacing:.04em;margin-bottom:10px;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Request Sent!</h3>
-              <p style="font-size:14px;color:var(--muted);max-width:340px;margin:0 auto;line-height:1.7">We got your list. Expect a reply at <strong style="color:var(--text)">${email}</strong> within 2–3 business days with next steps.</p>
+              <p style="font-size:14px;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.7">We got your list. Expect a reply at <strong style="color:var(--text)">${email}</strong> within 2–3 business days with next steps.</p>
+              ${orderLine}
+              ${trackLink}
             </div>
           `;
         } catch (err) {

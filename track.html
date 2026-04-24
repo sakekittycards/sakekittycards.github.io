@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Your Grading Prep — Sake Kitty Cards</title>
+  <meta name="description" content="Track the status of your Sake Kitty Cards grading prep submission." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=26" />
+  <style>
+    .track-layout { max-width: 780px; margin: 0 auto; }
+
+    .track-form {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px;
+      margin-bottom: 28px;
+    }
+    .track-input {
+      flex: 1; min-width: 220px;
+      padding: 13px 18px;
+      background: rgba(255,255,255,.05);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-pill);
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Inter',sans-serif;
+      letter-spacing: 0.5px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      text-transform: uppercase;
+    }
+    .track-input:focus { border-color: rgba(255,106,0,.55); box-shadow: 0 0 0 3px rgba(255,106,0,.08); }
+    .track-input::placeholder { color: var(--dim); letter-spacing: 0.5px; }
+
+    .track-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 28px 28px 24px;
+      margin-bottom: 20px;
+    }
+    .track-order-num {
+      font-family: 'Bangers',cursive;
+      font-size: clamp(26px, 4vw, 34px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg,var(--orange),var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1.1; margin-bottom: 4px;
+    }
+    .track-hello { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .track-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; font-size: 14px; }
+    .track-meta-item { display: flex; flex-direction: column; gap: 3px; }
+    .track-meta-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim); font-weight: 700; }
+    .track-meta-val { color: var(--text); font-weight: 600; }
+
+    /* Status progress */
+    .track-status-heading { font-family: 'Bangers',cursive; font-size: 22px; letter-spacing: 0.04em; color: var(--text); margin: 0 0 14px; }
+    .track-steps { display: flex; flex-direction: column; gap: 0; }
+    .track-step {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 14px; align-items: center;
+      padding: 10px 0;
+      position: relative;
+    }
+    .track-step:not(:last-child)::after {
+      content: ''; position: absolute;
+      left: 15px; top: 34px; bottom: -10px; width: 2px;
+      background: var(--border);
+    }
+    .track-step.done:not(:last-child)::after {
+      background: linear-gradient(180deg, var(--orange), var(--border));
+    }
+    .track-step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--bg-card); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--dim); font-weight: 700;
+      z-index: 1;
+    }
+    .track-step.done .track-step-dot {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      border-color: var(--orange);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(255,106,0,.3);
+    }
+    .track-step.current .track-step-dot {
+      border-color: var(--orange);
+      color: var(--orange);
+      animation: trackPulse 2s ease-in-out infinite;
+    }
+    @keyframes trackPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,106,0,.4); }
+      50%      { box-shadow: 0 0 0 8px rgba(255,106,0,0); }
+    }
+    .track-step-label { font-size: 15px; font-weight: 600; color: var(--muted); }
+    .track-step.done .track-step-label { color: var(--text); }
+    .track-step.current .track-step-label { color: var(--orange); font-weight: 700; }
+
+    /* Cards list */
+    .track-cards-heading { font-family: 'Bangers',cursive; font-size: 20px; letter-spacing: 0.04em; color: var(--text); margin: 24px 0 12px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .track-card-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px; align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .track-card-item:last-child { border-bottom: none; }
+    .track-card-item img { width: 44px; height: 62px; object-fit: cover; border-radius: 4px; background: #1a1a2e; }
+    .track-card-name { font-size: 14px; font-weight: 700; line-height: 1.3; }
+    .track-card-set { font-size: 13px; color: var(--dim); }
+    .track-card-svc {
+      font-size: 11px; font-weight: 700;
+      color: var(--orange); letter-spacing: 1px; text-transform: uppercase;
+    }
+    .track-card-cert {
+      font-size: 12px; color: var(--cyan); font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .track-disclaimer {
+      background: rgba(255,255,255,.02);
+      border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      font-size: 13px; color: var(--dim); line-height: 1.6;
+      margin-top: 20px;
+    }
+
+    .track-error {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .track-error-icon { font-size: 48px; margin-bottom: 10px; opacity: 0.4; }
+    .track-error h3 { font-size: 18px; margin-bottom: 6px; color: var(--text); }
+    .track-error p { font-size: 14px; line-height: 1.7; margin: 0; }
+
+    .track-loading {
+      display: flex; flex-direction: column; align-items: center; gap: 14px;
+      padding: 60px 20px; text-align: center;
+      color: var(--muted); font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="page-content">
+    <div class="page-hero">
+      <h1>Track Your Submission</h1>
+      <p>Enter your Sake Kitty order number to see where your cards are in the grading flow.</p>
+    </div>
+
+    <div class="section" style="padding-top:0">
+      <div class="track-layout">
+        <form class="track-form" id="trackForm">
+          <input
+            type="text"
+            id="trackInput"
+            class="track-input"
+            placeholder="SK-2026-XXXXXX"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            required
+          />
+          <button type="submit" class="btn btn-primary">Track</button>
+        </form>
+
+        <div id="trackResult"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
+  </footer>
+
+  <script src="main.js?v=23"></script>
+  <script>
+    (function () {
+      const form   = document.getElementById('trackForm');
+      const input  = document.getElementById('trackInput');
+      const result = document.getElementById('trackResult');
+      const esc    = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+      const STAGES = [
+        'Received by Sake Kitty',
+        'Submitted to PSA',
+        'In Research',
+        'Grading',
+        'QA & Certification',
+        'Shipped Back to Us',
+        'Ready for Return',
+        'Delivered',
+      ];
+
+      function renderError(title, body) {
+        result.innerHTML = `
+          <div class="track-card track-error">
+            <div class="track-error-icon">🔍</div>
+            <h3>${esc(title)}</h3>
+            <p>${body}</p>
+          </div>`;
+      }
+
+      function renderLoading() {
+        result.innerHTML = `
+          <div class="track-card track-loading">
+            <div class="shop-spinner" aria-hidden="true"></div>
+            <p>Looking up your submission…</p>
+          </div>`;
+      }
+
+      function renderTrack(data) {
+        const currentIdx = Math.max(0, STAGES.indexOf(data.status));
+
+        const stepsHtml = STAGES.map((label, i) => {
+          let cls = '';
+          let marker = '';
+          if (i < currentIdx)      { cls = ' done';    marker = '✓'; }
+          else if (i === currentIdx){ cls = ' current'; marker = String(i + 1); }
+          else                      { cls = '';        marker = String(i + 1); }
+          return `
+            <div class="track-step${cls}">
+              <div class="track-step-dot">${marker}</div>
+              <div class="track-step-label">${esc(label)}</div>
+            </div>`;
+        }).join('');
+
+        const cards = Array.isArray(data.cards) ? data.cards : [];
+        const certMap = {};
+        if (Array.isArray(data.psaCerts)) {
+          data.psaCerts.forEach(c => {
+            // cert format (expected): { cardIndex: n, cert: "1234", grade: "PSA 9" }
+            if (c && typeof c === 'object' && Number.isInteger(c.cardIndex)) {
+              certMap[c.cardIndex] = c;
+            }
+          });
+        }
+
+        const cardsHtml = cards.length ? cards.map((c, i) => {
+          const svc = c.svc === 'detailed' ? 'Detailed Screen' : 'Standard Screen';
+          const prep = c.prep ? ' + Card Prep' : '';
+          const cert = certMap[i];
+          const certLine = cert
+            ? `<div class="track-card-cert">PSA ${esc(cert.cert || '')}${cert.grade ? ' · ' + esc(cert.grade) : ''}</div>`
+            : '';
+          const imgTag = c.img ? `<img src="${esc(c.img)}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" />` : '';
+          return `
+            <div class="track-card-item">
+              ${imgTag}
+              <div>
+                <div class="track-card-name">${esc(c.name || '')}</div>
+                <div class="track-card-set">${esc(c.set || '')}${c.num ? ' · #' + esc(c.num) : ''}</div>
+                ${certLine}
+              </div>
+              <div class="track-card-svc">${esc(svc + prep)}</div>
+            </div>`;
+        }).join('') : '';
+
+        const helloLine = data.customerName
+          ? `<div class="track-hello">Hey ${esc(data.customerName)} — here's where your submission stands.</div>`
+          : '';
+
+        const psaLine = data.psaSubmission
+          ? `
+            <div class="track-meta-item">
+              <span class="track-meta-label">PSA Submission #</span>
+              <span class="track-meta-val">${esc(data.psaSubmission)}</span>
+            </div>`
+          : '';
+
+        const tierLine = data.tier
+          ? `
+            <div class="track-meta-item">
+              <span class="track-meta-label">Preferred Tier</span>
+              <span class="track-meta-val">${esc(data.tier)}</span>
+            </div>`
+          : '';
+
+        result.innerHTML = `
+          <div class="track-card">
+            <div class="track-order-num">${esc(data.orderNumber)}</div>
+            ${helloLine}
+            <div class="track-meta">
+              <div class="track-meta-item">
+                <span class="track-meta-label">Cards</span>
+                <span class="track-meta-val">${data.cardCount || cards.length}</span>
+              </div>
+              ${tierLine}
+              ${psaLine}
+            </div>
+
+            <h3 class="track-status-heading">Status</h3>
+            <div class="track-steps">${stepsHtml}</div>
+
+            ${cardsHtml ? `
+              <h3 class="track-cards-heading">Cards in This Submission</h3>
+              ${cardsHtml}
+            ` : ''}
+
+            <div class="track-disclaimer">
+              Status updates as your cards move through the grading pipeline. PSA turnaround times are estimates and can shift with their volume — we pass along what they publish but can't guarantee exact delivery times.
+            </div>
+          </div>`;
+      }
+
+      async function lookup(order) {
+        renderLoading();
+        try {
+          const res = await fetch(`${window.SK.WORKER_BASE}/grading/track?order=${encodeURIComponent(order)}`);
+          if (res.status === 404) {
+            renderError('Order not found', "We couldn't find a submission with that number. Double-check your order number, or contact us if you think this is an error.");
+            return;
+          }
+          if (res.status === 400) {
+            renderError('Invalid order number', "Order numbers look like <strong>SK-2026-XXXXXX</strong>. Make sure it matches the format.");
+            return;
+          }
+          if (!res.ok) throw new Error(`worker ${res.status}`);
+          const data = await res.json();
+          renderTrack(data);
+        } catch (err) {
+          renderError('Something went wrong', 'Please try again in a moment.');
+        }
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const order = input.value.trim().toUpperCase();
+        if (!order) return;
+        input.value = order;
+        // Update URL so the user can copy/share the tracking link
+        const u = new URL(window.location.href);
+        u.searchParams.set('order', order);
+        window.history.replaceState({}, '', u);
+        lookup(order);
+      });
+
+      // Auto-lookup if ?order= is in the URL
+      const params = new URLSearchParams(window.location.search);
+      const initial = (params.get('order') || '').trim().toUpperCase();
+      if (initial) {
+        input.value = initial;
+        lookup(initial);
+      }
+    })();
+  </script>
+</body>
+</html>
