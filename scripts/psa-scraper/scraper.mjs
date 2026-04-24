@@ -1,32 +1,33 @@
 #!/usr/bin/env node
 // Sake Kitty Cards — PSA status scraper
 //
-// v0.1: discovery mode only. Logs into Collectors.com using the creds in .env,
-// navigates to the user's PSA submission dashboard, and saves a screenshot +
-// the page HTML to ./discovery/. You send me the screenshot + HTML and I
-// write v1 with accurate selectors that parse statuses and update Airtable.
+// Collectors.com uses Cloudflare bot detection, which shadow-rejects
+// automated logins (returns "Invalid password" to bots even when the
+// password is correct). The workaround: log in manually once in a
+// visible browser, save the session state, and reuse it for scrapes.
 //
-// Usage:
-//   npm install          (one-time)
-//   npm run discover     (first run — saves page artifacts)
-//   npm start            (future: full scrape + Airtable update)
-//   npm run debug        (opens a visible browser so you can watch it drive)
+// Flow:
+//   1. `npm run bootstrap` — opens a visible Chrome. You log in manually.
+//      Script saves the session to ./auth.json. Repeat monthly-ish when
+//      the session expires.
+//   2. `npm run discover` — uses ./auth.json to navigate the authenticated
+//      site and save screenshots + HTML for me to build v1 against.
+//   3. `npm start` (future) — full scrape + Airtable update, runs on cron.
 
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import readline from 'node:readline';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DISCOVERY_DIR = resolve(__dirname, 'discovery');
+const __dirname      = dirname(fileURLToPath(import.meta.url));
+const DISCOVERY_DIR  = resolve(__dirname, 'discovery');
+const AUTH_STATE     = resolve(__dirname, 'auth.json');
 
-// ─── .env parsing (tiny inline loader — no dotenv dependency) ─────────────
+// ─── .env loader ──────────────────────────────────────────────────────────
 function loadEnv() {
   const envPath = resolve(__dirname, '.env');
-  if (!existsSync(envPath)) {
-    console.error('✗ .env not found. Copy .env.example to .env and fill in your credentials.');
-    process.exit(1);
-  }
+  if (!existsSync(envPath)) return;  // .env is optional for bootstrap mode
   const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const raw of lines) {
     const line = raw.trim();
@@ -41,107 +42,84 @@ function loadEnv() {
     if (!process.env[key]) process.env[key] = val;
   }
 }
-
 loadEnv();
 
 const args = process.argv.slice(2);
+const MODE_BOOTSTRAP = args.includes('--bootstrap');
 const MODE_DISCOVERY = args.includes('--discover');
 const MODE_DEBUG     = args.includes('--debug') || process.env.HEADFUL === '1';
-
-// ─── Checks ────────────────────────────────────────────────────────────────
-
-function requireEnv(key) {
-  const v = process.env[key];
-  if (!v) {
-    console.error(`✗ Missing env var: ${key}`);
-    process.exit(1);
-  }
-  return v;
-}
-
-const PSA_EMAIL    = requireEnv('PSA_EMAIL');
-const PSA_PASSWORD = requireEnv('PSA_PASSWORD');
 
 // ─── Main ──────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('Launching browser…');
-  const browser = await chromium.launch({
-    headless: !MODE_DEBUG,
-    slowMo: MODE_DEBUG ? 200 : 0,
-  });
+  if (MODE_BOOTSTRAP) return bootstrap();
+  if (MODE_DISCOVERY) return discover();
+  console.error('Usage: npm run bootstrap  OR  npm run discover');
+  process.exit(1);
+}
+
+// Bootstrap: open a visible browser, let the user log in manually, save state.
+async function bootstrap() {
+  console.log('Opening a visible Chrome window so you can log in manually…');
+  console.log('(Complete the Cloudflare challenge, enter your email + password, get to the dashboard.)\n');
+
+  const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 900 },
+  });
+  const page = await context.newPage();
+  await page.goto('https://www.psacard.com/myaccount', { waitUntil: 'domcontentloaded' });
+
+  console.log('Chrome is open. Log in as you normally would (Cloudflare → email → password).');
+  console.log('When you see your account dashboard, come back here and press ENTER.\n');
+
+  await waitForEnter();
+
+  await context.storageState({ path: AUTH_STATE });
+  await browser.close();
+  console.log(`\n✓ Saved session to ${AUTH_STATE}`);
+  console.log('  Now run: npm run discover');
+}
+
+// Discover: use saved auth state to walk the dashboard and save artifacts.
+async function discover() {
+  if (!existsSync(AUTH_STATE)) {
+    console.error('✗ No auth.json found. Run `npm run bootstrap` first to log in manually.');
+    process.exit(1);
+  }
+
+  console.log('Launching browser with saved session…');
+  const browser = await chromium.launch({ headless: !MODE_DEBUG, slowMo: MODE_DEBUG ? 200 : 0 });
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    storageState: AUTH_STATE,
   });
   const page = await context.newPage();
 
   try {
-    // Step 1 — navigate to the PSA login entry point.
-    //   https://www.psacard.com/myaccount 307s → Collectors.com signin.
-    console.log('Opening login page…');
-    await page.goto('https://www.psacard.com/myaccount', { waitUntil: 'domcontentloaded', timeout: 30_000 });
-
-    // Wait for Collectors.com signin form to render. The page is Next.js so
-    // the email input is the first thing that appears.
-    await page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 20_000 });
-    console.log('Login form ready. Filling credentials…');
-
-    await page.fill('input[type="email"], input[name="email"]', PSA_EMAIL);
-
-    // Some Collectors flows are two-step (email → next → password). Try to
-    // click a Next/Continue button if present, then wait for the password
-    // field. If password field is already visible, skip this step.
-    const passwordVisible = await page.locator('input[type="password"]').count();
-    if (!passwordVisible) {
-      const nextBtn = page.locator('button:has-text("Next"), button:has-text("Continue"), button[type="submit"]').first();
-      if (await nextBtn.count()) {
-        await nextBtn.click();
-        await page.waitForSelector('input[type="password"]', { timeout: 20_000 });
-      }
-    }
-
-    await page.fill('input[type="password"]', PSA_PASSWORD);
-
-    // Submit. Try dedicated submit button, fall back to Enter key.
-    const submitBtn = page.locator('button[type="submit"], button:has-text("Sign in"), button:has-text("Log in")').first();
-    if (await submitBtn.count()) {
-      await Promise.all([
-        page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
-        submitBtn.click(),
-      ]);
-    } else {
-      await page.keyboard.press('Enter');
-      await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
-    }
-
-    // Heuristic: if we end up on a /signin page after submit, login failed.
-    const postLoginUrl = page.url();
-    if (/\/signin/.test(postLoginUrl) || /\/login/.test(postLoginUrl)) {
-      // Could be 2FA prompt or bad credentials. Save the page so we can see.
-      await saveArtifacts(page, 'login-stuck');
-      throw new Error(`Login didn't leave the signin page. Ended up at: ${postLoginUrl}. See discovery/login-stuck-*.`);
-    }
-
-    console.log(`Login succeeded. Landed on: ${postLoginUrl}`);
-
-    // Step 2 — try to find the PSA submission dashboard. Collectors likely
-    // puts this under /dashboard, /orders, or /submissions. We'll try the
-    // common paths and save whatever we land on.
     const candidates = [
-      'https://www.psacard.com/myaccount/myorders',
       'https://www.psacard.com/myaccount',
+      'https://www.psacard.com/myaccount/myorders',
+      'https://www.psacard.com/myaccount/customerrequestcenter',
       'https://app.collectors.com/dashboard',
       'https://app.collectors.com/orders',
+      'https://app.collectors.com/psa/orders',
     ];
 
     for (const url of candidates) {
       try {
         console.log(`Navigating to ${url}…`);
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20_000 });
-        await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+        await page.waitForLoadState('networkidle', { timeout: 12_000 }).catch(() => {});
         const slug = url.replace(/[^a-z0-9]/gi, '-').replace(/^-+|-+$/g, '');
         await saveArtifacts(page, slug);
+
+        // If the page kicked us back to signin, the session is expired.
+        if (/\/signin/.test(page.url())) {
+          console.error('\n✗ Session expired — the saved auth state is no longer valid.');
+          console.error('  Run `npm run bootstrap` to log in again.');
+          break;
+        }
       } catch (err) {
         console.error(`  ✗ ${url} failed: ${err.message}`);
       }
@@ -158,6 +136,8 @@ async function main() {
   }
 }
 
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
 async function saveArtifacts(page, slug) {
   if (!existsSync(DISCOVERY_DIR)) mkdirSync(DISCOVERY_DIR, { recursive: true });
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
@@ -173,6 +153,16 @@ async function saveArtifacts(page, slug) {
   writeFileSync(urlPath, page.url(), 'utf8');
 
   console.log(`  → saved ${base} (png + html + url)`);
+}
+
+function waitForEnter() {
+  return new Promise(resolve => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.question('Press ENTER when you have reached the PSA dashboard…', () => {
+      rl.close();
+      resolve();
+    });
+  });
 }
 
 main();

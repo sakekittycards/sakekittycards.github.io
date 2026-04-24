@@ -1,4 +1,8 @@
 .env
+.env.*
+!.env.example
+*.env.txt
+auth.json
 node_modules/
 discovery/
 playwright-report/

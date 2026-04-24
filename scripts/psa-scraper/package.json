@@ -6,8 +6,9 @@
   "private": true,
   "scripts": {
     "start":     "node scraper.mjs",
+    "bootstrap": "node scraper.mjs --bootstrap",
     "discover":  "node scraper.mjs --discover",
-    "debug":     "node scraper.mjs --debug",
+    "debug":     "node scraper.mjs --discover --debug",
     "postinstall": "playwright install chromium"
   },
   "dependencies": {
