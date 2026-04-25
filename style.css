@@ -735,7 +735,7 @@ body.cart-open { overflow: hidden; }
 .notify-bar-form input::placeholder { color: var(--dim); }
 
 /* ── Vendors ── */
-.vendors-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(270px,1fr)); gap: 24px; }
+.vendors-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; max-width: 880px; margin: 0 auto; }
 .vendor-card { padding: 32px; text-align: center; }
 .vendor-avatar {
   width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 16px;
