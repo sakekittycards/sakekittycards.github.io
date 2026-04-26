@@ -57,7 +57,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
   - **Secret:** `AIRTABLE_TOKEN` (set via `wrangler secret put`, scoped to just this base)
   - **Schema note:** Airtable API doesn't allow creating formula / createdTime / lastModifiedTime fields. `Order Number` is a plain text field, populated by the worker. Built-in `createdTime` on records is available through the API for auditing.
 - **First plushie / merch product** not yet in the site. Will seed the cart when user adds the first product.
-- **Store credit.** Leaning toward manual ledger until customer volume justifies Square Gift Cards.
+- **Store credit = Square Gift Cards.** Each trade-in credit is issued as a Square gift card (unique code, balance loaded). Booth staff verify + redeem via the Square POS app; same code will work at the online checkout once the cart is live. No custom site-side balance lookup is planned — copy on `trade-in.html` directs customers to email/DM if they want to check between visits. Setup happens in the Square Dashboard (Gift Cards must be enabled before the first credit is issued).
 - **eBay developer API** — pending approval; will wire up graded card live pricing + sealed price comparison when access is granted.
 
 ## Known gotchas
