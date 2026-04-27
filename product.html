@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=27" />
+  <link rel="stylesheet" href="style.css?v=28" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -205,6 +205,34 @@
       <div id="pdpRoot" hidden></div>
     </div>
   </main>
+
+  <!-- Make Offer modal — buyers submit offers via Web3Forms; email lands in sakekittycards@gmail.com -->
+  <div class="pay-modal" id="offerModal" aria-hidden="true">
+    <div class="pay-modal-panel" role="dialog" aria-labelledby="offerModalTitle">
+      <button class="pay-modal-close" id="offerModalClose" aria-label="Close">×</button>
+      <h3 id="offerModalTitle">Make an Offer</h3>
+      <p class="pay-modal-sub">
+        Submit an offer for <strong id="offerCardName">this card</strong>.
+        Asking <strong id="offerAsking">—</strong>. Nick reviews offers and replies by email — usually within 24 hours.
+      </p>
+      <form class="pay-modal-form" id="offerForm">
+        <label>Your Offer (USD)
+          <input type="number" name="offer_amount" id="offerAmount" min="1" step="1" inputmode="numeric" required />
+        </label>
+        <div id="offerMinHint" style="display:none;font-size:12px;color:var(--muted);text-transform:none;letter-spacing:normal;font-weight:400;margin-top:-4px"></div>
+        <label>Your Email
+          <input type="email" name="email" id="offerEmail" autocomplete="email" required />
+        </label>
+        <label>Message <span style="text-transform:none;font-weight:400;color:var(--dim)">(optional)</span>
+          <textarea name="message" id="offerMessage" rows="3" placeholder="Anything you want Nick to know — bundling, faster reply, etc."></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary btn-lg" id="offerSubmit" style="margin-top:8px">Send Offer</button>
+        <p style="margin:6px 0 0;font-size:12px;color:var(--dim);text-transform:none;letter-spacing:normal;font-weight:400">
+          No payment now — this just sends Nick your offer.
+        </p>
+      </form>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="footer-inner">
@@ -448,10 +476,11 @@
                 }).join('')}
               </div>` : ''}
 
-            <div class="pdp-actions">
+            <div class="pdp-actions" style="display:flex;gap:10px;flex-wrap:wrap">
               ${oos
                 ? `<button type="button" class="btn btn-sm btn-disabled pdp-add-btn" disabled>Out of Stock</button>`
-                : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>`}
+                : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>
+                   <button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Make Offer</button>`}
             </div>
 
             ${descHtml ? `<div class="pdp-desc">${descHtml}</div>` : ''}
@@ -582,9 +611,117 @@
           };
         }
         window.SK.addToCart(cartItem);
+        window.SK.openDrawer?.();
         const orig = addBtn.textContent;
         addBtn.textContent = '✓ Added to Cart';
         setTimeout(() => { addBtn.textContent = orig; }, 1400);
+      });
+
+      // Make Offer — submits via Web3Forms to sakekittycards@gmail.com.
+      // Hidden card-metadata fields ride along so Nick sees full context in
+      // the email without the buyer having to type any of it.
+      const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
+      const offerBtn       = document.getElementById('pdpOfferBtn');
+      const offerModal     = document.getElementById('offerModal');
+      const offerModalClose = document.getElementById('offerModalClose');
+      const offerForm      = document.getElementById('offerForm');
+      const offerSubmit    = document.getElementById('offerSubmit');
+      const offerEmail     = document.getElementById('offerEmail');
+      const offerAmount    = document.getElementById('offerAmount');
+      const offerMessage   = document.getElementById('offerMessage');
+      const offerCardName  = document.getElementById('offerCardName');
+      const offerAsking    = document.getElementById('offerAsking');
+      const offerMinHint   = document.getElementById('offerMinHint');
+
+      const openOffer = () => {
+        const v = findVariant(selectedColor, selectedSize);
+        const askingPrice = v?.price != null ? v.price : item.price;
+        const fullName = item.name + (v ? ` – ${v.name}` : '');
+        offerCardName.textContent = fullName;
+        offerAsking.textContent   = fmt(askingPrice);
+        offerAmount.placeholder   = String(Math.max(1, Math.round(askingPrice * 0.85)));
+        // Optional offer floor — read from item metadata if Square ever surfaces it.
+        const floor = (item.offerMin != null) ? Number(item.offerMin) : null;
+        if (floor && floor > 0) {
+          offerAmount.min = floor;
+          offerMinHint.style.display = 'block';
+          offerMinHint.textContent = `Minimum offer: ${fmt(floor)}`;
+        } else {
+          offerAmount.removeAttribute('min');
+          offerMinHint.style.display = 'none';
+        }
+        offerModal.classList.add('open');
+        offerModal.setAttribute('aria-hidden', 'false');
+        setTimeout(() => offerAmount.focus(), 60);
+      };
+      const closeOffer = () => {
+        offerModal.classList.remove('open');
+        offerModal.setAttribute('aria-hidden', 'true');
+      };
+      offerBtn?.addEventListener('click', openOffer);
+      offerModalClose?.addEventListener('click', closeOffer);
+      offerModal?.addEventListener('click', (e) => {
+        if (e.target === offerModal) closeOffer();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && offerModal.classList.contains('open')) closeOffer();
+      });
+
+      offerForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const v = findVariant(selectedColor, selectedSize);
+        const askingPrice = v?.price != null ? v.price : item.price;
+        const fullName = item.name + (v ? ` – ${v.name}` : '');
+        const offerVal = Number(offerAmount.value);
+        if (!offerVal || offerVal <= 0) return;
+
+        offerSubmit.disabled    = true;
+        offerSubmit.textContent = 'Sending…';
+
+        try {
+          const res = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              access_key:    WEB3FORMS_KEY,
+              subject:       `Offer: ${fullName} — $${offerVal}`,
+              from_name:     'Sake Kitty Offer',
+              replyto:       offerEmail.value,
+              // Visible fields in the email
+              offer_amount:  `$${offerVal.toFixed(2)}`,
+              buyer_email:   offerEmail.value,
+              buyer_message: offerMessage.value || '(none)',
+              // Card metadata so Nick has full context
+              card:          fullName,
+              card_id:       item.id,
+              variation_id:  v ? v.id : '',
+              asking_price:  fmt(askingPrice),
+              listing_url:   window.location.href,
+            }),
+          });
+          const json = await res.json().catch(() => ({}));
+          if (!res.ok || !json.success) {
+            throw new Error(json.message || `submit failed (${res.status})`);
+          }
+          offerForm.innerHTML = `
+            <div style="text-align:center;padding:24px 4px 4px">
+              <div style="font-size:42px;margin-bottom:12px">✓</div>
+              <h4 style="margin:0 0 10px;font-family:'Bangers',cursive;font-size:24px;letter-spacing:.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+                Offer sent!
+              </h4>
+              <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0">
+                Nick will review and reply by email — usually within 24 hours.
+              </p>
+              <button type="button" class="btn btn-outline btn-sm" style="margin-top:18px" id="offerDoneBtn">Close</button>
+            </div>`;
+          document.getElementById('offerDoneBtn')?.addEventListener('click', closeOffer);
+        } catch (err) {
+          console.error(err);
+          offerSubmit.disabled    = false;
+          offerSubmit.textContent = 'Send Offer';
+          alert("Couldn't send your offer: " + (err.message || 'unknown error') +
+                "\n\nYou can also email sakekittycards@gmail.com directly.");
+        }
       });
     })();
   </script>

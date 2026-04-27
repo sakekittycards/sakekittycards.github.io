@@ -15,10 +15,11 @@
 //   POST /grading/submit     — save a new grading-prep request to Airtable
 //   GET  /grading/track      — fetch public status info for an order number
 //   POST /webhooks/square    — handle Square order.updated / payment.updated events
+//   POST /admin/upload-graded — bulk-create graded-card listings (admin only)
 //   GET  /health             — liveness check
 //
 // Secrets: SQUARE_ACCESS_TOKEN, PRINTFUL_ACCESS_TOKEN, AIRTABLE_TOKEN,
-//          SQUARE_WEBHOOK_SIGNATURE_KEY
+//          SQUARE_WEBHOOK_SIGNATURE_KEY, ADMIN_TOKEN
 //          (all set via `wrangler secret put <NAME>`)
 // Vars:   SQUARE_ENV ("sandbox" | "production"), SQUARE_LOCATION_ID,
 //         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID, AIRTABLE_BASE_ID,
@@ -82,6 +83,10 @@ export default {
 
       if (path === '/webhooks/square' && request.method === 'POST') {
         return await handleSquareWebhook(request, base, squareHeaders, env);
+      }
+
+      if (path === '/admin/upload-graded' && request.method === 'POST') {
+        return await uploadGradedItem(request, base, squareHeaders, env);
       }
 
       // Dev-only: dump raw catalog for inspection.
@@ -671,6 +676,193 @@ async function handleSquareWebhook(request, base, headers, env) {
 
 // Look up a map of {squareVariationId: printfulSyncVariantId} across all
 // sync products. Uses the edge cache for 10 min.
+// Admin: bulk-create a graded-card listing in Square.
+// Auth: X-Sake-Admin-Token header must match env.ADMIN_TOKEN secret.
+// Body: {
+//   card: { cert_number, card_number, name, set_name, year, grade,
+//           pokemontcg_set_id, offer_min },
+//   price_cents: integer,
+//   image_base64: string (raw base64, no data: prefix),
+//   image_filename: string (e.g. "pikachu-cert152270300-front.jpg")
+// }
+// Response: { ok, item_id, variation_id, image_id, listing_url }
+async function uploadGradedItem(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN) {
+    return json({ error: 'admin_token_not_configured' }, 500);
+  }
+  if (!timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (_err) {
+    return json({ error: 'invalid_json' }, 400);
+  }
+
+  const card = body.card || {};
+  const priceCents = Number(body.price_cents);
+  const imageB64 = body.image_base64 || '';
+  const imageFilename = body.image_filename || `graded-${card.cert_number || 'unknown'}.jpg`;
+
+  if (!card.cert_number || !card.name) {
+    return json({ error: 'missing_required_fields', required: ['card.cert_number', 'card.name'] }, 400);
+  }
+  if (!Number.isFinite(priceCents) || priceCents <= 0) {
+    return json({ error: 'invalid_price_cents' }, 400);
+  }
+  if (!imageB64) {
+    return json({ error: 'missing_image_base64' }, 400);
+  }
+
+  const title = [
+    card.year, card.set_name, card.name,
+    card.card_number ? `#${card.card_number}` : '',
+    card.grade ? `PSA ${card.grade}` : '',
+  ].filter(Boolean).join(' ').trim();
+
+  const descriptionLines = [
+    `PSA Cert #: ${card.cert_number}`,
+  ];
+  if (card.set_name)    descriptionLines.push(`Set: ${card.set_name}${card.year ? ` (${card.year})` : ''}`);
+  if (card.grade)       descriptionLines.push(`Grade: PSA ${card.grade}`);
+  if (card.card_number) descriptionLines.push(`Card Number: ${card.card_number}`);
+  descriptionLines.push('Verify cert at psacard.com before purchase. Free shipping on orders $100+.');
+  const description = descriptionLines.join('\n');
+
+  // 1. Create the catalog item + single ITEM_VARIATION (qty 1, fixed price).
+  const itemPlaceholder = `#sk-graded-${card.cert_number}`;
+  const variationPlaceholder = `#sk-graded-var-${card.cert_number}`;
+  const createPayload = {
+    idempotency_key: `sk-graded-${card.cert_number}`,
+    object: {
+      type: 'ITEM',
+      id: itemPlaceholder,
+      item_data: {
+        name: title.slice(0, 255),
+        description: description.slice(0, 4096),
+        variations: [{
+          type: 'ITEM_VARIATION',
+          id: variationPlaceholder,
+          item_variation_data: {
+            item_id: itemPlaceholder,
+            name: 'Single',
+            pricing_type: 'FIXED_PRICING',
+            price_money: { amount: Math.round(priceCents), currency: 'USD' },
+            track_inventory: true,
+            sellable: true,
+            stockable: true,
+          },
+        }],
+      },
+    },
+  };
+  const createRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST', headers: squareHeaders, body: JSON.stringify(createPayload),
+  });
+  const createData = await createRes.json();
+  if (!createRes.ok) {
+    return json({ error: 'square_create_failed', detail: createData }, createRes.status);
+  }
+  const item = createData.catalog_object;
+  const variation = item?.item_data?.variations?.[0];
+  if (!item || !variation) {
+    return json({ error: 'square_create_returned_no_variation', detail: createData }, 500);
+  }
+
+  // 2. Set inventory to 1 — graded cards are unique, qty 1.
+  // Use a fresh UUID each call: occurred_at changes per attempt, and Square
+  // rejects identical idempotency keys whose body has shifted.
+  const invRes = await fetch(`${base}/v2/inventory/changes/batch-create`, {
+    method: 'POST', headers: squareHeaders,
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      changes: [{
+        type: 'PHYSICAL_COUNT',
+        physical_count: {
+          catalog_object_id: variation.id,
+          state: 'IN_STOCK',
+          location_id: env.SQUARE_LOCATION_ID,
+          quantity: '1',
+          occurred_at: new Date().toISOString(),
+        },
+      }],
+    }),
+  });
+  if (!invRes.ok) {
+    // Don't bail — log and keep going so the image still uploads. Inventory
+    // count is fixable in the Square dashboard but a missing image is
+    // visually broken on the shop and harder to recover.
+    const invData = await invRes.json().catch(() => ({}));
+    console.warn('inventory step failed (continuing):', JSON.stringify(invData));
+  }
+
+  // 3. Upload + attach the listing image. Square wants multipart/form-data
+  // with a JSON 'request' part and a binary 'image_file' part.
+  const imageBytes = base64ToBytes(imageB64);
+  const imageRequest = {
+    idempotency_key: crypto.randomUUID(),
+    object_id: item.id,
+    image: {
+      type: 'IMAGE',
+      // Square requires a non-blank id for new objects; use a #-prefixed
+      // temp ID and Square assigns the real one on create.
+      id: `#sk-graded-img-${card.cert_number}-${Date.now()}`,
+      image_data: {
+        name: imageFilename.slice(0, 255),
+        caption: 'Sake Kitty Cards graded listing',
+      },
+    },
+    is_primary: true,
+  };
+  const fd = new FormData();
+  fd.append(
+    'request',
+    new Blob([JSON.stringify(imageRequest)], { type: 'application/json' }),
+  );
+  fd.append(
+    'image_file',
+    new Blob([imageBytes], { type: 'image/jpeg' }),
+    imageFilename,
+  );
+  // Strip the JSON Content-Type from squareHeaders so fetch sets multipart boundary.
+  const imageHeaders = {
+    'Square-Version': SQUARE_API_VERSION,
+    'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
+  };
+  const imgRes = await fetch(`${base}/v2/catalog/images`, {
+    method: 'POST', headers: imageHeaders, body: fd,
+  });
+  const imgData = await imgRes.json();
+  if (!imgRes.ok) {
+    return json({
+      error: 'square_image_upload_failed',
+      item_id: item.id,
+      detail: imgData,
+    }, imgRes.status);
+  }
+
+  return json({
+    ok: true,
+    item_id: item.id,
+    variation_id: variation.id,
+    image_id: imgData.image?.id,
+    title,
+    listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`,
+  });
+}
+
+function base64ToBytes(b64) {
+  const cleaned = b64.replace(/^data:[^;]+;base64,/, '');
+  const bin = atob(cleaned);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+
 async function fetchPrintfulSyncVariantIdMap(env) {
   const cacheKey = new Request('https://internal.cache/printful-variant-id-map/v1');
   const cached = await caches.default.match(cacheKey);

@@ -5,3 +5,13 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+
+# Graded-card pipeline runtime data — local-only
+scripts/graded-uploader/inbox/
+scripts/graded-uploader/finished/
+scripts/graded-uploader/out/
+scripts/graded-uploader/pricing.csv

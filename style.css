@@ -445,9 +445,10 @@ button { font-family: inherit; }
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   opacity: 0;
+  pointer-events: none;
   transition: opacity .25s;
 }
-.pay-modal.open { opacity: 1; }
+.pay-modal.open { opacity: 1; pointer-events: auto; }
 .pay-modal-panel {
   background: #0a0a12; border: 1px solid var(--border);
   border-radius: var(--r);
