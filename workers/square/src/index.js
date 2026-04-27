@@ -89,20 +89,30 @@ export default {
         return await uploadGradedItem(request, base, squareHeaders, env);
       }
 
-      // Diagnostic: fetch a single Square catalog item by id to inspect
-      // image_ids etc. Admin-token gated.
+      // Diagnostic: fetch a single Square catalog item by id, OR list all
+      // objects of a given type (?types=TAX). Admin-token gated.
       if (path === '/admin/inspect' && request.method === 'GET') {
         const token = request.headers.get('X-Sake-Admin-Token') || '';
         if (!env.ADMIN_TOKEN || !timingSafeEqual(token, env.ADMIN_TOKEN)) {
           return json({ error: 'unauthorized' }, 401);
         }
         const id = url.searchParams.get('id');
-        if (!id) return json({ error: 'missing id' }, 400);
-        const r = await fetch(
-          `${base}/v2/catalog/object/${encodeURIComponent(id)}?include_related_objects=true`,
-          { headers: squareHeaders },
-        );
-        return json(await r.json(), r.status);
+        const types = url.searchParams.get('types');
+        if (id) {
+          const r = await fetch(
+            `${base}/v2/catalog/object/${encodeURIComponent(id)}?include_related_objects=true`,
+            { headers: squareHeaders },
+          );
+          return json(await r.json(), r.status);
+        }
+        if (types) {
+          const r = await fetch(
+            `${base}/v2/catalog/list?types=${encodeURIComponent(types)}`,
+            { headers: squareHeaders },
+          );
+          return json(await r.json(), r.status);
+        }
+        return json({ error: 'missing id or types' }, 400);
       }
 
       // Dev-only: dump raw catalog for inspection.
@@ -327,6 +337,13 @@ async function fetchStockCounts(base, headers, variationIds, locationId) {
   return out;
 }
 
+// Sale-tax nexus map. Add states + rates here as nexus expands.
+// Rates are headline state+county estimates; for surgical accuracy migrate
+// to Square's auto-tax service.
+const SALES_TAX_BY_STATE = {
+  FL: { name: 'Florida Sales Tax', percentage: '7.0' },
+};
+
 async function createCheckout(body, base, headers, env, reqUrl) {
   const items        = Array.isArray(body.items) ? body.items : [];
   const shippingCost = Number(body.shippingCost) || 0;
@@ -334,6 +351,14 @@ async function createCheckout(body, base, headers, env, reqUrl) {
   const returnUrl    = typeof body.returnUrl === 'string' && body.returnUrl.startsWith('http')
     ? body.returnUrl
     : 'https://sakekittycards.com/order-confirmation.html';
+
+  // Buyer selects their shipping state in the cart drawer before checkout.
+  // Square Payment Links don't auto-apply catalog taxes (that's a Square
+  // Online feature), so we inject the tax server-side based on the state.
+  const shippingState = typeof body.shippingState === 'string'
+    ? body.shippingState.trim().toUpperCase()
+    : '';
+  const taxRule = SALES_TAX_BY_STATE[shippingState] || null;
 
   if (items.length === 0) return json({ error: 'items array is required' }, 400);
 
@@ -359,22 +384,37 @@ async function createCheckout(body, base, headers, env, reqUrl) {
     });
   }
 
+  const order = {
+    location_id: env.SQUARE_LOCATION_ID,
+    line_items:  lineItems,
+    // Pre-declare a SHIPMENT fulfillment so Square attaches the
+    // shipping address collected at checkout to the order as a proper
+    // fulfillment. Printful's Square integration only syncs orders
+    // that have a SHIPMENT fulfillment — without this placeholder,
+    // the address ends up on the Customer record but not on the order,
+    // and Printful silently ignores the order.
+    fulfillments: [{
+      type: 'SHIPMENT',
+      state: 'PROPOSED',
+    }],
+  };
+
+  if (taxRule) {
+    // ORDER-scoped ADDITIVE tax: Square applies it to every line item
+    // including shipping, then shows it as a separate "Florida Sales Tax"
+    // line on the hosted checkout page.
+    order.taxes = [{
+      uid:        'sk-state-tax',
+      name:       taxRule.name,
+      type:       'ADDITIVE',
+      percentage: taxRule.percentage,
+      scope:      'ORDER',
+    }];
+  }
+
   const payload = {
     idempotency_key: crypto.randomUUID(),
-    order: {
-      location_id: env.SQUARE_LOCATION_ID,
-      line_items:  lineItems,
-      // Pre-declare a SHIPMENT fulfillment so Square attaches the
-      // shipping address collected at checkout to the order as a proper
-      // fulfillment. Printful's Square integration only syncs orders
-      // that have a SHIPMENT fulfillment — without this placeholder,
-      // the address ends up on the Customer record but not on the order,
-      // and Printful silently ignores the order.
-      fulfillments: [{
-        type: 'SHIPMENT',
-        state: 'PROPOSED',
-      }],
-    },
+    order,
     checkout_options: {
       allow_tipping:           false,
       ask_for_shipping_address: true,

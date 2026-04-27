@@ -168,12 +168,34 @@ function spawnSingleDrip() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SK_CART_KEY        = 'sk_cart_v1';
+const SK_SHIP_STATE_KEY  = 'sk_ship_state_v1';
 const SK_SHIP_FREE_OVER  = 100;
 const SK_SHIP_FLAT_FEE   = 5;
 const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
 const SK_VENMO_HANDLE    = 'sakekittycards';
 const SK_PAYPAL_HANDLE   = 'sakekittycards';
 const SK_WEB3FORMS_KEY   = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
+
+// Sales tax rates by destination state. Source of truth for the cart-drawer
+// preview line; the worker has its own copy that drives what's sent to
+// Square. Keep both in sync when nexus changes.
+const SK_TAX_RATES = {
+  FL: 0.07,
+};
+function skTaxRate(state) {
+  return SK_TAX_RATES[(state || '').toUpperCase()] || 0;
+}
+function skTaxAmount(subtotal, shipping, state) {
+  const rate = skTaxRate(state);
+  if (rate <= 0) return 0;
+  return (subtotal + shipping) * rate;
+}
+function skGetShipState() {
+  try { return localStorage.getItem(SK_SHIP_STATE_KEY) || ''; } catch { return ''; }
+}
+function skSaveShipState(state) {
+  try { localStorage.setItem(SK_SHIP_STATE_KEY, state || ''); } catch {}
+}
 
 const skCartListeners = new Set();
 
@@ -387,29 +409,69 @@ window.SK = {
 
     const subtotal  = skCartSubtotal();
     const shipping  = skShippingCost(subtotal);
-    const total     = subtotal + shipping;
+    const shipState = skGetShipState();
+    const tax       = skTaxAmount(subtotal, shipping, shipState);
+    const total     = subtotal + shipping + tax;
     const remaining = SK_SHIP_FREE_OVER - subtotal;
+
+    // US state options. FL flagged so we can show a small "+7% tax" hint.
+    const STATES = [
+      ['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],
+      ['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],
+      ['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],
+      ['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],
+      ['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],
+      ['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],
+      ['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],
+      ['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],
+      ['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],
+      ['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],
+      ['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],
+      ['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],
+      ['WI','Wisconsin'],['WY','Wyoming'],['DC','District of Columbia'],
+    ];
+    const stateOptions = STATES.map(([code, name]) => {
+      const flag = code === 'FL' ? ' (+7% tax)' : '';
+      const sel  = code === shipState ? ' selected' : '';
+      return `<option value="${code}"${sel}>${name}${flag}</option>`;
+    }).join('');
+    const taxRow = shipState
+      ? (tax > 0
+          ? `<div class="cart-totals-row"><span>Tax (FL 7%)</span><span>${fmt(tax)}</span></div>`
+          : `<div class="cart-totals-row"><span>Tax</span><span>—</span></div>`)
+      : `<div class="cart-totals-row" style="color:var(--dim)"><span>Tax</span><span>Pick state</span></div>`;
+    const checkoutDisabled = !shipState;
 
     footer.innerHTML = `
       ${shipping > 0
         ? `<div class="cart-ship-note">Add <strong>${fmt(Math.max(0, remaining))}</strong> more for free shipping</div>`
         : `<div class="cart-ship-note free">✓ You've unlocked free shipping</div>`}
+
+      <label class="cart-ship-state">
+        <span>Shipping to</span>
+        <select id="cartShipState">
+          <option value="">— Select state —</option>
+          ${stateOptions}
+        </select>
+      </label>
+
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
       <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+      ${taxRow}
       <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
 
       <div class="cart-pay-options">
-        <button type="button" class="btn btn-primary cart-pay-btn" id="payWithSquare">
-          <span class="pay-label">Pay with Square</span>
+        <button type="button" class="btn btn-primary cart-pay-btn" id="payWithSquare"${checkoutDisabled ? ' disabled' : ''}>
+          <span class="pay-label">${checkoutDisabled ? 'Select shipping state' : 'Pay with Square'}</span>
           <span class="pay-sub">Apple Pay · Google Pay · Card</span>
         </button>
         <div class="cart-pay-or"><span>or</span></div>
         <div class="cart-pay-alt">
-          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithVenmo">
+          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithVenmo"${checkoutDisabled ? ' disabled' : ''}>
             <span class="pay-icon venmo">V</span>
             <span>Venmo</span>
           </button>
-          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithPaypal">
+          <button type="button" class="btn btn-outline cart-pay-btn alt" id="payWithPaypal"${checkoutDisabled ? ' disabled' : ''}>
             <span class="pay-icon paypal">PP</span>
             <span>PayPal</span>
           </button>
@@ -419,13 +481,20 @@ window.SK = {
       <p class="cart-ship-policy">Square handles shipping address automatically. Venmo / PayPal: we'll collect it in the next step.</p>
     `;
 
-    document.getElementById('payWithSquare')?.addEventListener('click', () => payWithSquare(cart, shipping));
-    document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total));
-    document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total));
+    document.getElementById('cartShipState')?.addEventListener('change', (e) => {
+      skSaveShipState(e.target.value);
+      renderDrawer();
+    });
+
+    if (!checkoutDisabled) {
+      document.getElementById('payWithSquare')?.addEventListener('click', () => payWithSquare(cart, shipping, shipState));
+      document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total, tax));
+      document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total, tax));
+    }
   }
 
   // ─── Square: redirect to hosted checkout ──────────────────────────────────
-  async function payWithSquare(cart, shipping) {
+  async function payWithSquare(cart, shipping, shippingState) {
     const btn = document.getElementById('payWithSquare');
     if (!btn) return;
     btn.disabled = true;
@@ -444,6 +513,7 @@ window.SK = {
             variationId: i.variationId,
           })),
           shippingCost: shipping,
+          shippingState: shippingState || '',
           returnUrl: `${window.location.origin}/order-confirmation.html?from=square`,
         }),
       });
@@ -461,7 +531,7 @@ window.SK = {
   }
 
   // ─── Venmo / PayPal: show modal to collect customer + shipping info ──────
-  function openCustomerInfoModal(provider, cart, subtotal, shipping, total) {
+  function openCustomerInfoModal(provider, cart, subtotal, shipping, total, tax = 0) {
     const label = provider === 'venmo' ? 'Venmo' : 'PayPal';
     const accent = provider === 'venmo' ? '#008cff' : '#003087';
 
@@ -484,6 +554,7 @@ window.SK = {
           <div class="pay-modal-totals">
             <div><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
             <div><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+            ${tax > 0 ? `<div><span>Tax (FL 7%)</span><span>${fmt(tax)}</span></div>` : ''}
             <div class="grand"><span>Total</span><span>${fmt(total)}</span></div>
           </div>
 
