@@ -89,6 +89,22 @@ export default {
         return await uploadGradedItem(request, base, squareHeaders, env);
       }
 
+      // Diagnostic: fetch a single Square catalog item by id to inspect
+      // image_ids etc. Admin-token gated.
+      if (path === '/admin/inspect' && request.method === 'GET') {
+        const token = request.headers.get('X-Sake-Admin-Token') || '';
+        if (!env.ADMIN_TOKEN || !timingSafeEqual(token, env.ADMIN_TOKEN)) {
+          return json({ error: 'unauthorized' }, 401);
+        }
+        const id = url.searchParams.get('id');
+        if (!id) return json({ error: 'missing id' }, 400);
+        const r = await fetch(
+          `${base}/v2/catalog/object/${encodeURIComponent(id)}?include_related_objects=true`,
+          { headers: squareHeaders },
+        );
+        return json(await r.json(), r.status);
+      }
+
       // Dev-only: dump raw catalog for inspection.
       if (path === '/dev/raw' && request.method === 'GET') {
         if (env.SQUARE_ENV !== 'sandbox') return json({ error: 'disabled outside sandbox' }, 403);
@@ -134,6 +150,33 @@ async function listItems(base, headers, locationId, env) {
   );
 
   const catalogItems = objects.filter(o => o.type === 'ITEM');
+
+  // Square's catalog/list does NOT include images that were uploaded
+  // attached to a specific item (object_id set). Those only come back
+  // via batch-retrieve-objects. Collect every referenced image_id, drop
+  // the ones we already have, then batch-fetch the rest.
+  const referencedImageIds = new Set();
+  for (const o of catalogItems) {
+    for (const id of o.item_data?.image_ids || []) referencedImageIds.add(id);
+    for (const v of o.item_data?.variations || []) {
+      for (const id of v.item_variation_data?.image_ids || []) referencedImageIds.add(id);
+    }
+  }
+  const missingImageIds = [...referencedImageIds].filter(id => !(id in images));
+  if (missingImageIds.length > 0) {
+    try {
+      const r = await fetch(`${base}/v2/catalog/batch-retrieve`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ object_ids: missingImageIds }),
+      });
+      const j = await r.json();
+      for (const o of (j.objects || [])) {
+        if (o.type === 'IMAGE') images[o.id] = o.image_data?.url;
+      }
+    } catch (_e) {
+      // fail-open: items without images still render via emoji fallback on the shop
+    }
+  }
 
   // Collect every variation ID across all items for one batch inventory call.
   const allVariationIds = catalogItems
@@ -706,6 +749,8 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   const priceCents = Number(body.price_cents);
   const imageB64 = body.image_base64 || '';
   const imageFilename = body.image_filename || `graded-${card.cert_number || 'unknown'}.jpg`;
+  const backB64 = body.back_image_base64 || '';
+  const backFilename = body.back_image_filename || `graded-${card.cert_number || 'unknown'}-back.jpg`;
 
   if (!card.cert_number || !card.name) {
     return json({ error: 'missing_required_fields', required: ['card.cert_number', 'card.name'] }, 400);
@@ -717,11 +762,19 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
     return json({ error: 'missing_image_base64' }, 400);
   }
 
-  const title = [
-    card.year, card.set_name, card.name,
-    card.card_number ? `#${card.card_number}` : '',
-    card.grade ? `PSA ${card.grade}` : '',
-  ].filter(Boolean).join(' ').trim();
+  // Title: lead with the grade (buyers scan grade first), then year, set,
+  // card name, number. Strip descriptors like "GEM MT" / "MINT" — keep just
+  // "PSA 10" / "PSA 9".
+  const gradeNum = card.grade
+    ? (card.grade.match(/\b(\d{1,2})\b/) || [])[1] || ''
+    : '';
+  const titleParts = [];
+  if (gradeNum)         titleParts.push(`PSA ${gradeNum}`);
+  if (card.year)        titleParts.push(card.year);
+  if (card.set_name)    titleParts.push(card.set_name);
+  if (card.name)        titleParts.push(card.name);
+  if (card.card_number) titleParts.push(`#${card.card_number}`);
+  const title = titleParts.join(' ').trim();
 
   const descriptionLines = [
     `PSA Cert #: ${card.cert_number}`,
@@ -733,16 +786,23 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   const description = descriptionLines.join('\n');
 
   // 1. Create the catalog item + single ITEM_VARIATION (qty 1, fixed price).
+  // Idempotency: UUID so re-uploads with changed metadata (price, title)
+  // succeed. Trade-off: a script crash mid-flight could leave a phantom
+  // item in Square — user can delete via dashboard.
   const itemPlaceholder = `#sk-graded-${card.cert_number}`;
   const variationPlaceholder = `#sk-graded-var-${card.cert_number}`;
   const createPayload = {
-    idempotency_key: `sk-graded-${card.cert_number}`,
+    idempotency_key: crypto.randomUUID(),
     object: {
       type: 'ITEM',
       id: itemPlaceholder,
       item_data: {
         name: title.slice(0, 255),
         description: description.slice(0, 4096),
+        // Explicitly taxable so Square applies the FL sales tax rule we
+        // set up in Dashboard. Default is already true, but pinning it
+        // here guards against future Square API changes.
+        is_taxable: true,
         variations: [{
           type: 'ITEM_VARIATION',
           id: variationPlaceholder,
@@ -844,11 +904,55 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
     }, imgRes.status);
   }
 
+  // 4. Optional back image — uploaded with is_primary: false so the
+  // front stays as the gallery hero. Best-effort: log + continue on failure.
+  let backImageId = null;
+  if (backB64) {
+    try {
+      const backBytes = base64ToBytes(backB64);
+      const backRequest = {
+        idempotency_key: crypto.randomUUID(),
+        object_id: item.id,
+        image: {
+          type: 'IMAGE',
+          id: `#sk-graded-img-${card.cert_number}-back-${Date.now()}`,
+          image_data: {
+            name: backFilename.slice(0, 255),
+            caption: 'Sake Kitty Cards graded listing — back',
+          },
+        },
+        is_primary: false,
+      };
+      const fdBack = new FormData();
+      fdBack.append(
+        'request',
+        new Blob([JSON.stringify(backRequest)], { type: 'application/json' }),
+      );
+      fdBack.append(
+        'image_file',
+        new Blob([backBytes], { type: 'image/jpeg' }),
+        backFilename,
+      );
+      const backRes = await fetch(`${base}/v2/catalog/images`, {
+        method: 'POST', headers: imageHeaders, body: fdBack,
+      });
+      const backData = await backRes.json();
+      if (backRes.ok) {
+        backImageId = backData.image?.id || null;
+      } else {
+        console.warn('back image upload failed (continuing):', JSON.stringify(backData));
+      }
+    } catch (e) {
+      console.warn('back image upload threw:', e.message || e);
+    }
+  }
+
   return json({
     ok: true,
     item_id: item.id,
     variation_id: variation.id,
     image_id: imgData.image?.id,
+    back_image_id: backImageId,
     title,
     listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`,
   });
