@@ -343,6 +343,8 @@
       let selectedSize  = defaultSize;
 
       // Gallery for a color = dedupped mockup URLs across all variants with that color.
+      // Falls back to the item-level imageUrls (front + back for graded cards,
+      // single hero for everything else) when no per-variant photos exist.
       const galleryForColor = (color) => {
         const urls = parsed
           .filter(p => p.color === color)
@@ -350,7 +352,9 @@
           .filter(Boolean);
         const seen = new Set();
         const deduped = urls.filter(u => { if (seen.has(u)) return false; seen.add(u); return true; });
-        return deduped.length ? deduped : (item.imageUrl ? [item.imageUrl] : []);
+        if (deduped.length) return deduped;
+        if (Array.isArray(item.imageUrls) && item.imageUrls.length) return item.imageUrls;
+        return item.imageUrl ? [item.imageUrl] : [];
       };
 
       // Render the description with structure preserved. Printful ships these
