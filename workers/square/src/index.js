@@ -338,10 +338,12 @@ async function fetchStockCounts(base, headers, variationIds, locationId) {
 }
 
 // Sale-tax nexus map. Add states + rates here as nexus expands.
-// Rates are headline state+county estimates; for surgical accuracy migrate
-// to Square's auto-tax service.
+// Florida uses the state base only (6%); county discretionary surtax
+// varies destination-by-destination and we eat that small delta rather
+// than risk over-charging buyers. Migrate to Square's auto-tax or a
+// per-county lookup when volume justifies it.
 const SALES_TAX_BY_STATE = {
-  FL: { name: 'Florida Sales Tax', percentage: '7.0' },
+  FL: { name: 'Florida Sales Tax', percentage: '6.0' },
 };
 
 async function createCheckout(body, base, headers, env, reqUrl) {

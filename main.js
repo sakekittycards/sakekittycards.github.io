@@ -180,7 +180,7 @@ const SK_WEB3FORMS_KEY   = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
 // preview line; the worker has its own copy that drives what's sent to
 // Square. Keep both in sync when nexus changes.
 const SK_TAX_RATES = {
-  FL: 0.07,
+  FL: 0.06,
 };
 function skTaxRate(state) {
   return SK_TAX_RATES[(state || '').toUpperCase()] || 0;
@@ -431,13 +431,13 @@ window.SK = {
       ['WI','Wisconsin'],['WY','Wyoming'],['DC','District of Columbia'],
     ];
     const stateOptions = STATES.map(([code, name]) => {
-      const flag = code === 'FL' ? ' (+7% tax)' : '';
+      const flag = code === 'FL' ? ' (+6% tax)' : '';
       const sel  = code === shipState ? ' selected' : '';
       return `<option value="${code}"${sel}>${name}${flag}</option>`;
     }).join('');
     const taxRow = shipState
       ? (tax > 0
-          ? `<div class="cart-totals-row"><span>Tax (FL 7%)</span><span>${fmt(tax)}</span></div>`
+          ? `<div class="cart-totals-row"><span>Tax (FL 6%)</span><span>${fmt(tax)}</span></div>`
           : `<div class="cart-totals-row"><span>Tax</span><span>—</span></div>`)
       : `<div class="cart-totals-row" style="color:var(--dim)"><span>Tax</span><span>Pick state</span></div>`;
     const checkoutDisabled = !shipState;
@@ -554,7 +554,7 @@ window.SK = {
           <div class="pay-modal-totals">
             <div><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
             <div><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
-            ${tax > 0 ? `<div><span>Tax (FL 7%)</span><span>${fmt(tax)}</span></div>` : ''}
+            ${tax > 0 ? `<div><span>Tax (FL 6%)</span><span>${fmt(tax)}</span></div>` : ''}
             <div class="grand"><span>Total</span><span>${fmt(total)}</span></div>
           </div>
 
