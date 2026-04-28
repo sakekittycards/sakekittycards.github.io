@@ -199,11 +199,11 @@
         <div class="service-addon-left">
           <div class="service-addon-badge">Standalone or Add-On</div>
           <div class="service-name" style="margin-bottom:4px">Card Prep</div>
-          <div class="service-tagline" style="margin-bottom:0">Already know which cards you're submitting? Skip screening — pick <strong style="color:var(--text)">Prep Only</strong> on each card. We'll prep and submit through PSA, CGC, or Beckett (whichever makes the most sense), and you get it back once it's graded.</div>
+          <div class="service-tagline" style="margin-bottom:0">Already know which cards you're submitting? Skip screening — pick <strong style="color:var(--text)">Prep Only</strong> on each card. We'll prep and (if you want) submit through PSA, CGC, or Beckett.</div>
           <ul class="service-includes" style="margin-top:14px">
             <li>Microfiber dust-off — no substances or alterations to the card</li>
             <li>Placed in a penny sleeve and card saver</li>
-            <li>Submitted through the grading company that makes the most sense for the card — PSA, CGC, or Beckett</li>
+            <li><strong style="color:var(--text)">Submission is optional</strong> — we'll submit through PSA / CGC / Beckett on your behalf, OR return the prepped cards for you to submit yourself</li>
             <li>Available alone (Prep Only) or stacked with Standard / Detailed Screen</li>
           </ul>
           <p style="font-size:13px;color:var(--cyan);margin-top:14px;line-height:1.6"><strong>Refunded if the card fails screening.</strong> When Card Prep is added on top of Standard or Detailed Screen and the card doesn't pass, the $5 prep fee is refunded — we only charge prep on cards we'd actually submit.</p>
@@ -270,8 +270,8 @@
         </div>
         <div class="prep-step">
           <div class="prep-step-num">6</div>
-          <h4>Graded Cards Come Back</h4>
-          <p>For Card Prep orders, we choose the right grading company for each card (PSA, CGC, or Beckett) and handle the submission. Submission fees and optional insurance are billed separately. <strong style="color:var(--cyan)">If a card with Prep added doesn't pass screening, the prep fee is refunded.</strong> Once the graded cards come in, we ship everything back to you together.</p>
+          <h4>Prep, Submit, or Return</h4>
+          <p>For Card Prep orders, you choose: have us submit through PSA / CGC / Beckett (we pick the right one for each card and bill submission fees separately), or get the prepped cards back for you to submit yourself. <strong style="color:var(--cyan)">If a card with Prep added doesn't pass screening, the prep fee is refunded.</strong> Once your graded cards come in (or your prepped cards are ready), we ship everything back together.</p>
         </div>
       </div>
     </div>
@@ -329,6 +329,15 @@
                 <span class="gp-totals-label">Total</span>
                 <span class="gp-totals-val gp-total-orange" id="gpTotal">$0.00</span>
               </div>
+            </div>
+
+            <div class="gp-submit-pref" id="gpSubmitPref" hidden>
+              <div class="gp-contact-label">Submission (Card Prep)</div>
+              <div class="gp-submit-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px">
+                <button type="button" class="gp-tier-btn active" data-submit="through_us">Submit through us<span class="tier-days">PSA / CGC / Beckett</span></button>
+                <button type="button" class="gp-tier-btn" data-submit="return_to_me">Return for self-submit<span class="tier-days">Prep only, no submission</span></button>
+              </div>
+              <p class="gp-turnaround-note" style="margin-bottom:14px">Pick <strong style="color:var(--muted)">Return for self-submit</strong> if you have your own grading account or want to use a different service. We'll prep, sleeve, top-load, and ship the cards back ready to submit.</p>
             </div>
 
             <div class="gp-turnaround" id="gpTurnaround" hidden>
@@ -417,6 +426,7 @@
       const gpNameEl = document.getElementById('gpName');
       const gpEmailEl = document.getElementById('gpEmail');
       const gpTurnaroundEl = document.getElementById('gpTurnaround');
+      const gpSubmitPrefEl = document.getElementById('gpSubmitPref');
 
       // PSA tier labels — shown when a customer picks Card Prep.
       const TIER_LABELS = {
@@ -427,6 +437,10 @@
         express:    { name: 'Express',    days: '~15 business days' },
       };
       let gpTurnaround = 'regular';
+      // Default to "submit through us" — most customers want the full
+      // service. Switching to self-submit hides the turnaround tier
+      // (PSA tiers are irrelevant if we're not submitting).
+      let gpSubmitPref = 'through_us';
 
       function fmt(n) { return '$' + n.toFixed(2); }
       function cardCost(c) {
@@ -441,10 +455,14 @@
         gpCountEl.textContent = gpCards.length;
         gpTotalEl.textContent = fmt(total);
         gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim();
-        // Show the turnaround selector when any card includes prep, whether
-        // standalone (prep_only) or as an add-on to a screening service.
         const anyPrep = gpCards.some(cardHasPrep);
-        if (gpTurnaroundEl) gpTurnaroundEl.hidden = !anyPrep;
+        // Submission preference: only relevant when prep is in the order.
+        if (gpSubmitPrefEl) gpSubmitPrefEl.hidden = !anyPrep;
+        // PSA turnaround tier: only relevant when prep is in the order AND
+        // we're submitting on the customer's behalf (PSA tiers are
+        // meaningless if the customer is submitting themselves).
+        const submittingForCustomer = anyPrep && gpSubmitPref === 'through_us';
+        if (gpTurnaroundEl) gpTurnaroundEl.hidden = !submittingForCustomer;
       }
 
       function renderList() {
@@ -631,12 +649,23 @@
       gpEmailEl.addEventListener('input', recalc);
 
       // Wire up the preferred turnaround tier buttons.
-      document.querySelectorAll('.gp-tier-btn').forEach(btn => {
+      document.querySelectorAll('.gp-tier-btn[data-tier]').forEach(btn => {
         btn.addEventListener('click', () => {
           gpTurnaround = btn.dataset.tier;
-          document.querySelectorAll('.gp-tier-btn').forEach(b => {
+          document.querySelectorAll('.gp-tier-btn[data-tier]').forEach(b => {
             b.classList.toggle('active', b === btn);
           });
+        });
+      });
+
+      // Submission preference (Submit through us vs Return for self-submit).
+      document.querySelectorAll('.gp-tier-btn[data-submit]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          gpSubmitPref = btn.dataset.submit;
+          document.querySelectorAll('.gp-tier-btn[data-submit]').forEach(b => {
+            b.classList.toggle('active', b === btn);
+          });
+          recalc();  // hide/show the turnaround tier panel based on choice
         });
       });
 
@@ -661,7 +690,15 @@
 
         const anyPrep = gpCards.some(cardHasPrep);
         const tier = TIER_LABELS[gpTurnaround] || TIER_LABELS.regular;
-        const turnaroundLine = anyPrep ? `${tier.name} (${tier.days})` : '(no Card Prep in this request)';
+        const submittingForCustomer = anyPrep && gpSubmitPref === 'through_us';
+        const turnaroundLine = submittingForCustomer
+          ? `${tier.name} (${tier.days})`
+          : anyPrep ? '(self-submit — turnaround set by customer\'s grading account)' : '(no Card Prep in this request)';
+        const submissionLine = anyPrep
+          ? (gpSubmitPref === 'through_us'
+              ? 'Submit through us (PSA / CGC / Beckett)'
+              : 'Return prepped cards for self-submit (no submission)')
+          : '(no Card Prep in this request)';
 
         gpSendBtn.disabled = true;
         gpSendBtn.textContent = 'Sending…';
@@ -676,7 +713,8 @@
             name, email,
             phone: '',
             notes,
-            tier: anyPrep ? tier.name : '',
+            tier: submittingForCustomer ? tier.name : '',
+            submission: anyPrep ? gpSubmitPref : '',
             cards: gpCards.map(c => ({ name: c.name, set: c.set, num: c.num || '', svc: c.svc, prep: !!c.prep, img: c.img || '' })),
             cardCount: gpCards.length,
             totalCost: total,
@@ -698,6 +736,7 @@
             Email: email,
             'Card Count': String(gpCards.length),
             'Estimated Total': fmt(total),
+            'Submission': submissionLine,
             'Preferred Turnaround': turnaroundLine,
             Cards: cardLines,
             Notes: notes || '(none)',
