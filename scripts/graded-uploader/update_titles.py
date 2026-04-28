@@ -138,6 +138,17 @@ CORRECTIONS = [
             'card_number': '215', 'grade': 'MINT 9',
         },
     },
+    # OCR mis-IDed this as "Team Rocket Trainer (needs review)" — actually
+    # a Wobbuffet Special Illustration Rare with the Pokemon Center stamp.
+    # Confirmed with the user.
+    {
+        'cert': '135860324',
+        'card': {
+            'name': 'Wobbuffet (Special Illustration Rare, Pokemon Center stamp)',
+            'year': '2025', 'set_name': 'Pokemon Mega Evolution',
+            'card_number': '208/164', 'grade': 'GEM MT 10',
+        },
+    },
 ]
 
 
