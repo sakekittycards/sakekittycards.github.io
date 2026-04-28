@@ -73,7 +73,7 @@
 
       <div id="shopSections" hidden>
         <section class="shop-section" id="shopSectionGraded" hidden>
-          <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA-slabbed singles</span></h3>
+          <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA · BGS · CGC · SGC slabs</span></h3>
           <div class="product-grid" id="shopGridGraded"></div>
         </section>
         <section class="shop-section" id="shopSectionSingles" hidden>
@@ -128,8 +128,9 @@
       const fmt    = n => `$${n.toFixed(2)}`;
 
       // Categorize an item into one of three buckets the shop renders:
-      //   graded  — PSA-slabbed singles. Title format from the graded
-      //             pipeline is "PSA <grade> <year> <set> ...".
+      //   graded  — slabbed singles from any major grading service. Title
+      //             format leads with the grader: "PSA 10 ...", "BGS 9.5
+      //             ...", "CGC 10 ...", etc.
       //   singles — raw singles or sealed product. Detected by sealed
       //             keywords (booster, pack, ETB, etc.) — raw cards
       //             without a sealed keyword need to start with the
@@ -137,10 +138,11 @@
       //   merch   — anything else: apparel, plushies, mouse pads, etc.
       //             Default bucket — accessories without size axes
       //             (mouse pads) would otherwise misfile as singles.
+      const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
       const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection\s*box|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
         const name = item.name || '';
-        if (/^PSA\s/i.test(name)) return 'graded';
+        if (GRADER_RX.test(name)) return 'graded';
         if (SEALED_RX.test(name)) return 'singles';
         // Raw singles convention: lead with the year (e.g., "1999 …").
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
