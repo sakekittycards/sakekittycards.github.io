@@ -194,16 +194,17 @@
 
       </div>
 
-      <!-- Card Prep — add-on strip -->
+      <!-- Card Prep — works as add-on OR standalone -->
       <div class="service-addon">
         <div class="service-addon-left">
-          <div class="service-addon-badge">Optional Add-On</div>
+          <div class="service-addon-badge">Standalone or Add-On</div>
           <div class="service-name" style="margin-bottom:4px">Card Prep</div>
-          <div class="service-tagline" style="margin-bottom:0">We prep the card and submit it through whichever grading company makes the most sense — PSA, CGC, or Beckett. You get it back once it's graded.</div>
+          <div class="service-tagline" style="margin-bottom:0">Already know which cards you're submitting? Skip screening — pick <strong style="color:var(--text)">Prep Only</strong> on each card. We'll prep and submit through PSA, CGC, or Beckett (whichever makes the most sense), and you get it back once it's graded.</div>
           <ul class="service-includes" style="margin-top:14px">
             <li>Microfiber dust-off — no substances or alterations to the card</li>
             <li>Placed in a penny sleeve and card saver</li>
             <li>Submitted through the grading company that makes the most sense for the card — PSA, CGC, or Beckett</li>
+            <li>Available alone (Prep Only) or stacked with Standard / Detailed Screen</li>
           </ul>
           <p style="font-size:13px;color:var(--dim);margin-top:14px;line-height:1.6"><strong style="color:var(--muted)">Not included in the $5:</strong> grading submission fees (set by PSA, CGC, or Beckett based on service tier) and shipping insurance (available at your option).</p>
         </div>
@@ -219,8 +220,8 @@
       <div class="combine-box">
         <div class="combine-box-icon">💡</div>
         <div>
-          <h3>Stack Your Services</h3>
-          <p>Pair <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for the complete service — thorough evaluation with notes on any failing cards, plus physical prep and submission to the right grading company for each card. You get your card back once it comes in from grading. Check both options when building your list below.</p>
+          <h3>Mix &amp; Match Per Card</h3>
+          <p>Build your list with whatever service each card needs. <strong style="color:var(--text)">Detailed Screen + Card Prep</strong> for cards you're unsure about · <strong style="color:var(--text)">Standard Screen</strong> for quick pass/fail culling · <strong style="color:var(--text)">Prep Only</strong> for cards you've already vetted and just want submitted. You can mix all three in one request.</p>
         </div>
       </div>
 
@@ -383,7 +384,10 @@
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
-      const SVC = { standard: 3, detailed: 5, prep: 5 };
+      // svc values: 'standard' (screen $3), 'detailed' (screen $5),
+      // 'prep_only' ($5, no screening). The +Prep checkbox is only
+      // meaningful for standard/detailed; for prep_only it's bundled in.
+      const SVC = { standard: 3, detailed: 5, prep_only: 5, prep: 5 };
 
       let gpCards = [];
       let gpSearchResults = [];
@@ -410,15 +414,21 @@
       let gpTurnaround = 'regular';
 
       function fmt(n) { return '$' + n.toFixed(2); }
-      function cardCost(c) { return SVC[c.svc] + (c.prep ? SVC.prep : 0); }
+      function cardCost(c) {
+        if (c.svc === 'prep_only') return SVC.prep_only;
+        return (SVC[c.svc] || 0) + (c.prep ? SVC.prep : 0);
+      }
+      // Prep is bundled into prep_only; otherwise it's the explicit checkbox.
+      function cardHasPrep(c) { return c.svc === 'prep_only' || !!c.prep; }
 
       function recalc() {
         const total = gpCards.reduce((s, c) => s + cardCost(c), 0);
         gpCountEl.textContent = gpCards.length;
         gpTotalEl.textContent = fmt(total);
         gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim();
-        // Show the turnaround selector only when at least one card has Card Prep.
-        const anyPrep = gpCards.some(c => c.prep);
+        // Show the turnaround selector when any card includes prep, whether
+        // standalone (prep_only) or as an add-on to a screening service.
+        const anyPrep = gpCards.some(cardHasPrep);
         if (gpTurnaroundEl) gpTurnaroundEl.hidden = !anyPrep;
       }
 
@@ -447,11 +457,17 @@
                     <span class="gp-svc-name">Detailed</span>
                     <span class="gp-svc-price">$5</span>
                   </label>
+                  <label class="gp-radio-label${c.svc === 'prep_only' ? ' active' : ''}" style="border-color:${c.svc === 'prep_only' ? 'var(--cyan)' : 'var(--border)'};${c.svc === 'prep_only' ? 'background:rgba(0,212,255,.07)' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
+                    <span class="gp-svc-name">Prep Only</span>
+                    <span class="gp-svc-price${c.svc === 'prep_only' ? ' cyan' : ''}">$5</span>
+                  </label>
+                  ${c.svc === 'prep_only' ? '' : `
                   <label class="gp-check-label${c.prep ? ' active' : ''}">
                     <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
                     <span class="gp-svc-name">+ Prep</span>
                     <span class="gp-svc-price cyan">$5</span>
-                  </label>
+                  </label>`}
                 </div>
               </div>
             </div>
@@ -465,7 +481,20 @@
         gpListEl.querySelectorAll('input[type="radio"]').forEach(r => {
           r.addEventListener('change', () => {
             const i = +r.dataset.idx;
+            const prevSvc = gpCards[i].svc;
             gpCards[i].svc = r.value;
+            // Prep Only bundles prep, so clear the standalone prep flag to
+            // avoid double-counting if the user later switches back to a
+            // screening mode without re-clicking +Prep.
+            if (r.value === 'prep_only') gpCards[i].prep = false;
+            // Re-render when the layout changes (entering or leaving
+            // prep_only mode shows/hides the +Prep checkbox).
+            const layoutChanged =
+              (r.value === 'prep_only') !== (prevSvc === 'prep_only');
+            if (layoutChanged) {
+              renderList();
+              return;
+            }
             gpListEl.querySelectorAll(`[name="gpsvc${i}"]`).forEach(rb => {
               rb.closest('.gp-radio-label').classList.toggle('active', rb.checked);
             });
@@ -566,12 +595,18 @@
 
         const total = gpCards.reduce((s, c) => s + cardCost(c), 0);
         const cardLines = gpCards.map((c, i) => {
-          const svcLabel = c.svc === 'standard' ? 'Standard Screen ($3)' : 'Detailed Screen ($5)';
-          const prepLabel = c.prep ? ' + Card Prep ($5)' : '';
+          let svcLabel;
+          let prepLabel = '';
+          if (c.svc === 'prep_only') {
+            svcLabel = 'Prep Only ($5, no screening)';
+          } else {
+            svcLabel = c.svc === 'standard' ? 'Standard Screen ($3)' : 'Detailed Screen ($5)';
+            if (c.prep) prepLabel = ' + Card Prep ($5)';
+          }
           return `${i + 1}. ${c.name} (${c.set}${c.num ? ' #' + c.num : ''}) — ${svcLabel}${prepLabel} = ${fmt(cardCost(c))}`;
         }).join('\n');
 
-        const anyPrep = gpCards.some(c => c.prep);
+        const anyPrep = gpCards.some(cardHasPrep);
         const tier = TIER_LABELS[gpTurnaround] || TIER_LABELS.regular;
         const turnaroundLine = anyPrep ? `${tier.name} (${tier.days})` : '(no Card Prep in this request)';
 
