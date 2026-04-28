@@ -16,13 +16,25 @@ from PIL import Image
 
 
 def isolate_label(slab: Image.Image) -> Image.Image:
-    """Crop to the top ~16% of a slab where the PSA label sits."""
+    """
+    Return the top 25% of the slab — the PSA label on the front and the
+    PSA hologram + cert barcode on the back both live there. Using the
+    top portion (instead of the whole slab) keeps OCR fast and avoids
+    scrambled hits on the card art. 25% > 16% gives a margin for slabs
+    that have extra plastic above the label.
+    """
     w, h = slab.size
-    return slab.crop((0, 0, w, int(h * 0.16)))
+    return slab.crop((0, 0, w, int(h * 0.25)))
 
 
 def _split_camelish(s: str) -> str:
-    """Insert spaces at digit/letter boundaries (OCR collapses '2023POKEMONSVPEN')."""
+    """Insert spaces at digit/letter boundaries (OCR collapses '2023POKEMONSVPEN').
+
+    EXCEPT for card-number tokens that start with `#` — promo set codes
+    are alphanumeric (e.g. #GG12, #SWSH001, #SV-P) and need to stay glued.
+    """
+    if s.lstrip().startswith("#"):
+        return s
     s = re.sub(r"(?<=\d)(?=[A-Z])", " ", s)
     s = re.sub(r"(?<=[A-Z])(?=\d)", " ", s)
     return s

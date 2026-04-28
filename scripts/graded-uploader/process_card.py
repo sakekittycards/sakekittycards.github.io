@@ -20,6 +20,7 @@ import math
 import sys
 from pathlib import Path
 
+import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -37,42 +38,116 @@ GOLD = (255, 204, 0)
 
 # ---------- crop ---------------------------------------------------------- #
 
-def find_slab_bbox(img: Image.Image, bg_threshold: int = 210, pad: int = 24):
+def _slab_contour(img: Image.Image) -> np.ndarray | None:
     """
-    Locate the slab's bounding box on a near-uniform light background.
+    Find the slab's outer contour via OpenCV edge detection.
 
-    Strategy: convert to grayscale, classify each pixel as background
-    if it's brighter than `bg_threshold`, find the bounding box of the
-    non-background mask, then dilate by `pad` pixels.
+    The slab plastic is nearly white against white paper, so Otsu's
+    threshold lights up only the card art inside (which misses the PSA
+    label band). Canny edges + heavy dilation correctly traces the
+    slab's outer plastic perimeter — including the white label region.
     """
-    gray = np.asarray(img.convert("L"))
-    fg = gray < bg_threshold
-
-    # Drop tiny speckles by requiring at least a few foreground pixels per row/col.
-    col_has_fg = fg.sum(axis=0) > (fg.shape[0] * 0.02)
-    row_has_fg = fg.sum(axis=1) > (fg.shape[1] * 0.02)
-
-    if not col_has_fg.any() or not row_has_fg.any():
+    arr = np.asarray(img.convert("L"))
+    arr = cv2.GaussianBlur(arr, (7, 7), 0)
+    edges = cv2.Canny(arr, 30, 90)
+    # Dilate to connect broken edge fragments along the slab perimeter.
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    edges = cv2.dilate(edges, kernel, iterations=2)
+    # Close any remaining gaps so the perimeter is one ring.
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE,
+                             cv2.getStructuringElement(cv2.MORPH_RECT, (35, 35)))
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
         return None
 
-    xs = np.where(col_has_fg)[0]
-    ys = np.where(row_has_fg)[0]
-    x0, x1 = int(xs[0]), int(xs[-1])
-    y0, y1 = int(ys[0]), int(ys[-1])
+    img_area = arr.shape[0] * arr.shape[1]
+    best = None
+    best_score = 0.0
+    for c in contours:
+        area = cv2.contourArea(c)
+        # Drop dust specks (<1% of page) and any blob that swallows the
+        # whole page (bad inversion).
+        if area < img_area * 0.01 or area > img_area * 0.95:
+            continue
+        x, y, w, h = cv2.boundingRect(c)
+        if h == 0 or w == 0:
+            continue
+        aspect = h / w
+        # PSA slabs are ~1.3–1.55 tall:wide; allow 0.55–2.2 for either
+        # orientation in case a card was scanned sideways.
+        if not (0.55 < aspect < 2.2):
+            continue
+        ideal_aspect = 1.42
+        score = area * (1.0 - min(1.0, abs(aspect - ideal_aspect) / ideal_aspect))
+        if score > best_score:
+            best_score = score
+            best = c
+    return best
 
-    h, w = gray.shape
-    x0 = max(0, x0 - pad)
-    y0 = max(0, y0 - pad)
-    x1 = min(w, x1 + pad)
-    y1 = min(h, y1 + pad)
-    return x0, y0, x1, y1
 
+def crop_slab(img: Image.Image, pad: int = 24) -> Image.Image:
+    """
+    Find the slab, deskew (rotate to level) using its minimum bounding
+    rectangle, and crop to the rotated, axis-aligned bbox.
 
-def crop_slab(img: Image.Image) -> Image.Image:
-    bbox = find_slab_bbox(img)
-    if bbox is None:
+    If detection fails for any reason, returns the original image so the
+    rest of the pipeline keeps running and we get a visible "this scan
+    needs work" output instead of a hard crash.
+    """
+    contour = _slab_contour(img)
+    if contour is None:
         return img
-    return img.crop(bbox)
+
+    # Minimum-area rotated rectangle gives us the slab's tilt angle.
+    rect = cv2.minAreaRect(contour)
+    (cx, cy), (rw, rh), angle = rect
+
+    # cv2's minAreaRect returns angle in [-90, 0). Normalize so we always
+    # rotate to the nearest "upright" orientation rather than spinning the
+    # slab on its side.
+    if rw < rh:
+        rotation = angle
+    else:
+        rotation = angle + 90 if angle < 0 else angle - 90
+
+    arr = np.array(img)
+    h, w = arr.shape[:2]
+
+    if abs(rotation) > 0.3:
+        M = cv2.getRotationMatrix2D((cx, cy), rotation, 1.0)
+        # Pad with white so unfilled corners look like paper, not black bars.
+        rotated = cv2.warpAffine(
+            arr, M, (w, h),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255),
+        )
+        # Re-find the now-axis-aligned slab on the rotated image.
+        rotated_pil = Image.fromarray(rotated)
+        contour = _slab_contour(rotated_pil)
+        if contour is None:
+            return rotated_pil
+        x, y, ww, hh = cv2.boundingRect(contour)
+    else:
+        rotated = arr
+        x, y, ww, hh = cv2.boundingRect(contour)
+
+    # Pad and clip.
+    x0 = max(0, x - pad)
+    y0 = max(0, y - pad)
+    x1 = min(w, x + ww + pad)
+    y1 = min(h, y + hh + pad)
+    return Image.fromarray(rotated[y0:y1, x0:x1])
+
+
+# Legacy alias kept for any caller that still imports it.
+def find_slab_bbox(img: Image.Image, pad: int = 24):
+    contour = _slab_contour(img)
+    if contour is None:
+        return None
+    x, y, w, h = cv2.boundingRect(contour)
+    H, W = np.asarray(img).shape[:2]
+    return (max(0, x - pad), max(0, y - pad),
+            min(W, x + w + pad), min(H, y + h + pad))
 
 
 # ---------- backdrop ------------------------------------------------------ #

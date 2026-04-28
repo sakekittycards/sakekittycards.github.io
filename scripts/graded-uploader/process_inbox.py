@@ -11,7 +11,7 @@ Approach:
     5. Move processed originals out of the inbox; leave unmatched
        scans in place with a console summary.
 
-You can scan in ANY order — the pipeline matches by cert, not by
+You can scan in ANY order - the pipeline matches by cert, not by
 filename order. Misses (one-sided cards, unreadable certs) get logged
 and left in the inbox so you can rescan or pair manually.
 
@@ -81,11 +81,18 @@ def list_image_files(inbox: Path) -> list[Path]:
 
 
 def ocr_label(ocr: RapidOCR, src: Path) -> tuple[dict, list[str]]:
-    """OCR + parse the top label band. Returns (parsed_psa, raw_lines)."""
+    """
+    OCR the full cropped slab and parse PSA fields.
+
+    Originally limited to the top 25% (the label band) for speed, but
+    that turned out brittle: small grade numbers like "10" and the cert
+    tail sometimes fall outside the band depending on slab proportions.
+    Full-slab OCR is ~1.5s per scan instead of 0.6s but catches every
+    field reliably. parse_psa filters card-art noise out of the result.
+    """
     img = Image.open(src).convert("RGB")
     cropped = crop_slab(img)
-    label = isolate_label(cropped)
-    result, _elapsed = ocr(np.asarray(label))
+    result, _elapsed = ocr(np.asarray(cropped))
     lines: list[str] = []
     if result is not None:
         for entry in result:
@@ -181,7 +188,7 @@ def main():
     print("Loading RapidOCR (first run downloads ~10MB of ONNX models)...")
     ocr = RapidOCR()
 
-    # Pass 1 — OCR each file, classify face, group by cert.
+    # Pass 1 - OCR each file, classify face, group by cert.
     print()
     print("=== Pass 1: OCR + classify ===")
     by_cert: dict[str, dict] = defaultdict(lambda: {"front": [], "back": [], "unknown": []})
@@ -209,7 +216,35 @@ def main():
             tag = f"NO CERT detected"
         print(f"  [{i:>3}/{len(files)}] {src.name:30s} {tag} ({elapsed:.1f}s)")
 
-    # Pass 2 — pair cert groups, run image pipeline.
+    # Try to fuzzy-merge cert groups before pairing - OCR sometimes drops a
+    # leading or trailing digit, especially on the back hologram. If a cert
+    # is a strict suffix or prefix of another (e.g. '21116624' vs '121116624')
+    # treat them as the same group, preferring the longer cert as canonical.
+    def _fuzzy_merge(by_cert):
+        certs = sorted(by_cert.keys(), key=len, reverse=True)
+        used = set()
+        merged = {}
+        for c in certs:
+            if c in used:
+                continue
+            buckets = {"front": list(by_cert[c]["front"]),
+                       "back":  list(by_cert[c]["back"]),
+                       "unknown": list(by_cert[c]["unknown"])}
+            for other in certs:
+                if other == c or other in used:
+                    continue
+                if len(other) >= 6 and (c.endswith(other) or c.startswith(other) or
+                                         other.endswith(c) or other.startswith(c)):
+                    for k in ("front", "back", "unknown"):
+                        buckets[k].extend(by_cert[other][k])
+                    used.add(other)
+            merged[c] = buckets
+            used.add(c)
+        return merged
+
+    by_cert = _fuzzy_merge(by_cert)
+
+    # Pass 2 - pair cert groups, run image pipeline.
     print()
     print("=== Pass 2: pair + process ===")
     processed_dir = args.inbox / "_processed"
@@ -234,23 +269,23 @@ def main():
             front_info = unknowns[0]
             back_info = backs[0]
         elif len(fronts) >= 1 and len(backs) == 0 and len(unknowns) == 0:
-            print(f"  cert {cert}: front-only, no back found — leaving in inbox")
+            print(f"  cert {cert}: front-only, no back found - leaving in inbox")
             summary["front_only"] += 1
             continue
         elif len(fronts) == 0 and len(backs) >= 1:
-            print(f"  cert {cert}: back-only, no front found — leaving in inbox")
+            print(f"  cert {cert}: back-only, no front found - leaving in inbox")
             summary["back_only"] += 1
             continue
         else:
             print(f"  cert {cert}: weird group (fronts={len(fronts)}, "
-                  f"backs={len(backs)}, unknowns={len(unknowns)}) — leaving in inbox")
+                  f"backs={len(backs)}, unknowns={len(unknowns)}) - leaving in inbox")
             summary["weird"] += 1
             continue
 
         front_src = front_info["src"]
         back_src = back_info["src"]
         # Front carries the rich metadata; if it's actually an "unknown" we
-        # only have cert which is fine — pokemontcg lookup may still hit.
+        # only have cert which is fine - pokemontcg lookup may still hit.
         parsed = front_info["parsed"]
         if not parsed.get("card_number") and back_info["parsed"].get("card_number"):
             parsed = back_info["parsed"]
@@ -286,7 +321,7 @@ def main():
 
         identified = (match or {}).get("name") or parsed.get("card_title") or "(unidentified)"
         suggested = (match or {}).get("tcgplayer_market") if match else None
-        suggested_str = f"${suggested:.2f}" if suggested else "—"
+        suggested_str = f"${suggested:.2f}" if suggested else "-"
         print(f"  cert {cert}: {identified} | grade {parsed.get('grade') or '?'} "
               f"| suggested {suggested_str}")
         summary["paired"] += 1
@@ -299,7 +334,7 @@ def main():
                 except Exception as e:
                     print(f"  warn: could not move {src.name}: {e}")
 
-    # Pass 3 — summarize.
+    # Pass 3 - summarize.
     print()
     print("=== Summary ===")
     print(f"  paired:      {summary['paired']}")
@@ -313,8 +348,8 @@ def main():
         for p in no_cert:
             print(f"    {p.name}")
         print()
-        print("  → Try rescanning these (cards may be misaligned, glare on hologram, "
-              "or scan resolution too low — bump to 600 dpi if 300 isn't enough).")
+        print("  -> Try rescanning these (cards may be misaligned, glare on hologram, "
+              "or scan resolution too low - bump to 600 dpi if 300 isn't enough).")
 
     print()
     print(f"Done. Edit {args.csv} to fill in your_price for each card, "
