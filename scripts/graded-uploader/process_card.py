@@ -40,6 +40,43 @@ GOLD = (255, 204, 0)
 
 # ---------- crop ---------------------------------------------------------- #
 
+def _slab_contour_by_saturation(img: Image.Image) -> np.ndarray | None:
+    """
+    Fallback slab detector for colored holders (PSA's orange / blue slabs)
+    that tilt at an angle on the scanner.
+
+    Canny on grayscale doesn't reliably close the edges of a heavily-tilted
+    colored slab (the long edges break into diagonal slivers that won't
+    merge through morphology). Saturation works because the slab plastic
+    is highly saturated against essentially-zero-saturation paper, even
+    when tilted. The Pokémon-back blue + orange slab plastic both register,
+    closing into one blob through MORPH_CLOSE.
+    """
+    arr = np.asarray(img.convert("HSV"))
+    sat = arr[..., 1]
+    _, mask = cv2.threshold(sat, 60, 255, cv2.THRESH_BINARY)
+    mask = cv2.morphologyEx(
+        mask, cv2.MORPH_CLOSE,
+        cv2.getStructuringElement(cv2.MORPH_RECT, (60, 60)),
+    )
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    img_area = arr.shape[0] * arr.shape[1]
+    best, best_score = None, 0.0
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        if h == 0 or w == 0: continue
+        ba = w * h
+        if ba < img_area * 0.05 or ba > img_area * 0.95: continue
+        aspect = h / w
+        if not (0.55 < aspect < 2.2): continue
+        score = ba * (1.0 - min(1.0, abs(aspect - 1.60) / 1.60))
+        if score > best_score:
+            best, best_score = c, score
+    return best
+
+
 def _slab_contour(img: Image.Image) -> np.ndarray | None:
     """
     Find the slab's outer contour via OpenCV edge detection.
@@ -73,13 +110,16 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
     best = None
     best_score = 0.0
     for c in contours:
-        area = cv2.contourArea(c)
-        # Drop dust specks (<1% of page) and any blob that swallows the
-        # whole page (bad inversion).
-        if area < img_area * 0.01 or area > img_area * 0.95:
-            continue
         x, y, w, h = cv2.boundingRect(c)
         if h == 0 or w == 0:
+            continue
+        # Score by the bounding-rect area, not contour area: colored slabs
+        # (PSA's orange/blue holders for high-value cards) trace a hollow
+        # ring contour around the slab perimeter, which makes
+        # cv2.contourArea report only the border thickness — well under
+        # 1%. The bbox still captures the true slab footprint.
+        bbox_area = w * h
+        if bbox_area < img_area * 0.01 or bbox_area > img_area * 0.95:
             continue
         aspect = h / w
         # PSA slabs are ~1.3–1.55 tall:wide; allow 0.55–2.2 for either
@@ -94,11 +134,15 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
         # the slab (not the card) ensures the larger slab outscores the
         # card even when both pass the filter.
         ideal_aspect = 1.60
-        score = area * (1.0 - min(1.0, abs(aspect - ideal_aspect) / ideal_aspect))
+        score = bbox_area * (1.0 - min(1.0, abs(aspect - ideal_aspect) / ideal_aspect))
         if score > best_score:
             best_score = score
             best = c
-    return best
+    if best is not None:
+        return best
+    # Canny+morph found nothing usable — fall back to saturation-based
+    # detection for colored / heavily-tilted slabs.
+    return _slab_contour_by_saturation(img)
 
 
 def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:

@@ -21,6 +21,13 @@ from pathlib import Path
 
 from PIL import Image
 
+# Real-ESRGAN at 4x on a full Letter-page scan (when slab detection
+# fails on a colored slab) outputs ~20k×26k px and trips PIL's default
+# decompression bomb guard. Our pipeline only handles trusted local
+# scans, so disable the limit here. Without this, an entire batch can
+# fail because of one tricky scan.
+Image.MAX_IMAGE_PIXELS = None
+
 UPSCALER_DIR = Path(__file__).parent / "upscaler"
 BIN_NAME = "realesrgan-ncnn-vulkan.exe"
 # realesrgan-x4plus is the photo-trained model; the default
