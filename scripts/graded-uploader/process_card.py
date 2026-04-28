@@ -188,31 +188,64 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
         x1 = min(W, x1 + mx)
         y1 = min(H, y1 + my)
 
-    # Stage 3: CONVEX HULL of birefnet's silhouette. The slab is
-    # geometrically convex (rounded rectangle — straight sides, rounded
-    # corners), but birefnet's raw silhouette has wavy artifacts and
-    # occasional bites that read as the slab being clipped. Taking the
-    # convex hull eliminates those: hull edges are straight on the
-    # straight slab sides, smooth on the rounded corners, and adapts
-    # per-slab shape automatically (works on PSA's tight corners, BGS's
-    # rounder corners, rainbow holders, etc.).
+    # Stage 3: FIT A ROUNDED RECTANGLE to birefnet's silhouette. The
+    # slab is geometrically a rounded rectangle (straight sides, rounded
+    # corners) — convex hull alone preserves silhouette noise as wavy
+    # edges. Fitting the actual geometry gives pixel-perfect straight
+    # sides and smooth rounded corners. Corner radius is auto-detected
+    # per-card from the silhouette so PSA's tight corners, BGS's rounder
+    # corners, etc. all render correctly without per-slab tuning.
     rgb_crop = arr_rgb[y0:y1, x0:x1]
     alpha_crop = alpha[y0:y1, x0:x1]
     a_bin = (alpha_crop >= 128).astype(np.uint8) * 255
 
-    contours, _ = cv2.findContours(a_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     h_crop, w_crop = a_bin.shape[:2]
-    hull_mask = np.zeros((h_crop, w_crop), dtype=np.uint8)
-    if contours:
-        biggest = max(contours, key=cv2.contourArea)
-        hull = cv2.convexHull(biggest)
-        cv2.drawContours(hull_mask, [hull], -1, 255, thickness=cv2.FILLED)
-    else:
-        hull_mask[:] = a_bin
-    # 0.6px Gaussian for anti-aliasing on the binary edge.
-    hull_mask = cv2.GaussianBlur(hull_mask, (3, 3), 0.6)
 
-    rgba_arr = np.dstack([rgb_crop, hull_mask])
+    # Find the silhouette's tight bbox within the crop.
+    sys_arr, sxs_arr = np.where(a_bin > 0)
+    if len(sxs_arr) == 0:
+        # No silhouette — fall back to the full crop as opaque.
+        mask_out = np.full((h_crop, w_crop), 255, dtype=np.uint8)
+    else:
+        sx0 = int(sxs_arr.min())
+        sx1 = int(sxs_arr.max()) + 1
+        sy0 = int(sys_arr.min())
+        sy1 = int(sys_arr.max()) + 1
+
+        # Auto-detect corner radius via AREA DEFICIT. The silhouette of
+        # a rounded rectangle has area = (W × H) − (4 corners × area
+        # missing per corner). Each missing corner is the difference
+        # between a corner square (R × R) and a quarter-circle (πR²/4),
+        # so total missing = 4 × R²(1 − π/4) = R²(4 − π).
+        # Solve: R = sqrt(missing_area / (4 − π))
+        rect_w = sx1 - sx0
+        rect_h = sy1 - sy0
+        rect_area = rect_w * rect_h
+        silhouette_area = int((a_bin[sy0:sy1, sx0:sx1] > 0).sum())
+        missing = max(0, rect_area - silhouette_area)
+        radius_area = int(np.sqrt(missing / (4 - np.pi))) if missing > 0 else 0
+
+        # Sanity-clamp: corner radius shouldn't exceed ~10% of the
+        # smaller dimension. Anything bigger means the silhouette
+        # is missing area for some reason other than rounded corners
+        # (noise, bites, holes); fall back to a conservative 3%.
+        max_reasonable = int(min(rect_w, rect_h) * 0.10)
+        if radius_area > max_reasonable or radius_area < 2:
+            radius = max(2, int(min(rect_w, rect_h) * 0.03))
+        else:
+            radius = radius_area
+
+        # Render the rounded rectangle as the alpha mask.
+        mask_pil = Image.new("L", (w_crop, h_crop), 0)
+        ImageDraw.Draw(mask_pil).rounded_rectangle(
+            (sx0, sy0, sx1 - 1, sy1 - 1), radius=radius, fill=255,
+        )
+        mask_out = np.asarray(mask_pil).copy()
+
+    # 0.6px Gaussian for anti-aliasing on the binary edge.
+    mask_out = cv2.GaussianBlur(mask_out, (3, 3), 0.6)
+
+    rgba_arr = np.dstack([rgb_crop, mask_out])
     return Image.fromarray(rgba_arr, "RGBA")
 
 
