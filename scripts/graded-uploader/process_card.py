@@ -29,6 +29,86 @@ from upscaler import upscale_pil
 FONT_PATH = Path(__file__).parent / "fonts" / "Bangers-Regular.ttf"
 LOGO_PATH = Path(__file__).parent.parent.parent / "logo-transparent.png"
 
+# Lazy-loaded rembg session (one-time model load, ~4s).
+_REMBG_SESSION = None
+
+
+def _get_rembg_session():
+    global _REMBG_SESSION
+    if _REMBG_SESSION is None:
+        from rembg import new_session
+        _REMBG_SESSION = new_session("u2net")
+    return _REMBG_SESSION
+
+
+def isolate_slab(img: Image.Image, deskew: bool = True) -> Image.Image:
+    """
+    Use rembg (U2Net) to remove the paper background, deskew via the
+    silhouette's min-area rotated rect, and crop tight to the alpha
+    bbox. Returns RGBA.
+
+    Why this beats the bbox detectors: rembg gives a true slab silhouette
+    against transparency, so when compose() pastes with alpha there's no
+    paper bleeding around the slab on the backdrop — no halo, no
+    over/under-crop trade-off. Works equally well on clear PSA, colored
+    CGC, BGS holographic, and rainbow holders since U2Net was trained on
+    product photography of arbitrary objects.
+    """
+    from rembg import remove
+    session = _get_rembg_session()
+    rgba = remove(img.convert("RGB"), session=session)
+    arr = np.asarray(rgba)
+    alpha = arr[..., 3]
+
+    # Deskew using the silhouette's minAreaRect.
+    if deskew:
+        # Threshold low so semi-transparent edges count — they're still
+        # part of the slab outline.
+        mask_u8 = (alpha > 16).astype(np.uint8) * 255
+        contours, _ = cv2.findContours(mask_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            biggest = max(contours, key=cv2.contourArea)
+            (cx, cy), (rw, rh), angle = cv2.minAreaRect(biggest)
+            rotation = angle if rw < rh else (angle + 90 if angle < 0 else angle - 90)
+            if abs(rotation) > 0.3:
+                M = cv2.getRotationMatrix2D((cx, cy), rotation, 1.0)
+                # Rotate the RGBA — fill with fully-transparent so the
+                # rotation corners stay invisible on the backdrop.
+                rotated = cv2.warpAffine(
+                    arr, M, (arr.shape[1], arr.shape[0]),
+                    flags=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0),
+                )
+                arr = rotated
+                alpha = arr[..., 3]
+
+    # Crop to alpha bbox (>= 32 to ignore feathered fringes).
+    mask = alpha > 32
+    ys, xs = np.where(mask)
+    if len(xs) == 0:
+        return Image.fromarray(arr, "RGBA")
+    x0, x1 = int(xs.min()), int(xs.max()) + 1
+    y0, y1 = int(ys.min()), int(ys.max()) + 1
+    return Image.fromarray(arr[y0:y1, x0:x1], "RGBA")
+
+
+def upscale_rgba(img: Image.Image, scale: int = 4) -> Image.Image:
+    """
+    Upscale an RGBA image. Real-ESRGAN's pipeline runs RGB only, so we
+    split the channels: RGB goes through Real-ESRGAN for the AI quality
+    boost on card art, alpha goes through LANCZOS (it's a smooth mask,
+    AI upscaling adds nothing). Recombine at the upscaled resolution.
+    """
+    if img.mode != "RGBA":
+        return upscale_pil(img, scale=scale)
+    rgb = img.convert("RGB")
+    alpha = img.split()[3]
+    rgb_up = upscale_pil(rgb, scale=scale)
+    nw, nh = rgb_up.size
+    alpha_up = alpha.resize((nw, nh), Image.LANCZOS)
+    rgb_up.putalpha(alpha_up)
+    return rgb_up
+
 # Sake Kitty palette — pulled from main.js particle COLORS + hero blobs.
 NAVY = (10, 10, 20)
 ORANGE = (255, 106, 0)
@@ -42,24 +122,81 @@ GOLD = (255, 204, 0)
 
 def _slab_contour_by_brightness(img: Image.Image) -> np.ndarray | None:
     """
-    Most reliable slab detector for the scanner setup we use: photo-flatbed
-    on a white-paper background.
+    Primary slab detector — keys on "anything not paper-bright" via a
+    fixed 240 threshold. Works on the overwhelming majority of scans
+    where the paper is uniformly bright and the slab plastic darkens
+    pixels even slightly via refraction.
 
-    Strategy: combine "saturated pixels" + "dark pixels" into a single
-    "interesting" mask, kill paper-texture noise with morph_open, then
-    morph_close with a kernel large enough to bridge the gap between the
-    PSA label band and the card art (~250-300px at 5100x6600). The result
-    is one solid slab blob.
+    This is the original detector that produced the clean tight crops
+    on the catalog. It's kept as the primary because the bbox lands on
+    the actual slab outline (not the slab content), so no extra margin
+    or refinement is strictly needed for these cards. Edge-refinement
+    in crop_slab is still applied for safety.
 
-    Filters tightened against three real failure modes from prior scans:
-      1. Scanner-edge vignette / paper shadow strips: rejected by
-         minAreaRect aspect (any rect-aspect > 2.4 is too elongated to be
-         a slab).
-      2. L-shaped or hollow blobs: rejected by contour-fill ratio (contour
-         area / minAreaRect area must be >= 0.55).
-      3. Inner card contour outscoring the slab: scoring uses contour area
-         (slab fills its bbox solidly post-close, card art alone wouldn't
-         survive the open).
+    Falls through to _slab_contour_by_content when the paper background
+    runs darker than 240 (vignetted scans, gray-cast scanners) — those
+    were the failure mode that motivated the content detector.
+    """
+    arr = np.asarray(img.convert("L"))
+    arr = cv2.GaussianBlur(arr, (5, 5), 0)
+    _, mask = cv2.threshold(arr, 240, 255, cv2.THRESH_BINARY_INV)
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (45, 45))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, close_k)
+    open_k = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, open_k)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+
+    img_area = arr.shape[0] * arr.shape[1]
+    best, best_score = None, 0.0
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        if h == 0 or w == 0:
+            continue
+        bbox_area = w * h
+        # The brightness mask catches scanner-edge vignette as one giant
+        # blob covering nearly the full frame on some scans — reject
+        # anything > 85% area so the dispatcher falls through to the
+        # content detector for those.
+        if bbox_area < img_area * 0.05 or bbox_area > img_area * 0.85:
+            continue
+        aspect = h / w
+        if not (0.55 < aspect < 2.2):
+            continue
+        # Reject elongated shadow strips via minAreaRect aspect — same
+        # guard the content detector uses.
+        rect = cv2.minAreaRect(c)
+        (_, _), (rw, rh), _ = rect
+        if rw == 0 or rh == 0:
+            continue
+        rect_aspect = max(rw, rh) / min(rw, rh)
+        if rect_aspect > 2.4:
+            continue
+        score = bbox_area * (1.0 - min(1.0, abs(aspect - 1.60) / 1.60))
+        if score > best_score:
+            best, best_score = c, score
+    return best
+
+
+def _slab_contour_by_content(img: Image.Image) -> np.ndarray | None:
+    """
+    Fallback slab detector — used when the paper is too gray for the
+    brightness threshold to separate it from the slab. Keys on slab
+    content (saturated pixels + dark text/edges) and morph-closes the
+    label band into the card art so the slab interior reads as one blob.
+
+    Bbox from this detector hits slab CONTENT, not the slab outline. The
+    crop_slab edge-refinement step expands outward from this bbox until
+    it leaves paper, so the final crop still hugs the slab edge.
+
+    Filters tightened against three failure modes:
+      1. Scanner-edge vignette / shadow strips: rejected by minAreaRect
+         aspect (rect-aspect > 2.4 is too elongated for a slab).
+      2. L-shaped or hollow blobs: rejected by contour-fill ratio.
+      3. Inner card contour outscoring the slab: scoring uses contour
+         area (slab content fills its bbox after the close).
     """
     rgb = np.asarray(img.convert("RGB"))
     L = np.asarray(img.convert("L"))
@@ -68,7 +205,6 @@ def _slab_contour_by_brightness(img: Image.Image) -> np.ndarray | None:
     sat = hsv[..., 1]
 
     mask_sat = (sat > 25).astype(np.uint8) * 255
-    # 150 (not 170+) excludes scanner-edge vignette which can hit ~155-170.
     mask_dark = (L < 150).astype(np.uint8) * 255
     mask = cv2.bitwise_or(mask_sat, mask_dark)
 
@@ -162,6 +298,12 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
     if primary is not None:
         return primary
 
+    # Brightness failed — paper is probably too gray. Try the content
+    # detector before falling further down to Canny / saturation.
+    content = _slab_contour_by_content(img)
+    if content is not None:
+        return content
+
     arr = np.asarray(img.convert("L"))
     arr = cv2.GaussianBlur(arr, (7, 7), 0)
     edges = cv2.Canny(arr, 30, 90)
@@ -220,40 +362,106 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
     return _slab_contour_by_saturation(img)
 
 
-def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
+def _refine_to_slab_edge(rotated: np.ndarray,
+                         x: int, y: int, w: int, h: int,
+                         search_pct: float = 0.18) -> tuple[int, int, int, int]:
     """
-    Find the slab, deskew (rotate to level) using its minimum bounding
-    rectangle, and crop to the rotated, axis-aligned bbox plus a small
-    proportional margin.
+    Given a content-keyed bbox (which captures slab content but may stop
+    short of the empty plastic strips), expand outward by `search_pct`
+    of the bbox dimensions and then walk back inward from each edge
+    until we leave paper.
 
-    The detector keys on slab content (PSA label band + card art) — it
-    does NOT see the empty plastic strips at the very top and bottom of
-    the slab, since those have no saturation or dark text. Without a
-    margin, the crop ends flush against the card and the slab plastic
-    gets clipped off (visible on the Pikachu Van Gogh #2 first pass).
-    Margins below give back the plastic without inflating into the
-    surrounding paper:
-       horizontal: 4% of bbox width  — slab side rails
-       vertical:   7% of bbox height — slab top + bottom plastic strips
-                                       (bottom is the bigger of the two)
-    `pad` is then applied on top as a fixed-pixel cushion for tilted
-    slabs whose bbox sits diagonally inside the rotated frame.
+    "Paper" = high brightness AND near-zero saturation. This test is
+    stable regardless of slab color: clear PSA plastic, colored CGC
+    pearl, BGS holographic gold, and rainbow holders all have either
+    saturation, refraction-darkening, or some content that registers as
+    "not paper". Walking inward stops at the slab outer edge precisely,
+    which means no white halo on the composited backdrop AND no clipped
+    plastic strips.
 
-    If detection fails for any reason, returns the original image so the
-    rest of the pipeline keeps running and we get a visible "this scan
-    needs work" output instead of a hard crash.
+    Returns refined (x, y, w, h) clipped to the rotated frame.
+    """
+    H, W = rotated.shape[:2]
+    L = cv2.cvtColor(rotated, cv2.COLOR_RGB2GRAY) if rotated.ndim == 3 else rotated
+    if rotated.ndim == 3:
+        hsv = cv2.cvtColor(rotated, cv2.COLOR_RGB2HSV)
+        sat = hsv[..., 1]
+    else:
+        sat = np.zeros_like(L)
+
+    # Inflate bbox to give the inward walk some slack at each edge.
+    mx = int(w * search_pct)
+    my = int(h * search_pct)
+    x0 = max(0, x - mx)
+    y0 = max(0, y - my)
+    x1 = min(W, x + w + mx)
+    y1 = min(H, y + h + my)
+
+    # "Mostly paper" test: bright AND unsaturated for >70% of the strip.
+    # 70% — not 100% — so a single dust speck or scanner artifact in an
+    # otherwise-paper row doesn't accidentally extend the bbox outward.
+    paper_thresh_v = 232
+    paper_thresh_s = 14
+    occupancy = 0.70
+
+    def is_paper_row(r: int) -> bool:
+        L_strip = L[r, x0:x1]
+        s_strip = sat[r, x0:x1]
+        return float(np.mean((L_strip > paper_thresh_v) & (s_strip < paper_thresh_s))) > occupancy
+
+    def is_paper_col(c: int) -> bool:
+        L_strip = L[y0:y1, c]
+        s_strip = sat[y0:y1, c]
+        return float(np.mean((L_strip > paper_thresh_v) & (s_strip < paper_thresh_s))) > occupancy
+
+    # Walk top edge down until we hit slab.
+    ny0 = y0
+    while ny0 < y1 - 1 and is_paper_row(ny0):
+        ny0 += 1
+    # Walk bottom edge up.
+    ny1 = y1 - 1
+    while ny1 > ny0 and is_paper_row(ny1):
+        ny1 -= 1
+    # Walk left edge right.
+    nx0 = x0
+    while nx0 < x1 - 1 and is_paper_col(nx0):
+        nx0 += 1
+    # Walk right edge left.
+    nx1 = x1 - 1
+    while nx1 > nx0 and is_paper_col(nx1):
+        nx1 -= 1
+
+    return nx0, ny0, max(1, nx1 - nx0 + 1), max(1, ny1 - ny0 + 1)
+
+
+def crop_slab(img: Image.Image, pad: int = 0) -> Image.Image:
+    """
+    Find the slab, deskew (rotate to level), refine the bbox to the
+    actual slab edge, and crop.
+
+    Detection is two-stage:
+      1. Content-keyed contour finds the slab content (label + card).
+      2. Edge-refinement walks outward from that bbox and back in until
+         it leaves paper, locking the bbox to the true slab outline —
+         including the empty plastic strips at top/bottom of clear PSA
+         holders that step 1 misses, while NOT inflating into the white
+         paper background on slabs where step 1 already covered the
+         plastic edge (rainbow holders, colored slabs).
+
+    `pad` is an optional fixed-pixel cushion (defaults to 0 since the
+    refinement step is tight to the slab — adding a pad here puts paper
+    back into the crop). Kept as a knob for callers that want a small
+    breathing room.
+
+    If detection fails entirely, returns the original image.
     """
     contour = _slab_contour(img)
     if contour is None:
         return img
 
-    # Minimum-area rotated rectangle gives us the slab's tilt angle.
     rect = cv2.minAreaRect(contour)
     (cx, cy), (rw, rh), angle = rect
 
-    # cv2's minAreaRect returns angle in [-90, 0). Normalize so we always
-    # rotate to the nearest "upright" orientation rather than spinning the
-    # slab on its side.
     if rw < rh:
         rotation = angle
     else:
@@ -264,13 +472,11 @@ def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
 
     if abs(rotation) > 0.3:
         M = cv2.getRotationMatrix2D((cx, cy), rotation, 1.0)
-        # Pad with white so unfilled corners look like paper, not black bars.
         rotated = cv2.warpAffine(
             arr, M, (w, h),
             flags=cv2.INTER_LINEAR,
             borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255),
         )
-        # Re-find the now-axis-aligned slab on the rotated image.
         rotated_pil = Image.fromarray(rotated)
         contour = _slab_contour(rotated_pil)
         if contour is None:
@@ -280,14 +486,14 @@ def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
         rotated = arr
         x, y, ww, hh = cv2.boundingRect(contour)
 
-    # Proportional margin to capture the slab plastic that the
-    # content-keyed detector ignored, plus a fixed-pixel pad on top.
-    mx = int(ww * 0.04) + pad
-    my = int(hh * 0.07) + pad
-    x0 = max(0, x - mx)
-    y0 = max(0, y - my)
-    x1 = min(w, x + ww + mx)
-    y1 = min(h, y + hh + my)
+    # Refine to the actual slab edge.
+    x, y, ww, hh = _refine_to_slab_edge(rotated, x, y, ww, hh)
+
+    # Optional fixed-pixel cushion (default 0 keeps the crop flush).
+    x0 = max(0, x - pad)
+    y0 = max(0, y - pad)
+    x1 = min(w, x + ww + pad)
+    y1 = min(h, y + hh + pad)
     return Image.fromarray(rotated[y0:y1, x0:x1])
 
 
@@ -573,17 +779,30 @@ def drop_shadow(slab: Image.Image, blur: int = 24,
                 offset: tuple[int, int] = (0, 16),
                 opacity: float = 0.55) -> Image.Image:
     """
-    Build a soft drop shadow for the slab. Returns RGBA the same size as
-    slab (plus padding for the blur) so it can be composited just behind.
+    Build a soft drop shadow for the slab.
+
+    If the slab is RGBA (rembg silhouette), the shadow is shaped by the
+    slab's alpha so it follows the slab outline. For RGB inputs we fall
+    back to a rectangular shadow for the slab footprint.
     """
     w, h = slab.size
     pad = blur * 2
-    shadow = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(shadow)
-    sd.rectangle(
-        (pad, pad, pad + w, pad + h),
-        fill=(0, 0, 0, int(255 * opacity)),
-    )
+
+    if slab.mode == "RGBA":
+        alpha = slab.split()[3]
+        shadow = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
+        # Tint the alpha with black at the requested opacity.
+        tint = Image.new("RGBA", (w, h), (0, 0, 0, int(255 * opacity)))
+        tint.putalpha(alpha.point(lambda v: int(v * opacity)))
+        shadow.paste(tint, (pad, pad), tint)
+    else:
+        shadow = Image.new("RGBA", (w + pad * 2, h + pad * 2), (0, 0, 0, 0))
+        sd = ImageDraw.Draw(shadow)
+        sd.rectangle(
+            (pad, pad, pad + w, pad + h),
+            fill=(0, 0, 0, int(255 * opacity)),
+        )
+
     shadow = shadow.filter(ImageFilter.GaussianBlur(radius=blur))
     return shadow
 
@@ -614,12 +833,27 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
     #   2) Fine pass (radius 0.8) pulls small text out of the holo
     #      surface — cert number, QR code, label barcode are 8-10px on
     #      the source scan and lose contrast through the upscale chain.
-    slab_resized = slab_resized.filter(
-        ImageFilter.UnsharpMask(radius=2.5, percent=170, threshold=2)
-    )
-    slab_resized = slab_resized.filter(
-        ImageFilter.UnsharpMask(radius=0.8, percent=110, threshold=1)
-    )
+    # Run sharpening on RGB only — sharpening the alpha channel of an
+    # rembg silhouette would amplify edge aliasing and produce a
+    # crunchy outline around the slab on the backdrop.
+    if slab_resized.mode == "RGBA":
+        rgb_part = slab_resized.convert("RGB")
+        alpha_part = slab_resized.split()[3]
+        rgb_part = rgb_part.filter(
+            ImageFilter.UnsharpMask(radius=2.5, percent=170, threshold=2)
+        )
+        rgb_part = rgb_part.filter(
+            ImageFilter.UnsharpMask(radius=0.8, percent=110, threshold=1)
+        )
+        rgb_part.putalpha(alpha_part)
+        slab_resized = rgb_part
+    else:
+        slab_resized = slab_resized.filter(
+            ImageFilter.UnsharpMask(radius=2.5, percent=170, threshold=2)
+        )
+        slab_resized = slab_resized.filter(
+            ImageFilter.UnsharpMask(radius=0.8, percent=110, threshold=1)
+        )
 
     # Aura: multi-layer glow tinted to harmonize with this card's art.
     palette = palette_override if palette_override else extract_palette(slab_resized, n=3)
@@ -769,10 +1003,17 @@ def process_one(src: Path, out_dir: Path,
     Returns (output_path, palette_used) so callers can chain.
     """
     img = Image.open(src).convert("RGB")
-    cropped = crop_slab(img)
+    # rembg removes paper background → RGBA silhouette, deskewed + tight-cropped.
+    # Falls back to the bbox crop if rembg isn't available so the pipeline
+    # still runs on a misconfigured machine.
+    try:
+        cropped = isolate_slab(img)
+    except Exception as e:
+        print(f"    [rembg] {e} — falling back to bbox crop")
+        cropped = crop_slab(img)
     if upscale and upscale > 1:
         before = cropped.size
-        cropped = upscale_pil(cropped, scale=upscale)
+        cropped = upscale_rgba(cropped, scale=upscale)
         print(f"    upscaled {before} -> {cropped.size} (x{upscale})")
     finished, _slab_rect, palette = compose(cropped, palette_override=palette_override)
     finished = add_wordmark(finished, colors=palette)
