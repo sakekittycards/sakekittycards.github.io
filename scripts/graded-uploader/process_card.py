@@ -223,7 +223,21 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
 def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
     """
     Find the slab, deskew (rotate to level) using its minimum bounding
-    rectangle, and crop to the rotated, axis-aligned bbox.
+    rectangle, and crop to the rotated, axis-aligned bbox plus a small
+    proportional margin.
+
+    The detector keys on slab content (PSA label band + card art) — it
+    does NOT see the empty plastic strips at the very top and bottom of
+    the slab, since those have no saturation or dark text. Without a
+    margin, the crop ends flush against the card and the slab plastic
+    gets clipped off (visible on the Pikachu Van Gogh #2 first pass).
+    Margins below give back the plastic without inflating into the
+    surrounding paper:
+       horizontal: 4% of bbox width  — slab side rails
+       vertical:   7% of bbox height — slab top + bottom plastic strips
+                                       (bottom is the bigger of the two)
+    `pad` is then applied on top as a fixed-pixel cushion for tilted
+    slabs whose bbox sits diagonally inside the rotated frame.
 
     If detection fails for any reason, returns the original image so the
     rest of the pipeline keeps running and we get a visible "this scan
@@ -266,11 +280,14 @@ def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
         rotated = arr
         x, y, ww, hh = cv2.boundingRect(contour)
 
-    # Pad and clip.
-    x0 = max(0, x - pad)
-    y0 = max(0, y - pad)
-    x1 = min(w, x + ww + pad)
-    y1 = min(h, y + hh + pad)
+    # Proportional margin to capture the slab plastic that the
+    # content-keyed detector ignored, plus a fixed-pixel pad on top.
+    mx = int(ww * 0.04) + pad
+    my = int(hh * 0.07) + pad
+    x0 = max(0, x - mx)
+    y0 = max(0, y - my)
+    x1 = min(w, x + ww + mx)
+    y1 = min(h, y + hh + my)
     return Image.fromarray(rotated[y0:y1, x0:x1])
 
 

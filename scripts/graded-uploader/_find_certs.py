@@ -15,11 +15,7 @@ from rapidocr_onnxruntime import RapidOCR
 PROCESSED = Path(__file__).parent / 'inbox' / '_processed'
 
 TARGET_CERTS = {
-    '131611480',  # Mewtwo GX
-    # Already known from _pair_manual.py:
-    #   IMG_0019/0020 -> 4321131035 (CGC Blastoise)
-    #   IMG_0043/0044 -> 151350422
-    # And from _pair_van_gogh_2.py: IMG_0037/0038 -> 102607615
+    '135860324',  # Wobbuffet Pokemon Center SIR — needs reprocessing
 }
 
 

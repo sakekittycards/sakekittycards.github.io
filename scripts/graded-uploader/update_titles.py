@@ -138,15 +138,19 @@ CORRECTIONS = [
             'card_number': '215', 'grade': 'MINT 9',
         },
     },
-    # OCR mis-IDed this as "Team Rocket Trainer (needs review)" — actually
-    # a Wobbuffet Special Illustration Rare with the Pokemon Center stamp.
-    # Confirmed with the user.
+    # OCR mis-IDed this as "Team Rocket Trainer (needs review)". The PSA
+    # slab label (visible after the round-2 reprocess) reads:
+    #   "2025 POKEMON SVP EN / ROCKET'S WOBBUFFET / DESTINED RIVALS PC ETB
+    #   / #203 / GEM MT 10". The Pokemon Center "PC" tag means it's the
+    #   Pokemon Center variant of the Destined Rivals ETB exclusive.
     {
         'cert': '135860324',
         'card': {
-            'name': 'Wobbuffet (Special Illustration Rare, Pokemon Center stamp)',
-            'year': '2025', 'set_name': 'Pokemon Mega Evolution',
-            'card_number': '208/164', 'grade': 'GEM MT 10',
+            'name': "Rocket's Wobbuffet (Destined Rivals Pokemon Center ETB)",
+            'year': '2025',
+            'set_name': 'Scarlet & Violet Black Star Promos',
+            'card_number': '203',
+            'grade': 'GEM MT 10',
         },
     },
 ]
