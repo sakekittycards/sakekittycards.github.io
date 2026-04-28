@@ -37,7 +37,11 @@ def _get_rembg_session():
     global _REMBG_SESSION
     if _REMBG_SESSION is None:
         from rembg import new_session
-        _REMBG_SESSION = new_session("u2net")
+        # birefnet-general — newer than u2net, ~973MB. Edge accuracy is
+        # markedly better, especially on rounded corners and translucent
+        # plastic. Worth the model size (one-time download); inference
+        # cost per card is comparable to u2net.
+        _REMBG_SESSION = new_session("birefnet-general")
     return _REMBG_SESSION
 
 
@@ -184,7 +188,19 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
         x1 = min(W, x1 + mx)
         y1 = min(H, y1 + my)
 
-    return Image.fromarray(arr_rgb[y0:y1, x0:x1], "RGB")
+    # Stage 3: use birefnet's silhouette as the alpha mask, cropped to
+    # the same walk-inward bbox. birefnet is accurate enough that the
+    # silhouette tracks the actual slab outline including rounded corners
+    # without the feathered fringe u2net produces. Hard-threshold to
+    # binary 0/255 with a 0.6px Gaussian for AA so the slab edge is crisp
+    # against the backdrop. Slab shape adapts per slab — works on rounded
+    # PSA, more-rounded BGS, angled CGC corners, etc.
+    rgb_crop = arr_rgb[y0:y1, x0:x1]
+    alpha_crop = alpha[y0:y1, x0:x1]
+    a_hard = (alpha_crop >= 128).astype(np.uint8) * 255
+    a_hard = cv2.GaussianBlur(a_hard, (3, 3), 0.6)
+    rgba_arr = np.dstack([rgb_crop, a_hard])
+    return Image.fromarray(rgba_arr, "RGBA")
 
 
 def upscale_rgba(img: Image.Image, scale: int = 4) -> Image.Image:
