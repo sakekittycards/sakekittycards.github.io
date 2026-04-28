@@ -741,7 +741,7 @@ body.cart-open { overflow: hidden; }
 .product-name { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
 .product-set  { font-size: 14px; color: var(--dim); margin-bottom: 10px; }
 .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.product-price { font-family: 'Bangers',cursive; font-size: 22px; letter-spacing: 1px; color: var(--orange); }
+.product-price { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .2px; color: var(--orange); font-variant-numeric: tabular-nums; }
 
 /* Sold out state */
 .product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }
@@ -821,8 +821,8 @@ body.cart-open { overflow: hidden; }
 .buylist-table td { padding: 15px 20px; border-bottom: 1px solid var(--border); color: var(--muted); }
 .buylist-table tr:last-child td { border-bottom: none; }
 .buylist-table tr:hover td { background: var(--bg-card); }
-.buylist-table .buy-price { color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 17px; letter-spacing: .5px; }
-.buylist-table .credit-price { color: var(--cyan); font-weight: 700; font-family: 'Bangers',cursive; font-size: 17px; letter-spacing: .5px; }
+.buylist-table .buy-price { color: var(--orange); font-weight: 700; font-family: 'Inter', sans-serif; font-size: 15px; letter-spacing: .2px; font-variant-numeric: tabular-nums; }
+.buylist-table .credit-price { color: var(--cyan); font-weight: 700; font-family: 'Inter', sans-serif; font-size: 15px; letter-spacing: .2px; font-variant-numeric: tabular-nums; }
 
 /* ── FAQ ── */
 .faq-list { max-width: 740px; margin: 0 auto; }
@@ -957,7 +957,7 @@ body.drip-unlocked { position: relative; }
 .service-badge { display: inline-block; background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--r-pill); margin-bottom: 14px; align-self: flex-start; }
 .service-name { font-family: 'Bangers',cursive; font-size: 28px; letter-spacing: .04em; margin-bottom: 4px; }
 .service-tagline { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.55; }
-.service-price { font-family: 'Bangers', cursive; font-size: 48px; letter-spacing: .04em; line-height: 1; margin-bottom: 2px; }
+.service-price { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 42px; letter-spacing: -.5px; line-height: 1; margin-bottom: 2px; font-variant-numeric: tabular-nums; }
 .service-price sub { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 400; color: var(--muted); vertical-align: baseline; letter-spacing: 0; }
 .service-card.featured .service-price { color: var(--orange); filter: drop-shadow(0 0 10px rgba(255,106,0,.4)); }
 .service-unit { font-size: 14px; color: var(--dim); margin-bottom: 20px; }

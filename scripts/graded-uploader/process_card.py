@@ -40,6 +40,72 @@ GOLD = (255, 204, 0)
 
 # ---------- crop ---------------------------------------------------------- #
 
+def _slab_contour_by_brightness(img: Image.Image) -> np.ndarray | None:
+    """
+    Most reliable slab detector for the scanner setup we use: photo-flatbed
+    on a white-paper background.
+
+    Strategy: combine "saturated pixels" + "dark pixels" into a single
+    "interesting" mask, kill paper-texture noise with morph_open, then
+    morph_close with a kernel large enough to bridge the gap between the
+    PSA label band and the card art (~250-300px at 5100x6600). The result
+    is one solid slab blob.
+
+    Filters tightened against three real failure modes from prior scans:
+      1. Scanner-edge vignette / paper shadow strips: rejected by
+         minAreaRect aspect (any rect-aspect > 2.4 is too elongated to be
+         a slab).
+      2. L-shaped or hollow blobs: rejected by contour-fill ratio (contour
+         area / minAreaRect area must be >= 0.55).
+      3. Inner card contour outscoring the slab: scoring uses contour area
+         (slab fills its bbox solidly post-close, card art alone wouldn't
+         survive the open).
+    """
+    rgb = np.asarray(img.convert("RGB"))
+    L = np.asarray(img.convert("L"))
+    L = cv2.GaussianBlur(L, (7, 7), 0)
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    sat = hsv[..., 1]
+
+    mask_sat = (sat > 25).astype(np.uint8) * 255
+    # 150 (not 170+) excludes scanner-edge vignette which can hit ~155-170.
+    mask_dark = (L < 150).astype(np.uint8) * 255
+    mask = cv2.bitwise_or(mask_sat, mask_dark)
+
+    open_k = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, open_k)
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (251, 251))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, close_k)
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+
+    img_area = L.shape[0] * L.shape[1]
+    best, best_score = None, 0.0
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        if w == 0 or h == 0:
+            continue
+        ba = w * h
+        if ba < img_area * 0.05 or ba > img_area * 0.85:
+            continue
+        rect = cv2.minAreaRect(c)
+        (_, _), (rw, rh), _ = rect
+        if rw == 0 or rh == 0:
+            continue
+        rect_aspect = max(rw, rh) / min(rw, rh)
+        if rect_aspect > 2.4:
+            continue
+        c_area = cv2.contourArea(c)
+        if c_area / max(rw * rh, 1) < 0.55:
+            continue
+        score = c_area * (1.0 - min(1.0, abs(rect_aspect - 1.6) / 2.0))
+        if score > best_score:
+            best, best_score = c, score
+    return best
+
+
 def _slab_contour_by_saturation(img: Image.Image) -> np.ndarray | None:
     """
     Fallback slab detector for colored holders (PSA's orange / blue slabs)
@@ -79,14 +145,23 @@ def _slab_contour_by_saturation(img: Image.Image) -> np.ndarray | None:
 
 def _slab_contour(img: Image.Image) -> np.ndarray | None:
     """
-    Find the slab's outer contour via OpenCV edge detection.
+    Find the slab's outer contour.
 
-    The slab plastic is nearly white against white paper, so Otsu's
-    threshold lights up only the card art inside (which misses the PSA
-    label band). Canny edges + dilate-close-erode correctly traces the
-    slab's outer plastic perimeter, then recovers the true edge so we
-    don't include extra paper around the slab.
+    Strategy: brightness-threshold first (most reliable on the white-paper
+    scanner background), Canny-edge as a fallback for cases where the slab
+    plastic blends too closely with the paper, saturation-based as a
+    last-ditch fallback for heavily-tilted colored holders.
+
+    The Canny path on its own had a failure mode where the inner card's
+    high-contrast edges formed a more "closed" contour than the slab's
+    faint plastic outline — so the algorithm cropped the label off and
+    kept just the card art. Brightness keys on the entire slab darkness
+    against paper, so it doesn't get fooled by tighter inner edges.
     """
+    primary = _slab_contour_by_brightness(img)
+    if primary is not None:
+        return primary
+
     arr = np.asarray(img.convert("L"))
     arr = cv2.GaussianBlur(arr, (7, 7), 0)
     edges = cv2.Canny(arr, 30, 90)

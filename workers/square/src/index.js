@@ -93,6 +93,10 @@ export default {
         return await updateGradedItem(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/replace-graded-images' && request.method === 'POST') {
+        return await replaceGradedImages(request, base, squareHeaders, env);
+      }
+
       // Diagnostic: fetch a single Square catalog item by id, OR list all
       // objects of a given type (?types=TAX). Admin-token gated.
       if (path === '/admin/inspect' && request.method === 'GET') {
@@ -1114,6 +1118,135 @@ async function updateGradedItem(request, base, squareHeaders, env) {
     item_id:  foundId,
     title,
     listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(foundId)}`,
+  });
+}
+
+
+// Admin: replace the front/back images on an existing graded-card listing.
+// Used when re-cropping/re-processing yielded better scans for items that
+// were already pushed to Square. Looks up the item by "Cert #: <cert>" in
+// description, deletes its existing image objects, then attaches the new
+// front (is_primary: true) and back (is_primary: false).
+async function replaceGradedImages(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+
+  const cert = String(body.cert || '').trim();
+  if (!cert) return json({ error: 'missing_cert' }, 400);
+  const frontB64 = String(body.image_base64 || '');
+  const frontName = String(body.image_filename || `${cert}-front.jpg`);
+  const backB64 = String(body.back_image_base64 || '');
+  const backName = String(body.back_image_filename || `${cert}-back.jpg`);
+  if (!frontB64) return json({ error: 'missing_image_base64' }, 400);
+
+  // Find the item by cert (same approach as updateGradedItem).
+  let cursor = '';
+  let foundItem = null;
+  for (let page = 0; page < 20; page++) {
+    const listUrl = `${base}/v2/catalog/list?types=ITEM${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const r = await fetch(listUrl, { headers: squareHeaders });
+    const d = await r.json();
+    if (!r.ok) return json({ error: 'square_list_failed', detail: d }, r.status);
+    const objs = d.objects || [];
+    const match = objs.find(o =>
+      o.type === 'ITEM' &&
+      (o.item_data?.description || '').includes(`Cert #: ${cert}`)
+    );
+    if (match) { foundItem = match; break; }
+    cursor = d.cursor || '';
+    if (!cursor) break;
+  }
+  if (!foundItem) return json({ error: 'item_not_found_for_cert', cert }, 404);
+
+  // Delete old image objects so they don't pile up. Best-effort: a stale
+  // image left dangling isn't fatal, just messy.
+  const oldImageIds = foundItem.item_data?.image_ids || [];
+  const deleted = [];
+  for (const imgId of oldImageIds) {
+    try {
+      const delRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(imgId)}`, {
+        method: 'DELETE', headers: squareHeaders,
+      });
+      if (delRes.ok) deleted.push(imgId);
+    } catch {}
+  }
+
+  const imageHeaders = {
+    'Square-Version': SQUARE_API_VERSION,
+    'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
+  };
+
+  // Upload new front (primary)
+  const frontBytes = base64ToBytes(frontB64);
+  const frontReq = {
+    idempotency_key: crypto.randomUUID(),
+    object_id: foundItem.id,
+    image: {
+      type: 'IMAGE',
+      id: `#sk-graded-img-${cert}-${Date.now()}`,
+      image_data: {
+        name: frontName.slice(0, 255),
+        caption: 'Sake Kitty Cards graded listing',
+      },
+    },
+    is_primary: true,
+  };
+  const fdFront = new FormData();
+  fdFront.append('request', new Blob([JSON.stringify(frontReq)], { type: 'application/json' }));
+  fdFront.append('image_file', new Blob([frontBytes], { type: 'image/jpeg' }), frontName);
+  const frontRes = await fetch(`${base}/v2/catalog/images`, {
+    method: 'POST', headers: imageHeaders, body: fdFront,
+  });
+  const frontData = await frontRes.json();
+  if (!frontRes.ok) {
+    return json({
+      error: 'square_front_upload_failed',
+      item_id: foundItem.id,
+      deleted_old_image_ids: deleted,
+      detail: frontData,
+    }, frontRes.status);
+  }
+
+  // Upload new back (best-effort)
+  let backImageId = null;
+  if (backB64) {
+    try {
+      const backBytes = base64ToBytes(backB64);
+      const backReq = {
+        idempotency_key: crypto.randomUUID(),
+        object_id: foundItem.id,
+        image: {
+          type: 'IMAGE',
+          id: `#sk-graded-img-${cert}-back-${Date.now()}`,
+          image_data: {
+            name: backName.slice(0, 255),
+            caption: 'Sake Kitty Cards graded listing — back',
+          },
+        },
+        is_primary: false,
+      };
+      const fdBack = new FormData();
+      fdBack.append('request', new Blob([JSON.stringify(backReq)], { type: 'application/json' }));
+      fdBack.append('image_file', new Blob([backBytes], { type: 'image/jpeg' }), backName);
+      const backRes = await fetch(`${base}/v2/catalog/images`, {
+        method: 'POST', headers: imageHeaders, body: fdBack,
+      });
+      const backData = await backRes.json();
+      if (backRes.ok) backImageId = backData.image?.id || null;
+    } catch {}
+  }
+
+  return json({
+    ok: true,
+    item_id: foundItem.id,
+    deleted_old_image_ids: deleted,
+    front_image_id: frontData.image?.id,
+    back_image_id: backImageId,
   });
 }
 
