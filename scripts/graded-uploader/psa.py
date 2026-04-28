@@ -97,6 +97,11 @@ def parse_psa(lines: list[str]) -> dict:
         ln = re.sub(r"#\s*[A-Z0-9\-/]+", "", ln).strip()
         if ln:
             text_lines.append(ln)
+        # PSA labels never have more than ~3 distinct text rows. Anything
+        # past that on a real scan is bleeding in from the card art below
+        # (attack names, character names, "Photon Boost", etc.) — drop it.
+        if len(text_lines) >= 3:
+            break
 
     if text_lines:
         head = re.sub(r"^\s*(19\d{2}|20[0-3]\d)\s*", "", text_lines[0]).strip()

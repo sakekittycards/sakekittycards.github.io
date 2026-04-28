@@ -105,19 +105,19 @@ def ocr_label(ocr: RapidOCR, src: Path) -> tuple[dict, list[str]]:
 
 def classify_face(parsed: dict) -> str:
     """
-    'front' if the front-only fields (year/set/title/grade/card #) read,
+    'front' if the front-only fields (year + grade or card_number) read,
     'back' if only a cert # (hologram-only side),
     'unknown' if neither.
 
-    Backs of PSA slabs only show the hologram + cert + barcode at the
-    top, so OCR yields just digits + maybe "PSA". Fronts show the full
-    printed label with year, set, title, and grade descriptor.
+    Backs sometimes pick up OCR garbage from the Pokemon back artwork
+    ("Pekene", "PaKeney"). card_title alone isn't a reliable front
+    signal — require the structured fields (year, grade, card #) that
+    only appear on the printed PSA label.
     """
     front_signals = bool(
         parsed.get("year")
         or parsed.get("grade")
         or parsed.get("card_number")
-        or parsed.get("card_title")
     )
     if front_signals:
         return "front"
