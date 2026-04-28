@@ -171,6 +171,11 @@ const SK_CART_KEY        = 'sk_cart_v1';
 const SK_SHIP_STATE_KEY  = 'sk_ship_state_v1';
 const SK_SHIP_FREE_OVER  = 100;
 const SK_SHIP_FLAT_FEE   = 5;
+// Mandatory shipping insurance on graded / raw / sealed orders. $1 per
+// $100 of insurable value (rounded up to the next $100), only when the
+// insurable subtotal hits SK_INSURANCE_THRESHOLD. Merch is not insured.
+const SK_INSURANCE_RATE_PER_100 = 1;
+const SK_INSURANCE_THRESHOLD    = 100;
 const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
 const SK_VENMO_HANDLE    = 'sakekittycards';
 const SK_PAYPAL_HANDLE   = 'sakekittycards';
@@ -185,10 +190,14 @@ const SK_TAX_RATES = {
 function skTaxRate(state) {
   return SK_TAX_RATES[(state || '').toUpperCase()] || 0;
 }
-function skTaxAmount(subtotal, shipping, state) {
+function skTaxAmount(subtotal, shipping, state, insurance = 0) {
   const rate = skTaxRate(state);
   if (rate <= 0) return 0;
-  return (subtotal + shipping) * rate;
+  // Insurance is sourced via the shipping carrier, billed to the customer,
+  // and folded into the taxable base alongside shipping. FL technically
+  // exempts separately stated insurance — we eat that ~6¢ per $1 rather
+  // than maintain a per-state taxability matrix for now.
+  return (subtotal + shipping + insurance) * rate;
 }
 function skGetShipState() {
   try { return localStorage.getItem(SK_SHIP_STATE_KEY) || ''; } catch { return ''; }
@@ -223,6 +232,11 @@ function skAddToCart(product) {
       name:        String(product.name || 'Item'),
       price:       Number(product.price) || 0,
       imageUrl:    product.imageUrl || null,
+      // 'merch' (apparel/plushies/Printful) is exempt from shipping
+      // insurance. Anything else (graded cards, raw cards, sealed) is
+      // insurable. The shop pages tag this when adding; we default to
+      // 'card' so legacy carts still apply insurance correctly.
+      category:    product.category === 'merch' ? 'merch' : 'card',
       quantity:    1,
     });
   }
@@ -249,6 +263,17 @@ function skCartCount() {
 function skCartSubtotal() {
   return skGetCart().reduce((s, i) => s + (i.price * i.quantity), 0);
 }
+// Subtotal of items eligible for insurance: graded / raw / sealed cards.
+// Merch is excluded (clothing / Printful / etc.).
+function skInsurableSubtotal() {
+  return skGetCart()
+    .filter(i => i.category !== 'merch')
+    .reduce((s, i) => s + (i.price * i.quantity), 0);
+}
+function skInsuranceCost(insurableSubtotal) {
+  if (insurableSubtotal < SK_INSURANCE_THRESHOLD) return 0;
+  return Math.ceil(insurableSubtotal / 100) * SK_INSURANCE_RATE_PER_100;
+}
 function skShippingCost(subtotal) {
   if (subtotal <= 0) return 0;
   return subtotal >= SK_SHIP_FREE_OVER ? 0 : SK_SHIP_FLAT_FEE;
@@ -264,6 +289,7 @@ window.SK = {
   getCount:       skCartCount,
   getSubtotal:    skCartSubtotal,
   getShipping:    skShippingCost,
+  getInsurance:   () => skInsuranceCost(skInsurableSubtotal()),
   WORKER_BASE:    SK_WORKER_BASE,
   onCartChange(fn) { skCartListeners.add(fn); return () => skCartListeners.delete(fn); },
   openDrawer()     { document.getElementById('navCart')?.click(); },
@@ -409,9 +435,11 @@ window.SK = {
 
     const subtotal  = skCartSubtotal();
     const shipping  = skShippingCost(subtotal);
+    const insurable = skInsurableSubtotal();
+    const insurance = skInsuranceCost(insurable);
     const shipState = skGetShipState();
-    const tax       = skTaxAmount(subtotal, shipping, shipState);
-    const total     = subtotal + shipping + tax;
+    const tax       = skTaxAmount(subtotal, shipping, shipState, insurance);
+    const total     = subtotal + shipping + insurance + tax;
     const remaining = SK_SHIP_FREE_OVER - subtotal;
 
     // US state options. FL flagged so we can show a small "+7% tax" hint.
@@ -457,8 +485,12 @@ window.SK = {
 
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
       <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+      ${insurance > 0
+        ? `<div class="cart-totals-row"><span>Shipping insurance</span><span>${fmt(insurance)}</span></div>`
+        : ''}
       ${taxRow}
       <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
+      <p class="cart-insurance-note">All card and sealed packages ship insured (${fmt(SK_INSURANCE_RATE_PER_100)} per ${fmt(100)} of card value).</p>
 
       <div class="cart-pay-options">
         <button type="button" class="btn btn-primary cart-pay-btn" id="payWithSquare"${checkoutDisabled ? ' disabled' : ''}>
@@ -487,14 +519,14 @@ window.SK = {
     });
 
     if (!checkoutDisabled) {
-      document.getElementById('payWithSquare')?.addEventListener('click', () => payWithSquare(cart, shipping, shipState));
-      document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total, tax));
-      document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total, tax));
+      document.getElementById('payWithSquare')?.addEventListener('click', () => payWithSquare(cart, shipping, shipState, insurance));
+      document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total, tax, insurance));
+      document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total, tax, insurance));
     }
   }
 
   // ─── Square: redirect to hosted checkout ──────────────────────────────────
-  async function payWithSquare(cart, shipping, shippingState) {
+  async function payWithSquare(cart, shipping, shippingState, insurance = 0) {
     const btn = document.getElementById('payWithSquare');
     if (!btn) return;
     btn.disabled = true;
@@ -512,7 +544,8 @@ window.SK = {
             quantity:    i.quantity,
             variationId: i.variationId,
           })),
-          shippingCost: shipping,
+          shippingCost:  shipping,
+          insuranceCost: insurance,
           shippingState: shippingState || '',
           returnUrl: `${window.location.origin}/order-confirmation.html?from=square`,
         }),
@@ -531,7 +564,7 @@ window.SK = {
   }
 
   // ─── Venmo / PayPal: show modal to collect customer + shipping info ──────
-  function openCustomerInfoModal(provider, cart, subtotal, shipping, total, tax = 0) {
+  function openCustomerInfoModal(provider, cart, subtotal, shipping, total, tax = 0, insurance = 0) {
     const label = provider === 'venmo' ? 'Venmo' : 'PayPal';
     const accent = provider === 'venmo' ? '#008cff' : '#003087';
 
@@ -554,6 +587,7 @@ window.SK = {
           <div class="pay-modal-totals">
             <div><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
             <div><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+            ${insurance > 0 ? `<div><span>Shipping insurance</span><span>${fmt(insurance)}</span></div>` : ''}
             ${tax > 0 ? `<div><span>Tax (FL 6%)</span><span>${fmt(tax)}</span></div>` : ''}
             <div class="grand"><span>Total</span><span>${fmt(total)}</span></div>
           </div>
@@ -610,6 +644,8 @@ window.SK = {
         'Order Items':      itemLines,
         Subtotal:    fmt(subtotal),
         Shipping:    shipping === 0 ? 'Free' : fmt(shipping),
+        ...(insurance > 0 ? { 'Shipping Insurance': fmt(insurance) } : {}),
+        ...(tax > 0 ? { Tax: fmt(tax) } : {}),
         Total:       fmt(total),
         _note:       'Payment is pending on customer side — they have been redirected to ' + label + '.',
       };

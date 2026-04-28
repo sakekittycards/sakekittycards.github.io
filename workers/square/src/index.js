@@ -347,9 +347,13 @@ const SALES_TAX_BY_STATE = {
 };
 
 async function createCheckout(body, base, headers, env, reqUrl) {
-  const items        = Array.isArray(body.items) ? body.items : [];
-  const shippingCost = Number(body.shippingCost) || 0;
-  const buyerNote    = typeof body.note === 'string' ? body.note.slice(0, 500) : '';
+  const items         = Array.isArray(body.items) ? body.items : [];
+  const shippingCost  = Number(body.shippingCost) || 0;
+  // Mandatory shipping insurance, computed on the client side per the
+  // graded/raw/sealed-only rules in main.js. Falls back to 0 for any
+  // older client that doesn't send it.
+  const insuranceCost = Number(body.insuranceCost) || 0;
+  const buyerNote     = typeof body.note === 'string' ? body.note.slice(0, 500) : '';
   const returnUrl    = typeof body.returnUrl === 'string' && body.returnUrl.startsWith('http')
     ? body.returnUrl
     : 'https://sakekittycards.com/order-confirmation.html';
@@ -383,6 +387,14 @@ async function createCheckout(body, base, headers, env, reqUrl) {
       name: 'Shipping',
       quantity: '1',
       base_price_money: { amount: Math.round(shippingCost * 100), currency: 'USD' },
+    });
+  }
+
+  if (insuranceCost > 0) {
+    lineItems.push({
+      name: 'Shipping insurance',
+      quantity: '1',
+      base_price_money: { amount: Math.round(insuranceCost * 100), currency: 'USD' },
     });
   }
 

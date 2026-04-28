@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=29" />
+  <link rel="stylesheet" href="style.css?v=30" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -350,7 +350,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
-  <script src="main.js?v=25"></script>
+  <script src="main.js?v=26"></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -868,11 +868,14 @@
         });
       });
 
-      // Add to cart
+      // Add to cart. Tag category so the cart can decide insurance:
+      // 'merch' = apparel/Printful (has size or color variant axes);
+      // 'card' = single-SKU cards / sealed (insurance applies).
+      const productCategory = (showSizes || showColors) ? 'merch' : 'card';
       const addBtn = document.getElementById('pdpAddBtn');
       addBtn?.addEventListener('click', () => {
         const v = findVariant(selectedColor, selectedSize);
-        let cartItem = item;
+        let cartItem = { ...item, category: productCategory };
         if (v) {
           cartItem = {
             id:          item.id + '__' + v.id,
@@ -881,6 +884,7 @@
             price:       v.price != null ? v.price : item.price,
             imageUrl:    v.imageUrl || item.imageUrl,
             inStock:     v.inStock,
+            category:    productCategory,
           };
         }
         window.SK.addToCart(cartItem);
