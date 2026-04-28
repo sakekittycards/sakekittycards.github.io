@@ -24,6 +24,8 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from upscaler import upscale_pil
+
 FONT_PATH = Path(__file__).parent / "fonts" / "Bangers-Regular.ttf"
 LOGO_PATH = Path(__file__).parent.parent.parent / "logo-transparent.png"
 
@@ -443,8 +445,8 @@ def drop_shadow(slab: Image.Image, blur: int = 24,
     return shadow
 
 
-def compose(slab: Image.Image, canvas_size: tuple[int, int] = (3600, 3600),
-            scale: float = 0.78,
+def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
+            scale: float = 0.82,
             palette_override: list[tuple[int, int, int]] | None = None,
             ) -> tuple[Image.Image, tuple[int, int, int, int],
                        list[tuple[int, int, int]]]:
@@ -464,6 +466,17 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (3600, 3600),
         target_h = int(sh * (target_w / sw))
 
     slab_resized = slab.resize((target_w, target_h), Image.LANCZOS)
+    # Output sharpening — two passes at different scales:
+    #   1) Broad pass (radius 2.5) tightens card art edges, label borders.
+    #   2) Fine pass (radius 0.8) pulls small text out of the holo
+    #      surface — cert number, QR code, label barcode are 8-10px on
+    #      the source scan and lose contrast through the upscale chain.
+    slab_resized = slab_resized.filter(
+        ImageFilter.UnsharpMask(radius=2.5, percent=170, threshold=2)
+    )
+    slab_resized = slab_resized.filter(
+        ImageFilter.UnsharpMask(radius=0.8, percent=110, threshold=1)
+    )
 
     # Aura: multi-layer glow tinted to harmonize with this card's art.
     palette = palette_override if palette_override else extract_palette(slab_resized, n=3)
@@ -596,6 +609,7 @@ def add_wordmark(canvas: Image.Image, text: str = "SAKE KITTY CARDS",
 def process_one(src: Path, out_dir: Path,
                 out_name: str | None = None,
                 palette_override: list[tuple[int, int, int]] | None = None,
+                upscale: int = 4,
                 ) -> tuple[Path, list[tuple[int, int, int]]]:
     """
     Run the full image pipeline on a single scan.
@@ -604,16 +618,25 @@ def process_one(src: Path, out_dir: Path,
     used by process_inbox to make sure the back of a card uses the same
     glow + wordmark colors as its front.
 
+    `upscale` runs Real-ESRGAN on the cropped slab before composition so
+    the final downscale to the canvas keeps more fine detail than a raw
+    600 DPI scan provides. Set to 1 to skip. Falls back to LANCZOS if the
+    upscaler binary isn't installed.
+
     Returns (output_path, palette_used) so callers can chain.
     """
     img = Image.open(src).convert("RGB")
     cropped = crop_slab(img)
+    if upscale and upscale > 1:
+        before = cropped.size
+        cropped = upscale_pil(cropped, scale=upscale)
+        print(f"    upscaled {before} -> {cropped.size} (x{upscale})")
     finished, _slab_rect, palette = compose(cropped, palette_override=palette_override)
     finished = add_wordmark(finished, colors=palette)
     name = out_name or f"{src.stem}_processed.jpg"
     out_path = out_dir / name
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    finished.save(out_path, "JPEG", quality=92)
+    finished.save(out_path, "JPEG", quality=97)
     print(f"  {src.name} -> {out_path.name}  "
           f"(crop {cropped.size}, out {finished.size})")
     return out_path, palette

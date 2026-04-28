@@ -119,6 +119,8 @@ def upload_card(row: dict, admin_token: str, dry_run: bool = False) -> dict:
 
 def mark_uploaded(csv_path: Path, cert: str):
     """Prefix the matching row's your_price with [uploaded] so re-runs skip it."""
+    if not csv_path.exists():
+        return
     rows: list[dict] = []
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
@@ -133,10 +135,68 @@ def mark_uploaded(csv_path: Path, cert: str):
         writer.writerows(rows)
 
 
+def sync_from_edit_csv(canonical_csv: Path, edit_csv: Path) -> int:
+    """
+    Pull prices/notes/offer_min from the sheet-friendly pricing-edit.csv
+    into the canonical pricing.csv (matched on cert).
+
+    Skips rows whose canonical your_price is already marked [uploaded] so
+    we never re-upload an item just because it's still in the edit sheet.
+    Returns the number of rows updated.
+    """
+    if not edit_csv.exists():
+        return 0
+    edits: dict[str, dict] = {}
+    with edit_csv.open("r", encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            edits[r.get("cert", "")] = {
+                "your_price":     r.get("your_price", "").strip(),
+                "condition_note": r.get("condition_note", "").strip(),
+                "offer_min":      r.get("offer_min", "").strip(),
+            }
+
+    rows: list[dict] = []
+    fieldnames: list[str] = []
+    updated = 0
+    with canonical_csv.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        fieldnames = list(reader.fieldnames or [])
+        for r in reader:
+            cert = r.get("cert", "")
+            if cert in edits and not r.get("your_price", "").startswith("[uploaded]"):
+                e = edits[cert]
+                changed = False
+                # `your_price` is the editable column. An empty value in the
+                # edit sheet should NOT clobber a value already typed into
+                # the canonical CSV — only overwrite when the sheet has
+                # something or the canonical is blank.
+                if e["your_price"] and e["your_price"] != r.get("your_price", ""):
+                    r["your_price"] = e["your_price"]
+                    changed = True
+                if e["condition_note"] and e["condition_note"] != r.get("condition_note", ""):
+                    r["condition_note"] = e["condition_note"]
+                    changed = True
+                if e["offer_min"] and e["offer_min"] != r.get("offer_min", ""):
+                    r["offer_min"] = e["offer_min"]
+                    changed = True
+                if changed:
+                    updated += 1
+            rows.append(r)
+
+    if updated:
+        with canonical_csv.open("w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
+    return updated
+
+
 def main():
     here = Path(__file__).parent
     ap = argparse.ArgumentParser()
     ap.add_argument("--csv", type=Path, default=here / "pricing.csv")
+    ap.add_argument("--edit-csv", type=Path, default=here / "pricing-edit.csv",
+                    help="Sheet-friendly CSV; prices typed here are synced into the canonical CSV before upload")
     ap.add_argument("--dry-run", action="store_true",
                     help="Show what would be uploaded without hitting the Worker")
     args = ap.parse_args()
@@ -144,6 +204,10 @@ def main():
     if not args.csv.exists():
         print(f"CSV not found: {args.csv}")
         sys.exit(1)
+
+    synced = sync_from_edit_csv(args.csv, args.edit_csv)
+    if synced:
+        print(f"Synced {synced} row(s) from {args.edit_csv.name} into {args.csv.name}")
 
     admin_token = os.environ.get("SK_ADMIN_TOKEN", "")
     if not args.dry_run and not admin_token:
@@ -184,6 +248,7 @@ def main():
             print(f"   created Square item {res['item_id']}")
             print(f"   listing: {res['listing_url']}")
             mark_uploaded(args.csv, cert)
+            mark_uploaded(args.edit_csv, cert)
         elif "http_error" in res:
             print(f"   HTTP {res['http_error']}: {res['body']}")
         else:

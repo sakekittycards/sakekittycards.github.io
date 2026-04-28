@@ -15,3 +15,7 @@ scripts/graded-uploader/inbox/
 scripts/graded-uploader/finished/
 scripts/graded-uploader/out/
 scripts/graded-uploader/pricing.csv
+scripts/graded-uploader/pricing-edit.csv
+
+# Real-ESRGAN binary + models (~50MB) — install with setup-upscaler.ps1
+scripts/graded-uploader/upscaler/

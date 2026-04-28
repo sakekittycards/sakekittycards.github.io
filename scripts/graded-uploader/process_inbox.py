@@ -63,6 +63,23 @@ CSV_COLUMNS = [
     "identified_at",
 ]
 
+# Google-Sheets-friendly companion CSV. No file paths, no timestamps —
+# just the columns the human cares about while pricing cards. Process
+# writes here on every new card; upload script syncs your_price /
+# condition_note / offer_min back into the canonical pricing.csv before
+# uploading.
+EDIT_CSV_COLUMNS = [
+    "cert",
+    "name",
+    "year",
+    "set",
+    "grade",
+    "suggested_price",
+    "your_price",
+    "condition_note",
+    "offer_min",
+]
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".bmp"}
 
 
@@ -157,6 +174,27 @@ def append_csv(csv_path: Path, row: dict):
         w.writerow(row)
 
 
+def append_edit_csv(csv_path: Path, row: dict):
+    """Append a sheet-friendly row mirroring the canonical CSV row."""
+    new = not csv_path.exists()
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with csv_path.open("a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=EDIT_CSV_COLUMNS)
+        if new:
+            w.writeheader()
+        w.writerow({
+            "cert":             row.get("cert", ""),
+            "name":             row.get("name", ""),
+            "year":             row.get("year", ""),
+            "set":              row.get("set", ""),
+            "grade":            row.get("grade", ""),
+            "suggested_price":  row.get("suggested_price_tcgplayer", ""),
+            "your_price":       "",
+            "condition_note":   "",
+            "offer_min":        "",
+        })
+
+
 def main():
     here = Path(__file__).parent
     ap = argparse.ArgumentParser()
@@ -166,6 +204,8 @@ def main():
                     help="Folder where processed listing JPEGs go")
     ap.add_argument("--csv", type=Path, default=here / "pricing.csv",
                     help="CSV file to append identified-card rows to")
+    ap.add_argument("--edit-csv", type=Path, default=here / "pricing-edit.csv",
+                    help="Sheet-friendly companion CSV for editing prices in Google Sheets")
     ap.add_argument("--keep-originals", action="store_true",
                     help="Don't move originals out of inbox after success")
     args = ap.parse_args()
@@ -322,6 +362,7 @@ def main():
 
         row = build_row(parsed, match, front_out, back_out)
         append_csv(args.csv, row)
+        append_edit_csv(args.edit_csv, row)
 
         identified = (match or {}).get("name") or parsed.get("card_title") or "(unidentified)"
         suggested = (match or {}).get("tcgplayer_market") if match else None

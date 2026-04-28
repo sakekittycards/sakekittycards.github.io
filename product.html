@@ -34,6 +34,28 @@
     }
     .pdp-main-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .pdp-main-placeholder { font-size: 72px; opacity: 0.3; }
+
+    /* Prev / next arrows over the main image (visible when gallery > 1) */
+    .pdp-nav-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      width: 40px; height: 40px; border-radius: 50%;
+      font-size: 26px; line-height: 1; padding: 0 0 3px;
+      cursor: pointer; opacity: 0.82; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.15s, border-color 0.15s, opacity 0.15s, transform 0.15s;
+    }
+    .pdp-nav-arrow:hover {
+      background: rgba(0,0,0,0.78);
+      border-color: rgba(255,106,0,0.6);
+      opacity: 1;
+    }
+    .pdp-nav-arrow.prev { left: 8px; }
+    .pdp-nav-arrow.next { right: 8px; }
+    .pdp-nav-arrow[hidden] { display: none; }
     .pdp-thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
     .pdp-thumb {
       width: 72px; height: 72px;
@@ -204,6 +226,15 @@
       pointer-events: none;
       font-family: 'Inter', sans-serif;
     }
+    .pdp-zoom-modal .pdp-nav-arrow {
+      width: 56px; height: 56px;
+      font-size: 36px; padding-bottom: 5px;
+      background: rgba(255,255,255,0.10);
+      border-color: rgba(255,255,255,0.22);
+      z-index: 501;
+    }
+    .pdp-zoom-modal .pdp-nav-arrow.prev { left: 22px; }
+    .pdp-zoom-modal .pdp-nav-arrow.next { right: 22px; }
 
     /* Status states */
     .pdp-status {
@@ -256,6 +287,8 @@
   <!-- Fullscreen zoom modal — pinch / wheel to zoom, drag to pan -->
   <div class="pdp-zoom-modal" id="pdpZoomModal" hidden>
     <button class="pdp-zoom-close" id="pdpZoomClose" aria-label="Close zoom">×</button>
+    <button class="pdp-nav-arrow prev" id="pdpZoomPrev" aria-label="Previous image" hidden>‹</button>
+    <button class="pdp-nav-arrow next" id="pdpZoomNext" aria-label="Next image" hidden>›</button>
     <div class="pdp-zoom-stage" id="pdpZoomStage">
       <img class="pdp-zoom-img" id="pdpZoomImg" alt="" />
     </div>
@@ -495,6 +528,8 @@
               ${initialGallery.length
                 ? `<img src="${esc(initialGallery[0])}" alt="${esc(item.name)}" class="pdp-main-img" id="pdpMainImg" />`
                 : `<div class="pdp-main-placeholder">📦</div>`}
+              <button type="button" class="pdp-nav-arrow prev" id="pdpPrevBtn" aria-label="Previous image" ${initialGallery.length > 1 ? '' : 'hidden'}>‹</button>
+              <button type="button" class="pdp-nav-arrow next" id="pdpNextBtn" aria-label="Next image" ${initialGallery.length > 1 ? '' : 'hidden'}>›</button>
             </div>
             <div class="pdp-thumbs" id="pdpThumbs" ${initialGallery.length > 1 ? '' : 'hidden'}></div>
           </div>
@@ -587,6 +622,11 @@
         applyZoomTransform();
         zoomModal.hidden = false;
         document.body.style.overflow = 'hidden';
+        const multi = galleryForColor(selectedColor).length > 1;
+        const zp = document.getElementById('pdpZoomPrev');
+        const zn = document.getElementById('pdpZoomNext');
+        if (zp) zp.hidden = !multi;
+        if (zn) zn.hidden = !multi;
       };
       const closeZoomModal = () => {
         zoomModal.hidden = true;
@@ -605,8 +645,51 @@
       zoomModal?.addEventListener('click', (e) => {
         if (e.target === zoomModal || e.target === zoomStage) closeZoomModal();
       });
+
+      // Gallery navigation: arrow buttons + arrow keys + swipe all share
+      // this. Walks the current color's image list, wraps around, and if
+      // the zoom modal is open, also swaps the zoomed image (resetting
+      // zoom level so the next card starts un-zoomed).
+      const navigateGallery = (delta) => {
+        const gallery = galleryForColor(selectedColor);
+        if (gallery.length <= 1 || !mainImg) return;
+        const findIdx = (src) => {
+          if (!src) return 0;
+          if (gallery.indexOf(src) >= 0) return gallery.indexOf(src);
+          const tail = src.split('/').pop();
+          const i = gallery.findIndex(u => u.endsWith(tail));
+          return i >= 0 ? i : 0;
+        };
+        const cur = findIdx(mainImg.src);
+        const next = ((cur + delta) % gallery.length + gallery.length) % gallery.length;
+        setMainImage(gallery[next]);
+        if (zoomModal && !zoomModal.hidden) {
+          zoomImg.src = gallery[next];
+          _zoomScale = 1; _zoomTx = 0; _zoomTy = 0;
+          applyZoomTransform();
+        }
+      };
+
+      const prevBtn     = document.getElementById('pdpPrevBtn');
+      const nextBtn     = document.getElementById('pdpNextBtn');
+      const zoomPrevBtn = document.getElementById('pdpZoomPrev');
+      const zoomNextBtn = document.getElementById('pdpZoomNext');
+      const stopAndNav = (delta) => (e) => {
+        // Stop propagation so the click doesn't bubble up into the
+        // main-image click handler and (re-)open the zoom modal.
+        e.stopPropagation();
+        navigateGallery(delta);
+      };
+      prevBtn?.addEventListener('click', stopAndNav(-1));
+      nextBtn?.addEventListener('click', stopAndNav(+1));
+      zoomPrevBtn?.addEventListener('click', stopAndNav(-1));
+      zoomNextBtn?.addEventListener('click', stopAndNav(+1));
+
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && zoomModal && !zoomModal.hidden) closeZoomModal();
+        if (!zoomModal || zoomModal.hidden) return;
+        if (e.key === 'Escape') closeZoomModal();
+        else if (e.key === 'ArrowLeft')  navigateGallery(-1);
+        else if (e.key === 'ArrowRight') navigateGallery(+1);
       });
 
       // Wheel zoom (desktop)
@@ -690,18 +773,15 @@
         const dy = t.clientY - _touchStartY;
         // Require a mostly-horizontal swipe of at least 40px.
         if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
-        const gallery = galleryForColor(selectedColor);
-        if (gallery.length <= 1) return;
-        const cur = gallery.indexOf(mainImg.src) >= 0
-          ? gallery.indexOf(mainImg.src)
-          : (gallery.findIndex(u => mainImg.src.endsWith(u.split('/').pop())) || 0);
-        const next = ((cur + (dx < 0 ? 1 : -1)) % gallery.length + gallery.length) % gallery.length;
-        setMainImage(gallery[next]);
+        navigateGallery(dx < 0 ? +1 : -1);
       }, { passive: true });
 
       const renderThumbs = (urls) => {
+        const multi = urls.length > 1;
+        if (prevBtn) prevBtn.hidden = !multi;
+        if (nextBtn) nextBtn.hidden = !multi;
         if (!thumbsEl) return;
-        if (urls.length <= 1) {
+        if (!multi) {
           thumbsEl.hidden = true;
           thumbsEl.innerHTML = '';
           return;
