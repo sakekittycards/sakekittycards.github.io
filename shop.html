@@ -128,19 +128,23 @@
       const fmt    = n => `$${n.toFixed(2)}`;
 
       // Categorize an item into one of three buckets the shop renders:
-      //   graded  — PSA-slabbed singles uploaded via the graded pipeline.
-      //             Title format is locked: "PSA <grade> <year> <set> ..."
-      //   merch   — apparel / Printful items. Detected by multi-variant
-      //             axes (sizes / colors) since cards are always single SKU.
-      //   singles — everything else: raw cards, sealed (booster packs,
-      //             ETBs, etc.), accessories without size axes.
+      //   graded  — PSA-slabbed singles. Title format from the graded
+      //             pipeline is "PSA <grade> <year> <set> ...".
+      //   singles — raw singles or sealed product. Detected by sealed
+      //             keywords (booster, pack, ETB, etc.) — raw cards
+      //             without a sealed keyword need to start with the
+      //             year (e.g. "1999 Charizard Holo") to land here.
+      //   merch   — anything else: apparel, plushies, mouse pads, etc.
+      //             Default bucket — accessories without size axes
+      //             (mouse pads) would otherwise misfile as singles.
+      const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection\s*box|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
-        if (/^PSA\s/i.test(item.name || '')) return 'graded';
-        const vars = Array.isArray(item.variations) ? item.variations : [];
-        if (vars.length > 1) return 'merch';
-        const only = vars[0];
-        if (only && only.name && /[,\/]/.test(only.name)) return 'merch';
-        return 'singles';
+        const name = item.name || '';
+        if (/^PSA\s/i.test(name)) return 'graded';
+        if (SEALED_RX.test(name)) return 'singles';
+        // Raw singles convention: lead with the year (e.g., "1999 …").
+        if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
+        return 'merch';
       };
 
       const renderCard = (item) => {
