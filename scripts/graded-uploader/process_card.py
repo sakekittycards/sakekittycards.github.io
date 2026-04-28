@@ -89,15 +89,28 @@ def isolate_slab(img: Image.Image, deskew: bool = True) -> Image.Image:
         return Image.fromarray(arr, "RGBA")
     x0, x1 = int(xs.min()), int(xs.max()) + 1
     y0, y1 = int(ys.min()), int(ys.max()) + 1
-    return Image.fromarray(arr[y0:y1, x0:x1], "RGBA")
+    cropped = arr[y0:y1, x0:x1].copy()
+
+    # Harden the alpha: rembg's silhouette has a 4-8px feathered fringe,
+    # which after upscale + composite onto a dark backdrop reads as a
+    # "melted plastic" halo around the slab. Threshold to a hard mask
+    # with a 1px Gaussian smoothing pass for anti-aliasing on the
+    # binary edge — slab outline now reads as crisp instead of feathered.
+    a = cropped[..., 3]
+    hard = (a >= 128).astype(np.uint8) * 255
+    hard = cv2.GaussianBlur(hard, (3, 3), 0.6)
+    cropped[..., 3] = hard
+    return Image.fromarray(cropped, "RGBA")
 
 
 def upscale_rgba(img: Image.Image, scale: int = 4) -> Image.Image:
     """
     Upscale an RGBA image. Real-ESRGAN's pipeline runs RGB only, so we
     split the channels: RGB goes through Real-ESRGAN for the AI quality
-    boost on card art, alpha goes through LANCZOS (it's a smooth mask,
-    AI upscaling adds nothing). Recombine at the upscaled resolution.
+    boost on card art, alpha goes through nearest-neighbor (it's already
+    been hardened in isolate_slab to a binary mask, so we want to keep
+    it binary through the upscale — LANCZOS would re-soften it).
+    Recombine at the upscaled resolution.
     """
     if img.mode != "RGBA":
         return upscale_pil(img, scale=scale)
@@ -105,7 +118,12 @@ def upscale_rgba(img: Image.Image, scale: int = 4) -> Image.Image:
     alpha = img.split()[3]
     rgb_up = upscale_pil(rgb, scale=scale)
     nw, nh = rgb_up.size
-    alpha_up = alpha.resize((nw, nh), Image.LANCZOS)
+    # Nearest-neighbor preserves the hard binary edge from isolate_slab.
+    alpha_up = alpha.resize((nw, nh), Image.NEAREST)
+    # Tiny anti-alias pass after upscaling — 1px Gaussian smooths the
+    # nearest-neighbor staircasing without re-introducing the feathered
+    # halo that LANCZOS produces.
+    alpha_up = alpha_up.filter(ImageFilter.GaussianBlur(radius=1.0))
     rgb_up.putalpha(alpha_up)
     return rgb_up
 
@@ -827,7 +845,21 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
         target_w = int(cw * 0.9)
         target_h = int(sh * (target_w / sw))
 
-    slab_resized = slab.resize((target_w, target_h), Image.LANCZOS)
+    if slab.mode == "RGBA":
+        # LANCZOS downsample of a binary alpha re-feathers the edge —
+        # downsample RGB with LANCZOS for smooth card-art rescale, alpha
+        # with BILINEAR (preserves edge sharpness better than LANCZOS at
+        # downscale) followed by a hardness re-pass.
+        rgb_resized = slab.convert("RGB").resize((target_w, target_h), Image.LANCZOS)
+        alpha_resized = slab.split()[3].resize((target_w, target_h), Image.BILINEAR)
+        # Re-threshold to keep the slab edge crisp on the backdrop.
+        a_arr = np.asarray(alpha_resized)
+        a_hard = (a_arr >= 128).astype(np.uint8) * 255
+        a_hard = cv2.GaussianBlur(a_hard, (3, 3), 0.6)
+        slab_resized = rgb_resized.convert("RGBA")
+        slab_resized.putalpha(Image.fromarray(a_hard))
+    else:
+        slab_resized = slab.resize((target_w, target_h), Image.LANCZOS)
     # Output sharpening — two passes at different scales:
     #   1) Broad pass (radius 2.5) tightens card art edges, label borders.
     #   2) Fine pass (radius 0.8) pulls small text out of the holo
