@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=30" />
+  <link rel="stylesheet" href="style.css?v=31" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -70,7 +70,21 @@
         <div class="shop-spinner" aria-hidden="true"></div>
         <p>Loading products…</p>
       </div>
-      <div id="shopGrid" class="product-grid" hidden></div>
+
+      <div id="shopSections" hidden>
+        <section class="shop-section" id="shopSectionGraded" hidden>
+          <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA-slabbed singles</span></h3>
+          <div class="product-grid" id="shopGridGraded"></div>
+        </section>
+        <section class="shop-section" id="shopSectionSingles" hidden>
+          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
+          <div class="product-grid" id="shopGridSingles"></div>
+        </section>
+        <section class="shop-section" id="shopSectionMerch" hidden>
+          <h3 class="shop-section-title">Apparel &amp; Merch <span class="shop-section-sub">tees, plushies, accessories</span></h3>
+          <div class="product-grid" id="shopGridMerch"></div>
+        </section>
+      </div>
 
       <p style="margin-top:28px;font-size:14px;color:var(--dim);text-align:center">
         Looking for singles? Some live on <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211/feedback" target="_blank" style="color:var(--orange)">TCGPlayer</a>, more get added here as we list them. Follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restock alerts.
@@ -108,10 +122,50 @@
   <script src="main.js?v=26"></script>
   <script>
     (async function loadShop() {
-      const grid   = document.getElementById('shopGrid');
-      const status = document.getElementById('shopStatus');
+      const sectionsWrap = document.getElementById('shopSections');
+      const status       = document.getElementById('shopStatus');
       const esc    = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const fmt    = n => `$${n.toFixed(2)}`;
+
+      // Categorize an item into one of three buckets the shop renders:
+      //   graded  — PSA-slabbed singles uploaded via the graded pipeline.
+      //             Title format is locked: "PSA <grade> <year> <set> ..."
+      //   merch   — apparel / Printful items. Detected by multi-variant
+      //             axes (sizes / colors) since cards are always single SKU.
+      //   singles — everything else: raw cards, sealed (booster packs,
+      //             ETBs, etc.), accessories without size axes.
+      const categorize = (item) => {
+        if (/^PSA\s/i.test(item.name || '')) return 'graded';
+        const vars = Array.isArray(item.variations) ? item.variations : [];
+        if (vars.length > 1) return 'merch';
+        const only = vars[0];
+        if (only && only.name && /[,\/]/.test(only.name)) return 'merch';
+        return 'singles';
+      };
+
+      const renderCard = (item) => {
+        const oos = item.inStock === false;
+        const imgBlock = item.imageUrl
+          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          : `<div class="product-img">📦</div>`;
+        const desc = item.description
+          ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
+          : '';
+        const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
+        const href  = `product.html?id=${encodeURIComponent(item.id)}`;
+        return `
+          <a href="${href}" class="product-card${oos ? ' sold-out' : ''}" style="position:relative;display:block;color:inherit;text-decoration:none">
+            ${badge}
+            ${imgBlock}
+            <div class="product-info">
+              <div class="product-name">${esc(item.name)}</div>
+              ${desc}
+              <div class="product-footer">
+                <span class="product-price">${fmt(item.price)}</span>
+              </div>
+            </div>
+          </a>`;
+      };
 
       try {
         const res  = await fetch(`${window.SK.WORKER_BASE}/items`, { method: 'GET' });
@@ -129,36 +183,23 @@
           return;
         }
 
-        status.hidden = true;
-        grid.hidden   = false;
+        const buckets = { graded: [], singles: [], merch: [] };
+        for (const item of items) buckets[categorize(item)].push(item);
 
-        grid.innerHTML = items.map(item => {
-          const oos = item.inStock === false;
+        const sectionMap = {
+          graded:  ['shopSectionGraded',  'shopGridGraded'],
+          singles: ['shopSectionSingles', 'shopGridSingles'],
+          merch:   ['shopSectionMerch',   'shopGridMerch'],
+        };
+        for (const [key, [secId, gridId]] of Object.entries(sectionMap)) {
+          const list = buckets[key];
+          if (!list.length) continue;
+          document.getElementById(secId).hidden = false;
+          document.getElementById(gridId).innerHTML = list.map(renderCard).join('');
+        }
 
-          const imgBlock = item.imageUrl
-            ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
-            : `<div class="product-img">📦</div>`;
-
-          const desc = item.description
-            ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
-            : '';
-
-          const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
-          const href  = `product.html?id=${encodeURIComponent(item.id)}`;
-
-          return `
-            <a href="${href}" class="product-card${oos ? ' sold-out' : ''}" style="position:relative;display:block;color:inherit;text-decoration:none">
-              ${badge}
-              ${imgBlock}
-              <div class="product-info">
-                <div class="product-name">${esc(item.name)}</div>
-                ${desc}
-                <div class="product-footer">
-                  <span class="product-price">${fmt(item.price)}</span>
-                </div>
-              </div>
-            </a>`;
-        }).join('');
+        status.hidden       = true;
+        sectionsWrap.hidden = false;
 
       } catch (err) {
         console.error('Shop load failed:', err);

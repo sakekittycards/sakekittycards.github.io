@@ -670,6 +670,32 @@ body.cart-open { overflow: hidden; }
 .tcg-banner-text p { font-size: 15px; color: var(--muted); }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
+
+/* Shop sections — Graded / Singles & Sealed / Apparel & Merch */
+.shop-section { margin-top: 36px; }
+.shop-section:first-child { margin-top: 0; }
+.shop-section-title {
+  font-family: 'Bangers', cursive;
+  font-size: clamp(22px, 3vw, 28px);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin: 0 0 16px;
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+}
+.shop-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 22px;
+  background: linear-gradient(180deg,var(--orange),var(--pink));
+  border-radius: 3px;
+  margin-right: 4px;
+  align-self: center;
+}
+.shop-section-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: var(--dim); letter-spacing: 1px; text-transform: uppercase;
+}
 .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; transition: border-color .2s, transform .2s; }
 .product-card:hover { border-color: rgba(255,106,0,.4); transform: translateY(-5px); }
 .product-img {
