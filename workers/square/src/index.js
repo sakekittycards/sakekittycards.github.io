@@ -114,10 +114,12 @@ export default {
           return json(await r.json(), r.status);
         }
         if (types) {
-          const r = await fetch(
-            `${base}/v2/catalog/list?types=${encodeURIComponent(types)}`,
-            { headers: squareHeaders },
-          );
+          // Pass through Square's pagination cursor so callers can walk
+          // catalogs larger than one page (Square default = 100 / page).
+          const cursor = url.searchParams.get('cursor') || '';
+          const upstream = `${base}/v2/catalog/list?types=${encodeURIComponent(types)}`
+            + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
+          const r = await fetch(upstream, { headers: squareHeaders });
           return json(await r.json(), r.status);
         }
         return json({ error: 'missing id or types' }, 400);
