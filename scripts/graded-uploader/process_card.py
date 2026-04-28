@@ -443,7 +443,7 @@ def drop_shadow(slab: Image.Image, blur: int = 24,
     return shadow
 
 
-def compose(slab: Image.Image, canvas_size: tuple[int, int] = (2400, 2400),
+def compose(slab: Image.Image, canvas_size: tuple[int, int] = (3600, 3600),
             scale: float = 0.78,
             palette_override: list[tuple[int, int, int]] | None = None,
             ) -> tuple[Image.Image, tuple[int, int, int, int],
