@@ -41,9 +41,67 @@ def _get_rembg_session():
     return _REMBG_SESSION
 
 
+def _walk_inward_to_slab_edge(rgb: np.ndarray,
+                              x0: int, y0: int, x1: int, y1: int,
+                              ) -> tuple[int, int, int, int]:
+    """
+    Given an inflated bbox containing the slab plus paper around it,
+    walk each edge inward until the strip stops being uniform paper.
+
+    "Paper" test: low saturation AND low brightness variance. A row of
+    paper has pixels clustered tightly around its mean (~5-10 stdev)
+    even when the scanner vignette has darkened the mean to 200-220.
+    A row of slab content (label band, card art, edge refraction) has
+    high variance from the text, color transitions, and outline shadows
+    — that fails the test and stops the walk.
+
+    Variance-based avoids the scanner-vignette failure mode where
+    brightness-only tests stop walking partway through paper because
+    the vignetted paper is dimmer than the threshold.
+    """
+    L = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+    sat = hsv[..., 1]
+
+    SAT_MAX = 30      # paper is essentially zero-saturation
+    STD_MAX = 14      # paper is uniformly toned, even with vignette
+    OCCUPANCY = 0.85  # 85% of the strip must satisfy both
+
+    def is_paper_row(r: int) -> bool:
+        Lr = L[r, x0:x1].astype(np.float32)
+        Sr = sat[r, x0:x1]
+        # Local stdev via a sliding window: compare each pixel to its
+        # neighborhood's mean. Cheap proxy: |L - row_mean| < STD_MAX.
+        row_mean = float(np.mean(Lr))
+        is_uniform = np.abs(Lr - row_mean) < STD_MAX
+        is_unsaturated = Sr < SAT_MAX
+        return float(np.mean(is_uniform & is_unsaturated)) > OCCUPANCY
+
+    def is_paper_col(c: int) -> bool:
+        Lc = L[y0:y1, c].astype(np.float32)
+        Sc = sat[y0:y1, c]
+        col_mean = float(np.mean(Lc))
+        is_uniform = np.abs(Lc - col_mean) < STD_MAX
+        is_unsaturated = Sc < SAT_MAX
+        return float(np.mean(is_uniform & is_unsaturated)) > OCCUPANCY
+
+    ny0 = y0
+    while ny0 < y1 - 1 and is_paper_row(ny0):
+        ny0 += 1
+    ny1 = y1 - 1
+    while ny1 > ny0 and is_paper_row(ny1):
+        ny1 -= 1
+    nx0 = x0
+    while nx0 < x1 - 1 and is_paper_col(nx0):
+        nx0 += 1
+    nx1 = x1 - 1
+    while nx1 > nx0 and is_paper_col(nx1):
+        nx1 -= 1
+    return nx0, ny0, nx1 + 1, ny1 + 1
+
+
 def isolate_slab(img: Image.Image, deskew: bool = True,
-                 paper_margin: float = 0.003,
-                 silhouette_erode_px: int = 12) -> Image.Image:
+                 paper_margin: float = 0.0) -> Image.Image:
     """
     Use rembg (U2Net) to find the slab silhouette and crop the ORIGINAL
     image (paper background and all) tight to the slab's bbox. Deskew
@@ -92,32 +150,40 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
                     borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255),
                 )
 
-    # rembg's silhouette typically extends 5-15px beyond the actual slab
-    # plastic edge (the model's anti-aliased fringe). Erode the binary
-    # mask by silhouette_erode_px so the bbox lands ON the slab edge,
-    # not past it. Then add a tiny paper_margin (default 0.3% of bbox
-    # dims) for a barely-visible paper sliver — enough for the
-    # paper-to-backdrop transition to define the slab without showing
-    # as a distinct white halo.
+    # Stage 1: rembg silhouette bbox — gives us a starting region that
+    # contains the slab plus some paper around it. We INFLATE it so the
+    # walk-inward step has paper on every side to walk through.
     mask_u8 = (alpha > 64).astype(np.uint8) * 255
-    if silhouette_erode_px > 0:
-        k = max(1, silhouette_erode_px * 2 + 1)
-        erode_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
-        mask_u8 = cv2.erode(mask_u8, erode_kernel, iterations=1)
-
     ys, xs = np.where(mask_u8 > 0)
     if len(xs) == 0:
         return Image.fromarray(arr_rgb, "RGB")
-    x0, x1 = int(xs.min()), int(xs.max()) + 1
-    y0, y1 = int(ys.min()), int(ys.max()) + 1
-
     H, W = arr_rgb.shape[:2]
-    mx = int((x1 - x0) * paper_margin)
-    my = int((y1 - y0) * paper_margin)
-    x0 = max(0, x0 - mx)
-    y0 = max(0, y0 - my)
-    x1 = min(W, x1 + mx)
-    y1 = min(H, y1 + my)
+    bx0, bx1 = int(xs.min()), int(xs.max()) + 1
+    by0, by1 = int(ys.min()), int(ys.max()) + 1
+    inflate = max(40, int(max(bx1 - bx0, by1 - by0) * 0.03))
+    bx0 = max(0, bx0 - inflate)
+    by0 = max(0, by0 - inflate)
+    bx1 = min(W, bx1 + inflate)
+    by1 = min(H, by1 + inflate)
+
+    # Stage 2: walk each edge inward until the strip stops being
+    # predominantly paper. Lands precisely on the slab plastic edge
+    # — the slab's edge refraction and outline shadow both fail the
+    # paper test, so the walk stops at the slab regardless of rembg's
+    # silhouette accuracy.
+    x0, y0, x1, y1 = _walk_inward_to_slab_edge(arr_rgb, bx0, by0, bx1, by1)
+
+    # Optional paper_margin pulls the bbox back outward by a fraction
+    # of bbox dims if any paper sliver is wanted. Default 0 — flush
+    # to the slab edge.
+    if paper_margin > 0:
+        mx = int((x1 - x0) * paper_margin)
+        my = int((y1 - y0) * paper_margin)
+        x0 = max(0, x0 - mx)
+        y0 = max(0, y0 - my)
+        x1 = min(W, x1 + mx)
+        y1 = min(H, y1 + my)
+
     return Image.fromarray(arr_rgb[y0:y1, x0:x1], "RGB")
 
 
