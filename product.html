@@ -575,7 +575,7 @@
               ${oos
                 ? `<button type="button" class="btn btn-sm btn-disabled pdp-add-btn" disabled>Out of Stock</button>`
                 : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>
-                   <button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Make Offer</button>`}
+                   ${(showSizes || showColors) ? '' : `<button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Make Offer</button>`}`}
             </div>
 
             ${descHtml ? `<div class="pdp-desc">${descHtml}</div>` : ''}
