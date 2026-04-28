@@ -41,29 +41,33 @@ def _get_rembg_session():
     return _REMBG_SESSION
 
 
-def isolate_slab(img: Image.Image, deskew: bool = True) -> Image.Image:
+def isolate_slab(img: Image.Image, deskew: bool = True,
+                 paper_margin: float = 0.007) -> Image.Image:
     """
-    Use rembg (U2Net) to remove the paper background, deskew via the
-    silhouette's min-area rotated rect, and crop tight to the alpha
-    bbox. Returns RGBA.
+    Use rembg (U2Net) to find the slab silhouette and crop the ORIGINAL
+    image (paper background and all) tight to the slab's bbox. Deskew
+    via the silhouette's min-area rotated rect. Returns RGB.
 
-    Why this beats the bbox detectors: rembg gives a true slab silhouette
-    against transparency, so when compose() pastes with alpha there's no
-    paper bleeding around the slab on the backdrop — no halo, no
-    over/under-crop trade-off. Works equally well on clear PSA, colored
-    CGC, BGS holographic, and rainbow holders since U2Net was trained on
-    product photography of arbitrary objects.
+    The hybrid approach: rembg gives us a precise slab edge to crop
+    against, but we keep a thin paper margin (~1.5% of bbox dims) so
+    the slab plastic has natural contrast against the dark backdrop
+    via the paper-to-backdrop transition. Trying to silhouette-cut the
+    slab against transparency makes the translucent plastic blend into
+    the aura — paper edges read crisp.
+
+    `paper_margin` is the additional border in fractional bbox dims —
+    just enough to keep ~1-2% paper visible around the slab without
+    inflating into the surrounding scanner shadow.
     """
     from rembg import remove
     session = _get_rembg_session()
     rgba = remove(img.convert("RGB"), session=session)
-    arr = np.asarray(rgba)
-    alpha = arr[..., 3]
+    arr_rgba = np.asarray(rgba)
+    alpha = arr_rgba[..., 3]
 
-    # Deskew using the silhouette's minAreaRect.
+    arr_rgb = np.asarray(img.convert("RGB"))
+
     if deskew:
-        # Threshold low so semi-transparent edges count — they're still
-        # part of the slab outline.
         mask_u8 = (alpha > 16).astype(np.uint8) * 255
         contours, _ = cv2.findContours(mask_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if contours:
@@ -72,35 +76,38 @@ def isolate_slab(img: Image.Image, deskew: bool = True) -> Image.Image:
             rotation = angle if rw < rh else (angle + 90 if angle < 0 else angle - 90)
             if abs(rotation) > 0.3:
                 M = cv2.getRotationMatrix2D((cx, cy), rotation, 1.0)
-                # Rotate the RGBA — fill with fully-transparent so the
-                # rotation corners stay invisible on the backdrop.
-                rotated = cv2.warpAffine(
-                    arr, M, (arr.shape[1], arr.shape[0]),
+                # Rotate alpha (for the bbox lookup) AND original RGB
+                # (for the actual crop) by the same matrix so they stay
+                # aligned. Pad RGB with white (paper) so rotation corners
+                # blend into the natural paper background.
+                alpha = cv2.warpAffine(
+                    alpha, M, (alpha.shape[1], alpha.shape[0]),
                     flags=cv2.INTER_LINEAR,
-                    borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0),
+                    borderMode=cv2.BORDER_CONSTANT, borderValue=0,
                 )
-                arr = rotated
-                alpha = arr[..., 3]
+                arr_rgb = cv2.warpAffine(
+                    arr_rgb, M, (arr_rgb.shape[1], arr_rgb.shape[0]),
+                    flags=cv2.INTER_LINEAR,
+                    borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255),
+                )
 
-    # Crop to alpha bbox (>= 32 to ignore feathered fringes).
     mask = alpha > 32
     ys, xs = np.where(mask)
     if len(xs) == 0:
-        return Image.fromarray(arr, "RGBA")
+        return Image.fromarray(arr_rgb, "RGB")
     x0, x1 = int(xs.min()), int(xs.max()) + 1
     y0, y1 = int(ys.min()), int(ys.max()) + 1
-    cropped = arr[y0:y1, x0:x1].copy()
 
-    # Harden the alpha: rembg's silhouette has a 4-8px feathered fringe,
-    # which after upscale + composite onto a dark backdrop reads as a
-    # "melted plastic" halo around the slab. Threshold to a hard mask
-    # with a 1px Gaussian smoothing pass for anti-aliasing on the
-    # binary edge — slab outline now reads as crisp instead of feathered.
-    a = cropped[..., 3]
-    hard = (a >= 128).astype(np.uint8) * 255
-    hard = cv2.GaussianBlur(hard, (3, 3), 0.6)
-    cropped[..., 3] = hard
-    return Image.fromarray(cropped, "RGBA")
+    # Add a thin paper border around the slab — gives the slab edge its
+    # natural paper-to-backdrop transition when composited later.
+    H, W = arr_rgb.shape[:2]
+    mx = int((x1 - x0) * paper_margin)
+    my = int((y1 - y0) * paper_margin)
+    x0 = max(0, x0 - mx)
+    y0 = max(0, y0 - my)
+    x1 = min(W, x1 + mx)
+    y1 = min(H, y1 + my)
+    return Image.fromarray(arr_rgb[y0:y1, x0:x1], "RGB")
 
 
 def upscale_rgba(img: Image.Image, scale: int = 4) -> Image.Image:
@@ -826,7 +833,7 @@ def drop_shadow(slab: Image.Image, blur: int = 24,
 
 
 def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
-            scale: float = 0.82,
+            scale: float = 0.86,
             palette_override: list[tuple[int, int, int]] | None = None,
             ) -> tuple[Image.Image, tuple[int, int, int, int],
                        list[tuple[int, int, int]]]:
@@ -904,6 +911,29 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
     sx = (cw - shadow.width) // 2
     sy = (ch - shadow.height) // 2 + 18
     bg.paste(shadow, (sx, sy), shadow)
+
+    # Slab edge halo — slab plastic is translucent gray and blends into the
+    # bright aura behind it, making the silhouette read as soft. Pasting a
+    # slightly dilated dark version of the silhouette BEHIND the slab gives
+    # a hard outline ring (3-4px) that visually separates slab from aura
+    # without changing the slab pixels themselves.
+    if slab_resized.mode == "RGBA":
+        a = np.asarray(slab_resized.split()[3])
+        # Dilate the alpha by ~4px to get a halo ring
+        dilate_k = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+        a_dilated = cv2.dilate(a, dilate_k, iterations=1)
+        # Use the dilated alpha (at moderate opacity) as a deep-navy stamp
+        halo = np.zeros((target_h, target_w, 4), dtype=np.uint8)
+        halo[..., 0] = 5    # near-black with a hint of navy
+        halo[..., 1] = 5
+        halo[..., 2] = 15
+        halo[..., 3] = (a_dilated.astype(np.float32) * 0.78).astype(np.uint8)
+        halo_img = Image.fromarray(halo, "RGBA")
+        # Slight blur so the outline ring isn't crisp-jagged.
+        halo_img = halo_img.filter(ImageFilter.GaussianBlur(radius=1.2))
+        ph_x = (cw - target_w) // 2
+        ph_y = (ch - target_h) // 2
+        bg.paste(halo_img, (ph_x, ph_y), halo_img)
 
     # Slab itself.
     slab_rgba = slab_resized.convert("RGBA")
