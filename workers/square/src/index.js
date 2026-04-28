@@ -89,6 +89,10 @@ export default {
         return await uploadGradedItem(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/update-graded' && request.method === 'POST') {
+        return await updateGradedItem(request, base, squareHeaders, env);
+      }
+
       // Diagnostic: fetch a single Square catalog item by id, OR list all
       // objects of a given type (?types=TAX). Admin-token gated.
       if (path === '/admin/inspect' && request.method === 'GET') {
@@ -1011,6 +1015,108 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
     listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`,
   });
 }
+
+// Admin: rename / re-describe an existing graded-card listing in Square.
+// Used to fix titles when the OCR/lookup chain produced wrong card names.
+// Auth: X-Sake-Admin-Token header. Body: { cert: '<cert>', card: { name,
+// year, set_name, card_number, grade, grader } }. Looks the item up by
+// "Cert #: <cert>" in the description, then UPSERTs with corrected
+// metadata. Image links + variations + price are preserved.
+async function updateGradedItem(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+
+  const cert = String(body.cert || '').trim();
+  const card = body.card || {};
+  if (!cert) return json({ error: 'missing_cert' }, 400);
+
+  // Find the item by "Cert #: <cert>" in its description. Walk paginated
+  // /v2/catalog/list — for the current scale of the shop (a few dozen
+  // graded items) this is fine; revisit with /search if the catalog
+  // grows past a couple hundred.
+  let cursor = '';
+  let foundId = null;
+  for (let page = 0; page < 20; page++) {
+    const listUrl = `${base}/v2/catalog/list?types=ITEM${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const r = await fetch(listUrl, { headers: squareHeaders });
+    const d = await r.json();
+    if (!r.ok) return json({ error: 'square_list_failed', detail: d }, r.status);
+    const objs = d.objects || [];
+    const match = objs.find(o =>
+      o.type === 'ITEM' &&
+      (o.item_data?.description || '').includes(`Cert #: ${cert}`)
+    );
+    if (match) { foundId = match.id; break; }
+    cursor = d.cursor || '';
+    if (!cursor) break;
+  }
+  if (!foundId) return json({ error: 'item_not_found_for_cert', cert }, 404);
+
+  // Re-read the full item so we get the latest version + preserve fields
+  // we're not changing (variations, image_ids, present_at_*).
+  const readRes = await fetch(
+    `${base}/v2/catalog/object/${encodeURIComponent(foundId)}`,
+    { headers: squareHeaders },
+  );
+  const readData = await readRes.json();
+  if (!readRes.ok || !readData.object) {
+    return json({ error: 'square_read_failed', detail: readData }, readRes.status);
+  }
+  const fullItem = readData.object;
+
+  // Build the new title + description. Match the format uploadGradedItem
+  // uses, but accept a `grader` override (PSA / CGC / BGS / etc.) so we
+  // don't hard-code "PSA" on slabs from other companies.
+  const grader = String(card.grader || 'PSA').toUpperCase();
+  const gradeMatch = card.grade ? card.grade.match(/(\d{1,2}(?:\.\d)?)/) : null;
+  const gradeNum = gradeMatch ? gradeMatch[1] : '';
+  const titleParts = [];
+  if (gradeNum)         titleParts.push(`${grader} ${gradeNum}`);
+  if (card.year)        titleParts.push(card.year);
+  if (card.set_name)    titleParts.push(card.set_name);
+  if (card.name)        titleParts.push(card.name);
+  if (card.card_number) titleParts.push(`#${card.card_number}`);
+  const title = titleParts.join(' ').trim();
+
+  const descLines = [`PSA Cert #: ${cert}`];  // keep "PSA Cert #" key for cert-based lookups
+  if (card.set_name)    descLines.push(`Set: ${card.set_name}${card.year ? ` (${card.year})` : ''}`);
+  if (card.grade)       descLines.push(`Grade: ${grader} ${card.grade}`);
+  if (card.card_number) descLines.push(`Card Number: ${card.card_number}`);
+  descLines.push('Verify cert at psacard.com before purchase. Free shipping on orders $100+.');
+  const description = descLines.join('\n');
+
+  const updated = {
+    ...fullItem,
+    item_data: {
+      ...fullItem.item_data,
+      name: title.slice(0, 255),
+      description: description.slice(0, 4096),
+    },
+  };
+  const upRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST',
+    headers: squareHeaders,
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      object: updated,
+    }),
+  });
+  const upData = await upRes.json();
+  if (!upRes.ok) return json({ error: 'square_update_failed', detail: upData }, upRes.status);
+
+  return json({
+    ok:       true,
+    item_id:  foundId,
+    title,
+    listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(foundId)}`,
+  });
+}
+
 
 function base64ToBytes(b64) {
   const cleaned = b64.replace(/^data:[^;]+;base64,/, '');
