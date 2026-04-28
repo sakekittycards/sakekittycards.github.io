@@ -188,18 +188,31 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
         x1 = min(W, x1 + mx)
         y1 = min(H, y1 + my)
 
-    # Stage 3: use birefnet's silhouette as the alpha mask, cropped to
-    # the same walk-inward bbox. birefnet is accurate enough that the
-    # silhouette tracks the actual slab outline including rounded corners
-    # without the feathered fringe u2net produces. Hard-threshold to
-    # binary 0/255 with a 0.6px Gaussian for AA so the slab edge is crisp
-    # against the backdrop. Slab shape adapts per slab — works on rounded
-    # PSA, more-rounded BGS, angled CGC corners, etc.
+    # Stage 3: CONVEX HULL of birefnet's silhouette. The slab is
+    # geometrically convex (rounded rectangle — straight sides, rounded
+    # corners), but birefnet's raw silhouette has wavy artifacts and
+    # occasional bites that read as the slab being clipped. Taking the
+    # convex hull eliminates those: hull edges are straight on the
+    # straight slab sides, smooth on the rounded corners, and adapts
+    # per-slab shape automatically (works on PSA's tight corners, BGS's
+    # rounder corners, rainbow holders, etc.).
     rgb_crop = arr_rgb[y0:y1, x0:x1]
     alpha_crop = alpha[y0:y1, x0:x1]
-    a_hard = (alpha_crop >= 128).astype(np.uint8) * 255
-    a_hard = cv2.GaussianBlur(a_hard, (3, 3), 0.6)
-    rgba_arr = np.dstack([rgb_crop, a_hard])
+    a_bin = (alpha_crop >= 128).astype(np.uint8) * 255
+
+    contours, _ = cv2.findContours(a_bin, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    h_crop, w_crop = a_bin.shape[:2]
+    hull_mask = np.zeros((h_crop, w_crop), dtype=np.uint8)
+    if contours:
+        biggest = max(contours, key=cv2.contourArea)
+        hull = cv2.convexHull(biggest)
+        cv2.drawContours(hull_mask, [hull], -1, 255, thickness=cv2.FILLED)
+    else:
+        hull_mask[:] = a_bin
+    # 0.6px Gaussian for anti-aliasing on the binary edge.
+    hull_mask = cv2.GaussianBlur(hull_mask, (3, 3), 0.6)
+
+    rgba_arr = np.dstack([rgb_crop, hull_mask])
     return Image.fromarray(rgba_arr, "RGBA")
 
 
