@@ -296,8 +296,22 @@
               <input type="text" class="gp-search" id="gpSearch" placeholder="Search card name…" autocomplete="off" />
               <div class="gp-results" id="gpResults"></div>
             </div>
+            <p style="font-size:12px;color:var(--dim);margin:-6px 0 12px;line-height:1.5">
+              Card not coming up? (e.g. Topps Pokémon, certain promos, sealed-period oddballs) —
+              <button type="button" id="gpManualToggle" style="background:none;border:none;color:var(--orange);text-decoration:underline;cursor:pointer;font:inherit;padding:0">add it manually</button>.
+            </p>
+            <div class="gp-manual-form" id="gpManualForm" hidden style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
+              <div class="gp-contact-label" style="margin-bottom:10px">Add Card Manually</div>
+              <input type="text" id="gpManualName" class="gp-input" placeholder="Card name *" />
+              <input type="text" id="gpManualSet"  class="gp-input" placeholder="Set or year (e.g. 1999 Topps Pokémon)" />
+              <input type="text" id="gpManualNum"  class="gp-input" placeholder="Card number (optional)" />
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <button type="button" class="btn btn-primary btn-sm" id="gpManualAdd" style="flex:1;justify-content:center">Add to List</button>
+                <button type="button" class="btn btn-outline btn-sm" id="gpManualCancel">Cancel</button>
+              </div>
+            </div>
             <div class="gp-list" id="gpList">
-              <div class="gp-empty"><span class="icon">🎴</span>Search for a card above to add it to your list.</div>
+              <div class="gp-empty"><span class="icon">🎴</span>Search for a card above (or add manually) to start your list.</div>
             </div>
           </div>
 
@@ -539,7 +553,7 @@
           const data = res.ok ? await res.json() : {};
           gpSearchResults = data.data || [];
           if (!gpSearchResults.length) {
-            gpResultsEl.innerHTML = '<div class="gp-status">No results. Try a different spelling.</div>';
+            gpResultsEl.innerHTML = '<div class="gp-status">No results — try a different spelling, or add it manually below.</div>';
             return;
           }
           gpResultsEl.innerHTML = gpSearchResults.map((c, i) => `
@@ -572,6 +586,44 @@
 
       document.addEventListener('click', e => {
         if (!e.target.closest('#gpSearchWrap')) gpResultsEl.classList.remove('open');
+      });
+
+      // Manual entry — for cards the pokemontcg.io API doesn't index
+      // (Topps Pokémon, sealed-period oddballs, certain promos). Same
+      // svc/prep selectors apply once added.
+      const gpManualForm   = document.getElementById('gpManualForm');
+      const gpManualToggle = document.getElementById('gpManualToggle');
+      const gpManualName   = document.getElementById('gpManualName');
+      const gpManualSet    = document.getElementById('gpManualSet');
+      const gpManualNum    = document.getElementById('gpManualNum');
+      const gpManualAdd    = document.getElementById('gpManualAdd');
+      const gpManualCancel = document.getElementById('gpManualCancel');
+
+      const closeManual = () => {
+        gpManualForm.hidden = true;
+        gpManualName.value = '';
+        gpManualSet.value  = '';
+        gpManualNum.value  = '';
+      };
+      gpManualToggle.addEventListener('click', () => {
+        gpManualForm.hidden = !gpManualForm.hidden;
+        if (!gpManualForm.hidden) gpManualName.focus();
+      });
+      gpManualCancel.addEventListener('click', closeManual);
+      gpManualAdd.addEventListener('click', () => {
+        const name = gpManualName.value.trim();
+        if (!name) { gpManualName.focus(); return; }
+        gpCards.push({
+          name,
+          set:  gpManualSet.value.trim(),
+          num:  gpManualNum.value.trim(),
+          img:  '',
+          svc:  'standard',
+          prep: false,
+          manual: true,
+        });
+        closeManual();
+        renderList();
       });
 
       gpNameEl.addEventListener('input', recalc);
