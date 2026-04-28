@@ -42,7 +42,8 @@ def _get_rembg_session():
 
 
 def isolate_slab(img: Image.Image, deskew: bool = True,
-                 paper_margin: float = 0.007) -> Image.Image:
+                 paper_margin: float = 0.003,
+                 silhouette_erode_px: int = 12) -> Image.Image:
     """
     Use rembg (U2Net) to find the slab silhouette and crop the ORIGINAL
     image (paper background and all) tight to the slab's bbox. Deskew
@@ -91,15 +92,25 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
                     borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255),
                 )
 
-    mask = alpha > 32
-    ys, xs = np.where(mask)
+    # rembg's silhouette typically extends 5-15px beyond the actual slab
+    # plastic edge (the model's anti-aliased fringe). Erode the binary
+    # mask by silhouette_erode_px so the bbox lands ON the slab edge,
+    # not past it. Then add a tiny paper_margin (default 0.3% of bbox
+    # dims) for a barely-visible paper sliver — enough for the
+    # paper-to-backdrop transition to define the slab without showing
+    # as a distinct white halo.
+    mask_u8 = (alpha > 64).astype(np.uint8) * 255
+    if silhouette_erode_px > 0:
+        k = max(1, silhouette_erode_px * 2 + 1)
+        erode_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, k))
+        mask_u8 = cv2.erode(mask_u8, erode_kernel, iterations=1)
+
+    ys, xs = np.where(mask_u8 > 0)
     if len(xs) == 0:
         return Image.fromarray(arr_rgb, "RGB")
     x0, x1 = int(xs.min()), int(xs.max()) + 1
     y0, y1 = int(ys.min()), int(ys.max()) + 1
 
-    # Add a thin paper border around the slab — gives the slab edge its
-    # natural paper-to-backdrop transition when composited later.
     H, W = arr_rgb.shape[:2]
     mx = int((x1 - x0) * paper_margin)
     my = int((y1 - y0) * paper_margin)
