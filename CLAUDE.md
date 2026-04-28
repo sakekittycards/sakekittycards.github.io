@@ -35,7 +35,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 
 ## Business rules (relevant to code)
 
-- **Shipping policy:** free on orders $100+, flat $5 below. Applies to cards, plushies, sealed, everything. Stated on faq.html + shop.html; cart logic in main.js uses `SK_SHIP_FREE_OVER`.
+- **Shipping policy:** flat $5 on every order — no free-shipping tier. Applies to cards, plushies, sealed, everything. Stated on faq.html + shop.html; cart logic in main.js uses `SK_SHIP_FLAT_FEE`.
 - **Trade-in tiers:** Singles 60% cash / 75% credit · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95. Codified in `trade-in.html`.
 - **Bulk rates:** 15 categories, defined in `BULK_RATES` array in trade-in.html. Keep in sync if categories change.
 - **Payment methods:** Venmo, PayPal, Cash App. **Zelle is NOT an option.** Square in progress (see below).

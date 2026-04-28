@@ -169,7 +169,6 @@ function spawnSingleDrip() {
 
 const SK_CART_KEY        = 'sk_cart_v1';
 const SK_SHIP_STATE_KEY  = 'sk_ship_state_v1';
-const SK_SHIP_FREE_OVER  = 100;
 const SK_SHIP_FLAT_FEE   = 5;
 // Mandatory shipping insurance on graded / raw / sealed orders. $1 per
 // $100 of insurable value (rounded up to the next $100), only when the
@@ -276,7 +275,7 @@ function skInsuranceCost(insurableSubtotal) {
 }
 function skShippingCost(subtotal) {
   if (subtotal <= 0) return 0;
-  return subtotal >= SK_SHIP_FREE_OVER ? 0 : SK_SHIP_FLAT_FEE;
+  return SK_SHIP_FLAT_FEE;
 }
 
 // Public API for shop pages
@@ -440,7 +439,6 @@ window.SK = {
     const shipState = skGetShipState();
     const tax       = skTaxAmount(subtotal, shipping, shipState, insurance);
     const total     = subtotal + shipping + insurance + tax;
-    const remaining = SK_SHIP_FREE_OVER - subtotal;
 
     // US state options. FL flagged so we can show a small "+7% tax" hint.
     const STATES = [
@@ -471,10 +469,6 @@ window.SK = {
     const checkoutDisabled = !shipState;
 
     footer.innerHTML = `
-      ${shipping > 0
-        ? `<div class="cart-ship-note">Add <strong>${fmt(Math.max(0, remaining))}</strong> more for free shipping</div>`
-        : `<div class="cart-ship-note free">✓ You've unlocked free shipping</div>`}
-
       <label class="cart-ship-state">
         <span>Shipping to</span>
         <select id="cartShipState">
@@ -484,7 +478,7 @@ window.SK = {
       </label>
 
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-      <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 ? 'Free' : fmt(shipping)}</span></div>
+      <div class="cart-totals-row"><span>Shipping</span><span>${fmt(shipping)}</span></div>
       ${insurance > 0
         ? `<div class="cart-totals-row"><span>Shipping insurance</span><span>${fmt(insurance)}</span></div>`
         : ''}

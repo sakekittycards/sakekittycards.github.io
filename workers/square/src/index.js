@@ -846,7 +846,7 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   if (card.set_name)    descriptionLines.push(`Set: ${card.set_name}${card.year ? ` (${card.year})` : ''}`);
   if (card.grade)       descriptionLines.push(`Grade: PSA ${card.grade}`);
   if (card.card_number) descriptionLines.push(`Card Number: ${card.card_number}`);
-  descriptionLines.push('Verify cert at psacard.com before purchase. Free shipping on orders $100+.');
+  descriptionLines.push('Verify cert at psacard.com before purchase.');
   const description = descriptionLines.join('\n');
 
   // 1. Create the catalog item + single ITEM_VARIATION (qty 1, fixed price).
@@ -1093,7 +1093,7 @@ async function updateGradedItem(request, base, squareHeaders, env) {
   if (card.set_name)    descLines.push(`Set: ${card.set_name}${card.year ? ` (${card.year})` : ''}`);
   if (card.grade)       descLines.push(`Grade: ${grader} ${card.grade}`);
   if (card.card_number) descLines.push(`Card Number: ${card.card_number}`);
-  descLines.push('Verify cert at psacard.com before purchase. Free shipping on orders $100+.');
+  descLines.push('Verify cert at psacard.com before purchase.');
   const description = descLines.join('\n');
 
   const updated = {
