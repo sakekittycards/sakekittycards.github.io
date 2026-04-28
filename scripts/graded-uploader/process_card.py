@@ -44,18 +44,25 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
 
     The slab plastic is nearly white against white paper, so Otsu's
     threshold lights up only the card art inside (which misses the PSA
-    label band). Canny edges + heavy dilation correctly traces the
-    slab's outer plastic perimeter — including the white label region.
+    label band). Canny edges + dilate-close-erode correctly traces the
+    slab's outer plastic perimeter, then recovers the true edge so we
+    don't include extra paper around the slab.
     """
     arr = np.asarray(img.convert("L"))
     arr = cv2.GaussianBlur(arr, (7, 7), 0)
     edges = cv2.Canny(arr, 30, 90)
     # Dilate to connect broken edge fragments along the slab perimeter.
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
-    edges = cv2.dilate(edges, kernel, iterations=2)
+    dilate_k = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    edges = cv2.dilate(edges, dilate_k, iterations=2)
     # Close any remaining gaps so the perimeter is one ring.
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE,
-                             cv2.getStructuringElement(cv2.MORPH_RECT, (35, 35)))
+    close_k = cv2.getStructuringElement(cv2.MORPH_RECT, (35, 35))
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, close_k)
+    # Erode back by roughly the dilation amount so the contour hugs the
+    # actual slab edge instead of the inflated detection mask. Slight
+    # under-erode (smaller kernel/iter than the dilate) keeps the slab
+    # connected if there's any speckle in the perimeter.
+    erode_k = cv2.getStructuringElement(cv2.MORPH_RECT, (13, 13))
+    edges = cv2.erode(edges, erode_k, iterations=2)
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         return None
@@ -85,7 +92,7 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
     return best
 
 
-def crop_slab(img: Image.Image, pad: int = 24) -> Image.Image:
+def crop_slab(img: Image.Image, pad: int = 6) -> Image.Image:
     """
     Find the slab, deskew (rotate to level) using its minimum bounding
     rectangle, and crop to the rotated, axis-aligned bbox.
@@ -436,8 +443,9 @@ def drop_shadow(slab: Image.Image, blur: int = 24,
     return shadow
 
 
-def compose(slab: Image.Image, canvas_size: tuple[int, int] = (1500, 1500),
-            scale: float = 0.78
+def compose(slab: Image.Image, canvas_size: tuple[int, int] = (2400, 2400),
+            scale: float = 0.78,
+            palette_override: list[tuple[int, int, int]] | None = None,
             ) -> tuple[Image.Image, tuple[int, int, int, int],
                        list[tuple[int, int, int]]]:
     """
@@ -458,7 +466,7 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (1500, 1500),
     slab_resized = slab.resize((target_w, target_h), Image.LANCZOS)
 
     # Aura: multi-layer glow tinted to harmonize with this card's art.
-    palette = extract_palette(slab_resized, n=3)
+    palette = palette_override if palette_override else extract_palette(slab_resized, n=3)
     print(f"    palette: {palette}")
     aura = slab_aura((target_w, target_h), palette)
     ax = (cw - aura.width) // 2
@@ -586,10 +594,21 @@ def add_wordmark(canvas: Image.Image, text: str = "SAKE KITTY CARDS",
 # ---------- entry --------------------------------------------------------- #
 
 def process_one(src: Path, out_dir: Path,
-                out_name: str | None = None) -> Path:
+                out_name: str | None = None,
+                palette_override: list[tuple[int, int, int]] | None = None,
+                ) -> tuple[Path, list[tuple[int, int, int]]]:
+    """
+    Run the full image pipeline on a single scan.
+
+    `palette_override` lets callers force a specific 3-color palette —
+    used by process_inbox to make sure the back of a card uses the same
+    glow + wordmark colors as its front.
+
+    Returns (output_path, palette_used) so callers can chain.
+    """
     img = Image.open(src).convert("RGB")
     cropped = crop_slab(img)
-    finished, _slab_rect, palette = compose(cropped)
+    finished, _slab_rect, palette = compose(cropped, palette_override=palette_override)
     finished = add_wordmark(finished, colors=palette)
     name = out_name or f"{src.stem}_processed.jpg"
     out_path = out_dir / name
@@ -597,7 +616,7 @@ def process_one(src: Path, out_dir: Path,
     finished.save(out_path, "JPEG", quality=92)
     print(f"  {src.name} -> {out_path.name}  "
           f"(crop {cropped.size}, out {finished.size})")
-    return out_path
+    return out_path, palette
 
 
 def main():
@@ -613,7 +632,7 @@ def main():
         if not src.exists():
             print(f"  SKIP missing: {src}", file=sys.stderr)
             continue
-        process_one(src, args.out)
+        process_one(src, args.out)  # standalone CLI; palette per image is fine
 
 
 if __name__ == "__main__":

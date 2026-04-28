@@ -304,13 +304,17 @@ def main():
         slug_name = slug((match or {}).get("name") or parsed.get("card_title"))
         out_subdir = args.finished / f"{slug_name}-cert{cert}"
         try:
-            front_out = process_one(
+            # Front first — captures the palette derived from the card art.
+            front_out, palette = process_one(
                 front_src, out_subdir,
                 out_name=f"{slug_name}-cert{cert}-front.jpg",
             )
-            back_out = process_one(
+            # Back reuses the front's palette so the wordmark / aura
+            # colors match across both gallery images.
+            back_out, _ = process_one(
                 back_src, out_subdir,
                 out_name=f"{slug_name}-cert{cert}-back.jpg",
+                palette_override=palette,
             )
         except Exception as e:
             print(f"  cert {cert}: image pipeline failed: {e}")
