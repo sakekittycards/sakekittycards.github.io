@@ -86,7 +86,14 @@ def _slab_contour(img: Image.Image) -> np.ndarray | None:
         # orientation in case a card was scanned sideways.
         if not (0.55 < aspect < 2.2):
             continue
-        ideal_aspect = 1.42
+        # PSA slabs are 3.62" × 5.81" (aspect ≈ 1.60). The card inside is
+        # 2.48" × 3.46" (aspect ≈ 1.39). With clean slab edges the outer
+        # slab is the only "external" contour, but on some scans (older
+        # PSA labels, low-contrast plastic) both the slab AND the inner
+        # card register as separate externals. Tuning the ideal aspect to
+        # the slab (not the card) ensures the larger slab outscores the
+        # card even when both pass the filter.
+        ideal_aspect = 1.60
         score = area * (1.0 - min(1.0, abs(aspect - ideal_aspect) / ideal_aspect))
         if score > best_score:
             best_score = score
