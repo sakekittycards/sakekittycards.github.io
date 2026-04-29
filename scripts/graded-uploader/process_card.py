@@ -1062,12 +1062,19 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
             ImageFilter.UnsharpMask(radius=0.8, percent=110, threshold=1)
         )
 
+    # Vertical bias — shift the slab + aura + shadow upward by a small
+    # fraction of the canvas height so the wordmark below has clean
+    # clearance. Pure centering puts the slab bottom essentially flush
+    # with the wordmark when scale=0.86, and the wordmark glow ends up
+    # overlapping the slab plastic visually.
+    vbias = int(ch * 0.030)
+
     # Aura: multi-layer glow tinted to harmonize with this card's art.
     palette = palette_override if palette_override else extract_palette(slab_resized, n=3)
     print(f"    palette: {palette}")
     aura = slab_aura((target_w, target_h), palette)
     ax = (cw - aura.width) // 2
-    ay = (ch - aura.height) // 2
+    ay = (ch - aura.height) // 2 - vbias
     # Convert bg to RGBA for proper alpha compositing of the soft aura.
     bg_rgba = bg.convert("RGBA")
     aura_canvas = Image.new("RGBA", bg_rgba.size, (0, 0, 0, 0))
@@ -1077,7 +1084,7 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
     # Drop shadow — sits between aura and slab so the slab still has weight.
     shadow = drop_shadow(slab_resized, blur=28, offset=(0, 18), opacity=0.45)
     sx = (cw - shadow.width) // 2
-    sy = (ch - shadow.height) // 2 + 18
+    sy = (ch - shadow.height) // 2 + 18 - vbias
     bg.paste(shadow, (sx, sy), shadow)
 
     # Slab edge halo — slab plastic is translucent gray and blends into the
@@ -1100,13 +1107,13 @@ def compose(slab: Image.Image, canvas_size: tuple[int, int] = (4096, 4096),
         # Slight blur so the outline ring isn't crisp-jagged.
         halo_img = halo_img.filter(ImageFilter.GaussianBlur(radius=1.2))
         ph_x = (cw - target_w) // 2
-        ph_y = (ch - target_h) // 2
+        ph_y = (ch - target_h) // 2 - vbias
         bg.paste(halo_img, (ph_x, ph_y), halo_img)
 
     # Slab itself.
     slab_rgba = slab_resized.convert("RGBA")
     px = (cw - target_w) // 2
-    py = (ch - target_h) // 2
+    py = (ch - target_h) // 2 - vbias
     bg.paste(slab_rgba, (px, py), slab_rgba)
 
     return bg, (px, py, target_w, target_h), palette
