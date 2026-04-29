@@ -712,6 +712,20 @@ body.cart-open { overflow: hidden; }
 }
 .graded-controls .ctrl-reset:hover { color: var(--orange); border-color: var(--orange); }
 .graded-count { font-size: 13px; color: var(--dim); margin: 0 0 12px; }
+
+/* Image fade-in to mask partial-bytes flashes when shop grid populates.
+   img-loading sits at near-zero opacity over a placeholder background;
+   img-loaded fades in over 280ms once the image's onload fires. */
+.product-img-real.img-loading {
+  opacity: 0;
+  background: rgba(255,255,255,0.04);
+}
+.product-img-real {
+  transition: opacity 280ms ease-out;
+}
+.product-img-real.img-loaded {
+  opacity: 1;
+}
 @media (max-width: 640px) {
   .graded-controls { gap: 8px; padding: 10px 12px; }
   .graded-controls .ctrl { min-width: calc(50% - 6px); flex-grow: 1; }

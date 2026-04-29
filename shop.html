@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=35" />
+  <link rel="stylesheet" href="style.css?v=36" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -217,14 +217,22 @@
         return { grader, grade, year };
       };
 
+      let _eagerCount = 0;
+      const EAGER_LIMIT = 8;  // first ~2 rows render with priority
       const renderCard = (item) => {
         const oos = item.inStock === false;
-        // loading="lazy" + decoding="async" for native browser progressive
-        // load — visible images get priority, off-screen ones lazy-load as
-        // user scrolls. Width/height attrs reserve layout space so the
-        // grid doesn't reflow as images come in.
+        const eager = _eagerCount < EAGER_LIMIT;
+        _eagerCount++;
+        // First N: eager + fetchpriority="high" so above-fold renders
+        // immediately. Remaining: lazy + low priority — they fill in
+        // progressively as the user scrolls. img-loading/img-loaded
+        // classes drive a quick CSS fade-in so partial-bytes images
+        // don't flash in.
+        const loadAttrs = eager
+          ? 'loading="eager" decoding="async" fetchpriority="high"'
+          : 'loading="lazy" decoding="async" fetchpriority="low"';
         const imgBlock = item.imageUrl
-          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real" loading="lazy" decoding="async" width="320" height="320" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} width="320" height="320" onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
           : `<div class="product-img">📦</div>`;
         const desc = item.description
           ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
@@ -276,6 +284,7 @@
         }
 
         const renderGraded = () => {
+          _eagerCount = 0;  // reset eager-count for each re-render
           const grader = document.getElementById('gradedGrader').value;
           const minGrade = document.getElementById('gradedGradeMin').value;
           const yearFrom = Number(document.getElementById('gradedYearFrom').value) || null;
