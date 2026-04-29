@@ -101,6 +101,12 @@ export default {
         return await adminDeleteItem(request, base, squareHeaders, env);
       }
 
+      // Public endpoint — let the gift-cards page check a balance from
+      // a customer-typed code without redirecting to Square.
+      if (path === '/gift-card/balance' && request.method === 'POST') {
+        return await checkGiftCardBalance(request, base, squareHeaders, env);
+      }
+
       // Diagnostic: fetch a single Square catalog item by id, OR list all
       // objects of a given type (?types=TAX). Admin-token gated.
       if (path === '/admin/inspect' && request.method === 'GET') {
@@ -1253,6 +1259,44 @@ async function replaceGradedImages(request, base, squareHeaders, env) {
     deleted_old_image_ids: deleted,
     front_image_id: frontData.image?.id,
     back_image_id: backImageId,
+  });
+}
+
+
+// Public: check the balance on a Sake Kitty Cards gift card by code.
+// Read-only — calls Square's /v2/gift-cards/from-gan and returns just
+// the balance + state. No PII, no admin auth required.
+//
+// Trade-off: anyone who guesses a code can read its balance. Square
+// codes are 16 chars from a large alphabet so brute-force is
+// impractical, and the response leaks only the amount loaded — not
+// any customer info. Cloudflare Workers' built-in rate limiting on
+// the free tier is sufficient for the volume we expect.
+async function checkGiftCardBalance(request, base, squareHeaders, env) {
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+  const gan = String(body.gan || '').trim().replace(/\s+/g, '');
+  if (!gan) return json({ error: 'missing_gan' }, 400);
+  if (gan.length < 4 || gan.length > 32) return json({ error: 'invalid_gan' }, 400);
+
+  const r = await fetch(`${base}/v2/gift-cards/from-gan`, {
+    method: 'POST',
+    headers: squareHeaders,
+    body: JSON.stringify({ gan }),
+  });
+  if (!r.ok) {
+    // 404 = code doesn't exist. Anything else is a Square outage.
+    if (r.status === 404) return json({ ok: false, error: 'not_found' }, 404);
+    return json({ ok: false, error: 'square_error' }, 502);
+  }
+  const d = await r.json();
+  if (!d.gift_card) return json({ ok: false, error: 'not_found' }, 404);
+  return json({
+    ok: true,
+    balance_cents: d.gift_card.balance_money?.amount || 0,
+    currency:      d.gift_card.balance_money?.currency || 'USD',
+    state:         d.gift_card.state,
+    last4:         gan.slice(-4),
   });
 }
 
