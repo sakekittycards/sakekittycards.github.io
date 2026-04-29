@@ -153,6 +153,28 @@ CORRECTIONS = [
             'grade': 'GEM MT 10',
         },
     },
+    # ── Today's batch corrections (verified against PSA slab OCR) ──
+    {'cert': '113910492', 'card': {'name': 'FA Mewtwo V', 'year': '2022', 'set_name': 'Pokemon GO', 'card_number': '072', 'grade': 'GEM MT 10'}},
+    {'cert': '106438552', 'card': {'name': 'FA Dragonite V', 'year': '2021', 'set_name': 'Evolving Skies', 'card_number': '192', 'grade': 'GEM MT 10'}},
+    {'cert': '138441842', 'card': {'name': 'Umbreon Holo', 'year': '2000', 'set_name': 'Japanese Neo 2', 'card_number': '197', 'grade': 'MINT 9'}},
+    {'cert': '119392108', 'card': {'name': 'Pikachu ex (Special Illustration Rare)', 'year': '2024', 'set_name': 'Surging Sparks', 'card_number': '238', 'grade': 'GEM MT 10'}},
+    {'cert': '102369962', 'card': {'name': 'Charizard ex (Ultra Rare)', 'year': '2023', 'set_name': 'Obsidian Flames', 'card_number': '215', 'grade': 'GEM MT 10'}},
+    {'cert': '115079776', 'card': {'name': 'Gardevoir ex (Special Illustration Rare)', 'year': '2024', 'set_name': 'Paldean Fates', 'card_number': '233', 'grade': 'GEM MT 10'}},
+    {'cert': '105740011', 'card': {'name': 'FA Charizard VSTAR (Ultra Premium Collection)', 'year': '2022', 'set_name': 'SWSH Black Star Promos', 'card_number': '262', 'grade': 'GEM MT 10'}},
+    {'cert': '114068076', 'card': {'name': 'Milotic ex (Special Art Rare)', 'year': '2024', 'set_name': 'Pokemon Card SV8 (Japanese)', 'card_number': '131', 'grade': 'GEM MT 10'}},
+    {'cert': '113090244', 'card': {'name': 'Rowlet & Alolan Exeggutor GX (Tag Team Full Art)', 'year': '2019', 'set_name': 'Japanese Sky Legend (Sun & Moon)', 'card_number': '056', 'grade': 'GEM MT 10'}},
+    {'cert': '104313030', 'card': {'name': 'Flittle (Shiny Rare)', 'year': '2024', 'set_name': 'Paldean Fates', 'card_number': '164', 'grade': 'GEM MT 10'}},
+    {'cert': '120406485', 'card': {'name': 'Psyduck (Illustration Rare)', 'year': '2023', 'set_name': 'Pokemon Card 151', 'card_number': '175', 'grade': 'MINT 9'}},
+    {'cert': '44690212',  'card': {'name': 'Pikachu (1st Edition)', 'year': '1999', 'set_name': 'Jungle', 'card_number': '60', 'grade': 'GEM MT 10'}},
+    {'cert': '51557052',  'card': {'name': "Rocket's Scyther Holo (1st Edition)", 'year': '2000', 'set_name': 'Gym Heroes', 'card_number': '13', 'grade': 'MINT 9'}},
+    {'cert': '54700750',  'card': {'name': 'Raichu Holo', 'year': '2000', 'set_name': 'Base Set 2', 'card_number': '16', 'grade': 'MINT 9'}},
+    {'cert': '65570347',  'card': {'name': 'Venusaur Holo', 'year': '1999', 'set_name': 'Base Set', 'card_number': '15', 'grade': 'NM 7'}},
+    {'cert': '88084896',  'card': {'name': 'Radiant Charizard', 'year': '2023', 'set_name': 'Crown Zenith', 'card_number': '020', 'grade': 'GEM MT 10'}},
+    {'cert': '89676057',  'card': {'name': 'Squirtle (Art Rare)', 'year': '2023', 'set_name': 'Pokemon Card SV2a (Japanese)', 'card_number': '170', 'grade': 'GEM MT 10'}},
+    {'cert': '60607369',  'card': {'name': 'Rayquaza (Amazing Rare)', 'year': '2020', 'set_name': 'Vivid Voltage', 'card_number': '138', 'grade': 'GEM MT 10'}},
+    {'cert': '50358384',  'card': {'name': 'Celebi Holo', 'year': '2000', 'set_name': 'Japanese Neo 3', 'card_number': '251', 'grade': 'MINT 9'}},
+    {'cert': '56276763',  'card': {'name': 'Alakazam Holo', 'year': '1999', 'set_name': 'Base Set', 'card_number': '1', 'grade': 'NM-MT 8'}},
+    {'cert': '83320225',  'card': {'name': 'FA Raikou V', 'year': '2023', 'set_name': 'Crown Zenith Galarian Gallery', 'card_number': 'GG41', 'grade': 'MINT 9'}},
 ]
 
 
