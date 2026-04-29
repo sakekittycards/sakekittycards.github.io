@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=40" />
+  <link rel="stylesheet" href="style.css?v=41" />
   <style>
     .gc-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
@@ -36,25 +36,23 @@
       margin-bottom: 8px;
       position: relative;
     }
-    .gc-card-icon {
-      width: 64px; height: 64px;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
+    /* Banner image acts as the card's full visual header — replaces the
+       small-icon + h2 + sub stack. The art already includes the heading
+       text ("BUY A GIFT CARD" / "CHECK BALANCE") and a one-line tagline. */
+    .gc-card-banner {
+      display: block;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto 14px;
+      filter: drop-shadow(0 8px 24px rgba(255,106,0,0.22));
     }
-    .gc-card-icon img {
-      width: 100%; height: 100%; object-fit: contain;
-      filter: drop-shadow(0 4px 14px rgba(255,106,0,0.25));
-    }
-    .gc-card.balance .gc-card-icon img {
-      filter: drop-shadow(0 4px 14px rgba(0,212,255,0.28));
-    }
-    .gc-card h2 {
-      font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: .04em;
-      margin: 0;
+    .gc-card.balance .gc-card-banner {
+      filter: drop-shadow(0 8px 24px rgba(0,212,255,0.26));
     }
     .gc-card-sub {
       font-size: 13px; color: var(--dim);
       margin: 0 0 22px;
+      text-align: center;
       position: relative;
     }
 
@@ -192,11 +190,8 @@
       <div class="gc-grid">
         <!-- Buy -->
         <div class="gc-card">
-          <div class="gc-card-head">
-            <div class="gc-card-icon"><img src="assets/icons/gift-card-buy.png" alt="" /></div>
-            <h2>Buy a Gift Card</h2>
-          </div>
-          <p class="gc-card-sub">Pick an amount. Code emails instantly. Spend it at our booth or online.</p>
+          <img src="assets/icons/gift-card-buy-banner.png" alt="Buy a Sake Kitty Cards Gift Card" class="gc-card-banner" />
+          <p class="gc-card-sub">Pick an amount. Code emails instantly. Spend at the booth or online.</p>
 
           <div class="gc-amount-grid" id="gcAmountGrid">
             <button type="button" class="gc-amount-btn" data-amt="25">$25</button>
@@ -220,10 +215,7 @@
 
         <!-- Check Balance -->
         <div class="gc-card balance">
-          <div class="gc-card-head">
-            <div class="gc-card-icon"><img src="assets/icons/gift-card-balance.png" alt="" /></div>
-            <h2>Check Balance</h2>
-          </div>
+          <img src="assets/icons/gift-card-balance-banner.png" alt="Check your Sake Kitty Cards Gift Card Balance" class="gc-card-banner" />
           <p class="gc-card-sub">Type the code from your gift card email — we'll show you what's left.</p>
 
           <form id="gcBalanceForm">
@@ -273,7 +265,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
   </footer>
 
-  <script src="main.js?v=40"></script>
+  <script src="main.js?v=41"></script>
   <script>
     // Buy flow — pick amount, then redirect to Square's gift-card order
     // page (PCI compliance forces the actual checkout to land on Square).
