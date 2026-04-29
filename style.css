@@ -734,34 +734,13 @@ body.cart-open { overflow: hidden; }
 }
 
 /* Shop categories quick-jump nav — sits at the top of the product list
-   and pins to the top of the viewport once you scroll past it (sticky).
-   So no matter how deep into the products you go, the category switcher
-   stays one click away in a familiar position — same horizontal spot,
-   doesn't compete with the side gutters of the page. */
+   so customers see the categories at a glance on pageload. Once they
+   scroll past, the floating dock (.shop-cat-nav-dock below) takes over
+   and stays pinned to the bottom of the viewport. */
 .shop-cat-nav {
   display: flex; flex-wrap: wrap; gap: 10px;
   justify-content: center;
-  margin: 8px -12px 28px;     /* negative side margin so the stuck-state */
-  padding: 12px 12px;          /* full-bleed background can extend past the */
-  position: sticky;            /* container's content padding */
-  top: 0;
-  z-index: 60;
-  transition: background .25s ease, backdrop-filter .25s ease,
-              box-shadow .25s ease, padding .2s ease;
-}
-/* Idle (in-flow) state — quiet, no chrome */
-.shop-cat-nav:not(.stuck) {
-  background: transparent;
-}
-/* Stuck (pinned to top) — translucent backdrop + soft shadow + tighter
-   padding so it hugs the top of the viewport like a toolbar */
-.shop-cat-nav.stuck {
-  background: rgba(13, 13, 20, 0.82);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35),
-              0 1px 0 rgba(255, 255, 255, 0.04) inset;
-  padding: 10px 12px;
+  margin: 8px 0 28px;
 }
 .shop-cat-pill {
   display: inline-flex; align-items: center; gap: 8px;
@@ -798,13 +777,85 @@ body.cart-open { overflow: hidden; }
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-/* Tighter pills on small screens. Once stuck on mobile we go even more
-   compact (smaller font, less padding) so 3 pills can sit on one row. */
 @media (max-width: 540px) {
   .shop-cat-nav { gap: 6px; }
   .shop-cat-pill { padding: 8px 12px; font-size: 12.5px; gap: 6px; }
   .shop-cat-count { min-width: 19px; height: 19px; font-size: 10.5px; padding: 0 5px; }
-  .shop-cat-nav.stuck .shop-cat-pill { padding: 7px 11px; font-size: 12px; }
+}
+
+/* Floating category dock — pinned to the bottom-center of the viewport.
+   Appears once the in-flow nav scrolls out of view; hides again when
+   the footer enters the viewport. Same UX desktop & mobile: a centered
+   floating pill cluster that always stays one click away.
+
+   Container is a single rounded "capsule" holding all three pills,
+   with backdrop blur for legibility over product imagery. */
+.shop-cat-nav-dock {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translate(-50%, 80px);
+  z-index: 70;
+  margin: 0;
+  padding: 6px;
+  gap: 4px;
+  flex-wrap: nowrap;
+  background: rgba(13, 13, 20, 0.78);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45),
+              0 2px 6px rgba(0, 0, 0, 0.25),
+              0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .3s cubic-bezier(.2,.8,.3,1);
+  max-width: calc(100vw - 24px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.shop-cat-nav-dock::-webkit-scrollbar { display: none; }
+.shop-cat-nav-dock.visible:not(.past-shop) {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+/* Pills inside the dock — slightly tighter (no individual borders since
+   the container has its own), and the active state is a solid filled
+   pill instead of a tinted overlay (more "current item" feel) */
+.shop-cat-nav-dock .shop-cat-pill {
+  background: transparent;
+  border-color: transparent;
+  padding: 9px 16px;
+  flex-shrink: 0;
+}
+.shop-cat-nav-dock .shop-cat-pill:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: transparent;
+  transform: none;
+}
+.shop-cat-nav-dock .shop-cat-pill.active {
+  background: linear-gradient(180deg, var(--orange), var(--pink));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(255, 106, 0, 0.4);
+}
+.shop-cat-nav-dock .shop-cat-pill.active .shop-cat-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+@media (max-width: 540px) {
+  .shop-cat-nav-dock {
+    padding: 5px;
+    gap: 2px;
+  }
+  .shop-cat-nav-dock .shop-cat-pill {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
 }
 
 /* Shop sections — Apparel & Merch / Singles & Sealed / Graded */
