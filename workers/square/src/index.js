@@ -97,6 +97,10 @@ export default {
         return await replaceGradedImages(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/delete-item' && request.method === 'POST') {
+        return await adminDeleteItem(request, base, squareHeaders, env);
+      }
+
       // Diagnostic: fetch a single Square catalog item by id, OR list all
       // objects of a given type (?types=TAX). Admin-token gated.
       if (path === '/admin/inspect' && request.method === 'GET') {
@@ -1250,6 +1254,32 @@ async function replaceGradedImages(request, base, squareHeaders, env) {
     front_image_id: frontData.image?.id,
     back_image_id: backImageId,
   });
+}
+
+
+// Admin: hard-delete a Square catalog item by ID. Used for cleaning up
+// duplicate listings that slipped through when the same cert went
+// through both upload-graded and missing-certs paths.
+async function adminDeleteItem(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+  const itemId = String(body.item_id || '').trim();
+  if (!itemId) return json({ error: 'missing_item_id' }, 400);
+
+  const r = await fetch(
+    `${base}/v2/catalog/object/${encodeURIComponent(itemId)}`,
+    { method: 'DELETE', headers: squareHeaders },
+  );
+  if (!r.ok) {
+    const detail = await r.json().catch(() => ({}));
+    return json({ error: 'square_delete_failed', detail }, r.status);
+  }
+  const data = await r.json().catch(() => ({}));
+  return json({ ok: true, item_id: itemId, detail: data });
 }
 
 
