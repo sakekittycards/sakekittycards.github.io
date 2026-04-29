@@ -175,6 +175,8 @@ CORRECTIONS = [
     {'cert': '50358384',  'card': {'name': 'Celebi Holo', 'year': '2000', 'set_name': 'Japanese Neo 3', 'card_number': '251', 'grade': 'MINT 9'}},
     {'cert': '56276763',  'card': {'name': 'Alakazam Holo', 'year': '1999', 'set_name': 'Base Set', 'card_number': '1', 'grade': 'NM-MT 8'}},
     {'cert': '83320225',  'card': {'name': 'FA Raikou V', 'year': '2023', 'set_name': 'Crown Zenith Galarian Gallery', 'card_number': 'GG41', 'grade': 'MINT 9'}},
+    # Bulbasaur is the stamped promo variant from the Mega Evolution release.
+    {'cert': '145316191', 'card': {'name': 'Bulbasaur (Mega Evolution Stamped Promo)', 'year': '2025', 'set_name': 'Pokemon Mega Evolution', 'card_number': '133', 'grade': 'GEM MT 10'}},
 ]
 
 
