@@ -688,6 +688,17 @@ body.cart-open { overflow: hidden; }
   border: 1px solid var(--border); border-radius: 6px;
   padding: 7px 10px; font-size: 14px; font-family: inherit;
   min-width: 110px;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23999' d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 26px;
+}
+.graded-controls .ctrl input { background-image: none; padding-right: 10px; }
+/* Dropdown options render in OS chrome — explicitly color them so the
+   page's white text doesn't fall through to a white-on-white menu. */
+.graded-controls .ctrl select option {
+  background: #1a1a1f; color: #fff;
 }
 .graded-controls .ctrl select:focus,
 .graded-controls .ctrl input:focus {
