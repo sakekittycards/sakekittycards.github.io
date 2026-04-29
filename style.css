@@ -363,8 +363,9 @@ button { font-family: inherit; }
 }
 .cart-item-remove:hover { color: #ff6b6b; }
 .cart-item-total {
-  font-family: 'Bangers', cursive; font-size: 17px;
-  color: var(--orange); letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px;
+  color: var(--orange); letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums;
   align-self: start;
 }
 
@@ -409,8 +410,9 @@ button { font-family: inherit; }
   padding: 6px 0; font-size: 14px; color: var(--muted);
 }
 .cart-totals-row.grand {
-  font-family: 'Bangers', cursive; font-size: 20px;
-  color: var(--text); letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 18px;
+  color: var(--text); letter-spacing: 0.2px;
+  font-variant-numeric: tabular-nums;
   padding-top: 10px; margin-top: 4px;
   border-top: 1px solid var(--border);
 }
