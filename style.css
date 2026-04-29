@@ -734,12 +734,34 @@ body.cart-open { overflow: hidden; }
 }
 
 /* Shop categories quick-jump nav — sits at the top of the product list
-   so customers see at-a-glance there's merch + singles + graded available
-   before they hit the wall of slabs. Each pill is an anchor link to its
-   section with a live item count. */
+   and pins to the top of the viewport once you scroll past it (sticky).
+   So no matter how deep into the products you go, the category switcher
+   stays one click away in a familiar position — same horizontal spot,
+   doesn't compete with the side gutters of the page. */
 .shop-cat-nav {
   display: flex; flex-wrap: wrap; gap: 10px;
-  justify-content: center; margin: 8px 0 28px;
+  justify-content: center;
+  margin: 8px -12px 28px;     /* negative side margin so the stuck-state */
+  padding: 12px 12px;          /* full-bleed background can extend past the */
+  position: sticky;            /* container's content padding */
+  top: 0;
+  z-index: 60;
+  transition: background .25s ease, backdrop-filter .25s ease,
+              box-shadow .25s ease, padding .2s ease;
+}
+/* Idle (in-flow) state — quiet, no chrome */
+.shop-cat-nav:not(.stuck) {
+  background: transparent;
+}
+/* Stuck (pinned to top) — translucent backdrop + soft shadow + tighter
+   padding so it hugs the top of the viewport like a toolbar */
+.shop-cat-nav.stuck {
+  background: rgba(13, 13, 20, 0.82);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35),
+              0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  padding: 10px 12px;
 }
 .shop-cat-pill {
   display: inline-flex; align-items: center; gap: 8px;
@@ -752,7 +774,7 @@ body.cart-open { overflow: hidden; }
   font-size: 14px; font-weight: 600;
   letter-spacing: 0.02em;
   text-decoration: none;
-  transition: border-color .2s, background .2s, transform .15s;
+  transition: border-color .2s, background .2s, transform .15s, color .2s;
   cursor: pointer;
 }
 .shop-cat-pill:hover {
@@ -776,82 +798,13 @@ body.cart-open { overflow: hidden; }
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+/* Tighter pills on small screens. Once stuck on mobile we go even more
+   compact (smaller font, less padding) so 3 pills can sit on one row. */
 @media (max-width: 540px) {
-  .shop-cat-pill { padding: 8px 14px; font-size: 13px; }
-  .shop-cat-count { min-width: 20px; height: 20px; font-size: 11px; }
-}
-
-/* Floating clone of the category nav. Appears once the in-flow nav
-   scrolls out of view; hides again when the footer enters the viewport.
-   Desktop: vertical sidebar pinned to the right.
-   Mobile:  horizontal bar pinned to the bottom of the screen. */
-.shop-cat-nav-float {
-  position: fixed;
-  z-index: 70;
-  margin: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .25s ease, transform .25s ease;
-}
-.shop-cat-nav-float.visible:not(.past-shop) {
-  opacity: 1;
-  pointer-events: auto;
-}
-/* Backdrop blur + darker pill background so the floating nav stays
-   legible over product imagery underneath */
-.shop-cat-nav-float .shop-cat-pill {
-  background: rgba(18, 18, 26, 0.92);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
-}
-.shop-cat-nav-float .shop-cat-pill.active {
-  background: linear-gradient(180deg, rgba(255,106,0,0.28), rgba(255,106,0,0.10));
-}
-
-/* Desktop: side rail */
-@media (min-width: 769px) {
-  .shop-cat-nav-float {
-    flex-direction: column;
-    align-items: flex-end;
-    right: 22px;
-    top: 50%;
-    gap: 10px;
-    transform: translate(20px, -50%);
-  }
-  .shop-cat-nav-float.visible:not(.past-shop) {
-    transform: translate(0, -50%);
-  }
-}
-
-/* Mobile: bottom bar with safe-area padding for iOS home-indicator */
-@media (max-width: 768px) {
-  .shop-cat-nav-float {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    left: 0; right: 0;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    justify-content: center;
-    padding: 0 12px;
-    transform: translateY(80px);
-  }
-  .shop-cat-nav-float::-webkit-scrollbar { display: none; }
-  .shop-cat-nav-float.visible:not(.past-shop) {
-    transform: translateY(0);
-  }
-  /* Slightly tighter pills on the floating mobile bar so all three
-     fit on a phone screen without horizontal scrolling */
-  .shop-cat-nav-float .shop-cat-pill {
-    padding: 9px 13px;
-    font-size: 12.5px;
-    flex-shrink: 0;
-  }
-  .shop-cat-nav-float .shop-cat-count {
-    min-width: 18px; height: 18px; font-size: 10.5px;
-  }
+  .shop-cat-nav { gap: 6px; }
+  .shop-cat-pill { padding: 8px 12px; font-size: 12.5px; gap: 6px; }
+  .shop-cat-count { min-width: 19px; height: 19px; font-size: 10.5px; padding: 0 5px; }
+  .shop-cat-nav.stuck .shop-cat-pill { padding: 7px 11px; font-size: 12px; }
 }
 
 /* Shop sections — Apparel & Merch / Singles & Sealed / Graded */

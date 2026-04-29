@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=43" />
+  <link rel="stylesheet" href="style.css?v=44" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -364,66 +364,47 @@
           catNav.innerHTML = pillsHtml;
           catNav.hidden = false;
 
-          // Build the floating clone (sidebar on desktop, bottom bar on mobile).
-          // Appended to <body> so it can break out of the section layout flow.
-          const floatNav = document.createElement('nav');
-          floatNav.className = 'shop-cat-nav shop-cat-nav-float';
-          floatNav.setAttribute('aria-label', 'Shop categories (floating)');
-          floatNav.innerHTML = pillsHtml;
-          document.body.appendChild(floatNav);
-
-          // Smooth-scroll click handler (works for both navs)
-          const onPillClick = (e) => {
+          // Smooth-scroll on click — accounts for sticky nav offset
+          catNav.addEventListener('click', (e) => {
             const pill = e.target.closest('.shop-cat-pill');
             if (!pill) return;
             e.preventDefault();
             const target = document.getElementById(pill.getAttribute('href').slice(1));
             if (!target) return;
             const navH = document.getElementById('siteNav')?.offsetHeight || 0;
-            const top = target.getBoundingClientRect().top + window.pageYOffset - navH - 16;
+            const stickyH = catNav.offsetHeight || 0;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - navH - stickyH - 24;
             window.scrollTo({ top, behavior: 'smooth' });
-          };
-          catNav.addEventListener('click', onPillClick);
-          floatNav.addEventListener('click', onPillClick);
+          });
 
-          // Show floating nav when in-flow nav scrolls out of view
-          const showFloatObserver = new IntersectionObserver(
-            ([entry]) => {
-              floatNav.classList.toggle('visible', !entry.isIntersecting);
-            },
+          // Toggle a "stuck" class once the nav pins to the top of the
+          // viewport (i.e. the user has scrolled past its natural position).
+          // This drives the visual style swap — when stuck, the nav gets
+          // a backdrop blur + tighter padding so it sits cleanly over the
+          // product imagery scrolling underneath. When in flow, it stays
+          // visually quiet and integrated with the section header above.
+          const sentinel = document.createElement('div');
+          sentinel.style.cssText = 'position:absolute;width:1px;height:1px;pointer-events:none;';
+          catNav.parentNode.insertBefore(sentinel, catNav);
+          const stickyObserver = new IntersectionObserver(
+            ([entry]) => catNav.classList.toggle('stuck', !entry.isIntersecting),
             { threshold: 0 }
           );
-          showFloatObserver.observe(catNav);
+          stickyObserver.observe(sentinel);
 
-          // Hide floating nav when the page footer is in view (no need
-          // for category jumps once the user is past the products)
-          const footer = document.querySelector('.site-footer');
-          if (footer) {
-            const hideAtFooterObserver = new IntersectionObserver(
-              ([entry]) => {
-                floatNav.classList.toggle('past-shop', entry.isIntersecting);
-              },
-              { threshold: 0.05 }
-            );
-            hideAtFooterObserver.observe(footer);
-          }
-
-          // Highlight the currently-visible section pill (in both navs).
-          // Uses a viewport-centered rootMargin so the pill flips when the
-          // section header enters the central reading band, not when it
+          // Highlight the currently-visible section pill. Uses a
+          // viewport-centered rootMargin so the active state flips when
+          // a section enters the central reading band — not when it
           // first peeks above the fold.
-          const setActive = (sectionId) => {
-            for (const nav of [catNav, floatNav]) {
-              for (const pill of nav.querySelectorAll('.shop-cat-pill')) {
-                pill.classList.toggle('active', pill.getAttribute('href') === '#' + sectionId);
-              }
-            }
-          };
           const activeObserver = new IntersectionObserver(
             (entries) => {
               const visible = entries.filter(e => e.isIntersecting)
                                      .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-              if (visible.length) setActive(visible[0].target.id);
+              if (!visible.length) return;
+              const id = visible[0].target.id;
+              for (const pill of catNav.querySelectorAll('.shop-cat-pill')) {
+                pill.classList.toggle('active', pill.getAttribute('href') === '#' + id);
+              }
             },
             { rootMargin: '-30% 0px -55% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] }
           );
