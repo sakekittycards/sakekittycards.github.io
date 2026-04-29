@@ -733,7 +733,50 @@ body.cart-open { overflow: hidden; }
   .graded-controls .ctrl { min-width: calc(50% - 6px); flex-grow: 1; }
 }
 
-/* Shop sections — Graded / Singles & Sealed / Apparel & Merch */
+/* Shop categories quick-jump nav — sits at the top of the product list
+   so customers see at-a-glance there's merch + singles + graded available
+   before they hit the wall of slabs. Each pill is an anchor link to its
+   section with a live item count. */
+.shop-cat-nav {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; margin: 8px 0 28px;
+}
+.shop-cat-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: border-color .2s, background .2s, transform .15s;
+  cursor: pointer;
+}
+.shop-cat-pill:hover {
+  border-color: rgba(255,106,0,0.55);
+  background: linear-gradient(180deg, rgba(255,106,0,0.08), rgba(255,106,0,0.02));
+  transform: translateY(-1px);
+}
+.shop-cat-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: linear-gradient(180deg, var(--orange), var(--pink));
+  color: #fff;
+  font-size: 12px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+@media (max-width: 540px) {
+  .shop-cat-pill { padding: 8px 14px; font-size: 13px; }
+  .shop-cat-count { min-width: 20px; height: 20px; font-size: 11px; }
+}
+
+/* Shop sections — Apparel & Merch / Singles & Sealed / Graded */
 .shop-section { margin-top: 36px; }
 .shop-section:first-child { margin-top: 0; }
 .shop-section-title {

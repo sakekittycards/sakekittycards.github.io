@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=41" />
+  <link rel="stylesheet" href="style.css?v=42" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -71,7 +71,17 @@
         <p>Loading products…</p>
       </div>
 
+      <nav class="shop-cat-nav" id="shopCatNav" hidden aria-label="Shop categories"></nav>
+
       <div id="shopSections" hidden>
+        <section class="shop-section" id="shopSectionMerch" hidden>
+          <h3 class="shop-section-title">Apparel &amp; Merch <span class="shop-section-sub">tees, plushies, accessories</span></h3>
+          <div class="product-grid" id="shopGridMerch"></div>
+        </section>
+        <section class="shop-section" id="shopSectionSingles" hidden>
+          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
+          <div class="product-grid" id="shopGridSingles"></div>
+        </section>
         <section class="shop-section" id="shopSectionGraded" hidden>
           <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA · BGS · CGC · SGC slabs</span></h3>
           <div class="graded-controls" id="gradedControls">
@@ -120,14 +130,6 @@
           </div>
           <p class="graded-count" id="gradedCount" hidden></p>
           <div class="product-grid" id="shopGridGraded"></div>
-        </section>
-        <section class="shop-section" id="shopSectionSingles" hidden>
-          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
-          <div class="product-grid" id="shopGridSingles"></div>
-        </section>
-        <section class="shop-section" id="shopSectionMerch" hidden>
-          <h3 class="shop-section-title">Apparel &amp; Merch <span class="shop-section-sub">tees, plushies, accessories</span></h3>
-          <div class="product-grid" id="shopGridMerch"></div>
         </section>
       </div>
 
@@ -335,6 +337,36 @@
           } else {
             document.getElementById(gridId).innerHTML = list.map(renderCard).join('');
           }
+        }
+
+        // Category quick-jump nav. Order matches the section order in HTML
+        // (merch first so it's instantly visible). Each pill scrolls to its
+        // section and shows the live item count so customers know up front
+        // there's more than just graded slabs on this page.
+        const catNav = document.getElementById('shopCatNav');
+        const catOrder = [
+          { key: 'merch',   label: 'Apparel & Merch', sec: 'shopSectionMerch'   },
+          { key: 'singles', label: 'Singles & Sealed', sec: 'shopSectionSingles' },
+          { key: 'graded',  label: 'Graded Cards',     sec: 'shopSectionGraded'  },
+        ];
+        const pillsHtml = catOrder
+          .filter(c => buckets[c.key].length > 0)
+          .map(c => `<a href="#${c.sec}" class="shop-cat-pill" data-cat="${c.key}">${c.label}<span class="shop-cat-count">${buckets[c.key].length}</span></a>`)
+          .join('');
+        if (pillsHtml) {
+          catNav.innerHTML = pillsHtml;
+          catNav.hidden = false;
+          // Smooth-scroll on click (with offset for sticky nav)
+          catNav.addEventListener('click', (e) => {
+            const pill = e.target.closest('.shop-cat-pill');
+            if (!pill) return;
+            e.preventDefault();
+            const target = document.getElementById(pill.getAttribute('href').slice(1));
+            if (!target) return;
+            const navH = document.getElementById('siteNav')?.offsetHeight || 0;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - navH - 16;
+            window.scrollTo({ top, behavior: 'smooth' });
+          });
         }
 
         status.hidden       = true;
