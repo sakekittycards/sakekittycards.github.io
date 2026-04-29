@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=33" />
+  <link rel="stylesheet" href="style.css?v=34" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -74,6 +74,51 @@
       <div id="shopSections" hidden>
         <section class="shop-section" id="shopSectionGraded" hidden>
           <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA · BGS · CGC · SGC slabs</span></h3>
+          <div class="graded-controls" id="gradedControls">
+            <div class="ctrl">
+              <label for="gradedGrader">Grader</label>
+              <select id="gradedGrader">
+                <option value="">All</option>
+                <option value="PSA">PSA</option>
+                <option value="CGC">CGC</option>
+                <option value="BGS">BGS</option>
+                <option value="SGC">SGC</option>
+              </select>
+            </div>
+            <div class="ctrl">
+              <label for="gradedGradeMin">Min Grade</label>
+              <select id="gradedGradeMin">
+                <option value="">Any</option>
+                <option value="6">6+</option>
+                <option value="7">7+</option>
+                <option value="8">8+</option>
+                <option value="9">9+</option>
+                <option value="9.5">9.5+</option>
+                <option value="10">10 only</option>
+              </select>
+            </div>
+            <div class="ctrl">
+              <label for="gradedYearFrom">Year From</label>
+              <input type="number" id="gradedYearFrom" placeholder="1999" min="1996" max="2030" />
+            </div>
+            <div class="ctrl">
+              <label for="gradedYearTo">Year To</label>
+              <input type="number" id="gradedYearTo" placeholder="2026" min="1996" max="2030" />
+            </div>
+            <div class="ctrl">
+              <label for="gradedSort">Sort</label>
+              <select id="gradedSort">
+                <option value="price-desc">Price: High → Low</option>
+                <option value="price-asc">Price: Low → High</option>
+                <option value="year-desc">Year: New → Old</option>
+                <option value="year-asc">Year: Old → New</option>
+                <option value="grade-desc">Grade: High → Low</option>
+                <option value="name-asc">Name: A → Z</option>
+              </select>
+            </div>
+            <button type="button" id="gradedReset" class="ctrl-reset">Reset</button>
+          </div>
+          <p class="graded-count" id="gradedCount" hidden></p>
           <div class="product-grid" id="shopGridGraded"></div>
         </section>
         <section class="shop-section" id="shopSectionSingles" hidden>
@@ -149,10 +194,37 @@
         return 'merch';
       };
 
+      // Parse a graded card title for filter/sort. Format we render to:
+      //   "<GRADER> <GRADE> <YEAR> <SET> <NAME> #<NUMBER>"
+      // Examples:
+      //   "PSA 10 2025 Pokemon Mega Evolution Mega Latias ex #181"
+      //   "CGC PRISTINE 10 2023 Pokemon Card 151 (Japanese) Blastoise ex (Special Art Rare) #202/165"
+      //   "BGS NM-MT+ 8.5 1999 Base Set Unlimited Charizard Holo #4"
+      const GRADER_HEAD_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\b/i;
+      const GRADE_NUM_RX = /(\d+(?:\.\d)?)/;
+      const YEAR_RX = /\b(19\d{2}|20\d{2})\b/;
+      const parseGradedTitle = (title) => {
+        if (!title) return null;
+        const head = title.match(GRADER_HEAD_RX);
+        if (!head) return null;
+        const grader = head[1].toUpperCase();
+        // Grade: first numeric token AFTER the grader, BEFORE the year.
+        const yearMatch = title.match(YEAR_RX);
+        const year = yearMatch ? Number(yearMatch[1]) : null;
+        const beforeYear = yearMatch ? title.slice(0, yearMatch.index) : title;
+        const gradeMatch = beforeYear.match(GRADE_NUM_RX);
+        const grade = gradeMatch ? Number(gradeMatch[1]) : null;
+        return { grader, grade, year };
+      };
+
       const renderCard = (item) => {
         const oos = item.inStock === false;
+        // loading="lazy" + decoding="async" for native browser progressive
+        // load — visible images get priority, off-screen ones lazy-load as
+        // user scrolls. Width/height attrs reserve layout space so the
+        // grid doesn't reflow as images come in.
         const imgBlock = item.imageUrl
-          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real" loading="lazy" decoding="async" width="320" height="320" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
           : `<div class="product-img">📦</div>`;
         const desc = item.description
           ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
@@ -197,11 +269,62 @@
           singles: ['shopSectionSingles', 'shopGridSingles'],
           merch:   ['shopSectionMerch',   'shopGridMerch'],
         };
+        // Pre-parse graded title metadata so filters + sort don't
+        // re-parse on every interaction.
+        for (const it of buckets.graded) {
+          it._graded = parseGradedTitle(it.name) || {};
+        }
+
+        const renderGraded = () => {
+          const grader = document.getElementById('gradedGrader').value;
+          const minGrade = document.getElementById('gradedGradeMin').value;
+          const yearFrom = Number(document.getElementById('gradedYearFrom').value) || null;
+          const yearTo   = Number(document.getElementById('gradedYearTo').value) || null;
+          const sort = document.getElementById('gradedSort').value;
+          let list = buckets.graded.filter(it => {
+            const g = it._graded || {};
+            if (grader && g.grader !== grader) return false;
+            if (minGrade && (!g.grade || g.grade < Number(minGrade))) return false;
+            if (yearFrom && (!g.year || g.year < yearFrom)) return false;
+            if (yearTo   && (!g.year || g.year > yearTo))   return false;
+            return true;
+          });
+          const cmp = {
+            'price-desc': (a, b) => (b.price || 0) - (a.price || 0),
+            'price-asc':  (a, b) => (a.price || 0) - (b.price || 0),
+            'year-desc':  (a, b) => (b._graded.year || 0) - (a._graded.year || 0),
+            'year-asc':   (a, b) => (a._graded.year || 0) - (b._graded.year || 0),
+            'grade-desc': (a, b) => (b._graded.grade || 0) - (a._graded.grade || 0),
+            'name-asc':   (a, b) => (a.name || '').localeCompare(b.name || ''),
+          }[sort] || cmp['price-desc'];
+          list.sort(cmp);
+          document.getElementById('shopGridGraded').innerHTML = list.map(renderCard).join('');
+          const countEl = document.getElementById('gradedCount');
+          countEl.textContent = `${list.length} of ${buckets.graded.length} card${buckets.graded.length === 1 ? '' : 's'}`;
+          countEl.hidden = false;
+        };
+
         for (const [key, [secId, gridId]] of Object.entries(sectionMap)) {
           const list = buckets[key];
           if (!list.length) continue;
           document.getElementById(secId).hidden = false;
-          document.getElementById(gridId).innerHTML = list.map(renderCard).join('');
+          if (key === 'graded') {
+            // First render with default sort; controls will re-render on change.
+            renderGraded();
+            // Wire up controls
+            const ctrls = ['gradedGrader','gradedGradeMin','gradedYearFrom','gradedYearTo','gradedSort'];
+            for (const id of ctrls) {
+              document.getElementById(id).addEventListener('change', renderGraded);
+              document.getElementById(id).addEventListener('input', renderGraded);
+            }
+            document.getElementById('gradedReset').addEventListener('click', () => {
+              for (const id of ctrls) document.getElementById(id).value = '';
+              document.getElementById('gradedSort').value = 'price-desc';
+              renderGraded();
+            });
+          } else {
+            document.getElementById(gridId).innerHTML = list.map(renderCard).join('');
+          }
         }
 
         status.hidden       = true;

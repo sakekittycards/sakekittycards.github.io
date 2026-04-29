@@ -671,6 +671,41 @@ body.cart-open { overflow: hidden; }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
 
+/* Graded cards filter + sort controls */
+.graded-controls {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: end;
+  margin: 18px 0 14px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+.graded-controls .ctrl { display: flex; flex-direction: column; gap: 4px; min-width: 110px; }
+.graded-controls .ctrl label { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--dim); }
+.graded-controls .ctrl select,
+.graded-controls .ctrl input {
+  background: var(--bg-card); color: #fff;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 10px; font-size: 14px; font-family: inherit;
+  min-width: 110px;
+}
+.graded-controls .ctrl select:focus,
+.graded-controls .ctrl input:focus {
+  outline: none; border-color: var(--orange);
+}
+.graded-controls .ctrl-reset {
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 7px 14px; font-size: 13px; font-family: inherit;
+  cursor: pointer; height: 36px; align-self: end;
+}
+.graded-controls .ctrl-reset:hover { color: var(--orange); border-color: var(--orange); }
+.graded-count { font-size: 13px; color: var(--dim); margin: 0 0 12px; }
+@media (max-width: 640px) {
+  .graded-controls { gap: 8px; padding: 10px 12px; }
+  .graded-controls .ctrl { min-width: calc(50% - 6px); flex-grow: 1; }
+}
+
 /* Shop sections — Graded / Singles & Sealed / Apparel & Merch */
 .shop-section { margin-top: 36px; }
 .shop-section:first-child { margin-top: 0; }
