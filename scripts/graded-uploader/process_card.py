@@ -105,7 +105,8 @@ def _walk_inward_to_slab_edge(rgb: np.ndarray,
 
 
 def isolate_slab(img: Image.Image, deskew: bool = True,
-                 paper_margin: float = 0.0) -> Image.Image:
+                 paper_margin: float = 0.0,
+                 soften_plastic: bool = False) -> Image.Image:
     """
     Use rembg (U2Net) to find the slab silhouette and crop the ORIGINAL
     image (paper background and all) tight to the slab's bbox. Deskew
@@ -235,12 +236,40 @@ def isolate_slab(img: Image.Image, deskew: bool = True,
         else:
             radius = radius_area
 
-        # Render the rounded rectangle as the alpha mask.
+        # Render the rounded rectangle as the alpha mask — flush to the
+        # actual slab edge (no inset; cropping wear off would be
+        # disingenuous when listing the slab for sale).
         mask_pil = Image.new("L", (w_crop, h_crop), 0)
         ImageDraw.Draw(mask_pil).rounded_rectangle(
             (sx0, sy0, sx1 - 1, sy1 - 1), radius=radius, fill=255,
         )
         mask_out = np.asarray(mask_pil).copy()
+
+        # Optional plastic-ring softening — use only when the slab
+        # itself has visible edge wear that reads as harsh in the
+        # high-fidelity scan. Default OFF; turn on per-card via
+        # `soften_plastic=True` only when needed.
+        if soften_plastic:
+            plastic_inset = int(min(rect_w, rect_h) * 0.09)
+            cx0 = sx0 + plastic_inset
+            cy0 = sy0 + plastic_inset
+            cx1 = (sx1 - 1) - plastic_inset
+            cy1 = (sy1 - 1) - plastic_inset
+            if cx1 > cx0 and cy1 > cy0:
+                inner_pil = Image.new("L", (w_crop, h_crop), 0)
+                ImageDraw.Draw(inner_pil).rounded_rectangle(
+                    (cx0, cy0, cx1, cy1),
+                    radius=max(2, radius - plastic_inset), fill=255,
+                )
+                inner_blurred = inner_pil.filter(
+                    ImageFilter.GaussianBlur(radius=max(8, plastic_inset // 4)),
+                )
+                blur_radius = max(3, int(min(rect_w, rect_h) * 0.0035))
+                sharp_rgb = Image.fromarray(rgb_crop, "RGB")
+                blurred_rgb = sharp_rgb.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+                rgb_crop = np.asarray(
+                    Image.composite(sharp_rgb, blurred_rgb, inner_blurred)
+                ).copy()
 
     # 0.6px Gaussian for anti-aliasing on the binary edge.
     mask_out = cv2.GaussianBlur(mask_out, (3, 3), 0.6)
