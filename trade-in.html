@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=45" />
+  <link rel="stylesheet" href="style.css?v=46" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -746,9 +746,17 @@
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
             <div style="font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Rates by Item Type</div>
             <div style="display:grid;grid-template-columns:auto 1fr auto;row-gap:7px;column-gap:14px;font-size:12px;align-items:baseline">
-              <span style="color:var(--text);font-weight:600">Singles</span>
+              <span style="color:var(--text);font-weight:600">Singles &lt; $25</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
               <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">60%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span></span>
+
+              <span style="color:var(--text);font-weight:600">Singles $25 – $50</span>
+              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">70%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">80%</span></span>
+
+              <span style="color:var(--text);font-weight:600">Singles ≥ $50</span>
+              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">80%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">90%</span></span>
 
               <span style="color:var(--text);font-weight:600">Sealed</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
@@ -934,7 +942,9 @@
     //   Booth:  Cards 70/80 · Sealed 80/90 · Graded <$1k 80/90 · Graded ≥$1k 90/100
     //   Online: Cards 60/75 · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95
     const RATES = {
-      card:        { cash: 0.60, credit: 0.75 },
+      card_low:    { cash: 0.60, credit: 0.75 },   // raw singles under $25
+      card_mid:    { cash: 0.70, credit: 0.80 },   // raw singles $25–$50
+      card_high:   { cash: 0.80, credit: 0.90 },   // raw singles $50 and up
       sealed:      { cash: 0.75, credit: 0.85 },
       graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $1,000
       graded_high: { cash: 0.85, credit: 0.95 },   // graded cards $1,000 and up
@@ -944,7 +954,13 @@
       if (item.type === 'graded') {
         return (item.market != null && item.market >= 1000) ? RATES.graded_high : RATES.graded_low;
       }
-      return RATES.card;
+      // Raw singles — tier by market value. Flat 60% on a $200 chase card
+      // is way below what any competitive buylist offers; tiering up to 80%
+      // on $50+ keeps us in line with what booth offers and what major
+      // buylists pay on chase cards.
+      if (item.market != null && item.market >= 50) return RATES.card_high;
+      if (item.market != null && item.market >= 25) return RATES.card_mid;
+      return RATES.card_low;
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50, DMG: 0.30,
