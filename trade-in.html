@@ -132,12 +132,12 @@
     /* Custom condition dropdown (native select styling is unreliable cross-browser) */
     .ti-cond { position: relative; display: inline-block; }
     .ti-cond-btn {
-      padding: 4px 10px;
+      padding: 6px 12px;
       background: rgba(255,255,255,.06);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
-      font-size: 11px;
+      font-size: 12px;
       font-family: 'Inter',sans-serif;
       font-weight: 700;
       cursor: pointer;
@@ -157,7 +157,7 @@
       background: #14142a;
       border: 1px solid rgba(255,106,0,0.35);
       border-radius: 8px;
-      min-width: 72px;
+      min-width: 90px;
       z-index: 50;
       display: none;
       overflow: hidden;
@@ -172,12 +172,12 @@
     .ti-cond-opt {
       display: block;
       width: 100%;
-      padding: 7px 12px;
+      padding: 9px 14px;
       background: transparent;
       border: none;
       color: var(--text);
       font-family: 'Inter',sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       text-align: left;
       cursor: pointer;
@@ -186,6 +186,15 @@
     .ti-cond-opt:hover { background: rgba(255,106,0,0.18); color: var(--orange); }
     .ti-cond-opt.selected { color: var(--orange); font-weight: 700; }
     .ti-cond-opt.selected::before { content: '• '; }
+    /* Mobile: condition picker needs proper 44px tap targets so customers
+       can actually hit options on a phone without mis-tapping outside the
+       menu (which closes it via the document-level click handler). */
+    @media (max-width: 600px) {
+      .ti-cond-btn { padding: 10px 14px; font-size: 14px; gap: 7px; }
+      .ti-cond-arrow { font-size: 10px; }
+      .ti-cond-menu { min-width: 130px; border-radius: 10px; }
+      .ti-cond-opt { padding: 13px 18px; font-size: 15px; }
+    }
     .ti-item-info .market { color: var(--muted); }
     .ti-item-info .offer { color: var(--orange); font-weight: 700; }
     .ti-item-info .offer.credit { color: var(--cyan); }
