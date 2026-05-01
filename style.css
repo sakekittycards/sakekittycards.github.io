@@ -915,6 +915,16 @@ body.cart-open { overflow: hidden; }
   gap: 18px; margin: 6px 0 28px;
 }
 .inventory-paused-cta { display: flex; justify-content: center; }
+.inventory-paused-cta-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  flex-wrap: wrap; justify-content: center;
+}
+.inventory-paused-cta-btn svg { flex-shrink: 0; }
+.inventory-paused-cta-btn .cta-arrow { transition: transform .2s ease; }
+.inventory-paused-cta-btn:hover .cta-arrow { transform: translateX(3px); }
+@media (max-width: 480px) {
+  .inventory-paused-cta-btn { font-size: 14px; padding: 12px 18px; }
+}
 .inventory-paused-note {
   font-size: 14px; color: var(--muted); text-align: center; margin: 0;
   max-width: 540px; line-height: 1.55;
