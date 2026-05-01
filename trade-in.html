@@ -700,6 +700,9 @@
               </div>
               <input type="number" class="ti-input" id="gradedValue" placeholder="Estimated value ($)" step="0.01" min="0" style="flex:1" />
             </div>
+            <div class="ti-sealed-form-row" style="margin-top:8px">
+              <input type="text" class="ti-input" id="gradedCert" placeholder="Cert # (PSA/CGC/BGS — required)" autocomplete="off" inputmode="numeric" style="flex:1" required />
+            </div>
             <div style="display:flex;align-items:center;gap:10px;margin:-2px 0 8px;flex-wrap:wrap">
               <button type="button" id="gradedLookupBtn" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px">🔎 Check recent sold prices on eBay</button>
               <span style="font-size:11px;color:var(--dim);line-height:1.5;flex:1;min-width:200px">Opens eBay sold listings in a new tab. Other references: Alt, Card Ladder, PriceCharting. Paste a value back here — we verify on intake.</span>
@@ -1533,7 +1536,7 @@
         const subtitle = isSealed
           ? `<div class="set">Sealed Product</div>`
           : isGraded
-          ? `<div class="set">Graded</div>`
+          ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
         return `
@@ -1824,6 +1827,7 @@
     gradedCancelBtn.addEventListener('click', () => {
       gradedForm.classList.remove('open');
       gradedName.value = ''; gradedValue.value = '';
+      const _cert = document.getElementById('gradedCert'); if (_cert) _cert.value = '';
     });
     gradedGradeBtn.addEventListener('click', e => {
       e.stopPropagation();
@@ -1843,11 +1847,14 @@
         gradedGradeBtn.classList.remove('open');
       });
     });
+    const gradedCert = document.getElementById('gradedCert');
     gradedAddBtn.addEventListener('click', () => {
       const name = gradedName.value.trim();
       const val  = parseFloat(gradedValue.value);
+      const cert = gradedCert.value.trim();
       if (!name) { alert('Please enter a card name.'); gradedName.focus(); return; }
       if (isNaN(val) || val <= 0) { alert('Please enter an estimated value.'); gradedValue.focus(); return; }
+      if (!cert) { alert('Please enter the cert number from the slab label.'); gradedCert.focus(); return; }
       const picked = selectedGradedCard;
       cards.push({
         id: 'graded_' + Date.now(),
@@ -1858,8 +1865,9 @@
         image:  picked ? (picked.images?.small || '') : '',
         market: val,
         condition: selectedGrade,
+        cert:   cert,
       });
-      gradedName.value = ''; gradedValue.value = '';
+      gradedName.value = ''; gradedValue.value = ''; gradedCert.value = '';
       selectedGradedCard = null;
       gradedForm.classList.remove('open');
       gradedResults.classList.remove('open');
@@ -1921,15 +1929,16 @@
         const idx = (i+1) + '.';
         const numPart = c.number ? ' #'+c.number : '';
         const setPart = c.type === 'sealed' ? '' : ` (${c.set}${numPart})`;
+        const certLine = (c.type === 'graded' && c.cert) ? `\n   Cert #: ${c.cert}` : '';
         if (c.market == null) {
-          return `${idx} ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote`;
+          return `${idx} ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote${certLine}`;
         }
         const adj = c.market * COND_MULT[c.condition];
         const r = ratesFor(c);
         const lineCash   = adj * r.cash;
         const lineCredit = adj * r.credit;
         market += c.market; cash += lineCash; credit += lineCredit;
-        return `${idx} ${c.name}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}`;
+        return `${idx} ${c.name}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}${certLine}`;
       };
 
       const singlesText = cardItems.length ? cardItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';
