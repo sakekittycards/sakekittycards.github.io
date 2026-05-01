@@ -708,16 +708,17 @@ body.cart-open { overflow: hidden; }
   .show-banner-icon { font-size: 44px; }
 }
 
-/* Inventory paused — restocking poster + Instagram CTA. Flagged by
-   SK_INVENTORY_PAUSED in shop.html. Sits above the merch grid; cards
-   (graded + singles) drop while merch stays live. */
+/* Inventory paused — landscape restocking banner + Instagram CTA. Flagged
+   by SK_INVENTORY_PAUSED in shop.html. Sits above the merch grid; cards
+   (graded + singles) drop while merch stays live. Image is 16:9 landscape
+   so it reads as a wide banner, not a portrait card. */
 .inventory-paused {
   display: flex; flex-direction: column; align-items: center;
   gap: 18px; margin: 6px 0 28px;
 }
 .inventory-paused-poster {
-  display: block; max-width: 460px; width: 100%;
-  border-radius: 22px; overflow: hidden;
+  display: block; max-width: 820px; width: 100%;
+  border-radius: 18px; overflow: hidden;
   box-shadow: 0 18px 60px rgba(255,106,0,.18), 0 0 0 1px rgba(255,106,0,.18);
   transition: transform .25s ease, box-shadow .25s ease;
 }
