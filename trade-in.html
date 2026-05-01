@@ -1240,7 +1240,15 @@
         const slashed = tok.match(/^([a-z]*\d+)\s*\/\s*\d+/i);
         if (slashed) tok = slashed[1];
 
-        const clean = tok.replace(/[^\w&'.-]/g, '');
+        // Apostrophes break wildcard search on pokemontcg.io — `name:*sabrina's*`
+        // treats the apostrophe as a literal character, so it never matches the
+        // actual card name "Sabrina's Gengar" the way users expect. Strip the
+        // possessive 's and any standalone apostrophes (both ASCII ' and curly
+        // ' from iOS autocorrect) so the token becomes "sabrina", which
+        // wildcard-matches "Sabrina's Gengar" cleanly.
+        tok = tok.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+
+        const clean = tok.replace(/[^\w&.-]/g, '');
         if (!clean) return '';
 
         // Numeric or alphanumeric promo IDs (digits required at the end).
