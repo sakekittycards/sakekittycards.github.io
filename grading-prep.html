@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=80" />
+  <link rel="stylesheet" href="style.css?v=81" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -120,6 +120,12 @@
       .service-addon-price { text-align:left; }
     }
     @media (max-width:480px) { .prep-steps { grid-template-columns:1fr; } }
+
+    /* ── Grading Prep Terms agreement checkbox ── */
+    .gp-terms-agree { display:flex; align-items:flex-start; gap:8px; padding:10px 0 14px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }
+    .gp-terms-agree input { margin-top:3px; flex-shrink:0; accent-color:var(--orange); cursor:pointer; }
+    .gp-terms-agree a { color:var(--orange); text-decoration:none; font-weight:600; }
+    .gp-terms-agree a:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -361,6 +367,10 @@
               <textarea id="gpNotes" class="gp-textarea" placeholder="Notes — mail-in or in-person, any specific concerns…"></textarea>
             </div>
 
+            <label class="gp-terms-agree">
+              <input type="checkbox" id="gpTermsAgree" />
+              <span>I have read and agree to the <a href="grading-terms.html" target="_blank" rel="noopener">Grading Prep Terms</a>.</span>
+            </label>
             <button id="gpSendBtn" class="btn btn-primary" disabled style="width:100%;justify-content:center">Send Request</button>
           </div>
 
@@ -404,7 +414,7 @@
         <a href="gift-cards.html">Gift Cards</a>
       </nav>
     </div>
-    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved.</p>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
   <script src="main.js?v=26"></script>
@@ -426,6 +436,8 @@
       const gpCountEl = document.getElementById('gpCardCount');
       const gpTotalEl = document.getElementById('gpTotal');
       const gpSendBtn = document.getElementById('gpSendBtn');
+      const gpTermsAgreeEl = document.getElementById('gpTermsAgree');
+      if (gpTermsAgreeEl) gpTermsAgreeEl.addEventListener('change', recalc);
       const gpNameEl = document.getElementById('gpName');
       const gpEmailEl = document.getElementById('gpEmail');
       const gpTurnaroundEl = document.getElementById('gpTurnaround');
@@ -457,7 +469,7 @@
         const total = gpCards.reduce((s, c) => s + cardCost(c), 0);
         gpCountEl.textContent = gpCards.length;
         gpTotalEl.textContent = fmt(total);
-        gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim();
+        gpSendBtn.disabled = !gpCards.length || !gpNameEl.value.trim() || !gpEmailEl.value.trim() || !gpTermsAgreeEl.checked;
         const anyPrep = gpCards.some(cardHasPrep);
         // Submission preference: only relevant when prep is in the order.
         if (gpSubmitPrefEl) gpSubmitPrefEl.hidden = !anyPrep;
