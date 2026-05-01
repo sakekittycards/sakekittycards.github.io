@@ -1227,6 +1227,20 @@ body.cart-open { overflow: hidden; }
 /* ── FAQ ── */
 .faq-list { max-width: 740px; margin: 0 auto; }
 .faq-item { border-bottom: 1px solid var(--border); }
+/* Topic divider inside the flat FAQ list — separates groups (e.g. Grading &
+   Card Prep questions from the general questions above). Styled like a mini
+   section title so it's visually distinct without breaking the page rhythm. */
+.faq-section-heading {
+  font-family: 'Bangers', cursive;
+  font-size: 22px;
+  letter-spacing: .04em;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 36px 0 6px;
+  padding-top: 6px;
+}
 .faq-q {
   width: 100%; text-align: left; background: none; border: none; color: var(--text);
   font-family: 'Inter',sans-serif; font-size: 16px; font-weight: 600;
