@@ -1253,7 +1253,7 @@ body.cart-open { overflow: hidden; }
 }
 .faq-item.open .faq-icon { background: var(--orange); border-color: var(--orange); color: #fff; transform: rotate(45deg); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; font-size: 16px; color: var(--muted); line-height: 1.8; }
-.faq-item.open .faq-a { max-height: 600px; padding-bottom: 20px; }
+.faq-item.open .faq-a { max-height: 800px; padding-bottom: 20px; }
 .faq-ol { list-style: decimal; padding-left: 22px; margin: 0; }
 .faq-ol li { padding-left: 4px; margin-bottom: 4px; }
 .faq-ol li::marker { color: var(--orange); font-weight: 700; }
