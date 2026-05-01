@@ -764,22 +764,29 @@ body.cart-open { overflow: hidden; }
   filter: blur(.5px);
   animation: ember-rise var(--ember-dur, 4s) var(--ember-delay, 0s) ease-out infinite;
 }
-.ember-1 { --ember-dur: 4.2s; --ember-delay: 0s;   --ember-x: -28px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
-.ember-2 { --ember-dur: 5.1s; --ember-delay: 0.6s; --ember-x:  18px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
-.ember-3 { --ember-dur: 3.8s; --ember-delay: 1.2s; --ember-x: -10px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
-.ember-4 { --ember-dur: 4.6s; --ember-delay: 1.8s; --ember-x:  34px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
-.ember-5 { --ember-dur: 5.4s; --ember-delay: 2.4s; --ember-x: -42px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
-.ember-6 { --ember-dur: 4.0s; --ember-delay: 0.3s; --ember-x:  12px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
-.ember-7 { --ember-dur: 5.8s; --ember-delay: 2.0s; --ember-x:  -6px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
-.ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x:  26px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
+/* Per-ember trajectory: --ember-x and --ember-y set the END position of each
+   particle's flight. Directions span a wide cone — most still go up (hot air
+   rises), but some shoot diagonally and a couple travel nearly horizontal,
+   like real forge sparks. */
+.ember-1 { --ember-dur: 4.2s; --ember-delay: 0s;   --ember-x: -50px; --ember-y: -150px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
+.ember-2 { --ember-dur: 5.1s; --ember-delay: 0.6s; --ember-x:  30px; --ember-y: -190px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
+.ember-3 { --ember-dur: 3.8s; --ember-delay: 1.2s; --ember-x: -15px; --ember-y: -130px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
+.ember-4 { --ember-dur: 4.6s; --ember-delay: 1.8s; --ember-x:  72px; --ember-y:  -90px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
+.ember-5 { --ember-dur: 5.4s; --ember-delay: 2.4s; --ember-x: -88px; --ember-y:  -50px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
+.ember-6 { --ember-dur: 4.0s; --ember-delay: 0.3s; --ember-x:  18px; --ember-y: -210px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
+.ember-7 { --ember-dur: 5.8s; --ember-delay: 2.0s; --ember-x:  95px; --ember-y:  -30px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
+.ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x: -38px; --ember-y: -180px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
 
+/* Faster fade — opacity drops aggressively after the spawn flash. By 50% of
+   cycle the ember is already at .4 opacity (was .55), and it's nearly gone
+   (.1) by 75%. Reads as "spark fizzles" rather than "spark slowly dimming." */
 @keyframes ember-rise {
-  0%   { transform: translate(0, 0) scale(.6);                                 opacity: 0; }
-  10%  { transform: translate(0, -10px) scale(.85);                            opacity: .85; }
-  30%  { transform: translate(calc(var(--ember-x) * .35), -50px) scale(1);     opacity: .75; }
-  55%  { transform: translate(calc(var(--ember-x) * .65), -100px) scale(.95);  opacity: .55; }
-  78%  { transform: translate(calc(var(--ember-x) * .85), -145px) scale(.75);  opacity: .3; }
-  100% { transform: translate(var(--ember-x), -180px) scale(.4);                opacity: 0; }
+  0%   { transform: translate(0, 0) scale(.6);                                                   opacity: 0; }
+  8%   { transform: translate(0, -6px) scale(.85);                                               opacity: .85; }
+  22%  { transform: translate(calc(var(--ember-x) * .25), calc(var(--ember-y) * .22)) scale(1);  opacity: .7; }
+  45%  { transform: translate(calc(var(--ember-x) * .55), calc(var(--ember-y) * .5)) scale(.95); opacity: .42; }
+  68%  { transform: translate(calc(var(--ember-x) * .8),  calc(var(--ember-y) * .75)) scale(.7); opacity: .18; }
+  100% { transform: translate(var(--ember-x),              var(--ember-y)) scale(.35);            opacity: 0; }
 }
 
 /* Flier embers — rare, hot embers that break free of the image and travel
@@ -796,45 +803,48 @@ body.cart-open { overflow: hidden; }
   z-index: 2;
   filter: blur(.3px);
 }
+/* Each flier picks its own direction via --fly-x / --fly-y. Three trajectories:
+   one steep up-left (exits the left edge of the image), one up-right at a
+   moderate angle (exits the top-right area), one nearly straight up (rises
+   highest). Gives the "sparks fanning out from the forge" effect rather than
+   a vertical column. */
 .ember-flier-1 {
-  --fly-x: -56px;
+  --fly-x: -180px; --fly-y: -700px;
   background: #ff5e1a;
   box-shadow: 0 0 16px 4px #ff3000, 0 0 28px 6px rgba(255,90,30,.6);
   animation: ember-fly-out 14s ease-out 2.4s infinite;
 }
 .ember-flier-2 {
-  --fly-x:  82px;
+  --fly-x:  220px; --fly-y: -800px;
   background: #ff4080;
   box-shadow: 0 0 14px 3px #e6286b, 0 0 26px 6px rgba(255,80,160,.55);
   width: 6px; height: 6px;
   animation: ember-fly-out 17s ease-out 8.7s infinite;
 }
 .ember-flier-3 {
-  --fly-x: -28px;
+  --fly-x: -50px; --fly-y: -920px;
   background: #ffcb6b;
   box-shadow: 0 0 16px 4px #ff9a2e, 0 0 30px 8px rgba(255,170,40,.5);
   width: 7px; height: 7px;
   animation: ember-fly-out 18s ease-out 13.2s infinite;
 }
 
-/* Flight covers ~30% of total duration. Brightness peaks right at the source
-   and decays continuously as the ember rises (real embers cool as they get
-   further from the heat — opacity should dim throughout, not stay solid then
-   snap off). Ember scales up briefly as it leaves the workbench (the heat
-   "puffs" it), then shrinks as it cools, ending tiny and faded ~525px above
-   the poster. The remaining 70% of the cycle is opacity-0 rest before the
-   next launch. */
+/* Faster fade — visible flight is ~22% of total cycle (was 30%) so each
+   spark fizzles out sooner instead of holding visibility through the full
+   trajectory. Brightness peaks right at the source and decays steeply:
+   .95 → .75 → .5 → .25 → .08 → 0. Ember scales up briefly as it leaves
+   the workbench (heat puff), then shrinks as it cools. Trajectory is now
+   2D — both --fly-x and --fly-y drive the path, so different fliers shoot
+   in different directions. */
 @keyframes ember-fly-out {
-  0%   { transform: translate(0, 0) scale(.4);                                      opacity: 0; }
-  2%   { transform: translate(0, -10px) scale(.75);                                 opacity: .95; }
-  6%   { transform: translate(calc(var(--fly-x) * .12), -130px) scale(1);           opacity: .9; }
-  10%  { transform: translate(calc(var(--fly-x) * .25), -270px) scale(1.05);        opacity: .8; }
-  14%  { transform: translate(calc(var(--fly-x) * .42), -420px) scale(1);           opacity: .65; }
-  18%  { transform: translate(calc(var(--fly-x) * .6),  -560px) scale(.9);          opacity: .48; }
-  22%  { transform: translate(calc(var(--fly-x) * .78), -700px) scale(.75);         opacity: .3; }
-  26%  { transform: translate(calc(var(--fly-x) * .92), -830px) scale(.55);         opacity: .12; }
-  30%  { transform: translate(var(--fly-x),              -920px) scale(.3);          opacity: 0; }
-  100% { transform: translate(var(--fly-x),              -920px) scale(.3);          opacity: 0; }
+  0%   { transform: translate(0, 0) scale(.4);                                                                          opacity: 0; }
+  2%   { transform: translate(0, -10px) scale(.75);                                                                     opacity: .95; }
+  6%   { transform: translate(calc(var(--fly-x) * .15), calc(var(--fly-y) * .15)) scale(1);                             opacity: .82; }
+  10%  { transform: translate(calc(var(--fly-x) * .32), calc(var(--fly-y) * .32)) scale(1.05);                          opacity: .65; }
+  14%  { transform: translate(calc(var(--fly-x) * .55), calc(var(--fly-y) * .55)) scale(.95);                           opacity: .42; }
+  18%  { transform: translate(calc(var(--fly-x) * .78), calc(var(--fly-y) * .78)) scale(.75);                           opacity: .2; }
+  22%  { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
+  100% { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
 }
 
 /* Respect reduced-motion preference — no rising embers, no forge pulse */
