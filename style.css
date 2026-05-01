@@ -1396,12 +1396,22 @@ body.drip-unlocked { position: relative; }
 .prep-step-num { width: 46px; height: 46px; background: linear-gradient(135deg,var(--orange),var(--pink)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bangers',cursive; font-size: 22px; margin: 0 auto 14px; }
 .prep-step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
 .prep-step p { font-size: 14px; color: var(--muted); line-height: 1.6; }
-/* Stack subsequent paragraphs tightly so a multi-line step doesn't grow
-   meaningfully taller than single-paragraph steps in the same row. */
-.prep-step p + p { margin-top: 6px; }
-/* Highlight line — pulled-out value prop (e.g., the Step 6 refund guarantee).
-   Same size as the rest, but cyan accent + bumped weight so it scans first. */
-.prep-step-highlight { color: var(--cyan) !important; font-weight: 600; }
+/* Highlight phrase inside a step body — Step 6's refund guarantee is the
+   only current use. Same size and line-height as the surrounding body so
+   the line keeps the same vertical rhythm; cyan accent + a slightly lighter
+   weight than the h4 title (500 vs 700) so it draws the eye without
+   becoming visually loud. Sits inside a <br>'d <p>, so no margin tweaks
+   are needed — it flows as a second line of one compact body block. */
+.prep-step-highlight { color: var(--cyan); font-weight: 500; }
+.prep-step-check {
+  display: inline-block;
+  color: var(--cyan);
+  font-weight: 700;
+  margin-right: 3px;
+  font-size: 13px;
+  line-height: 1;
+  vertical-align: 1px;
+}
 
 .combine-box { background: linear-gradient(135deg,rgba(255,106,0,.07),rgba(123,47,255,.07)); border: 1px solid rgba(255,106,0,.18); border-radius: var(--r); padding: 32px 36px; display: flex; align-items: center; gap: 28px; }
 .combine-box-icon { font-size: 40px; flex-shrink: 0; }
