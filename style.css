@@ -780,9 +780,56 @@ body.cart-open { overflow: hidden; }
   100% { transform: translate(var(--ember-x), -180px) scale(.4); opacity: 0; }
 }
 
+/* Flier embers — rare, hot embers that break free of the image and travel
+   well above it into the page space. Long total cycle (14–18s) but only
+   ~2s of actual visible flight, so they fire infrequently. z-index above
+   the image so they're not obscured as they pass through it on the way up. */
+.ember-flier {
+  position: absolute;
+  left: 25%; bottom: 14%;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  filter: blur(.3px);
+}
+.ember-flier-1 {
+  --fly-x: -56px;
+  background: #ff5e1a;
+  box-shadow: 0 0 16px 4px #ff3000, 0 0 28px 6px rgba(255,90,30,.6);
+  animation: ember-fly-out 14s ease-out 2.4s infinite;
+}
+.ember-flier-2 {
+  --fly-x:  82px;
+  background: #ff4080;
+  box-shadow: 0 0 14px 3px #e6286b, 0 0 26px 6px rgba(255,80,160,.55);
+  width: 6px; height: 6px;
+  animation: ember-fly-out 17s ease-out 8.7s infinite;
+}
+.ember-flier-3 {
+  --fly-x: -28px;
+  background: #ffcb6b;
+  box-shadow: 0 0 16px 4px #ff9a2e, 0 0 30px 8px rgba(255,170,40,.5);
+  width: 7px; height: 7px;
+  animation: ember-fly-out 18s ease-out 13.2s infinite;
+}
+
+/* Most of the cycle is invisible; the actual flight is the first ~22% of
+   total duration, then the ember rests off-screen until the next loop. */
+@keyframes ember-fly-out {
+  0%   { transform: translate(0, 0) scale(.4);                                      opacity: 0; }
+  3%   { transform: translate(0, -8px) scale(.8);                                   opacity: .95; }
+  10%  { transform: translate(calc(var(--fly-x) * .35), -160px) scale(1.05);        opacity: .9; }
+  18%  { transform: translate(calc(var(--fly-x) * .75), -340px) scale(.85);         opacity: .55; }
+  25%  { transform: translate(var(--fly-x),              -480px) scale(.4);          opacity: 0; }
+  100% { transform: translate(var(--fly-x),              -480px) scale(.4);          opacity: 0; }
+}
+
 /* Respect reduced-motion preference — no rising embers, no forge pulse */
 @media (prefers-reduced-motion: reduce) {
-  .ember { animation: none; opacity: 0; }
+  .ember,
+  .ember-flier { animation: none; opacity: 0; }
   .inventory-paused-poster::before { animation: none; }
 }
 
