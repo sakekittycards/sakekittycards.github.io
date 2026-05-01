@@ -42,22 +42,31 @@
     .ti-search {
       width: 100%;
       padding: 14px 18px 14px 46px;
-      background: rgba(255,255,255,.05);
-      border: 1.5px solid var(--border);
+      background: rgba(255,255,255,.09);
+      /* Always-on orange-tinted border + soft glow so the input stands out
+         against the page bg instead of fading into it. Multiple customers
+         scrolled right past the previous low-contrast input. */
+      border: 1.5px solid rgba(255,106,0,.40);
       border-radius: var(--r-pill);
       color: var(--text);
       font-size: 15px;
       font-family: 'Inter',sans-serif;
       outline: none;
-      transition: border-color .2s, box-shadow .2s;
+      box-shadow: 0 0 0 1px rgba(255,106,0,.10), 0 4px 18px rgba(255,106,0,.10);
+      transition: border-color .2s, box-shadow .2s, background .2s;
     }
-    .ti-search:focus { border-color: rgba(255,106,0,.55); box-shadow: 0 0 0 3px rgba(255,106,0,.08); }
-    .ti-search::placeholder { color: var(--dim); }
+    .ti-search:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
+    .ti-search:focus {
+      background: rgba(255,255,255,.12);
+      border-color: rgba(255,106,0,.75);
+      box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 6px 22px rgba(255,106,0,.18);
+    }
+    .ti-search::placeholder { color: var(--muted); }
     .ti-search-icon {
       position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-      width: 18px; height: 18px; opacity: 0.45; pointer-events: none;
+      width: 18px; height: 18px; opacity: 0.85; pointer-events: none;
     }
-    .ti-search-icon svg { width: 100%; height: 100%; fill: var(--text); }
+    .ti-search-icon svg { width: 100%; height: 100%; fill: var(--orange); }
 
     .ti-results {
       position: absolute; top: calc(100% + 6px); left: 0; right: 0;
@@ -1129,20 +1138,27 @@
       const groups = await loadGroups();
       if (!groups.length) return { sealed: [], japanese: [] };
 
-      const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
+      // Strip apostrophes (both ASCII and curly from iOS autocorrect) and
+      // possessive 's. Otherwise "Sabrina's Gengar" never matches the
+      // Japanese product entry "Sabrinas Gengar (Japanese)" (or vice
+      // versa) because of one curly-vs-straight apostrophe difference.
+      const stripApos = s => s.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+      const tokens = stripApos(query.toLowerCase())
+        .split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
       if (!tokens.length) return { sealed: [], japanese: [] };
 
       // Hyphen-insensitive matcher — Japanese set codes ("SV-P", "S-P", "SM-P")
       // sometimes appear with hyphens in the source data and sometimes without,
-      // so we compare both raw and dehyphened forms.
+      // so we compare both raw and dehyphened forms. Apostrophes are also
+      // stripped on the haystack side so both halves are normalized.
       const dehyphen = s => s.replace(/-/g, '');
       const includesLoose = (haystack, needle) =>
         haystack.includes(needle) || dehyphen(haystack).includes(dehyphen(needle));
 
       // Find groups whose name/abbr matches any token (in either language)
       const matchingGroups = groups.filter(g => {
-        const name = (g.name || '').toLowerCase();
-        const abbr = (g.abbreviation || '').toLowerCase();
+        const name = stripApos((g.name || '').toLowerCase());
+        const abbr = stripApos((g.abbreviation || '').toLowerCase());
         return tokens.some(t => includesLoose(name, t) || includesLoose(abbr, t));
       }).slice(0, 12);
 
@@ -1158,7 +1174,7 @@
       productArrays.forEach((products, idx) => {
         const group = matchingGroups[idx];
         for (const p of products) {
-          const haystack = `${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase();
+          const haystack = stripApos(`${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase());
           if (!tokens.every(t => includesLoose(haystack, t))) continue;
 
           const isSealed = isSealedProduct(p);
