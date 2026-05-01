@@ -710,21 +710,44 @@ body.cart-open { overflow: hidden; }
 
 /* Inventory paused — landscape restocking banner + Instagram CTA. Flagged
    by SK_INVENTORY_PAUSED in shop.html. Sits above the merch grid; cards
-   (graded + singles) drop while merch stays live. Image has a transparent
-   background so the artwork floats on the page with no frame and no glow —
-   the artwork's own neon styling carries the visual weight. Hover keeps a
-   subtle lift so the link still feels interactive. */
+   (graded + singles) drop while merch stays live. The image is a transparent
+   PNG so the artwork floats natively on the page, AND light bleeds outward
+   from key hotspots (orange under the cat scene, pink/magenta behind the
+   text panel, cyan at the wordmark) via radial gradients on a pseudo-
+   element — gives the impression that the neon energy from inside the
+   artwork is escaping into the page, without drawing a uniform halo around
+   a rectangle. Hover lifts the artwork slightly to show interactivity. */
+.inventory-paused-poster {
+  position: relative;
+  display: block;
+  max-width: 820px; width: 100%;
+  transition: transform .25s ease;
+  isolation: isolate;
+}
+.inventory-paused-poster::before {
+  content: '';
+  position: absolute;
+  inset: -90px -120px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 38% 60% at 28% 55%, rgba(255,106,0,.32), transparent 70%),
+    radial-gradient(ellipse 38% 55% at 72% 55%, rgba(255,40,140,.26), transparent 70%),
+    radial-gradient(ellipse 30% 35% at 78% 18%, rgba(0,180,255,.20), transparent 70%),
+    radial-gradient(ellipse 22% 45% at 14% 70%, rgba(150,60,255,.18), transparent 70%);
+  filter: blur(28px);
+  opacity: .9;
+  transition: opacity .25s ease;
+}
+.inventory-paused-poster:hover { transform: translateY(-3px); }
+.inventory-paused-poster:hover::before { opacity: 1; }
+.inventory-paused-poster img {
+  display: block; width: 100%; height: auto;
+  position: relative; z-index: 1;
+}
 .inventory-paused {
   display: flex; flex-direction: column; align-items: center;
   gap: 18px; margin: 6px 0 28px;
-}
-.inventory-paused-poster {
-  display: block; max-width: 820px; width: 100%;
-  transition: transform .25s ease;
-}
-.inventory-paused-poster:hover { transform: translateY(-3px); }
-.inventory-paused-poster img {
-  display: block; width: 100%; height: auto;
 }
 .inventory-paused-cta { display: flex; justify-content: center; }
 .inventory-paused-note {
