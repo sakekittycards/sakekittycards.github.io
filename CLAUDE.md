@@ -30,7 +30,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - Nav and footer are **identical on every page**. When renaming or restructuring, touch all pages or delegate to an agent.
 - Bump cache-buster (`style.css?v=N` and `main.js?v=N`) on every page when shipping CSS/JS.
 - Commit messages: short conversational summary, then `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`. See `git log` for style.
-- Small edits go straight to `main` (no branching). This is a solo project.
+- **Branch workflow:** all work happens on `dev`. Claude commits + pushes to `dev` (non-default branch, no harness wall). When ready to deploy, Nick clicks "Merge pull request" on the open `dev → main` PR — that's the deploy moment, GitHub Pages rebuilds from `main`. After merge, Claude runs `git pull` on dev to fast-forward to the new main. Do NOT push directly to `main` — the harness blocks it. The previous "small edits go straight to main" note is retired.
 - Typography baseline: body copy 14–15px, headings use Bangers with gradient fill. Don't drop below 13px for readable copy.
 
 ## Business rules (relevant to code)
