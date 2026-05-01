@@ -847,11 +847,67 @@ body.cart-open { overflow: hidden; }
   100% { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
 }
 
-/* Respect reduced-motion preference — no rising embers, no forge pulse */
+/* Neon sign flicker — overlays the SAKE KITTY CARDS wordmark in the artwork.
+   mix-blend-mode:multiply dims whatever's underneath when the overlay is
+   opaque, mimicking the brief "letter dying" moments of an old neon sign.
+   Most of the cycle the overlay is transparent (sign lit normally); flickers
+   happen at four irregular bursts per 7.5s cycle, with intentionally non-
+   uniform timing to feel like the sign is failing organically rather than
+   on a metronome. The bounding box matches the wordmark frame's position in
+   the v5 landscape artwork (~57% from left, top ~2%, occupying about 28%
+   of the height). Tune left/top/right/bottom if the overlay misaligns. */
+.inventory-paused-poster::after {
+  content: '';
+  position: absolute;
+  left: 57%; right: 2%;
+  top: 2%; bottom: 70%;
+  border-radius: 14px;
+  background: #000;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  animation: neon-flicker 7.5s linear infinite;
+}
+
+@keyframes neon-flicker {
+  /* Lit — calm period */
+  0%, 11.9%    { opacity: 0; }
+  /* Burst 1 — rapid stutter (sign chokes briefly) */
+  12.0%        { opacity: .65; }
+  12.2%        { opacity: 0; }
+  12.4%        { opacity: .4; }
+  12.6%        { opacity: 0; }
+  12.8%        { opacity: .55; }
+  13.0%        { opacity: 0; }
+  /* Long calm */
+  37.9%        { opacity: 0; }
+  /* Burst 2 — single dim */
+  38.0%        { opacity: .5; }
+  38.4%        { opacity: 0; }
+  /* Calm */
+  61.9%        { opacity: 0; }
+  /* Burst 3 — quick double */
+  62.0%        { opacity: .7; }
+  62.2%        { opacity: 0; }
+  62.4%        { opacity: .35; }
+  62.6%        { opacity: 0; }
+  /* Calm */
+  87.9%        { opacity: 0; }
+  /* Burst 4 — soft fade */
+  88.0%        { opacity: .3; }
+  88.4%        { opacity: 0; }
+  100%         { opacity: 0; }
+}
+
+/* Respect reduced-motion preference — no rising embers, no forge pulse,
+   no neon flicker (steady wordmark for users who'd find flicker bothersome). */
 @media (prefers-reduced-motion: reduce) {
   .ember,
   .ember-flier { animation: none; opacity: 0; }
-  .inventory-paused-poster::before { animation: none; }
+  .inventory-paused-poster::before,
+  .inventory-paused-poster::after { animation: none; }
+  .inventory-paused-poster::after { opacity: 0; }
 }
 
 .inventory-paused {
