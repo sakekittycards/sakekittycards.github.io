@@ -815,15 +815,20 @@ body.cart-open { overflow: hidden; }
   animation: ember-fly-out 18s ease-out 13.2s infinite;
 }
 
-/* Most of the cycle is invisible; the actual flight is the first ~22% of
-   total duration, then the ember rests off-screen until the next loop. */
+/* Flight covers ~28% of total duration. Ember stays bright as it crosses
+   the entire image height and continues into the page space above (final
+   y:-900px, well above the ~462px-tall poster), only fading once it's
+   clearly outside the image bounds. The remaining 72% of the cycle is
+   opacity-0 rest before the next launch. */
 @keyframes ember-fly-out {
   0%   { transform: translate(0, 0) scale(.4);                                      opacity: 0; }
-  3%   { transform: translate(0, -8px) scale(.8);                                   opacity: .95; }
-  10%  { transform: translate(calc(var(--fly-x) * .35), -160px) scale(1.05);        opacity: .9; }
-  18%  { transform: translate(calc(var(--fly-x) * .75), -340px) scale(.85);         opacity: .55; }
-  25%  { transform: translate(var(--fly-x),              -480px) scale(.4);          opacity: 0; }
-  100% { transform: translate(var(--fly-x),              -480px) scale(.4);          opacity: 0; }
+  2%   { transform: translate(0, -10px) scale(.75);                                 opacity: .95; }
+  8%   { transform: translate(calc(var(--fly-x) * .18), -200px) scale(1);           opacity: .95; }
+  14%  { transform: translate(calc(var(--fly-x) * .42), -420px) scale(1.05);        opacity: .9; }
+  20%  { transform: translate(calc(var(--fly-x) * .68), -640px) scale(.95);         opacity: .75; }
+  25%  { transform: translate(calc(var(--fly-x) * .88), -800px) scale(.75);         opacity: .45; }
+  30%  { transform: translate(var(--fly-x),              -920px) scale(.4);          opacity: 0; }
+  100% { transform: translate(var(--fly-x),              -920px) scale(.4);          opacity: 0; }
 }
 
 /* Respect reduced-motion preference — no rising embers, no forge pulse */
