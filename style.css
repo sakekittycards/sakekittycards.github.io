@@ -708,16 +708,15 @@ body.cart-open { overflow: hidden; }
   .show-banner-icon { font-size: 44px; }
 }
 
-/* Inventory paused — full-pause restocking poster. Flagged by
-   SK_INVENTORY_PAUSED in shop.html. When active this is the entire body
-   of the shop page (TCGPlayer banner + Shop Direct hidden), so it gets
-   prominent sizing. */
+/* Inventory paused — restocking poster + Instagram CTA. Flagged by
+   SK_INVENTORY_PAUSED in shop.html. Sits above the merch grid; cards
+   (graded + singles) drop while merch stays live. */
 .inventory-paused {
   display: flex; flex-direction: column; align-items: center;
-  gap: 22px;
+  gap: 18px; margin: 6px 0 28px;
 }
 .inventory-paused-poster {
-  display: block; max-width: 520px; width: 100%;
+  display: block; max-width: 460px; width: 100%;
   border-radius: 22px; overflow: hidden;
   box-shadow: 0 18px 60px rgba(255,106,0,.18), 0 0 0 1px rgba(255,106,0,.18);
   transition: transform .25s ease, box-shadow .25s ease;
@@ -730,6 +729,11 @@ body.cart-open { overflow: hidden; }
   display: block; width: 100%; height: auto;
 }
 .inventory-paused-cta { display: flex; justify-content: center; }
+.inventory-paused-note {
+  font-size: 14px; color: var(--muted); text-align: center; margin: 0;
+  max-width: 540px; line-height: 1.55;
+}
+.inventory-paused-note strong { color: var(--orange); }
 
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
 
