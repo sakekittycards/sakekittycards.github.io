@@ -708,15 +708,13 @@ body.cart-open { overflow: hidden; }
   .show-banner-icon { font-size: 44px; }
 }
 
-/* Inventory paused — landscape restocking banner + Instagram CTA. Flagged
-   by SK_INVENTORY_PAUSED in shop.html. Sits above the merch grid; cards
-   (graded + singles) drop while merch stays live. The image is a transparent
-   PNG so the artwork floats natively on the page, AND light bleeds outward
-   from key hotspots (orange under the cat scene, pink/magenta behind the
-   text panel, cyan at the wordmark) via radial gradients on a pseudo-
-   element — gives the impression that the neon energy from inside the
-   artwork is escaping into the page, without drawing a uniform halo around
-   a rectangle. Hover lifts the artwork slightly to show interactivity. */
+/* Inventory paused — landscape restocking banner. Forging metaphor: the
+   cat in the artwork is hammering out a glowing card, so we add a tight
+   forge glow at the workbench position + brand-colored embers rising from
+   that hotspot, drifting upward and fading. Restrained: 8 particles, slow
+   timing, ~80% opacity peak — enough to feel alive, not enough to compete
+   with the artwork itself. The image is a transparent PNG so the embers
+   appear behind/around it cleanly. */
 .inventory-paused-poster {
   position: relative;
   display: block;
@@ -724,27 +722,70 @@ body.cart-open { overflow: hidden; }
   transition: transform .25s ease;
   isolation: isolate;
 }
+/* Concentrated forge glow at the cat's workbench (~25% across, ~75% down
+   on the artwork). Tighter and more saturated than a soft halo — reads as
+   a focused light source, not ambient lighting. Pulses subtly like a forge
+   breathing. */
 .inventory-paused-poster::before {
   content: '';
   position: absolute;
-  inset: -90px -120px;
+  left: 0; right: 0; top: 0; bottom: -40px;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 38% 60% at 28% 55%, rgba(255,106,0,.32), transparent 70%),
-    radial-gradient(ellipse 38% 55% at 72% 55%, rgba(255,40,140,.26), transparent 70%),
-    radial-gradient(ellipse 30% 35% at 78% 18%, rgba(0,180,255,.20), transparent 70%),
-    radial-gradient(ellipse 22% 45% at 14% 70%, rgba(150,60,255,.18), transparent 70%);
-  filter: blur(28px);
-  opacity: .9;
-  transition: opacity .25s ease;
+    radial-gradient(ellipse 18% 28% at 25% 78%, rgba(255,140,30,.55), rgba(255,60,30,.18) 45%, transparent 75%),
+    radial-gradient(ellipse 14% 22% at 72% 50%, rgba(255,40,140,.22), transparent 70%);
+  filter: blur(18px);
+  opacity: .85;
+  animation: forge-pulse 3.4s ease-in-out infinite;
+}
+@keyframes forge-pulse {
+  0%, 100% { opacity: .75; transform: scale(1); }
+  50%      { opacity: .95; transform: scale(1.03); }
 }
 .inventory-paused-poster:hover { transform: translateY(-3px); }
-.inventory-paused-poster:hover::before { opacity: 1; }
 .inventory-paused-poster img {
   display: block; width: 100%; height: auto;
   position: relative; z-index: 1;
 }
+
+/* Rising embers — small bright particles emanating from the workbench area
+   (~25% from left, bottom of poster). Each rises ~140px, drifts horizontally
+   a touch, fades in mid-flight then out at the top. Different colors,
+   sizes, durations, and delays so they don't pulse in unison. */
+.ember {
+  position: absolute;
+  left: 25%; bottom: 18%;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+  filter: blur(.5px);
+  animation: ember-rise var(--ember-dur, 4s) var(--ember-delay, 0s) ease-out infinite;
+}
+.ember-1 { --ember-dur: 4.2s; --ember-delay: 0s;   --ember-x: -28px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
+.ember-2 { --ember-dur: 5.1s; --ember-delay: 0.6s; --ember-x:  18px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
+.ember-3 { --ember-dur: 3.8s; --ember-delay: 1.2s; --ember-x: -10px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
+.ember-4 { --ember-dur: 4.6s; --ember-delay: 1.8s; --ember-x:  34px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
+.ember-5 { --ember-dur: 5.4s; --ember-delay: 2.4s; --ember-x: -42px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
+.ember-6 { --ember-dur: 4.0s; --ember-delay: 0.3s; --ember-x:  12px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
+.ember-7 { --ember-dur: 5.8s; --ember-delay: 2.0s; --ember-x:  -6px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
+.ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x:  26px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
+
+@keyframes ember-rise {
+  0%   { transform: translate(0, 0) scale(.6);                   opacity: 0; }
+  15%  { opacity: .85; }
+  60%  { transform: translate(calc(var(--ember-x) * .7), -90px) scale(1); opacity: .7; }
+  100% { transform: translate(var(--ember-x), -180px) scale(.4); opacity: 0; }
+}
+
+/* Respect reduced-motion preference — no rising embers, no forge pulse */
+@media (prefers-reduced-motion: reduce) {
+  .ember { animation: none; opacity: 0; }
+  .inventory-paused-poster::before { animation: none; }
+}
+
 .inventory-paused {
   display: flex; flex-direction: column; align-items: center;
   gap: 18px; margin: 6px 0 28px;
