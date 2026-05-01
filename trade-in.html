@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=47" />
+  <link rel="stylesheet" href="style.css?v=48" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -251,22 +251,27 @@
     }
     .ti-input, .ti-textarea {
       width: 100%;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.05);
-      border: 1.5px solid var(--border);
+      padding: 11px 13px;
+      background: rgba(255,255,255,0.09);
+      border: 1.5px solid rgba(255,106,0,0.40);
       border-radius: 8px;
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
       font-family: 'Inter', sans-serif;
       outline: none;
-      transition: border-color .15s, box-shadow .15s;
+      box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+      transition: border-color .15s, box-shadow .15s, background .15s;
       margin-bottom: 8px;
     }
-    .ti-input:focus, .ti-textarea:focus {
-      border-color: rgba(255,106,0,0.5);
-      box-shadow: 0 0 0 3px rgba(255,106,0,0.08);
+    .ti-input:hover, .ti-textarea:hover {
+      background: rgba(255,255,255,0.11); border-color: rgba(255,106,0,0.55);
     }
-    .ti-input::placeholder, .ti-textarea::placeholder { color: var(--dim); }
+    .ti-input:focus, .ti-textarea:focus {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,106,0,0.75);
+      box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+    }
+    .ti-input::placeholder, .ti-textarea::placeholder { color: var(--muted); }
     .ti-textarea { resize: vertical; min-height: 54px; }
 
     .ti-pref-label {
@@ -637,7 +642,7 @@
   <main class="page-content">
     <div class="page-hero">
       <h1>Sell / Trade</h1>
-      <p>Sell bulk, singles, sealed, or graded — cash or store credit, your choice. Build a list below and we'll get back with a quote.</p>
+      <p>Sell bulk, singles, sealed, or graded — cash or store credit, your choice. Build a list below and we'll get back with a quote. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only.</strong></p>
     </div>
 
     <div class="section" style="padding-top:0">
@@ -678,6 +683,7 @@
         <!-- Search + list -->
         <div class="trade-col">
           <h3>Find Specific Cards</h3>
+          <p style="margin:-4px 0 12px;font-size:12.5px;color:var(--dim);line-height:1.5">Searches both English (TCGPlayer market data) and Japanese (TCG CSV). <strong style="color:var(--muted)">Other languages aren't accepted</strong> — French, German, Spanish, Chinese, Korean, etc.</p>
           <div class="ti-search-wrap">
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>

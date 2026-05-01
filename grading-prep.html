@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=47" />
+  <link rel="stylesheet" href="style.css?v=48" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -18,11 +18,12 @@
     .gp-col-title { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.04em; background:linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px; }
 
     .gp-search-wrap { position:relative; margin-bottom:14px; }
-    .gp-search { width:100%; padding:13px 18px 13px 44px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:var(--r-pill); color:var(--text); font-size:15px; font-family:'Inter',sans-serif; outline:none; transition:border-color .2s,box-shadow .2s; }
-    .gp-search:focus { border-color:rgba(255,106,0,.55); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
-    .gp-search::placeholder { color:var(--dim); }
-    .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:17px; height:17px; opacity:.4; pointer-events:none; color:var(--text); }
-    .gp-search-icon svg { width:100%; height:100%; }
+    .gp-search { width:100%; padding:13px 18px 13px 44px; background:rgba(255,255,255,.09); border:1.5px solid rgba(255,106,0,.40); border-radius:var(--r-pill); color:var(--text); font-size:15px; font-family:'Inter',sans-serif; outline:none; box-shadow:0 0 0 1px rgba(255,106,0,.10),0 4px 18px rgba(255,106,0,.10); transition:border-color .2s,box-shadow .2s,background .2s; }
+    .gp-search:hover { background:rgba(255,255,255,.11); border-color:rgba(255,106,0,.55); }
+    .gp-search:focus { background:rgba(255,255,255,.12); border-color:rgba(255,106,0,.75); box-shadow:0 0 0 3px rgba(255,106,0,.18),0 6px 22px rgba(255,106,0,.18); }
+    .gp-search::placeholder { color:var(--muted); }
+    .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:17px; height:17px; opacity:.85; pointer-events:none; color:var(--orange); }
+    .gp-search-icon svg { width:100%; height:100%; fill:var(--orange); }
 
     .gp-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:rgba(12,12,18,.97); border:1px solid var(--border); border-radius:var(--r); max-height:360px; overflow-y:auto; z-index:20; backdrop-filter:blur(16px); box-shadow:0 10px 40px rgba(0,0,0,.5); display:none; }
     .gp-results.open { display:block; }
@@ -72,9 +73,10 @@
 
     .gp-contact { padding-top:14px; margin-top:2px; border-top:1px solid var(--border); margin-bottom:14px; }
     .gp-contact-label { font-size:10px; font-weight:700; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
-    .gp-input, .gp-textarea { width:100%; padding:10px 12px; background:rgba(255,255,255,.05); border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; transition:border-color .15s,box-shadow .15s; margin-bottom:8px; }
-    .gp-input:focus, .gp-textarea:focus { border-color:rgba(255,106,0,.5); box-shadow:0 0 0 3px rgba(255,106,0,.08); }
-    .gp-input::placeholder, .gp-textarea::placeholder { color:var(--dim); }
+    .gp-input, .gp-textarea { width:100%; padding:11px 13px; background:rgba(255,255,255,.09); border:1.5px solid rgba(255,106,0,.40); border-radius:8px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; box-shadow:0 0 0 1px rgba(255,106,0,.08),0 3px 14px rgba(255,106,0,.08); transition:border-color .15s,box-shadow .15s,background .15s; margin-bottom:8px; }
+    .gp-input:hover, .gp-textarea:hover { background:rgba(255,255,255,.11); border-color:rgba(255,106,0,.55); }
+    .gp-input:focus, .gp-textarea:focus { background:rgba(255,255,255,.12); border-color:rgba(255,106,0,.75); box-shadow:0 0 0 3px rgba(255,106,0,.18),0 4px 18px rgba(255,106,0,.18); }
+    .gp-input::placeholder, .gp-textarea::placeholder { color:var(--muted); }
     .gp-textarea { resize:vertical; min-height:60px; }
     .gp-disclaimer { font-size:13px; color:var(--dim); line-height:1.6; margin-top:12px; }
 
@@ -150,7 +152,7 @@
   <main class="page-content">
     <div class="page-hero">
       <h1>Grading Prep</h1>
-      <p>Don't waste money submitting cards that won't make the cut. We'll tell you exactly which ones are worth it — and handle everything from there.</p>
+      <p>Don't waste money submitting cards that won't make the cut. We'll tell you exactly which ones are worth it — and handle everything from there. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only.</strong></p>
     </div>
 
     <!-- Service tiers -->

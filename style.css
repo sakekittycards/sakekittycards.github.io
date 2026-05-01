@@ -515,20 +515,26 @@ button { font-family: inherit; }
 }
 .pay-modal-form input,
 .pay-modal-form textarea {
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid var(--border);
+  padding: 11px 13px;
+  background: rgba(255,255,255,0.09);
+  border: 1.5px solid rgba(255,106,0,0.40);
   border-radius: 8px;
   color: var(--text);
   font-size: 14px; font-family: 'Inter',sans-serif; font-weight: 400;
   letter-spacing: normal; text-transform: none;
   outline: none;
-  transition: border-color .15s, box-shadow .15s;
+  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  transition: border-color .15s, box-shadow .15s, background .15s;
 }
+.pay-modal-form input::placeholder,
+.pay-modal-form textarea::placeholder { color: var(--muted); }
+.pay-modal-form input:hover,
+.pay-modal-form textarea:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
 .pay-modal-form input:focus,
 .pay-modal-form textarea:focus {
-  border-color: rgba(255,106,0,0.5);
-  box-shadow: 0 0 0 3px rgba(255,106,0,0.08);
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,106,0,.75);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
 }
 .pay-modal-form textarea { resize: vertical; min-height: 60px; }
 .pay-modal-totals {
@@ -1000,12 +1006,19 @@ body.cart-open { overflow: hidden; }
 .notify-bar p { font-size: 15px; color: var(--muted); }
 .notify-bar-form { display: flex; gap: 10px; }
 .notify-bar-form input {
-  padding: 10px 18px; border-radius: var(--r-pill); border: 1.5px solid var(--border);
-  background: rgba(255,255,255,.05); color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif;
-  outline: none; width: 210px; transition: border-color .2s;
+  padding: 11px 18px; border-radius: var(--r-pill); border: 1.5px solid rgba(255,106,0,.40);
+  background: rgba(255,255,255,.09); color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif;
+  outline: none; width: 220px;
+  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.notify-bar-form input:focus { border-color: rgba(255,106,0,.5); }
-.notify-bar-form input::placeholder { color: var(--dim); }
+.notify-bar-form input:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
+.notify-bar-form input:focus {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,106,0,.75);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+}
+.notify-bar-form input::placeholder { color: var(--muted); }
 
 /* ── Vendors ── */
 .vendors-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; max-width: 880px; margin: 0 auto; }
@@ -1093,12 +1106,21 @@ body.cart-open { overflow: hidden; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group textarea, .form-group select {
-  width: 100%; padding: 11px 15px; background: rgba(255,255,255,.05);
-  border: 1.5px solid var(--border); border-radius: var(--r-sm);
-  color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif; outline: none; transition: border-color .2s, box-shadow .2s;
+  width: 100%; padding: 12px 15px; background: rgba(255,255,255,.09);
+  border: 1.5px solid rgba(255,106,0,.40); border-radius: var(--r-sm);
+  color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif; outline: none;
+  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.form-group input::placeholder, .form-group textarea::placeholder { color: var(--dim); }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: rgba(255,106,0,.5); box-shadow: 0 0 0 3px rgba(255,106,0,.07); }
+.form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); }
+.form-group input:hover, .form-group textarea:hover, .form-group select:hover {
+  background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55);
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,106,0,.75);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+}
 .form-group textarea { resize: vertical; min-height: 110px; }
 .form-group select option { background: #1a1a2e; }
 
