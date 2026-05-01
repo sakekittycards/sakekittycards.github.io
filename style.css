@@ -720,12 +720,8 @@ body.cart-open { overflow: hidden; }
   display: block;
   max-width: 820px; width: 100%;
   transition: transform .25s ease;
-  /* z-index:0 creates a stacking context (so the forge glow ::before with
-     z-index:-1 stays contained inside the poster) without isolating blend
-     modes the way `isolation: isolate` would. The neon-flicker overlays
-     need their mix-blend-mode:multiply to reach the body background through
-     the artwork's transparent pixels, otherwise they render as opaque black
-     rectangles instead of dimming only the colorful neon. */
+  /* Stacking context to contain the forge-glow ::before's z-index:-1 inside
+     the poster (otherwise it'd escape behind ancestor backgrounds). */
   z-index: 0;
 }
 /* Concentrated forge glow at the cat's workbench (~25% across, ~75% down
@@ -853,94 +849,10 @@ body.cart-open { overflow: hidden; }
   100% { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
 }
 
-/* Neon sign flicker — separate overlay zones for each neon-styled element
-   in the artwork (the wordmark frame, the headline divider, the FOLLOW pill,
-   the heart, the bell). Each is a black div with mix-blend-mode:multiply that
-   pulses opacity to dim its target like an old neon tube failing. Each zone
-   has its own animation timing so they don't sync — the sign feels alive
-   rather than on a metronome. Bounding-box percentages are calibrated to the
-   v5 landscape artwork; tune left/top/right/bottom per zone if any drifts. */
-.neon-flicker {
-  position: absolute;
-  background: #000;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 3;
-  opacity: 0;
-  border-radius: 14px;
-}
-.neon-flicker-wordmark {
-  /* SAKE KITTY CARDS frame (top-right of artwork) */
-  left: 57%; right: 2%;
-  top: 4%; bottom: 75%;
-  border-radius: 20px;
-  animation: neon-flicker 7.5s linear infinite;
-}
-.neon-flicker-divider {
-  /* Thin divider between RESTOCK and PREPARE in the headline */
-  left: 56%; right: 6%;
-  top: 38%; bottom: 59%;
-  border-radius: 3px;
-  animation: neon-flicker 6.2s linear 1.4s infinite;
-}
-.neon-flicker-pill {
-  /* FOLLOW @SAKEKITTYCARDS pill outline (lower right area) */
-  left: 53%; right: 3%;
-  top: 78%; bottom: 11%;
-  border-radius: 28px;
-  animation: neon-flicker 8.3s linear 0.8s infinite;
-}
-.neon-flicker-heart {
-  /* Heart icon at the left side of the FOLLOW pill */
-  left: 54%; right: 41%;
-  top: 80%; bottom: 13%;
-  border-radius: 50%;
-  animation: neon-flicker 5.7s linear 2.1s infinite;
-}
-.neon-flicker-bell {
-  /* Bell icon at the right side of the FOLLOW pill */
-  left: 89%; right: 4%;
-  top: 80%; bottom: 13%;
-  border-radius: 50%;
-  animation: neon-flicker 6.9s linear 0.5s infinite;
-}
-
-@keyframes neon-flicker {
-  /* Lit — calm period */
-  0%, 11.9%    { opacity: 0; }
-  /* Burst 1 — rapid stutter (sign chokes briefly) */
-  12.0%        { opacity: .65; }
-  12.2%        { opacity: 0; }
-  12.4%        { opacity: .4; }
-  12.6%        { opacity: 0; }
-  12.8%        { opacity: .55; }
-  13.0%        { opacity: 0; }
-  /* Long calm */
-  37.9%        { opacity: 0; }
-  /* Burst 2 — single dim */
-  38.0%        { opacity: .5; }
-  38.4%        { opacity: 0; }
-  /* Calm */
-  61.9%        { opacity: 0; }
-  /* Burst 3 — quick double */
-  62.0%        { opacity: .7; }
-  62.2%        { opacity: 0; }
-  62.4%        { opacity: .35; }
-  62.6%        { opacity: 0; }
-  /* Calm */
-  87.9%        { opacity: 0; }
-  /* Burst 4 — soft fade */
-  88.0%        { opacity: .3; }
-  88.4%        { opacity: 0; }
-  100%         { opacity: 0; }
-}
-
-/* Respect reduced-motion preference — no rising embers, no forge pulse,
-   no neon flicker (steady sign for users who'd find flicker bothersome). */
+/* Respect reduced-motion preference — no rising embers, no forge pulse. */
 @media (prefers-reduced-motion: reduce) {
   .ember,
-  .ember-flier,
-  .neon-flicker { animation: none; opacity: 0; }
+  .ember-flier { animation: none; opacity: 0; }
   .inventory-paused-poster::before { animation: none; }
 }
 
