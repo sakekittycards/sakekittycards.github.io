@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=48" />
+  <link rel="stylesheet" href="style.css?v=49" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -40,13 +40,26 @@
   </nav>
 
   <main class="page-content">
-    <div class="page-hero">
+    <div id="shopHero" class="page-hero">
       <h1>Shop</h1>
-      <p>Pick up direct from us, or browse a selection of singles and sealed on our TCGPlayer storefront.</p>
+      <p id="shopHeroSub">Pick up direct from us, or browse a selection of singles and sealed on our TCGPlayer storefront.</p>
+    </div>
+
+    <!-- Inventory paused — full pause poster (everything off, point at IG).
+         Toggled by SK_INVENTORY_PAUSED in the script below. -->
+    <div id="inventoryPaused" class="section inventory-paused" hidden style="padding-top:0">
+      <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="inventory-paused-poster" aria-label="Restocking — follow @sakekittycards for restock alerts">
+        <img src="inventory-paused.webp" alt="Sake Kitty Cards is restocking — fresh stock coming soon. Follow @sakekittycards for restock alerts and new drops." width="1024" height="1536" loading="eager" fetchpriority="high" />
+      </a>
+      <div class="inventory-paused-cta">
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-lg">
+          Follow @sakekittycards for restock alerts →
+        </a>
+      </div>
     </div>
 
     <!-- TCGPlayer Banner -->
-    <div class="section" style="padding-top:0">
+    <div id="tcgplayerBanner" class="section" style="padding-top:0">
       <div class="tcg-banner">
         <div class="tcg-banner-text">
           <h2>Also on TCGPlayer</h2>
@@ -59,7 +72,7 @@
     </div>
 
     <!-- Shop Direct (Square-backed) -->
-    <div class="section" style="padding-top:0">
+    <div id="shopDirect" class="section" style="padding-top:0">
       <div class="section-header">
         <h2 class="section-title">Shop Direct</h2>
         <p class="section-sub">Plushies, merch, and featured singles — add to cart and check out with Apple Pay, Google Pay, card, Venmo, or PayPal. <strong style="color:var(--muted)">Flat $5 shipping</strong>. All cards and sealed ship insured ($1 per $100).</p>
@@ -142,7 +155,7 @@
         </section>
       </div>
 
-      <p style="margin-top:28px;font-size:14px;color:var(--dim);text-align:center">
+      <p id="shopFooterNote" style="margin-top:28px;font-size:14px;color:var(--dim);text-align:center">
         Looking for singles? Some live on <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211/feedback" target="_blank" style="color:var(--orange)">TCGPlayer</a>, more get added here as we list them. Follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restock alerts.
       </p>
     </div>
@@ -179,6 +192,28 @@
   <script src="main.js?v=26"></script>
   <script>
     (async function loadShop() {
+      // === FEATURE FLAG: full inventory pause (away / restocking) ===
+      // When true: hide TCGPlayer banner + Shop Direct section + footer note,
+      // swap hero subtitle, show the restocking poster as the page body, and
+      // bail out of the Square fetch entirely. Use this when both channels
+      // (direct + TCGPlayer) are paused — e.g. Nick away for the weekend.
+      //
+      // FUTURE NOTE: once non-card inventory is live (plushies, apparel,
+      // merch), consider adding a partial-pause mode that drops just graded
+      // + singles buckets and keeps merch visible — print-on-demand items
+      // don't need restocking. For now, full pause is the only mode since
+      // there's no non-card inventory to keep live.
+      const SK_INVENTORY_PAUSED = false;
+
+      if (SK_INVENTORY_PAUSED) {
+        document.getElementById('tcgplayerBanner').hidden = true;
+        document.getElementById('shopDirect').hidden = true;
+        document.getElementById('inventoryPaused').hidden = false;
+        const heroSub = document.getElementById('shopHeroSub');
+        if (heroSub) heroSub.textContent = 'Away for the weekend — fresh stock coming soon. Follow @sakekittycards for restock alerts.';
+        return;
+      }
+
       // === FEATURE FLAG: graded inventory at a show ===
       // When true: hide the graded section + nav pill, and show a notice
       // banner above the rest of the shop. Square data is NOT touched —

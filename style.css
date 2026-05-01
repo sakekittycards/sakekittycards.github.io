@@ -708,6 +708,29 @@ body.cart-open { overflow: hidden; }
   .show-banner-icon { font-size: 44px; }
 }
 
+/* Inventory paused — full-pause restocking poster. Flagged by
+   SK_INVENTORY_PAUSED in shop.html. When active this is the entire body
+   of the shop page (TCGPlayer banner + Shop Direct hidden), so it gets
+   prominent sizing. */
+.inventory-paused {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 22px;
+}
+.inventory-paused-poster {
+  display: block; max-width: 520px; width: 100%;
+  border-radius: 22px; overflow: hidden;
+  box-shadow: 0 18px 60px rgba(255,106,0,.18), 0 0 0 1px rgba(255,106,0,.18);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.inventory-paused-poster:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 70px rgba(255,106,0,.28), 0 0 0 1px rgba(255,106,0,.32);
+}
+.inventory-paused-poster img {
+  display: block; width: 100%; height: auto;
+}
+.inventory-paused-cta { display: flex; justify-content: center; }
+
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
 
 /* Graded cards filter + sort controls */
