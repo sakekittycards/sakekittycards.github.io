@@ -774,10 +774,12 @@ body.cart-open { overflow: hidden; }
 .ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x:  26px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
 
 @keyframes ember-rise {
-  0%   { transform: translate(0, 0) scale(.6);                   opacity: 0; }
-  15%  { opacity: .85; }
-  60%  { transform: translate(calc(var(--ember-x) * .7), -90px) scale(1); opacity: .7; }
-  100% { transform: translate(var(--ember-x), -180px) scale(.4); opacity: 0; }
+  0%   { transform: translate(0, 0) scale(.6);                                 opacity: 0; }
+  10%  { transform: translate(0, -10px) scale(.85);                            opacity: .85; }
+  30%  { transform: translate(calc(var(--ember-x) * .35), -50px) scale(1);     opacity: .75; }
+  55%  { transform: translate(calc(var(--ember-x) * .65), -100px) scale(.95);  opacity: .55; }
+  78%  { transform: translate(calc(var(--ember-x) * .85), -145px) scale(.75);  opacity: .3; }
+  100% { transform: translate(var(--ember-x), -180px) scale(.4);                opacity: 0; }
 }
 
 /* Flier embers — rare, hot embers that break free of the image and travel
@@ -815,20 +817,24 @@ body.cart-open { overflow: hidden; }
   animation: ember-fly-out 18s ease-out 13.2s infinite;
 }
 
-/* Flight covers ~28% of total duration. Ember stays bright as it crosses
-   the entire image height and continues into the page space above (final
-   y:-900px, well above the ~462px-tall poster), only fading once it's
-   clearly outside the image bounds. The remaining 72% of the cycle is
-   opacity-0 rest before the next launch. */
+/* Flight covers ~30% of total duration. Brightness peaks right at the source
+   and decays continuously as the ember rises (real embers cool as they get
+   further from the heat — opacity should dim throughout, not stay solid then
+   snap off). Ember scales up briefly as it leaves the workbench (the heat
+   "puffs" it), then shrinks as it cools, ending tiny and faded ~525px above
+   the poster. The remaining 70% of the cycle is opacity-0 rest before the
+   next launch. */
 @keyframes ember-fly-out {
   0%   { transform: translate(0, 0) scale(.4);                                      opacity: 0; }
   2%   { transform: translate(0, -10px) scale(.75);                                 opacity: .95; }
-  8%   { transform: translate(calc(var(--fly-x) * .18), -200px) scale(1);           opacity: .95; }
-  14%  { transform: translate(calc(var(--fly-x) * .42), -420px) scale(1.05);        opacity: .9; }
-  20%  { transform: translate(calc(var(--fly-x) * .68), -640px) scale(.95);         opacity: .75; }
-  25%  { transform: translate(calc(var(--fly-x) * .88), -800px) scale(.75);         opacity: .45; }
-  30%  { transform: translate(var(--fly-x),              -920px) scale(.4);          opacity: 0; }
-  100% { transform: translate(var(--fly-x),              -920px) scale(.4);          opacity: 0; }
+  6%   { transform: translate(calc(var(--fly-x) * .12), -130px) scale(1);           opacity: .9; }
+  10%  { transform: translate(calc(var(--fly-x) * .25), -270px) scale(1.05);        opacity: .8; }
+  14%  { transform: translate(calc(var(--fly-x) * .42), -420px) scale(1);           opacity: .65; }
+  18%  { transform: translate(calc(var(--fly-x) * .6),  -560px) scale(.9);          opacity: .48; }
+  22%  { transform: translate(calc(var(--fly-x) * .78), -700px) scale(.75);         opacity: .3; }
+  26%  { transform: translate(calc(var(--fly-x) * .92), -830px) scale(.55);         opacity: .12; }
+  30%  { transform: translate(var(--fly-x),              -920px) scale(.3);          opacity: 0; }
+  100% { transform: translate(var(--fly-x),              -920px) scale(.3);          opacity: 0; }
 }
 
 /* Respect reduced-motion preference — no rising embers, no forge pulse */
