@@ -768,14 +768,14 @@ body.cart-open { overflow: hidden; }
    particle's flight. Directions span a wide cone — most still go up (hot air
    rises), but some shoot diagonally and a couple travel nearly horizontal,
    like real forge sparks. */
-.ember-1 { --ember-dur: 4.2s; --ember-delay: 0s;   --ember-x: -50px; --ember-y: -150px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
-.ember-2 { --ember-dur: 5.1s; --ember-delay: 0.6s; --ember-x:  30px; --ember-y: -190px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
-.ember-3 { --ember-dur: 3.8s; --ember-delay: 1.2s; --ember-x: -15px; --ember-y: -130px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
-.ember-4 { --ember-dur: 4.6s; --ember-delay: 1.8s; --ember-x:  72px; --ember-y:  -90px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
-.ember-5 { --ember-dur: 5.4s; --ember-delay: 2.4s; --ember-x: -88px; --ember-y:  -50px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
-.ember-6 { --ember-dur: 4.0s; --ember-delay: 0.3s; --ember-x:  18px; --ember-y: -210px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
-.ember-7 { --ember-dur: 5.8s; --ember-delay: 2.0s; --ember-x:  95px; --ember-y:  -30px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
-.ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x: -38px; --ember-y: -180px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
+.ember-1 { --ember-dur: 3.0s; --ember-delay: 0s;   --ember-x: -50px; --ember-y: -150px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
+.ember-2 { --ember-dur: 3.6s; --ember-delay: 0.4s; --ember-x:  30px; --ember-y: -190px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
+.ember-3 { --ember-dur: 2.7s; --ember-delay: 0.9s; --ember-x: -15px; --ember-y: -130px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
+.ember-4 { --ember-dur: 3.3s; --ember-delay: 1.3s; --ember-x:  72px; --ember-y:  -90px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
+.ember-5 { --ember-dur: 3.8s; --ember-delay: 1.7s; --ember-x: -88px; --ember-y:  -50px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
+.ember-6 { --ember-dur: 2.9s; --ember-delay: 0.2s; --ember-x:  18px; --ember-y: -210px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
+.ember-7 { --ember-dur: 4.1s; --ember-delay: 1.4s; --ember-x:  95px; --ember-y:  -30px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
+.ember-8 { --ember-dur: 3.1s; --ember-delay: 2.2s; --ember-x: -38px; --ember-y: -180px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
 
 /* Faster fade — opacity drops aggressively after the spawn flash. By 50% of
    cycle the ember is already at .4 opacity (was .55), and it's nearly gone
@@ -812,21 +812,21 @@ body.cart-open { overflow: hidden; }
   --fly-x: -180px; --fly-y: -700px;
   background: #ff5e1a;
   box-shadow: 0 0 16px 4px #ff3000, 0 0 28px 6px rgba(255,90,30,.6);
-  animation: ember-fly-out 14s ease-out 2.4s infinite;
+  animation: ember-fly-out 10s ease-out 1.6s infinite;
 }
 .ember-flier-2 {
   --fly-x:  220px; --fly-y: -800px;
   background: #ff4080;
   box-shadow: 0 0 14px 3px #e6286b, 0 0 26px 6px rgba(255,80,160,.55);
   width: 6px; height: 6px;
-  animation: ember-fly-out 17s ease-out 8.7s infinite;
+  animation: ember-fly-out 12s ease-out 5.8s infinite;
 }
 .ember-flier-3 {
   --fly-x: -50px; --fly-y: -920px;
   background: #ffcb6b;
   box-shadow: 0 0 16px 4px #ff9a2e, 0 0 30px 8px rgba(255,170,40,.5);
   width: 7px; height: 7px;
-  animation: ember-fly-out 18s ease-out 13.2s infinite;
+  animation: ember-fly-out 13s ease-out 9.4s infinite;
 }
 
 /* Faster fade — visible flight is ~22% of total cycle (was 30%) so each
