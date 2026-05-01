@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=46" />
+  <link rel="stylesheet" href="style.css?v=47" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -69,6 +69,15 @@
       <div id="shopStatus" class="shop-status">
         <div class="shop-spinner" aria-hidden="true"></div>
         <p>Loading products…</p>
+      </div>
+
+      <!-- Graded-at-show banner. Toggled by GRADED_AT_SHOW flag in the script below. -->
+      <div id="gradedAtShowBanner" class="show-banner" hidden>
+        <div class="show-banner-icon">🎪</div>
+        <div class="show-banner-body">
+          <h3>Graded inventory is at a show this weekend</h3>
+          <p>Our slabs are coming with us to the booth. Fresh listings (plus anything new from the show) drop here <strong>Monday</strong>. Catch us in person if you're local — see the <a href="events.html">events page</a> for where.</p>
+        </div>
       </div>
 
       <nav class="shop-cat-nav" id="shopCatNav" hidden aria-label="Shop categories"></nav>
@@ -170,6 +179,13 @@
   <script src="main.js?v=26"></script>
   <script>
     (async function loadShop() {
+      // === FEATURE FLAG: graded inventory at a show ===
+      // When true: hide the graded section + nav pill, and show a notice
+      // banner above the rest of the shop. Square data is NOT touched —
+      // every graded item stays in the catalog. Flip back to false to
+      // restore the full shop.
+      const GRADED_AT_SHOW = true;
+
       const sectionsWrap = document.getElementById('shopSections');
       const status       = document.getElementById('shopStatus');
       const esc    = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -274,6 +290,14 @@
 
         const buckets = { graded: [], singles: [], merch: [] };
         for (const item of items) buckets[categorize(item)].push(item);
+
+        // Graded-at-show: drop graded items from the page (data stays in
+        // Square; we just don't render anything for them) and show the
+        // "we're at a show" banner instead.
+        if (GRADED_AT_SHOW) {
+          buckets.graded = [];
+          document.getElementById('gradedAtShowBanner').hidden = false;
+        }
 
         const sectionMap = {
           graded:  ['shopSectionGraded',  'shopGridGraded'],

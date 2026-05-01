@@ -671,6 +671,37 @@ body.cart-open { overflow: hidden; }
 .tcg-banner-text h2 { font-family: 'Bangers',cursive; font-size: clamp(22px,4vw,30px); letter-spacing: 0.03em; margin-bottom: 6px; }
 .tcg-banner-text p { font-size: 15px; color: var(--muted); }
 
+/* "We're at a show" banner — used when graded inventory is temporarily off the site. */
+.show-banner {
+  display: flex; align-items: center; gap: 22px;
+  padding: 22px 28px; margin: 18px 0 6px;
+  background: linear-gradient(135deg,rgba(255,106,0,.12),rgba(255,46,99,.10));
+  border: 1px solid rgba(255,106,0,.32);
+  border-radius: var(--r);
+  box-shadow: 0 8px 30px rgba(255,106,0,.10);
+}
+.show-banner-icon {
+  font-size: 38px; line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 14px rgba(255,106,0,.5));
+}
+.show-banner-body h3 {
+  font-family: 'Bangers',cursive;
+  font-size: clamp(18px,3.2vw,24px);
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+  background: linear-gradient(135deg,var(--orange),var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.show-banner-body p { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0; }
+.show-banner-body a { color: var(--orange); text-decoration: none; font-weight: 600; }
+.show-banner-body a:hover { text-decoration: underline; }
+@media (max-width: 600px) {
+  .show-banner { flex-direction: column; text-align: center; padding: 20px 18px; gap: 12px; }
+  .show-banner-icon { font-size: 44px; }
+}
+
 .product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
 
 /* Graded cards filter + sort controls */
