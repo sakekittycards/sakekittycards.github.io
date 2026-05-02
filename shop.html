@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=82" />
+  <link rel="stylesheet" href="style.css?v=83" />
 </head>
 <body>
   <div class="bg-blob bg-blob-1"></div>
@@ -98,7 +98,7 @@
             <span class="cta-arrow" aria-hidden="true">→</span>
           </a>
         </div>
-        <p class="inventory-paused-note">Cards are restocking — <strong>merch below is still available!</strong></p>
+        <p class="inventory-paused-note">Cards are at the <a href="events.html" style="color:var(--orange);text-decoration:none">Coral Springs Card Show</a> this weekend — <strong>merch below is still available!</strong></p>
       </div>
 
       <div id="shopStatus" class="shop-status">
@@ -227,7 +227,7 @@
         document.getElementById('tcgplayerBanner').hidden = true;
         document.getElementById('inventoryPaused').hidden = false;
         const heroSub = document.getElementById('shopHeroSub');
-        if (heroSub) heroSub.textContent = 'Cards are restocking — apparel & merch are still available. Follow @sakekittycards for restock alerts.';
+        if (heroSub) heroSub.textContent = 'Catch us at the Coral Springs Card Show this weekend — fresh card stock drops here Monday. Apparel & merch still available below.';
       }
 
       // === FEATURE FLAG: graded inventory at a show ===
