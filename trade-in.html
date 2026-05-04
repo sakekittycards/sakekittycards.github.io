@@ -1866,7 +1866,10 @@
 
     function addCard(card, variantKey, variantLabel, price) {
       const fullName = variantLabel ? `${card.name} · ${variantLabel}` : card.name;
-      cards.push({
+      // PC-fallback English entries already carry _fallbackProductId; pokemontcg.io
+      // primary results don't ship a productId, so resolve async via the all-cards
+      // index by name+set+number so the TCGsearch deep-link can upgrade after add.
+      const cardEntry = {
         id: card.id + '_' + (variantKey || 'nv') + '_' + Date.now(),
         type: 'card',
         name: fullName,
@@ -1876,10 +1879,20 @@
         market: price,
         variant: variantKey || null,
         condition: 'NM',
-      });
+        productId: card._fallbackProductId || null,
+      };
+      cards.push(cardEntry);
       searchInput.value = '';
       resultsEl.classList.remove('open');
       renderList();
+      if (!cardEntry.productId) {
+        resolveEnProductIdForGraded(card.name, card.set?.name, card.number).then(pid => {
+          if (pid && cards.includes(cardEntry)) {
+            cardEntry.productId = pid;
+            renderList();
+          }
+        });
+      }
     }
 
     function addSealed(name, price, condition) {
@@ -1954,18 +1967,23 @@
           ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
-        // TCGsearch cross-reference link — small, subtle, opens in new tab.
-        // Endorses TCGsearch's price-comparison service while letting customers
-        // double-check our quote against their numbers. Query is built from card
-        // name + number (or grade for graded items) so it lands as close to the
-        // exact card as possible. Strip any [JP] / [CN] prefix from the display
-        // name before sending — TCGsearch doesn't need our internal tags.
+        // TCGsearch cross-reference link — deep-link to /card/<productId> when
+        // we know it (TCGsearch uses the SAME TCGplayer productId as their
+        // /card/<id> path), otherwise fall back to /search?q=... Synthetic
+        // pc:* productIds (Chinese cards, only used in the graded form) skip
+        // the deep-link path because TCGsearch doesn't carry those entries.
         const tcgsName = c.name.replace(/^\[(?:JP|CN)\]\s*/, '').trim();
-        const tcgsParts = [tcgsName];
-        if (!isSealed && !isGraded && c.number) tcgsParts.push(c.number);
-        if (isGraded) tcgsParts.push(c.condition);
-        const tcgsQuery = tcgsParts.join(' ');
-        const tcgsUrl = `https://www.tcgsearch.com/search?q=${encodeURIComponent(tcgsQuery)}&tcg=pokemon`;
+        const pidStr = c.productId != null ? String(c.productId) : '';
+        const canDeepLink = pidStr && /^\d+$/.test(pidStr);
+        let tcgsUrl;
+        if (canDeepLink) {
+          tcgsUrl = `https://www.tcgsearch.com/card/${pidStr}`;
+        } else {
+          const tcgsParts = [tcgsName];
+          if (!isSealed && !isGraded && c.number) tcgsParts.push(c.number);
+          if (isGraded) tcgsParts.push(c.condition);
+          tcgsUrl = `https://www.tcgsearch.com/search?q=${encodeURIComponent(tcgsParts.join(' '))}&tcg=pokemon`;
+        }
 
         return `
           <div class="ti-item ${isSealed?'is-sealed':''}">
@@ -1979,7 +1997,11 @@
                 ${offerStr}
               </div>
               <div style="margin-top:6px;font-size:11px">
-                <a href="${tcgsUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.8;display:inline-flex;align-items:center;gap:4px">🔎 Cross-check on TCGsearch <span style="font-size:10px">↗</span></a>
+                <a href="${tcgsUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.85;display:inline-flex;align-items:center;gap:5px">
+                  <img src="tcgplayer-logo.jpg" alt="" style="width:14px;height:14px;border-radius:2px;flex-shrink:0" />
+                  Cross-check on TCGsearch
+                  <span style="font-size:10px">↗</span>
+                </a>
               </div>
             </div>
             <button class="ti-remove" data-idx="${i}" aria-label="Remove">×</button>
@@ -2446,6 +2468,7 @@
         market: val,
         condition: selectedGrade,
         cert:   cert,
+        productId: picked?._productId || null,  // for TCGsearch deep-link in the list
       });
       gradedName.value = ''; gradedValue.value = ''; gradedCert.value = '';
       selectedGradedCard = null;
