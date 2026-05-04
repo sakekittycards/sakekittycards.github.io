@@ -50,7 +50,7 @@ def main() -> None:
         return
 
     out: dict[str, list] = {}
-    skipped_no_pid = 0
+    skipped_no_id = 0
     skipped_no_prices = 0
     with PC_CSV.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
@@ -59,8 +59,18 @@ def main() -> None:
             if "Pokemon" not in console:
                 continue
             tcg_id = (row.get("tcg-id") or "").strip()
-            if not tcg_id or not tcg_id.isdigit():
-                skipped_no_pid += 1
+            pc_id = (row.get("id") or "").strip()
+            is_chinese = "Chinese" in console
+            # Same key scheme as the all-cards-fallback index: TCGplayer
+            # productId when available, "pc:<id>" synthetic key for Chinese
+            # rows TCGplayer doesn't carry. Front-end uses the prefix to
+            # decide whether TCG endpoints can be hit or PC is the only source.
+            if tcg_id and tcg_id.isdigit():
+                key = tcg_id
+            elif is_chinese and pc_id and pc_id.isdigit():
+                key = f"pc:{pc_id}"
+            else:
+                skipped_no_id += 1
                 continue
 
             ungraded = parse_price(row.get("loose-price"))
@@ -70,19 +80,20 @@ def main() -> None:
             psa10    = parse_price(row.get("manual-only-price"))
             bgs10    = parse_price(row.get("bgs-10-price"))
 
-            # Skip rows that have no usable graded prices at all — only ungraded
-            # isn't useful here (the customer already knows it's ungraded).
-            if not any((psa8, psa9, psa95, psa10, bgs10)):
+            # Keep rows that have ANY usable price (raw or graded). The trade-in
+            # form uses ungraded as a raw fallback even when graded is empty,
+            # so a row with only loose-price is still worth carrying.
+            if not any((ungraded, psa8, psa9, psa95, psa10, bgs10)):
                 skipped_no_prices += 1
                 continue
 
-            out[tcg_id] = [ungraded, psa8, psa9, psa95, psa10, bgs10]
+            out[key] = [ungraded, psa8, psa9, psa95, psa10, bgs10]
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     size_kb = OUT_PATH.stat().st_size / 1024
     print(f"[build-pc-graded] wrote {len(out):,} entries to {OUT_PATH}  ({size_kb:,.1f} KB)")
-    print(f"[build-pc-graded] skipped {skipped_no_pid:,} (no tcg-id) + {skipped_no_prices:,} (no graded prices)")
+    print(f"[build-pc-graded] skipped {skipped_no_id:,} (no productId) + {skipped_no_prices:,} (no prices)")
 
 
 if __name__ == "__main__":

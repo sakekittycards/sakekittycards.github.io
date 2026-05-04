@@ -1364,15 +1364,20 @@
         }
         if (!allMatch) continue;
         const isJp = console_.includes('Japanese');
+        const isCn = console_.includes('Chinese');
         const isSealed = _isFallbackSealed(name);
+        const pidStr = String(productId);
+        const isPcOnly = pidStr.startsWith('pc:');  // Chinese cards TCGplayer doesn't carry
         out.push({
           productId,
           name,
           set: console_.replace(/^Pokemon\s+/, ''),  // strip "Pokemon " prefix for nicer display
-          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
-          market: null,         // resolved by /tcg/market on dropdown enrichment
+          // TCGplayer CDN doesn't host Chinese-card images. For pc:... ids we
+          // leave image blank and let the onerror handler hide the broken icon.
+          image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
+          market: null,         // resolved by /tcg/market or PC fallback on dropdown enrichment
           url: '',
-          lang: isJp ? 'jp' : 'en',
+          lang: isJp ? 'jp' : (isCn ? 'cn' : 'en'),
           isSealed,
         });
       }
@@ -1586,8 +1591,8 @@
         const excludeFromFallback = new Set([...seenJpPids, ...seenSealedPids]);
         const fallback = await searchAllCardsFallback(searchTokens, excludeFromFallback);
         for (const r of fallback) {
-          if (r.lang === 'jp') {
-            mergedJp.push(r);
+          if (r.lang === 'jp' || r.lang === 'cn') {
+            mergedJp.push(r);  // Chinese cards ride the same dropdown section as JP
           } else if (r.isSealed) {
             csv.sealed = (csv.sealed || []).concat(r);
           }
@@ -1684,18 +1689,25 @@
         `));
       }
 
-      // 2) Japanese (cards + sealed)
+      // 2) Japanese + Chinese (cards + sealed) — same dropdown section, lang
+      // badge per row distinguishes them. Section icon swaps to 🌏 if any
+      // Chinese rows are present so the header isn't lying.
       if (jpRows.length) {
-        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
+        const anyCn = jpRows.some(r => r.lang === 'cn');
+        const anyJp = jpRows.some(r => r.lang === 'jp');
+        const headerIcon  = anyCn && anyJp ? '🌏' : (anyCn ? '🇨🇳' : '🇯🇵');
+        const headerLabel = anyCn && anyJp ? 'Japanese / Chinese' : (anyCn ? 'Chinese' : 'Japanese');
+        html.push(sectionHeader(headerIcon, headerLabel, '#ff4e6a', 'rgba(255,78,106,0.08)'));
         html.push(...jpRows.map((r, i) => {
           const typeTag = r.isSealed
             ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
             : '';
+          const badgeText = r.lang === 'cn' ? 'CN' : 'JP';
           return `
             <div class="ti-result" data-jp-idx="${i}">
               <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
               <div class="ti-result-info">
-                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
+                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">${badgeText}</span>${r.name}${typeTag}</div>
                 <div class="ti-result-set">${r.set}</div>
               </div>
               ${priceHTML(r.market)}
@@ -1804,17 +1816,19 @@
       } catch { return null; }
     }
     async function resolveMarketForProduct(productId) {
-      const market = await lookupTcgMarket(productId);
-      if (market != null) return market;
-      const lastSold = await lookupTcgLastSold(productId);
-      if (lastSold != null) return lastSold;
-      // Last resort before manual entry: PriceCharting loose-price (raw NM).
-      // PC's loose-price diverges from TCGplayer's published market in some
-      // cases, but for cards TCGplayer has zero data on (no listings, no
-      // recent sales), it's still a better customer-facing anchor than blank.
-      // Per project rule: PC is the FINAL fallback only, not the primary.
+      const pidStr = String(productId);
+      // Synthetic "pc:..." productIds are Chinese cards TCGplayer doesn't
+      // carry — go straight to PC pricing. Otherwise walk the full chain.
+      if (!pidStr.startsWith('pc:')) {
+        const market = await lookupTcgMarket(productId);
+        if (market != null) return market;
+        const lastSold = await lookupTcgLastSold(productId);
+        if (lastSold != null) return lastSold;
+      }
+      // PriceCharting loose-price (raw NM). FINAL fallback for TCG-tracked
+      // cards, PRIMARY source for Chinese cards (no TCG data exists).
       const idx = await loadPcGradedIndex();
-      const data = idx[String(productId)];
+      const data = idx[pidStr];
       if (data && data[0] != null && data[0] > 0) return data[0];
       return null;
     }
@@ -1829,9 +1843,9 @@
       }
     }
     function addTcgCsvItem(row) {
-      const isJp = row.lang === 'jp';
       const isSealed = row.isSealed;
-      const displayName = (isJp ? '[JP] ' : '') + row.name;
+      const langPrefix = row.lang === 'jp' ? '[JP] ' : (row.lang === 'cn' ? '[CN] ' : '');
+      const displayName = langPrefix + row.name;
       const cardId = (isSealed ? 'sealed_' : 'card_') + row.productId + '_' + Date.now();
       cards.push({
         id: cardId,

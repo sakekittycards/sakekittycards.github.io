@@ -556,6 +556,52 @@
         return gpJpIndexLoading;
       }
 
+      // Search the PriceCharting all-cards fallback index for non-English
+      // matches (Japanese + Chinese) that the JP static index didn't already
+      // surface. Identity only — pricing comes from /tcg/market or PC graded
+      // index downstream depending on whether the productId is TCGplayer-tracked.
+      const _isFallbackSealed = (name) => SEALED_KEYWORDS.some(kw => (name || '').toLowerCase().includes(kw));
+      async function searchAllCardsFallbackForGrading(tokens, excludePids) {
+        if (!tokens.length) return [];
+        const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+        const idx = await loadAllCardsIndex();
+        if (!idx.length) return [];
+        const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+        const exclude = excludePids instanceof Set ? excludePids : new Set();
+        const out = [];
+        for (let i = 0; i < idx.length && out.length < 14; i++) {
+          const [name, console_, productId] = idx[i];
+          if (exclude.has(productId)) continue;
+          // Grading prep handles only single cards (sealed boosters aren't gradeable).
+          if (_isFallbackSealed(name)) continue;
+          // Only Japanese + Chinese here; English comes from pokemontcg.io.
+          const isJp = console_.includes('Japanese');
+          const isCn = console_.includes('Chinese');
+          if (!isJp && !isCn) continue;
+          const hay = stripApos(`${name} ${console_}`.toLowerCase());
+          let allMatch = true;
+          for (const t of cleaned) {
+            if (!hay.includes(t)) { allMatch = false; break; }
+          }
+          if (!allMatch) continue;
+          const pidStr = String(productId);
+          const isPcOnly = pidStr.startsWith('pc:');
+          // Try to extract a card number from PC's "Name #NN" format.
+          const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
+          const cleanName = m ? m[1].trim() : name;
+          const number    = m ? m[2] : '';
+          out.push({
+            lang: isJp ? 'jp' : 'cn',
+            name: cleanName,
+            setName: console_.replace(/^Pokemon\s+/, ''),
+            number,
+            productId,
+            image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
+          });
+        }
+        return out;
+      }
+
       // Substring-match every JP card by tokens against name + setName + number.
       // Index entries: [name, setName, number, productId, marketPrice].
       // Grading prep doesn't use price (it's a screening service, not a quote),
@@ -835,15 +881,24 @@
           const lucene = buildQuery(tokens);
           if (!lucene) { gpResultsEl.classList.remove('open'); return; }
 
-          // Fire English (pokemontcg.io) and Japanese (TCG CSV) in parallel.
+          // Fire English (pokemontcg.io), Japanese (static JP index), and the
+          // PriceCharting fallback (Japanese gaps + all Chinese cards) in
+          // parallel. EN fallback (cards pokemontcg.io misses) also flows
+          // through but only matters if pokemontcg.io returned few results.
           const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
-          const [enRes, jpRes] = await Promise.allSettled([
+          const [enRes, jpRes, fbRes] = await Promise.allSettled([
             fetch(enUrl).then(r => r.ok ? r.json() : Promise.reject('en error')),
             searchJapanese(tokens),
+            searchAllCardsFallbackForGrading(tokens, new Set()),
           ]);
 
           const enCards = enRes.status === 'fulfilled' ? (enRes.value.data || []) : [];
           const jpCards = jpRes.status === 'fulfilled' ? (jpRes.value || [])      : [];
+          const fbCards = fbRes.status === 'fulfilled' ? (fbRes.value || [])      : [];
+
+          // Dedupe fallback rows whose productId is already in the JP results.
+          const seenJpPids = new Set(jpCards.map(c => c.productId).filter(Boolean));
+          const fbCleaned  = fbCards.filter(c => !seenJpPids.has(c.productId));
 
           // Unified results array: each entry has the shape used by the click
           // handler. EN entries keep the pokemontcg.io card on .raw for image
@@ -869,6 +924,17 @@
               productId: j.productId || null,
             });
           }
+          // Append fallback (JP gaps + Chinese), deduped against jpCards above.
+          for (const f of fbCleaned) {
+            gpSearchResults.push({
+              lang: f.lang,  // 'jp' or 'cn'
+              name: f.name,
+              setName: f.setName || '',
+              number: f.number || '',
+              image: f.image || '',
+              productId: f.productId || null,
+            });
+          }
 
           if (!gpSearchResults.length) {
             gpResultsEl.innerHTML = '<div class="gp-status">No results — try a different spelling, or add it manually below.</div>';
@@ -876,8 +942,9 @@
           }
 
           gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
-            const jpBadge = r.lang === 'jp'
-              ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
+            const badgeText = r.lang === 'jp' ? 'JP' : (r.lang === 'cn' ? 'CN' : '');
+            const jpBadge = badgeText
+              ? `<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">${badgeText}</span>`
               : '';
             return `
               <div class="gp-result" data-ri="${i}">
@@ -893,7 +960,8 @@
           gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
             el.addEventListener('click', async () => {
               const r = gpSearchResults[+el.dataset.ri];
-              const displayName = r.lang === 'jp' ? `[JP] ${r.name}` : r.name;
+              const langPrefix = r.lang === 'jp' ? '[JP] ' : (r.lang === 'cn' ? '[CN] ' : '');
+              const displayName = langPrefix + r.name;
               const cardEntry = {
                 name: displayName,
                 set:  r.setName,

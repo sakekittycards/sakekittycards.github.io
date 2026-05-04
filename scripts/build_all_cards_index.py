@@ -30,8 +30,8 @@ def main() -> None:
         return
 
     rows: list[list] = []
-    seen: set[str] = set()  # de-dupe by tcg_id (some PC rows duplicate variant entries)
-    skipped_no_tcg = 0
+    seen: set[str] = set()  # de-dupe by productId
+    skipped_no_id = 0
     with PRICECHARTING_CSV.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for r in reader:
@@ -39,14 +39,26 @@ def main() -> None:
             if "Pokemon" not in console:
                 continue
             tcg_id = (r.get("tcg-id") or "").strip()
-            if not tcg_id or not tcg_id.isdigit():
-                skipped_no_tcg += 1
+            pc_id = (r.get("id") or "").strip()
+            is_chinese = "Chinese" in console
+            # Use TCGplayer productId when present (joins to /tcg/market /pricepoints
+            # via the worker). For Chinese cards TCGplayer doesn't carry, fall back
+            # to a "pc:<id>" synthetic key — these route straight to PC pricing on
+            # the front-end since TCGplayer has no data for them.
+            if tcg_id and tcg_id.isdigit():
+                pid_str: str | int = int(tcg_id)
+                key = str(pid_str)
+            elif is_chinese and pc_id and pc_id.isdigit():
+                pid_str = f"pc:{pc_id}"
+                key = pid_str
+            else:
+                skipped_no_id += 1
                 continue
-            if tcg_id in seen:
+            if key in seen:
                 continue
-            seen.add(tcg_id)
+            seen.add(key)
             name = (r.get("product-name") or "").strip()
-            rows.append([name, console, int(tcg_id)])
+            rows.append([name, console, pid_str])
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(
@@ -56,7 +68,7 @@ def main() -> None:
     size_kb = OUT_PATH.stat().st_size / 1024
     print(f"[build-all] wrote {len(rows):,} unique-by-productId entries to {OUT_PATH}")
     print(f"[build-all] file size: {size_kb:,.1f} KB raw")
-    print(f"[build-all] {skipped_no_tcg:,} PC rows skipped (no tcg-id)")
+    print(f"[build-all] {skipped_no_id:,} PC rows skipped (no productId AND not Chinese)")
 
 
 if __name__ == "__main__":
