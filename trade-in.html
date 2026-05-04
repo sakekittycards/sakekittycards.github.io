@@ -1757,30 +1757,35 @@
         });
       });
 
-      // For JP rows the static index didn't price, fire /tcg/market IN the
-      // dropdown so customers see the SAME number TCGplayer's product page
-      // shows. /tcg/market hits mpapi /pricepoints (canonical published Market
-      // Price); /tcg/lastsold is only the fallback when /pricepoints has no
-      // data. Worker edge-caches 6h so re-typing the same card is free.
-      // We also mutate jpRows[i].market so the click handler picks up the
-      // fetched value instead of re-fetching on add.
-      resultsEl.querySelectorAll('[data-jp-idx]').forEach(el => {
-        const i = +el.dataset.jpIdx;
-        const r = jpRows[i];
-        if (!r || r.market != null || !r.productId) return;
+      // For dropdown rows the upstream search didn't price, fire the full
+      // resolveMarketForProduct chain (TCGplayer /pricepoints -> /lastsales
+      // -> PC loose) IN the dropdown so customers see the same value they'd
+      // get on click. Worker edge-caches 6h so re-typing the same card is
+      // free. Mutates the row's .market so the click handler picks up the
+      // fetched value without re-fetching on add. Applied to BOTH the JP
+      // section and the English sealed section since both can come back with
+      // a TCG CSV gap that PC can fill.
+      function enrichDropdownPrice(el, row) {
+        if (!row || row.market != null || !row.productId) return;
         const priceEl = el.querySelector('.ti-result-price');
         if (!priceEl) return;
         priceEl.textContent = '…';
-        resolveMarketForProduct(r.productId).then(price => {
-          if (!resultsEl.classList.contains('open')) return;  // user moved on
+        resolveMarketForProduct(row.productId).then(price => {
+          if (!resultsEl.classList.contains('open')) return;
           if (price != null) {
-            r.market = price;
+            row.market = price;
             priceEl.classList.remove('nomarket');
             priceEl.textContent = fmt(price);
           } else {
             priceEl.textContent = 'No price';
           }
         });
+      }
+      resultsEl.querySelectorAll('[data-jp-idx]').forEach(el => {
+        enrichDropdownPrice(el, jpRows[+el.dataset.jpIdx]);
+      });
+      resultsEl.querySelectorAll('[data-sealed-idx]').forEach(el => {
+        enrichDropdownPrice(el, sealedRows[+el.dataset.sealedIdx]);
       });
     }
 
