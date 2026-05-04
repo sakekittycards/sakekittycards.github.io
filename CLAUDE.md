@@ -33,6 +33,81 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - **Branch workflow:** all work happens on `dev`. Claude commits + pushes to `dev` (non-default branch, no harness wall). When ready to deploy, Nick clicks "Merge pull request" on the open `dev → main` PR — that's the deploy moment, GitHub Pages rebuilds from `main`. After merge, Claude runs `git pull` on dev to fast-forward to the new main. Do NOT push directly to `main` — the harness blocks it. The previous "small edits go straight to main" note is retired.
 - Typography baseline: body copy 14–15px, headings use Bangers with gradient fill. Don't drop below 13px for readable copy.
 
+## Customer-facing forms — Sell/Trade and Grading Prep are paired
+
+`trade-in.html` and `grading-prep.html` share the same lookup architecture. **Any change to lookup-form mechanics ships to BOTH files in the same PR.** Form-specific concerns stay specific (pricing display + condition multipliers on Sell/Trade; service tiers + turnaround + Card Prep on Grading Prep). Purpose-specific features don't auto-port — the rule is about visual/mechanical consistency, not blanket symmetry.
+
+### Search source layering (raw cards, both forms)
+
+| Language | Search source(s) | Notes |
+|---|---|---|
+| English | pokemontcg.io API + PriceCharting `assets/all-cards-fallback.json` (only kicks in when pokemontcg.io returned <5 results) | pokemontcg.io is the primary; PC fills modern set + vintage gaps |
+| Japanese | pre-built `assets/jp-cards.json` (29k entries from `tcgcsv.com/tcgplayer/85`) + TCG CSV groups via the `tcgcsv-proxy` worker for set-name search | Static index is character-name searchable; worker path handles set-hint searches |
+| English sealed | TCG CSV groups via `tcgcsv-proxy` | — |
+| Chinese | **EXCLUDED from raw search and Grading Prep entirely.** Allowed ONLY in the Sell/Trade graded card form (autocomplete pulls from PC fallback with CN badge, `[CN]` prefix on add). | Per user policy 2026-05-04 |
+
+Sealed JP (booster boxes, ETBs) — included in the Japanese dropdown section since the UX is the same. Customer-side filtering happens at click time.
+
+### Pricing chain (raw cards, in order — first hit wins)
+
+1. **pokemontcg.io's `tcgplayer.prices.market`** — embedded in pokemontcg.io payload, daily refresh
+2. **TCG CSV `marketPrice`** by set+number — same TCGplayer Market Price the reprice pipeline anchors on
+3. **TCGplayer `/v2/product/{id}/pricepoints`** via the `sakekitty-prices` worker (`/tcg/market`) — TCGplayer's PUBLISHED Market Price (same number their product page shows). Edge-cached 6h.
+4. **TCGplayer `/v2/product/{id}/latestsales`** via the `sakekitty-prices` worker (`/tcg/lastsold`) — trimmed avg of last ~10 sold transactions. Drops `ListingWithPhotos` rows (off-center copies). Edge-cached 6h.
+5. **PriceCharting `loose-price`** from `assets/pc-graded.json` — final fallback only. PC's loose-price diverges from TCGplayer in some cases; never overrides a TCGplayer number.
+6. **Customer manual entry** — inline numeric input on the list line for cards no source has data on.
+
+`COND_MULT` then discounts by condition (NM 1.0 / LP 0.85 / MP 0.70 / HP 0.50 / DMG 0.30) for the Market display + Cash + Credit offers (all three move in lockstep).
+
+### Pricing chain (graded cards, Sell/Trade graded form)
+
+`assets/pc-graded.json` (~47k entries keyed by TCGplayer productId) — auto-fills the "Estimated value" field when the customer picks a graded card from the autocomplete + selects a grade. Switching grades after picking a card re-fills. Never overwrites a value the user typed. Column mapping (verified 2026-05-02 against PC's web pages):
+- `loose-price` → Ungraded
+- `new-price` → PSA 8
+- `graded-price` → PSA 9
+- `box-only-price` → PSA 9.5 / BGS 9.5
+- `manual-only-price` → PSA 10
+- `bgs-10-price` → BGS 10
+- CGC + SGC mapped to PSA-equivalent columns (PC doesn't track separately for Pokemon)
+
+Synthetic `pc:<id>` productIds (Chinese cards) skip the TCG endpoints and go straight to the PC index (TCGplayer doesn't carry Chinese).
+
+### Grading Prep extras
+
+Each card in the list shows an inline **profit-margin panel** under the service tier row:
+- Ungraded NM market value
+- Each PSA / BGS grade that clears the ~$30 fee floor (Card Prep $5 + PSA Value Plus $25), with the profit-over-ungraded margin in green
+- Quiet "No grade clears the fee floor" note when nothing's profitable
+
+ProductId resolution: JP cards have it from the static index; English cards get it via name+set+number lookup against `all-cards-fallback.json`.
+
+### Worker — `sakekitty-prices` (`workers/prices/`)
+
+Cloudflare Worker. Endpoints:
+- `GET /health`
+- `GET /lookup?q=<query>` — 130point graded sold-listing scrape (legacy, used by trade-in graded "Check sold prices" link)
+- `GET /tcg/market?productId=<id>` — TCGplayer mpapi `/pricepoints`. Returns `{ok, market, printings:[{type,market}]}`. Picks highest non-null market across printings.
+- `GET /tcg/lastsold?productId=<id>` — TCGplayer mpapi `/latestsales`. Returns trimmed-mean recent sold avg.
+- `GET /dev/raw?q=<query>` — debug passthrough.
+
+Edge-cached 6h via `caches.default`. Deploy: `cd workers/prices && wrangler deploy`. URL: `https://sakekitty-prices.nwilliams23999.workers.dev`.
+
+### Static indexes (built locally, checked into git, lazy-loaded by both forms)
+
+- `assets/jp-cards.json` (~1.9 MB) — 29,278 JP non-sealed cards from TCG CSV. Build: `python scripts/build_jp_card_index.py` (~8 min).
+- `assets/all-cards-fallback.json` (~2.7 MB) — 48,461 unique-by-productId Pokemon entries from PriceCharting (English + Japanese + Chinese). Used as the search-only fallback for cards pokemontcg.io / TCG CSV miss. Build: `python scripts/build_all_cards_index.py`.
+- `assets/pc-graded.json` (~2.0 MB) — 47,020 entries with per-grade values keyed by productId (or `pc:<id>` for Chinese). Build: `python scripts/build_pc_graded_index.py`.
+
+All three build scripts auto-download a fresh PriceCharting CSV from the user's saved subscription URL at `~/.claude/pricecharting_csv_url.txt`. Re-run scripts after PC publishes a new CSV; commit the regenerated JSONs.
+
+### Cart persistence + Clear All
+
+Both forms persist their cart to `localStorage` on every change (keys: `sk_tradein_v1` / `sk_gradingprep_v1`, schema-versioned). `Clear All` button sits next to the "Your List" / "Your Cards" header inside the orange-glow container. Confirmation goes through the branded `window.skConfirm({...})` modal in `main.js` (centered, Sake Kitty logo, Bangers gradient title, ESC + Enter shortcuts) — drop-in replacement for `window.confirm()`.
+
+### Bangers heading gotcha
+
+Bangers' character feet sit further below the baseline than a normal line-box allocates, and `-webkit-background-clip:text` crops anything outside the box. Headings using Bangers + gradient text-fill need `padding: 2px 0 6px` (or similar bottom padding) to render descenders cleanly. Pattern is documented inline at `.cart-drawer-header h3` in style.css.
+
 ## Business rules (relevant to code)
 
 - **Shipping policy:** flat $5 on every order — no free-shipping tier. Applies to apparel, merch, future card/sealed drops, everything. Stated on faq.html + shop.html; cart logic in main.js uses `SK_SHIP_FLAT_FEE`.
