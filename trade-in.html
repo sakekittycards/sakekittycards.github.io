@@ -1967,23 +1967,6 @@
           ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
-        // TCGplayer cross-reference link — deep-link to /product/<productId>
-        // when we know it, otherwise fall back to /search/pokemon/product?q=...
-        // Synthetic pc:* productIds (Chinese cards, graded form only) skip
-        // the deep-link path since TCGplayer doesn't carry those entries.
-        const tcgpName = c.name.replace(/^\[(?:JP|CN)\]\s*/, '').trim();
-        const pidStr = c.productId != null ? String(c.productId) : '';
-        const canDeepLink = pidStr && /^\d+$/.test(pidStr);
-        let tcgpUrl;
-        if (canDeepLink) {
-          tcgpUrl = `https://www.tcgplayer.com/product/${pidStr}`;
-        } else {
-          const tcgpParts = [tcgpName];
-          if (!isSealed && !isGraded && c.number) tcgpParts.push(c.number);
-          if (isGraded) tcgpParts.push(c.condition);
-          tcgpUrl = `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(tcgpParts.join(' '))}`;
-        }
-
         return `
           <div class="ti-item ${isSealed?'is-sealed':''}">
             ${thumb}
@@ -1994,13 +1977,6 @@
                 ${condControl}
                 <span class="market">${marketLabel}: ${marketStr}</span>
                 ${offerStr}
-              </div>
-              <div style="margin-top:6px;font-size:11px">
-                <a href="${tcgpUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.85;display:inline-flex;align-items:center;gap:5px">
-                  <img src="tcgplayer-logo.jpg" alt="" style="width:14px;height:14px;border-radius:2px;flex-shrink:0" />
-                  Cross-check on TCGplayer
-                  <span style="font-size:10px">↗</span>
-                </a>
               </div>
             </div>
             <button class="ti-remove" data-idx="${i}" aria-label="Remove">×</button>
