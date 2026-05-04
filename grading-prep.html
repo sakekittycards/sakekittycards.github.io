@@ -485,8 +485,8 @@
             name,
             setName,
             number,
-            // TCGplayer CDN pattern — same image trade-in.html displays for JP results.
-            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_400w.jpg` : '',
+            // TCGplayer CDN pattern — same imageUrl field TCG CSV ships natively.
+            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
           });
         }
         return out;

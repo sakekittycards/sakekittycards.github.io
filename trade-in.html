@@ -1301,7 +1301,8 @@
           productId,
           name,
           set: setName,
-          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_400w.jpg` : '',
+          // TCGplayer CDN image URL — same pattern TCG CSV's imageUrl field uses.
+          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
           market: market != null ? market : null,
           url: '',
           lang: 'jp',
