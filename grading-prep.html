@@ -478,6 +478,60 @@
       let gpJpIndexLoading = null;
       const JP_INDEX_URL = 'assets/jp-cards.json?v=1';
 
+      // PriceCharting graded values index — used to show "if this card grades
+      // to PSA X, here's the market and the profit margin after grading fees"
+      // inline on each added card. Schema: { productId: [ungraded, psa8, psa9,
+      // psa95, psa10, bgs10] } in dollars. Built by build_pc_graded_index.py.
+      let gpGradedIndex = null;
+      let gpGradedLoading = null;
+      const PC_GRADED_URL = 'assets/pc-graded.json?v=1';
+      function loadGradedIndex() {
+        if (gpGradedIndex) return Promise.resolve(gpGradedIndex);
+        if (gpGradedLoading) return gpGradedLoading;
+        gpGradedLoading = fetch(PC_GRADED_URL)
+          .then(r => r.ok ? r.json() : {})
+          .then(d => { gpGradedIndex = d || {}; return gpGradedIndex; })
+          .catch(() => { gpGradedIndex = {}; return gpGradedIndex; });
+        return gpGradedLoading;
+      }
+
+      // PC-fallback all-cards index — used to resolve TCGplayer productIds for
+      // English pokemontcg.io results (which don't ship productId directly).
+      // Same file Sell/Trade uses. Without a productId we can't look up the
+      // grade values for that card.
+      let gpAllCardsIndex = null;
+      let gpAllCardsLoading = null;
+      const ALL_CARDS_URL = 'assets/all-cards-fallback.json?v=1';
+      function loadAllCardsIndex() {
+        if (gpAllCardsIndex) return Promise.resolve(gpAllCardsIndex);
+        if (gpAllCardsLoading) return gpAllCardsLoading;
+        gpAllCardsLoading = fetch(ALL_CARDS_URL)
+          .then(r => r.ok ? r.json() : [])
+          .then(arr => { gpAllCardsIndex = Array.isArray(arr) ? arr : []; return gpAllCardsIndex; })
+          .catch(() => { gpAllCardsIndex = []; return gpAllCardsIndex; });
+        return gpAllCardsLoading;
+      }
+      // Try to resolve a TCGplayer productId for an English pokemontcg.io card
+      // by looking it up in the PC fallback index by exact-name + set-name
+      // substring. Returns the productId or null. Async because the index
+      // loads on demand the first time it's needed.
+      async function resolveEnProductId(name, setName) {
+        if (!name) return null;
+        const idx = await loadAllCardsIndex();
+        if (!idx.length) return null;
+        const nameLower = name.toLowerCase().trim();
+        const setLower  = (setName || '').toLowerCase();
+        for (const [pcName, pcConsole, pcPid] of idx) {
+          // PC names are like "Charizard #199" — strip the "#NN" suffix to compare
+          const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
+          if (baseName !== nameLower) continue;
+          if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
+          // If no set hint, just take the first name match (less precise)
+          if (!setLower) return pcPid;
+        }
+        return null;
+      }
+
       function loadJpIndex() {
         if (gpJpIndex) return Promise.resolve(gpJpIndex);
         if (gpJpIndexLoading) return gpJpIndexLoading;
@@ -513,6 +567,7 @@
             name,
             setName,
             number,
+            productId,
             // TCGplayer CDN pattern — same imageUrl field TCG CSV ships natively.
             image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
           });
@@ -574,12 +629,64 @@
         gpSaveCart();  // persist on every recalc so accidental tab-close restores
       }
 
+      // Profit-margin panel for the gp-item template. Pulls grade values from
+      // pc-graded.json (PriceCharting) for cards we have a productId for, then
+      // shows ungraded NM + grades whose market clears the cost (Card Prep $5
+      // + PSA Value Plus $25 = $30 estimated). Per the project pricing policy,
+      // PriceCharting is OK for graded — same source the backend price_graded_live
+      // pipeline uses. Returns '' when there's no data so the layout is unchanged.
+      const PSA_FEE_ESTIMATE = 30;  // $5 prep + $25 PSA Value Plus, all-in floor estimate
+      function gradePanel(c) {
+        if (!c.productId || !gpGradedIndex) return '';
+        const data = gpGradedIndex[String(c.productId)];
+        if (!data) return '';
+        const [ungraded, psa8, psa9, psa95, psa10, bgs10] = data;
+        const ungradedNote = ungraded
+          ? `<span style="color:var(--muted)">Ungraded ~$${ungraded.toFixed(2)}</span>`
+          : '';
+        const grades = [
+          { label: 'PSA 10', val: psa10 },
+          { label: 'BGS 10', val: bgs10 },
+          { label: 'PSA 9.5', val: psa95 },
+          { label: 'PSA 9',  val: psa9 },
+          { label: 'PSA 8',  val: psa8 },
+        ];
+        const baseline = ungraded || 0;
+        const profitable = grades.filter(g => g.val && (g.val - PSA_FEE_ESTIMATE - baseline) > 0);
+        if (!ungradedNote && !profitable.length) return '';
+        const profitChips = profitable.map(g => {
+          const profit = g.val - PSA_FEE_ESTIMATE - baseline;
+          return `<span style="display:inline-block;padding:2px 8px;background:rgba(50,205,50,0.10);border:1px solid rgba(50,205,50,0.25);border-radius:6px;font-size:11px;color:var(--text);white-space:nowrap"><strong>${g.label}</strong> $${g.val.toFixed(2)} <span style="color:#7fdc7f">+$${profit.toFixed(2)}</span></span>`;
+        }).join(' ');
+        const noProfitNote = !profitable.length
+          ? `<span style="color:var(--dim);font-size:11px">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor at current market</span>`
+          : '';
+        return `
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;background:rgba(0,0,0,0.20);border-radius:6px;font-size:12px;line-height:1.5">
+            ${ungradedNote}
+            ${profitable.length ? `<span style="color:var(--dim);font-size:11px">·</span>` : ''}
+            ${profitChips}
+            ${noProfitNote}
+          </div>
+        `;
+      }
+      // Lazy-load the graded index the first time renderList runs with cards
+      // that might benefit from it. Triggers a re-render when it lands.
+      function ensureGradedIndexLoaded() {
+        if (gpGradedIndex !== null) return;
+        loadGradedIndex().then(() => renderList());
+      }
+
       function renderList() {
         if (!gpCards.length) {
           gpListEl.innerHTML = '<div class="gp-empty"><span class="icon">🎴</span>Search for a card above to add it to your list.</div>';
           recalc();
           return;
         }
+        // Kick off the lazy index load when there's at least one card with
+        // a productId — the panel only renders for those, no point loading
+        // 1.5MB of JSON if the customer only added manual entries.
+        if (gpCards.some(c => c.productId)) ensureGradedIndexLoaded();
 
         gpListEl.innerHTML = gpCards.map((c, i) => `
           <div class="gp-item">
@@ -587,6 +694,7 @@
             <div class="gp-item-info">
               <h4>${c.name}</h4>
               <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
+              ${gradePanel(c)}
               <div class="gp-item-svc">
                 <div class="gp-svc-row">
                   <label class="gp-radio-label${c.svc === 'standard' ? ' active' : ''}">
@@ -734,6 +842,7 @@
               setName: c.set?.name || '',
               number: c.number || '',
               image: c.images?.small || '',
+              productId: null,  // resolved on add via resolveEnProductId
             });
           }
           for (const j of jpCards) {
@@ -743,6 +852,7 @@
               setName: j.setName || '',
               number: j.number || '',
               image: j.image || '',
+              productId: j.productId || null,
             });
           }
 
@@ -767,10 +877,10 @@
           }).join('');
 
           gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
-            el.addEventListener('click', () => {
+            el.addEventListener('click', async () => {
               const r = gpSearchResults[+el.dataset.ri];
               const displayName = r.lang === 'jp' ? `[JP] ${r.name}` : r.name;
-              gpCards.push({
+              const cardEntry = {
                 name: displayName,
                 set:  r.setName,
                 num:  r.number,
@@ -778,10 +888,22 @@
                 svc:  'standard',
                 prep: false,
                 lang: r.lang,
-              });
+                productId: r.productId || null,
+              };
+              gpCards.push(cardEntry);
               gpSearchEl.value = '';
               gpResultsEl.classList.remove('open');
               renderList();
+              // For English cards we don't have productId at search time — try
+              // to resolve it from the PriceCharting fallback index, then
+              // re-render once we have it (so the PSA value panel can show).
+              if (!cardEntry.productId && r.lang === 'en') {
+                const pid = await resolveEnProductId(r.name, r.setName);
+                if (pid && gpCards.includes(cardEntry)) {
+                  cardEntry.productId = pid;
+                  renderList();
+                }
+              }
             });
           });
         } catch (e) {
