@@ -720,7 +720,9 @@ body.cart-open { overflow: hidden; }
   display: block;
   max-width: 820px; width: 100%;
   transition: transform .25s ease;
-  isolation: isolate;
+  /* Stacking context to contain the forge-glow ::before's z-index:-1 inside
+     the poster (otherwise it'd escape behind ancestor backgrounds). */
+  z-index: 0;
 }
 /* Concentrated forge glow at the cat's workbench (~25% across, ~75% down
    on the artwork). Tighter and more saturated than a soft halo — reads as
@@ -764,25 +766,93 @@ body.cart-open { overflow: hidden; }
   filter: blur(.5px);
   animation: ember-rise var(--ember-dur, 4s) var(--ember-delay, 0s) ease-out infinite;
 }
-.ember-1 { --ember-dur: 4.2s; --ember-delay: 0s;   --ember-x: -28px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
-.ember-2 { --ember-dur: 5.1s; --ember-delay: 0.6s; --ember-x:  18px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
-.ember-3 { --ember-dur: 3.8s; --ember-delay: 1.2s; --ember-x: -10px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
-.ember-4 { --ember-dur: 4.6s; --ember-delay: 1.8s; --ember-x:  34px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
-.ember-5 { --ember-dur: 5.4s; --ember-delay: 2.4s; --ember-x: -42px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
-.ember-6 { --ember-dur: 4.0s; --ember-delay: 0.3s; --ember-x:  12px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
-.ember-7 { --ember-dur: 5.8s; --ember-delay: 2.0s; --ember-x:  -6px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
-.ember-8 { --ember-dur: 4.4s; --ember-delay: 3.1s; --ember-x:  26px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
+/* Per-ember trajectory: --ember-x and --ember-y set the END position of each
+   particle's flight. Directions span a wide cone — most still go up (hot air
+   rises), but some shoot diagonally and a couple travel nearly horizontal,
+   like real forge sparks. */
+.ember-1 { --ember-dur: 3.0s; --ember-delay: 0s;   --ember-x: -50px; --ember-y: -150px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; }
+.ember-2 { --ember-dur: 3.6s; --ember-delay: 0.4s; --ember-x:  30px; --ember-y: -190px; background: #ff4080; box-shadow: 0 0 12px 2px #e6286b; width: 5px; height: 5px; }
+.ember-3 { --ember-dur: 2.7s; --ember-delay: 0.9s; --ember-x: -15px; --ember-y: -130px; background: #ffcb6b; box-shadow: 0 0 14px 3px #ff9a2e; width: 7px; height: 7px; }
+.ember-4 { --ember-dur: 3.3s; --ember-delay: 1.3s; --ember-x:  72px; --ember-y:  -90px; background: #b85cff; box-shadow: 0 0 12px 2px #8c2bff; width: 4px; height: 4px; }
+.ember-5 { --ember-dur: 3.8s; --ember-delay: 1.7s; --ember-x: -88px; --ember-y:  -50px; background: #ff5e1a; box-shadow: 0 0 16px 3px #ff3000; }
+.ember-6 { --ember-dur: 2.9s; --ember-delay: 0.2s; --ember-x:  18px; --ember-y: -210px; background: #2ed1ff; box-shadow: 0 0 10px 2px #0099d6; width: 4px; height: 4px; }
+.ember-7 { --ember-dur: 4.1s; --ember-delay: 1.4s; --ember-x:  95px; --ember-y:  -30px; background: #ff8a3d; box-shadow: 0 0 12px 2px #ff5e1a; width: 5px; height: 5px; }
+.ember-8 { --ember-dur: 3.1s; --ember-delay: 2.2s; --ember-x: -38px; --ember-y: -180px; background: #ff4080; box-shadow: 0 0 14px 2px #e6286b; }
 
+/* Faster fade — opacity drops aggressively after the spawn flash. By 50% of
+   cycle the ember is already at .4 opacity (was .55), and it's nearly gone
+   (.1) by 75%. Reads as "spark fizzles" rather than "spark slowly dimming." */
 @keyframes ember-rise {
-  0%   { transform: translate(0, 0) scale(.6);                   opacity: 0; }
-  15%  { opacity: .85; }
-  60%  { transform: translate(calc(var(--ember-x) * .7), -90px) scale(1); opacity: .7; }
-  100% { transform: translate(var(--ember-x), -180px) scale(.4); opacity: 0; }
+  0%   { transform: translate(0, 0) scale(.6);                                                   opacity: 0; }
+  8%   { transform: translate(0, -6px) scale(.85);                                               opacity: .85; }
+  22%  { transform: translate(calc(var(--ember-x) * .25), calc(var(--ember-y) * .22)) scale(1);  opacity: .7; }
+  45%  { transform: translate(calc(var(--ember-x) * .55), calc(var(--ember-y) * .5)) scale(.95); opacity: .42; }
+  68%  { transform: translate(calc(var(--ember-x) * .8),  calc(var(--ember-y) * .75)) scale(.7); opacity: .18; }
+  100% { transform: translate(var(--ember-x),              var(--ember-y)) scale(.35);            opacity: 0; }
 }
 
-/* Respect reduced-motion preference — no rising embers, no forge pulse */
+/* Flier embers — rare, hot embers that break free of the image and travel
+   well above it into the page space. Long total cycle (14–18s) but only
+   ~2s of actual visible flight, so they fire infrequently. z-index above
+   the image so they're not obscured as they pass through it on the way up. */
+.ember-flier {
+  position: absolute;
+  left: 25%; bottom: 14%;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  filter: blur(.3px);
+}
+/* Each flier picks its own direction via --fly-x / --fly-y. Three trajectories:
+   one steep up-left (exits the left edge of the image), one up-right at a
+   moderate angle (exits the top-right area), one nearly straight up (rises
+   highest). Gives the "sparks fanning out from the forge" effect rather than
+   a vertical column. */
+.ember-flier-1 {
+  --fly-x: -180px; --fly-y: -700px;
+  background: #ff5e1a;
+  box-shadow: 0 0 16px 4px #ff3000, 0 0 28px 6px rgba(255,90,30,.6);
+  animation: ember-fly-out 10s ease-out 1.6s infinite;
+}
+.ember-flier-2 {
+  --fly-x:  220px; --fly-y: -800px;
+  background: #ff4080;
+  box-shadow: 0 0 14px 3px #e6286b, 0 0 26px 6px rgba(255,80,160,.55);
+  width: 6px; height: 6px;
+  animation: ember-fly-out 12s ease-out 5.8s infinite;
+}
+.ember-flier-3 {
+  --fly-x: -50px; --fly-y: -920px;
+  background: #ffcb6b;
+  box-shadow: 0 0 16px 4px #ff9a2e, 0 0 30px 8px rgba(255,170,40,.5);
+  width: 7px; height: 7px;
+  animation: ember-fly-out 13s ease-out 9.4s infinite;
+}
+
+/* Faster fade — visible flight is ~22% of total cycle (was 30%) so each
+   spark fizzles out sooner instead of holding visibility through the full
+   trajectory. Brightness peaks right at the source and decays steeply:
+   .95 → .75 → .5 → .25 → .08 → 0. Ember scales up briefly as it leaves
+   the workbench (heat puff), then shrinks as it cools. Trajectory is now
+   2D — both --fly-x and --fly-y drive the path, so different fliers shoot
+   in different directions. */
+@keyframes ember-fly-out {
+  0%   { transform: translate(0, 0) scale(.4);                                                                          opacity: 0; }
+  2%   { transform: translate(0, -10px) scale(.75);                                                                     opacity: .95; }
+  6%   { transform: translate(calc(var(--fly-x) * .15), calc(var(--fly-y) * .15)) scale(1);                             opacity: .82; }
+  10%  { transform: translate(calc(var(--fly-x) * .32), calc(var(--fly-y) * .32)) scale(1.05);                          opacity: .65; }
+  14%  { transform: translate(calc(var(--fly-x) * .55), calc(var(--fly-y) * .55)) scale(.95);                           opacity: .42; }
+  18%  { transform: translate(calc(var(--fly-x) * .78), calc(var(--fly-y) * .78)) scale(.75);                           opacity: .2; }
+  22%  { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
+  100% { transform: translate(var(--fly-x), var(--fly-y)) scale(.4);                                                    opacity: 0; }
+}
+
+/* Respect reduced-motion preference — no rising embers, no forge pulse. */
 @media (prefers-reduced-motion: reduce) {
-  .ember { animation: none; opacity: 0; }
+  .ember,
+  .ember-flier { animation: none; opacity: 0; }
   .inventory-paused-poster::before { animation: none; }
 }
 
@@ -791,6 +861,16 @@ body.cart-open { overflow: hidden; }
   gap: 18px; margin: 6px 0 28px;
 }
 .inventory-paused-cta { display: flex; justify-content: center; }
+.inventory-paused-cta-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  flex-wrap: wrap; justify-content: center;
+}
+.inventory-paused-cta-btn svg { flex-shrink: 0; }
+.inventory-paused-cta-btn .cta-arrow { transition: transform .2s ease; }
+.inventory-paused-cta-btn:hover .cta-arrow { transform: translateX(3px); }
+@media (max-width: 480px) {
+  .inventory-paused-cta-btn { font-size: 14px; padding: 12px 18px; }
+}
 .inventory-paused-note {
   font-size: 14px; color: var(--muted); text-align: center; margin: 0;
   max-width: 540px; line-height: 1.55;
@@ -1147,6 +1227,20 @@ body.cart-open { overflow: hidden; }
 /* ── FAQ ── */
 .faq-list { max-width: 740px; margin: 0 auto; }
 .faq-item { border-bottom: 1px solid var(--border); }
+/* Topic divider inside the flat FAQ list — separates groups (e.g. Grading &
+   Card Prep questions from the general questions above). Styled like a mini
+   section title so it's visually distinct without breaking the page rhythm. */
+.faq-section-heading {
+  font-family: 'Bangers', cursive;
+  font-size: 22px;
+  letter-spacing: .04em;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 36px 0 6px;
+  padding-top: 6px;
+}
 .faq-q {
   width: 100%; text-align: left; background: none; border: none; color: var(--text);
   font-family: 'Inter',sans-serif; font-size: 16px; font-weight: 600;
@@ -1159,7 +1253,10 @@ body.cart-open { overflow: hidden; }
 }
 .faq-item.open .faq-icon { background: var(--orange); border-color: var(--orange); color: #fff; transform: rotate(45deg); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; font-size: 16px; color: var(--muted); line-height: 1.8; }
-.faq-item.open .faq-a { max-height: 400px; padding-bottom: 20px; }
+.faq-item.open .faq-a { max-height: 800px; padding-bottom: 20px; }
+.faq-ol { list-style: decimal; padding-left: 22px; margin: 0; }
+.faq-ol li { padding-left: 4px; margin-bottom: 4px; }
+.faq-ol li::marker { color: var(--orange); font-weight: 700; }
 
 /* ── About ── */
 .about-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
@@ -1302,6 +1399,22 @@ body.drip-unlocked { position: relative; }
 .prep-step-num { width: 46px; height: 46px; background: linear-gradient(135deg,var(--orange),var(--pink)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bangers',cursive; font-size: 22px; margin: 0 auto 14px; }
 .prep-step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
 .prep-step p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+/* Highlight phrase inside a step body — Step 6's refund guarantee is the
+   only current use. Same size and line-height as the surrounding body so
+   the line keeps the same vertical rhythm; cyan accent + a slightly lighter
+   weight than the h4 title (500 vs 700) so it draws the eye without
+   becoming visually loud. Sits inside a <br>'d <p>, so no margin tweaks
+   are needed — it flows as a second line of one compact body block. */
+.prep-step-highlight { color: var(--cyan); font-weight: 500; }
+.prep-step-check {
+  display: inline-block;
+  color: var(--cyan);
+  font-weight: 700;
+  margin-right: 3px;
+  font-size: 13px;
+  line-height: 1;
+  vertical-align: 1px;
+}
 
 .combine-box { background: linear-gradient(135deg,rgba(255,106,0,.07),rgba(123,47,255,.07)); border: 1px solid rgba(255,106,0,.18); border-radius: var(--r); padding: 32px 36px; display: flex; align-items: center; gap: 28px; }
 .combine-box-icon { font-size: 40px; flex-shrink: 0; }
