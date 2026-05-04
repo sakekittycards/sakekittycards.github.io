@@ -443,74 +443,53 @@
         'gift set','deluxe','display case','case file','stadium',
         'v box','vmax box','vstar box','v battle','starter set','starter collection',
       ];
-      let gpJpGroupsCache = null;
-      const gpJpProductsCache = {};
+      // Pre-built JP card-name index (29k cards, ~1.8MB raw / ~500KB gzipped).
+      // Built by scripts/build_jp_card_index.py from tcgcsv.com/tcgplayer/85.
+      // Lazy-loaded on first search so the page hero loads fast.
+      let gpJpIndex = null;
+      let gpJpIndexLoading = null;
+      const JP_INDEX_URL = 'assets/jp-cards.json?v=1';
 
-      function isSealedProduct(product) {
-        const name = (product.name || '').toLowerCase();
-        return SEALED_KEYWORDS.some(kw => name.includes(kw));
-      }
-      async function loadJpGroups() {
-        if (gpJpGroupsCache) return gpJpGroupsCache;
-        try {
-          const res = await fetch(`${TCGCSV_BASE}/jp/groups`);
-          if (!res.ok) throw new Error('groups fetch failed');
-          const data = await res.json();
-          gpJpGroupsCache = data.results || [];
-        } catch {
-          gpJpGroupsCache = [];
-        }
-        return gpJpGroupsCache;
-      }
-      async function loadJpProducts(group) {
-        const key = String(group.groupId);
-        if (gpJpProductsCache[key]) return gpJpProductsCache[key];
-        try {
-          const res = await fetch(`${TCGCSV_BASE}/jp/${group.groupId}/products`);
-          if (!res.ok) throw new Error('products fetch failed');
-          const data = await res.json();
-          gpJpProductsCache[key] = data.results || [];
-        } catch {
-          gpJpProductsCache[key] = [];
-        }
-        return gpJpProductsCache[key];
+      function loadJpIndex() {
+        if (gpJpIndex) return Promise.resolve(gpJpIndex);
+        if (gpJpIndexLoading) return gpJpIndexLoading;
+        gpJpIndexLoading = fetch(JP_INDEX_URL)
+          .then(r => r.ok ? r.json() : [])
+          .then(arr => { gpJpIndex = Array.isArray(arr) ? arr : []; return gpJpIndex; })
+          .catch(() => { gpJpIndex = []; return gpJpIndex; });
+        return gpJpIndexLoading;
       }
 
-      // Find Japanese singles whose group/product names match all tokens.
-      // Sealed products are filtered out — you can't grade a sealed booster.
+      // Substring-match every JP card by tokens against name + setName + number.
+      // Index entries: [name, setName, number, productId, marketPrice].
+      // Grading prep doesn't use price (it's a screening service, not a quote),
+      // but we keep the same shape as trade-in.html for consistency.
       async function searchJapanese(tokens) {
         if (!tokens.length) return [];
         const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
-        const dehyphen = s => s.replace(/-/g, '');
-        const includesLoose = (haystack, needle) =>
-          haystack.includes(needle) || dehyphen(haystack).includes(dehyphen(needle));
-        const groups = await loadJpGroups();
-        if (!groups.length) return [];
-        const matching = groups.filter(g => {
-          const name = stripApos((g.name || '').toLowerCase());
-          const abbr = stripApos((g.abbreviation || '').toLowerCase());
-          return tokens.some(t => includesLoose(name, t) || includesLoose(abbr, t));
-        }).slice(0, 12);
-        if (!matching.length) return [];
-        const productArrays = await Promise.all(matching.map(loadJpProducts));
+        const idx = await loadJpIndex();
+        if (!idx.length) return [];
+        const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
         const out = [];
-        productArrays.forEach((products, i) => {
-          const group = matching[i];
-          for (const p of products) {
-            if (isSealedProduct(p)) continue;
-            const haystack = stripApos(`${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase());
-            if (!tokens.every(t => includesLoose(haystack, t))) continue;
-            const numField = (p.extendedData || []).find(d => d.name === 'Number');
-            out.push({
-              lang: 'jp',
-              name: p.name,
-              setName: group.name || '',
-              number: numField ? numField.value : '',
-              image: p.imageUrl || '',
-            });
+        for (let i = 0; i < idx.length && out.length < 14; i++) {
+          const entry = idx[i];
+          const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
+          const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+          let allMatch = true;
+          for (const t of cleaned) {
+            if (!hay.includes(t)) { allMatch = false; break; }
           }
-        });
-        return out.slice(0, 14);
+          if (!allMatch) continue;
+          out.push({
+            lang: 'jp',
+            name,
+            setName,
+            number,
+            // TCGplayer CDN pattern — same image trade-in.html displays for JP results.
+            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_400w.jpg` : '',
+          });
+        }
+        return out;
       }
 
       const gpSearchEl = document.getElementById('gpSearch');
