@@ -2217,7 +2217,7 @@
       `).join('');
 
       gradedResults.querySelectorAll('.ti-result').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const id = btn.dataset.cardId;
           const card = items.find(c => c.id === id);
           if (!card) return;
@@ -2225,9 +2225,67 @@
           // Display a clean summary string; keep full data in selectedGradedCard for the add step
           gradedName.value = `${card.name} · ${card.set?.name || ''}${card.number ? ` · #${card.number}` : ''}`;
           gradedResults.classList.remove('open');
-          gradedValue.focus();
+          // Try to auto-fill the value field from PriceCharting for the
+          // currently-selected grade. We need a TCGplayer productId to look
+          // up the card; pokemontcg.io doesn't ship one, so resolve via the
+          // PC fallback index by name + set.
+          const pid = await resolveEnProductIdForGraded(card.name, card.set?.name);
+          selectedGradedCard._productId = pid;
+          await tryAutoFillGradedValue();
+          if (!gradedValue.value) gradedValue.focus();
         });
       });
+    }
+
+    // PriceCharting graded values index — same file grading-prep.html uses.
+    let _pcGradedIndex = null;
+    let _pcGradedLoading = null;
+    function loadPcGradedIndex() {
+      if (_pcGradedIndex) return Promise.resolve(_pcGradedIndex);
+      if (_pcGradedLoading) return _pcGradedLoading;
+      _pcGradedLoading = fetch('assets/pc-graded.json?v=1')
+        .then(r => r.ok ? r.json() : {})
+        .then(d => { _pcGradedIndex = d || {}; return _pcGradedIndex; })
+        .catch(() => { _pcGradedIndex = {}; return _pcGradedIndex; });
+      return _pcGradedLoading;
+    }
+    // Map our grade label to the pc-graded.json column index:
+    // [ungraded, psa8, psa9, psa95, psa10, bgs10]
+    const _GRADE_COL = {
+      'PSA 10': 4, 'PSA 9': 2, 'PSA 8': 1, 'PSA 7': null,
+      'BGS 10': 5, 'BGS 9.5': 3, 'BGS 9': null,
+      'CGC 10': 4, 'CGC 9.5': 3, 'CGC 9': 2,  // approximate — PC doesn't track CGC separately
+      'SGC 10': 4, 'SGC 9.5': 3, 'SGC 9': 2,
+    };
+    async function tryAutoFillGradedValue() {
+      if (!selectedGradedCard?._productId) return;
+      const idx = await loadPcGradedIndex();
+      const data = idx[String(selectedGradedCard._productId)];
+      if (!data) return;
+      const col = _GRADE_COL[selectedGrade];
+      if (col == null) return;
+      const v = data[col];
+      if (v && v > 0) {
+        // Don't overwrite a value the user already typed in.
+        if (!gradedValue.value || +gradedValue.value === 0) {
+          gradedValue.value = v.toFixed(2);
+        }
+      }
+    }
+    // Resolve a TCGplayer productId for an English card via PC fallback name+console match.
+    async function resolveEnProductIdForGraded(name, setName) {
+      if (!name) return null;
+      const idx = await loadAllCardsIndex();
+      if (!idx.length) return null;
+      const nameLower = name.toLowerCase().trim();
+      const setLower  = (setName || '').toLowerCase();
+      for (const [pcName, pcConsole, pcPid] of idx) {
+        const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
+        if (baseName !== nameLower) continue;
+        if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
+        if (!setLower) return pcPid;
+      }
+      return null;
     }
 
     // eBay sold-listings quick-lookup: public, no login needed, reference most collectors trust.
@@ -2261,6 +2319,9 @@
         gradedGradeBtn.firstChild.textContent = selectedGrade;
         gradedGradeMenu.classList.remove('open');
         gradedGradeBtn.classList.remove('open');
+        // If a card was already picked, refresh the PriceCharting auto-fill
+        // for the new grade. Skips silently if the user already typed a value.
+        if (selectedGradedCard?._productId) tryAutoFillGradedValue();
       });
     });
     const gradedCert = document.getElementById('gradedCert');
