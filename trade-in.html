@@ -1967,22 +1967,21 @@
           ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
-        // TCGsearch cross-reference link — deep-link to /card/<productId> when
-        // we know it (TCGsearch uses the SAME TCGplayer productId as their
-        // /card/<id> path), otherwise fall back to /search?q=... Synthetic
-        // pc:* productIds (Chinese cards, only used in the graded form) skip
-        // the deep-link path because TCGsearch doesn't carry those entries.
-        const tcgsName = c.name.replace(/^\[(?:JP|CN)\]\s*/, '').trim();
+        // TCGplayer cross-reference link — deep-link to /product/<productId>
+        // when we know it, otherwise fall back to /search/pokemon/product?q=...
+        // Synthetic pc:* productIds (Chinese cards, graded form only) skip
+        // the deep-link path since TCGplayer doesn't carry those entries.
+        const tcgpName = c.name.replace(/^\[(?:JP|CN)\]\s*/, '').trim();
         const pidStr = c.productId != null ? String(c.productId) : '';
         const canDeepLink = pidStr && /^\d+$/.test(pidStr);
-        let tcgsUrl;
+        let tcgpUrl;
         if (canDeepLink) {
-          tcgsUrl = `https://www.tcgsearch.com/card/${pidStr}`;
+          tcgpUrl = `https://www.tcgplayer.com/product/${pidStr}`;
         } else {
-          const tcgsParts = [tcgsName];
-          if (!isSealed && !isGraded && c.number) tcgsParts.push(c.number);
-          if (isGraded) tcgsParts.push(c.condition);
-          tcgsUrl = `https://www.tcgsearch.com/search?q=${encodeURIComponent(tcgsParts.join(' '))}&tcg=pokemon`;
+          const tcgpParts = [tcgpName];
+          if (!isSealed && !isGraded && c.number) tcgpParts.push(c.number);
+          if (isGraded) tcgpParts.push(c.condition);
+          tcgpUrl = `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(tcgpParts.join(' '))}`;
         }
 
         return `
@@ -1997,9 +1996,9 @@
                 ${offerStr}
               </div>
               <div style="margin-top:6px;font-size:11px">
-                <a href="${tcgsUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.85;display:inline-flex;align-items:center;gap:5px">
+                <a href="${tcgpUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.85;display:inline-flex;align-items:center;gap:5px">
                   <img src="tcgplayer-logo.jpg" alt="" style="width:14px;height:14px;border-radius:2px;flex-shrink:0" />
-                  Cross-check on TCGsearch
+                  Cross-check on TCGplayer
                   <span style="font-size:10px">↗</span>
                 </a>
               </div>
