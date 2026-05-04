@@ -1257,6 +1257,59 @@
         japanese: japanese.slice(0, 14),
       };
     }
+
+    // Pre-built JP card-name index (29k cards, ~1.9MB / ~500KB gzipped).
+    // Fixes the long-standing "JP cards don't show up when I search by character
+    // name" issue: the searchSealed path above filters TCG CSV groups by
+    // name/abbreviation, which only matches when the customer types a set hint
+    // like "151" or "SV-P". Plain character-name searches ("charizard", "mew")
+    // never matched any group, so JP results stayed empty. This static index
+    // (built by scripts/build_jp_card_index.py from the same TCG CSV data)
+    // lets us match by character name client-side. Lazy-loaded on first search
+    // so the page hero loads fast.
+    let _jpIndex = null;
+    let _jpIndexLoading = null;
+    const _JP_INDEX_URL = 'assets/jp-cards.json?v=1';
+    function loadJpIndex() {
+      if (_jpIndex) return Promise.resolve(_jpIndex);
+      if (_jpIndexLoading) return _jpIndexLoading;
+      _jpIndexLoading = fetch(_JP_INDEX_URL)
+        .then(r => r.ok ? r.json() : [])
+        .then(arr => { _jpIndex = Array.isArray(arr) ? arr : []; return _jpIndex; })
+        .catch(() => { _jpIndex = []; return _jpIndex; });
+      return _jpIndexLoading;
+    }
+    // Substring-match every JP card by tokens against name + setName + number.
+    // Index entries: [name, setName, number, productId, marketPrice].
+    async function searchJpByName(tokens) {
+      if (!tokens.length) return [];
+      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+      const idx = await loadJpIndex();
+      if (!idx.length) return [];
+      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const out = [];
+      for (let i = 0; i < idx.length && out.length < 14; i++) {
+        const entry = idx[i];
+        const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
+        const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+        let allMatch = true;
+        for (const t of cleaned) {
+          if (!hay.includes(t)) { allMatch = false; break; }
+        }
+        if (!allMatch) continue;
+        out.push({
+          productId,
+          name,
+          set: setName,
+          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_400w.jpg` : '',
+          market: market != null ? market : null,
+          url: '',
+          lang: 'jp',
+          isSealed: false,
+        });
+      }
+      return out;
+    }
     // FormSubmit fallback (keep if user hasn't set up Web3Forms yet)
     const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
 
@@ -1407,12 +1460,32 @@
 
       try {
         const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
-        const [cardRes, sealedRes] = await Promise.allSettled([
+        const [cardRes, sealedRes, jpNameRes] = await Promise.allSettled([
           fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
           searchSealed(searchTokens.join(' ')),
+          searchJpByName(searchTokens),  // character-name JP search via static index
         ]);
         const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
         const csv    = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
+        const jpName = jpNameRes.status === 'fulfilled' ? (jpNameRes.value || [])    : [];
+
+        // Merge JP results: existing set-name-based hits (csv.japanese) PLUS
+        // character-name-based hits (jpName), deduped by productId. The
+        // set-name path also returns JP sealed; keep those — only character-
+        // name search filters sealed out (gradeable singles only is grading-
+        // prep's concern). Cap at 14 for dropdown size.
+        const seenJpPids = new Set();
+        const mergedJp = [];
+        for (const r of (csv.japanese || [])) {
+          if (r.productId != null) seenJpPids.add(r.productId);
+          mergedJp.push(r);
+        }
+        for (const r of jpName) {
+          if (r.productId != null && seenJpPids.has(r.productId)) continue;
+          mergedJp.push(r);
+          if (r.productId != null) seenJpPids.add(r.productId);
+        }
+        csv.japanese = mergedJp.slice(0, 14);
 
         // For any card pokemontcg.io returned WITHOUT TCGplayer prices, look
         // it up on TCG CSV (TCGplayer Market Price) before rendering. This
