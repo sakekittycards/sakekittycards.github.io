@@ -298,8 +298,8 @@
 
           <!-- Left: search + card list -->
           <div class="gp-col">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding:12px 16px;background:rgba(255,106,0,0.06);border:1.5px solid rgba(255,106,0,0.40);border-radius:14px;box-shadow:0 0 0 1px rgba(255,106,0,0.10),0 4px 18px rgba(255,106,0,0.10)">
-              <h3 class="gp-col-title" style="margin:0">Your Cards <span id="gpListCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400;-webkit-text-fill-color:var(--dim);background:none;-webkit-background-clip:initial"></span></h3>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;padding:14px 18px;background:rgba(255,106,0,0.06);border:1.5px solid rgba(255,106,0,0.40);border-radius:14px;box-shadow:0 0 0 1px rgba(255,106,0,0.10),0 4px 18px rgba(255,106,0,0.10);overflow:visible">
+              <h3 class="gp-col-title" style="margin:0;line-height:1.25;padding-bottom:2px">Your Cards <span id="gpListCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400;-webkit-text-fill-color:var(--dim);background:none;-webkit-background-clip:initial"></span></h3>
               <button type="button" id="gpClearListBtn" class="btn btn-outline btn-sm" style="white-space:nowrap">Clear All</button>
             </div>
             <div class="gp-search-wrap" id="gpSearchWrap">
@@ -421,7 +421,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=26"></script>
+  <script src="main.js?v=27"></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -1171,15 +1171,21 @@
         }
       });
 
-      // Clear All — wipes the card list (with confirm) and clears localStorage.
+      // Clear All — wipes the card list (with branded modal confirm).
       if (gpClearListBtn) {
-        gpClearListBtn.addEventListener('click', () => {
+        gpClearListBtn.addEventListener('click', async () => {
           if (!gpCards.length) return;
-          if (confirm('Clear everything? This will remove all cards from your list.')) {
-            gpCards = [];
-            gpClearStoredCart();
-            renderList();
-          }
+          const ok = await window.skConfirm({
+            title:   'Clear your cards?',
+            body:    `This will remove ${gpCards.length} card${gpCards.length===1?'':'s'} from your grading prep list. This can\'t be undone.`,
+            confirm: 'Yes, clear it',
+            cancel:  'Keep my list',
+            danger:  true,
+          });
+          if (!ok) return;
+          gpCards = [];
+          gpClearStoredCart();
+          renderList();
         });
       }
 
