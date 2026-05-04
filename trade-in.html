@@ -1688,9 +1688,15 @@
         // cash + credit offers below (which are also condition-adjusted). For
         // graded items COND_MULT is 1.0, so this is a no-op there.
         const marketStr = adjusted != null ? fmt(adjusted) : 'N/A';
+        // Inline value-entry for cards we couldn't auto-price (typically older
+        // JP sets where TCG CSV has no marketPrice listing). The customer types
+        // their estimate; c.market gets populated; cash + credit appear next
+        // re-render. Nick re-quotes everything on intake anyway, so this is
+        // just to give the customer a number to anchor the conversation.
         const offerStr  = (cash != null && credit != null)
           ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
-          : `<span style="color:var(--dim)">Price unavailable — contact us</span>`;
+          : `<span style="font-size:12px;color:var(--dim);margin-right:6px">No price found — set your estimate:</span>` +
+            `<input type="number" data-set-market="${i}" placeholder="$0.00" min="0" step="0.01" inputmode="decimal" style="width:78px;padding:3px 7px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,106,0,0.4);border-radius:4px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;outline:none" />`;
 
         // Condition control: graded items show a fixed badge; others show the custom dropdown
         let condControl;
@@ -1777,6 +1783,17 @@
         btn.addEventListener('click', e => {
           cards.splice(+e.currentTarget.dataset.idx, 1);
           renderList();
+        });
+      });
+      // Customer-set market value for unpriced cards. Once a value is entered,
+      // re-render so cash/credit offers replace the input field.
+      listEl.querySelectorAll('[data-set-market]').forEach(inp => {
+        inp.addEventListener('change', () => {
+          const v = parseFloat(inp.value);
+          if (!isNaN(v) && v > 0) {
+            cards[+inp.dataset.setMarket].market = v;
+            renderList();
+          }
         });
       });
       updateTotals();
