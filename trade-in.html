@@ -1614,6 +1614,33 @@
           if (r) addTcgCsvItem(r);
         });
       });
+
+      // For JP rows the static index didn't price, fire /tcg/lastsold IN the
+      // dropdown so customers see the same price they'd get on click. The
+      // worker edge-caches for 6h so re-typing the same card is free. We
+      // also mutate jpRows[i].market so the click handler picks up the
+      // fetched value instead of re-fetching when the customer adds the card.
+      resultsEl.querySelectorAll('[data-jp-idx]').forEach(el => {
+        const i = +el.dataset.jpIdx;
+        const r = jpRows[i];
+        if (!r || r.market != null || !r.productId) return;
+        const priceEl = el.querySelector('.ti-result-price');
+        if (!priceEl) return;
+        priceEl.textContent = '…';
+        fetch(`${PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(r.productId)}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (!resultsEl.classList.contains('open')) return;  // user moved on
+            if (data?.ok && data.avgPrice != null) {
+              r.market = data.avgPrice;
+              priceEl.classList.remove('nomarket');
+              priceEl.textContent = fmt(data.avgPrice);
+            } else {
+              priceEl.textContent = 'No price';
+            }
+          })
+          .catch(() => { priceEl.textContent = 'No price'; });
+      });
     }
 
     // sakekitty-prices worker — exposes /tcg/lastsold?productId=N which hits
