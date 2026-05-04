@@ -512,21 +512,35 @@
         return gpAllCardsLoading;
       }
       // Try to resolve a TCGplayer productId for an English pokemontcg.io card
-      // by looking it up in the PC fallback index by exact-name + set-name
-      // substring. Returns the productId or null. Async because the index
-      // loads on demand the first time it's needed.
-      async function resolveEnProductId(name, setName) {
+      // by looking it up in the PC fallback index by name + set + card NUMBER.
+      // Number is critical when a name has multiple printings (e.g. "Mega
+      // Charizard Y ex #22" vs "Mega Charizard Y ex #294" both in Ascended
+      // Heroes — without the number, we'd grab the wrong productId and the
+      // grade panel would show wildly wrong values).
+      async function resolveEnProductId(name, setName, number) {
         if (!name) return null;
         const idx = await loadAllCardsIndex();
         if (!idx.length) return null;
         const nameLower = name.toLowerCase().trim();
         const setLower  = (setName || '').toLowerCase();
+        const numStr    = number ? String(number).replace(/^0+/, '') : '';  // strip leading zeros for compare
+        // Pass 1: name + set + number (best match)
+        if (numStr) {
+          for (const [pcName, pcConsole, pcPid] of idx) {
+            const m = pcName.match(/^(.*?)\s*#(\S+)\s*$/);
+            if (!m) continue;
+            const pcBase = m[1].toLowerCase().trim();
+            const pcNum  = m[2].replace(/^0+/, '');
+            if (pcBase !== nameLower) continue;
+            if (pcNum !== numStr) continue;
+            if (!setLower || pcConsole.toLowerCase().includes(setLower)) return pcPid;
+          }
+        }
+        // Pass 2: name + set, no number — first match
         for (const [pcName, pcConsole, pcPid] of idx) {
-          // PC names are like "Charizard #199" — strip the "#NN" suffix to compare
           const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
           if (baseName !== nameLower) continue;
           if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
-          // If no set hint, just take the first name match (less precise)
           if (!setLower) return pcPid;
         }
         return null;
@@ -898,7 +912,7 @@
               // to resolve it from the PriceCharting fallback index, then
               // re-render once we have it (so the PSA value panel can show).
               if (!cardEntry.productId && r.lang === 'en') {
-                const pid = await resolveEnProductId(r.name, r.setName);
+                const pid = await resolveEnProductId(r.name, r.setName, r.number);
                 if (pid && gpCards.includes(cardEntry)) {
                   cardEntry.productId = pid;
                   renderList();
