@@ -1954,6 +1954,19 @@
           ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
+        // TCGsearch cross-reference link — small, subtle, opens in new tab.
+        // Endorses TCGsearch's price-comparison service while letting customers
+        // double-check our quote against their numbers. Query is built from card
+        // name + number (or grade for graded items) so it lands as close to the
+        // exact card as possible. Strip any [JP] / [CN] prefix from the display
+        // name before sending — TCGsearch doesn't need our internal tags.
+        const tcgsName = c.name.replace(/^\[(?:JP|CN)\]\s*/, '').trim();
+        const tcgsParts = [tcgsName];
+        if (!isSealed && !isGraded && c.number) tcgsParts.push(c.number);
+        if (isGraded) tcgsParts.push(c.condition);
+        const tcgsQuery = tcgsParts.join(' ');
+        const tcgsUrl = `https://www.tcgsearch.com/search?q=${encodeURIComponent(tcgsQuery)}&tcg=pokemon`;
+
         return `
           <div class="ti-item ${isSealed?'is-sealed':''}">
             ${thumb}
@@ -1964,6 +1977,9 @@
                 ${condControl}
                 <span class="market">${marketLabel}: ${marketStr}</span>
                 ${offerStr}
+              </div>
+              <div style="margin-top:6px;font-size:11px">
+                <a href="${tcgsUrl}" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;opacity:0.8;display:inline-flex;align-items:center;gap:4px">🔎 Cross-check on TCGsearch <span style="font-size:10px">↗</span></a>
               </div>
             </div>
             <button class="ti-remove" data-idx="${i}" aria-label="Remove">×</button>
