@@ -67,6 +67,12 @@ export default {
         return await fetchTcgLastSold(pid, ctx, env);
       }
 
+      if (path === '/tcg/market' && request.method === 'GET') {
+        const pid = (url.searchParams.get('productId') || '').trim();
+        if (!/^\d+$/.test(pid)) return json({ error: 'productId must be numeric' }, 400);
+        return await fetchTcgMarket(pid, ctx, env);
+      }
+
       return json({ error: 'not found', path }, 404);
     } catch (err) {
       return json({ error: err.message || String(err) }, 500);
@@ -219,6 +225,73 @@ function summarize(prices) {
     min:    sorted[0],
     max:    sorted[sorted.length - 1],
   };
+}
+
+// ─── TCGplayer published market price (mpapi /pricepoints) ────────────────
+// This is THE canonical TCGplayer "Market Price" the product page shows —
+// per-printing (Normal / Foil / 1st Edition Foil / etc.) with the same number
+// that surfaces in TCGplayer's seller MyPricing CSV. Free, no auth, no SkuId
+// required. Returns the highest non-null marketPrice across printings — that
+// matches the lead price TCGplayer's product page hero displays. Edge-cached
+// because TCGplayer IP-blocks workers that hammer it.
+async function fetchTcgMarket(productId, ctx, env) {
+  const cache    = caches.default;
+  const cacheKey = new Request(`https://sakekitty-prices.internal/tcg/market?id=${productId}`, { method: 'GET' });
+
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  let upstream;
+  try {
+    upstream = await fetch(`https://mpapi.tcgplayer.com/v2/product/${productId}/pricepoints`, {
+      method:  'GET',
+      headers: {
+        'User-Agent':  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept':      'application/json',
+        'Origin':      'https://www.tcgplayer.com',
+        'Referer':     `https://www.tcgplayer.com/product/${productId}`,
+      },
+      cf: { cacheTtl: 0, cacheEverything: false },
+    });
+  } catch (err) {
+    return json({ ok: false, error: `fetch threw: ${err.message || err}` });
+  }
+
+  if (!upstream.ok) {
+    return json({ ok: false, error: `HTTP ${upstream.status}`, status: upstream.status });
+  }
+
+  let payload;
+  try {
+    payload = await upstream.json();
+  } catch (err) {
+    return json({ ok: false, error: 'non-json upstream response' });
+  }
+
+  // payload is an array: [{printingType, marketPrice, buylistMarketPrice, listedMedianPrice}, ...]
+  const points = Array.isArray(payload) ? payload : [];
+  let market = null;
+  for (const p of points) {
+    const m = +p?.marketPrice;
+    if (Number.isFinite(m) && m > 0 && (market == null || m > market)) market = m;
+  }
+
+  const ttl = Number(env.CACHE_TTL_SECONDS) || 21600;
+  const body = JSON.stringify({
+    ok:        true,
+    productId,
+    market,
+    printings: points.map(p => ({ type: p.printingType, market: p.marketPrice })),
+  });
+  const response = new Response(body, {
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type':  'application/json',
+      'Cache-Control': `public, max-age=${ttl}`,
+    },
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 }
 
 // ─── TCGplayer recent sold (mpapi /latestsales) ────────────────────────────

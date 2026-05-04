@@ -1615,11 +1615,13 @@
         });
       });
 
-      // For JP rows the static index didn't price, fire /tcg/lastsold IN the
-      // dropdown so customers see the same price they'd get on click. The
-      // worker edge-caches for 6h so re-typing the same card is free. We
-      // also mutate jpRows[i].market so the click handler picks up the
-      // fetched value instead of re-fetching when the customer adds the card.
+      // For JP rows the static index didn't price, fire /tcg/market IN the
+      // dropdown so customers see the SAME number TCGplayer's product page
+      // shows. /tcg/market hits mpapi /pricepoints (canonical published Market
+      // Price); /tcg/lastsold is only the fallback when /pricepoints has no
+      // data. Worker edge-caches 6h so re-typing the same card is free.
+      // We also mutate jpRows[i].market so the click handler picks up the
+      // fetched value instead of re-fetching on add.
       resultsEl.querySelectorAll('[data-jp-idx]').forEach(el => {
         const i = +el.dataset.jpIdx;
         const r = jpRows[i];
@@ -1627,42 +1629,61 @@
         const priceEl = el.querySelector('.ti-result-price');
         if (!priceEl) return;
         priceEl.textContent = '…';
-        fetch(`${PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(r.productId)}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (!resultsEl.classList.contains('open')) return;  // user moved on
-            if (data?.ok && data.avgPrice != null) {
-              r.market = data.avgPrice;
-              priceEl.classList.remove('nomarket');
-              priceEl.textContent = fmt(data.avgPrice);
-            } else {
-              priceEl.textContent = 'No price';
-            }
-          })
-          .catch(() => { priceEl.textContent = 'No price'; });
+        resolveMarketForProduct(r.productId).then(price => {
+          if (!resultsEl.classList.contains('open')) return;  // user moved on
+          if (price != null) {
+            r.market = price;
+            priceEl.classList.remove('nomarket');
+            priceEl.textContent = fmt(price);
+          } else {
+            priceEl.textContent = 'No price';
+          }
+        });
       });
     }
 
-    // sakekitty-prices worker — exposes /tcg/lastsold?productId=N which hits
-    // TCGplayer's free /v2/product/{id}/latestsales endpoint server-side and
-    // returns an average of recent sold transactions. We use it as a 3rd-tier
-    // fallback for raw cards where pokemontcg.io has no tcgplayer.prices AND
-    // TCG CSV has no marketPrice — typically older Japanese promo / vintage
-    // sets. Deployed at workers/prices/. Edge-cached for 6h.
+    // sakekitty-prices worker — fills market price for cards pokemontcg.io
+    // and TCG CSV don't carry. Tier order:
+    //   /tcg/market    → TCGplayer's PUBLISHED market price (mpapi /pricepoints).
+    //                    This is THE same number TCGplayer's product page shows
+    //                    in the "Condition & Market Price" panel, the same
+    //                    number Nick's seller MyPricing CSV uses. Authoritative.
+    //   /tcg/lastsold  → recent-sold trimmed avg (mpapi /latestsales). Used
+    //                    only when /pricepoints has no marketPrice for any
+    //                    printing — happens for products that never had a
+    //                    listing but have transaction history.
+    // Deployed at workers/prices/. Edge-cached 6h per productId.
     const PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
-    async function lookupLastSoldAndFill(cardId, productId) {
+    async function lookupTcgMarket(productId) {
       try {
-        const res = await fetch(`${PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(productId)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data?.ok || data.avgPrice == null) return;
-        const card = cards.find(c => c.id === cardId);
-        if (card && card.market == null) {
-          // Only fill if the user hasn't already entered a manual value.
-          card.market = data.avgPrice;
-          renderList();
-        }
-      } catch { /* network failure / blocked — leave the manual-entry input visible */ }
+        const r = await fetch(`${PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(productId)}`);
+        if (!r.ok) return null;
+        const d = await r.json();
+        return d?.ok && d.market != null ? d.market : null;
+      } catch { return null; }
+    }
+    async function lookupTcgLastSold(productId) {
+      try {
+        const r = await fetch(`${PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(productId)}`);
+        if (!r.ok) return null;
+        const d = await r.json();
+        return d?.ok && d.avgPrice != null ? d.avgPrice : null;
+      } catch { return null; }
+    }
+    async function resolveMarketForProduct(productId) {
+      const market = await lookupTcgMarket(productId);
+      if (market != null) return market;
+      return await lookupTcgLastSold(productId);
+    }
+    async function lookupLastSoldAndFill(cardId, productId) {
+      const price = await resolveMarketForProduct(productId);
+      if (price == null) return;
+      const card = cards.find(c => c.id === cardId);
+      if (card && card.market == null) {
+        // Only fill if the user hasn't already entered a manual value.
+        card.market = price;
+        renderList();
+      }
     }
     function addTcgCsvItem(row) {
       const isJp = row.lang === 'jp';
