@@ -17,22 +17,57 @@ from __future__ import annotations
 
 import csv
 import json
+import urllib.request
 from pathlib import Path
 
 REPO_DIR = Path(__file__).resolve().parent.parent
 PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
+PC_DOWNLOAD_URL_FILE = Path.home() / ".claude" / "pricecharting_csv_url.txt"
 OUT_PATH = REPO_DIR / "assets" / "all-cards-fallback.json"
 
 
+def fresh_pc_csv_path() -> Path:
+    """Download a fresh PriceCharting CSV using the user's saved subscription
+    URL (stored locally at ~/.claude/pricecharting_csv_url.txt, never committed),
+    falling back to the existing on-disk CSV if the URL file is missing or the
+    download fails. Returns the path to use."""
+    if not PC_DOWNLOAD_URL_FILE.exists():
+        if PRICECHARTING_CSV.exists():
+            print(f"[pc] no download URL configured at {PC_DOWNLOAD_URL_FILE}; using existing CSV")
+            return PRICECHARTING_CSV
+        raise FileNotFoundError(
+            f"No PC download URL at {PC_DOWNLOAD_URL_FILE} and no fallback CSV at {PRICECHARTING_CSV}."
+        )
+    url = PC_DOWNLOAD_URL_FILE.read_text(encoding="utf-8").strip()
+    if not url.startswith("http"):
+        if PRICECHARTING_CSV.exists():
+            print(f"[pc] URL file content not a URL; using existing CSV")
+            return PRICECHARTING_CSV
+        raise ValueError(f"PC URL file at {PC_DOWNLOAD_URL_FILE} doesn't contain a URL.")
+    print(f"[pc] downloading fresh CSV from PriceCharting...")
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "SakeKittyCards-Index/1.0"})
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = resp.read()
+        # Overwrite the on-disk CSV so future scripts can use the same fresh copy.
+        PRICECHARTING_CSV.write_bytes(data)
+        size_mb = len(data) / 1024 / 1024
+        print(f"[pc] downloaded {size_mb:.1f} MB to {PRICECHARTING_CSV}")
+        return PRICECHARTING_CSV
+    except Exception as e:
+        print(f"[pc] download failed ({e}); falling back to existing CSV")
+        if PRICECHARTING_CSV.exists():
+            return PRICECHARTING_CSV
+        raise
+
+
 def main() -> None:
-    if not PRICECHARTING_CSV.exists():
-        print(f"PriceCharting CSV not found at {PRICECHARTING_CSV}")
-        return
+    csv_path = fresh_pc_csv_path()
 
     rows: list[list] = []
     seen: set[str] = set()  # de-dupe by productId
     skipped_no_id = 0
-    with PRICECHARTING_CSV.open("r", encoding="utf-8", newline="") as f:
+    with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for r in reader:
             console = (r.get("console-name") or "").strip()

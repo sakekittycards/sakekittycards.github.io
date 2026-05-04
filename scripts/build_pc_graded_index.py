@@ -24,10 +24,13 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from pathlib import Path
 
 REPO_DIR = Path(__file__).resolve().parent.parent
-PC_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
+sys.path.insert(0, str(REPO_DIR / "scripts"))
+from build_all_cards_index import fresh_pc_csv_path  # reuses the URL-aware downloader
+
 OUT_PATH = REPO_DIR / "assets" / "pc-graded.json"
 
 
@@ -45,14 +48,12 @@ def parse_price(s: str | None) -> float | None:
 
 
 def main() -> None:
-    if not PC_CSV.exists():
-        print(f"PriceCharting CSV not found at {PC_CSV}")
-        return
+    csv_path = fresh_pc_csv_path()
 
     out: dict[str, list] = {}
     skipped_no_id = 0
     skipped_no_prices = 0
-    with PC_CSV.open("r", encoding="utf-8", newline="") as f:
+    with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             console = (row.get("console-name") or "").strip()
