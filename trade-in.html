@@ -1140,6 +1140,54 @@
       return null;
     }
 
+    // TCG CSV English-singles fallback for pokemontcg.io cards whose
+    // tcgplayer.prices block is empty. Matches by set name + extendedData
+    // Number — same TCGplayer Market Price the reprice scripts anchor on.
+    // NEVER use cardmarket data — see feedback_no_cardmarket_pricing.md.
+    const _stripApos = s => s.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+    const _norm = s => _stripApos(String(s || '').toLowerCase()).replace(/[-:.]/g, '').replace(/\s+/g, ' ').trim();
+    function _findEnGroupBySetName(groups, setName) {
+      if (!setName) return null;
+      const target = _norm(setName);
+      // Exact normalized match first; then a contains-match either direction
+      // ("Sword & Shield Promo" vs "SWSH Black Star Promos" etc.)
+      let g = groups.find(x => x.lang === 'en' && _norm(x.name) === target);
+      if (g) return g;
+      g = groups.find(x => x.lang === 'en' && _norm(x.name).includes(target));
+      if (g) return g;
+      g = groups.find(x => x.lang === 'en' && target.includes(_norm(x.name)));
+      return g || null;
+    }
+    function _productByNumber(products, number) {
+      if (!number) return null;
+      const num = String(number);
+      // Try exact match on extendedData "Number" field first.
+      let hit = products.find(p =>
+        (p.extendedData || []).some(d => d.name === 'Number' && String(d.value) === num)
+      );
+      if (hit) return hit;
+      // Promo-set fallback: pokemontcg.io strips prefixes ("SWSH123" → "123")
+      // for some sets — try matching a numeric suffix on the extendedData value.
+      hit = products.find(p =>
+        (p.extendedData || []).some(d => d.name === 'Number' && String(d.value).replace(/^\D+/, '') === num.replace(/^\D+/, ''))
+      );
+      return hit || null;
+    }
+    async function lookupTcgCsvSinglePrice(card) {
+      try {
+        if (!card?.set?.name || !card?.number) return null;
+        const groups = await loadGroups();
+        const group = _findEnGroupBySetName(groups, card.set.name);
+        if (!group) return null;
+        const products = await loadProductsForGroup(group);
+        const product = _productByNumber(products, card.number);
+        if (!product) return null;
+        return getSealedMarketPrice(product); // marketPrice from TCGplayer via TCG CSV
+      } catch {
+        return null;
+      }
+    }
+
     async function searchSealed(query) {
       const groups = await loadGroups();
       if (!groups.length) return { sealed: [], japanese: [] };
@@ -1365,6 +1413,22 @@
         ]);
         const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
         const csv    = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
+
+        // For any card pokemontcg.io returned WITHOUT TCGplayer prices, look
+        // it up on TCG CSV (TCGplayer Market Price) before rendering. This
+        // fixes the "No price" / "N/A" gap on older sets and certain promos.
+        await Promise.all(cards.map(async c => {
+          const has = c.tcgplayer?.prices && Object.keys(c.tcgplayer.prices).length > 0;
+          if (has) return;
+          const csvMarket = await lookupTcgCsvSinglePrice(c);
+          if (csvMarket != null) {
+            // Inject as a synthetic 'normal' variant so expandVariants picks
+            // it up the same way it handles real pokemontcg.io payloads.
+            c.tcgplayer = c.tcgplayer || {};
+            c.tcgplayer.prices = { normal: { market: csvMarket } };
+          }
+        }));
+
         renderResults(cards, csv.sealed || [], csv.japanese || []);
       } catch (err) {
         resultsEl.innerHTML = '<div class="ti-status err">Search failed. Please try again.</div>';
