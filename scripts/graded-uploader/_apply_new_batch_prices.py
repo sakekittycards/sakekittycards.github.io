@@ -85,7 +85,7 @@ def update_edit_csv(prices: dict[str, str]) -> int:
 
 def main():
     prices = load_new_prices()
-    print(f'Loaded {len(prices)} cert→price entries from {NEW_PRICES.name}')
+    print(f'Loaded {len(prices)} cert->price entries from {NEW_PRICES.name}')
     n = update_edit_csv(prices)
     print(f'Updated {n} row(s) in {EDIT_CSV.name}')
     if n < len(prices):

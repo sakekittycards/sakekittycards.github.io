@@ -709,3 +709,94 @@ window.SK = {
 
   renderBadge();
 })();
+
+// ─── Branded confirm modal ─────────────────────────────────────────────────
+// Drop-in replacement for window.confirm() with the Sake Kitty look (logo,
+// Bangers heading, orange-glow card, centered, ESC/Enter shortcuts, click-
+// backdrop-to-cancel). Returns a Promise<boolean>. Used by Sell/Trade and
+// Grading Prep "Clear All" buttons in place of the bare browser dialog.
+//
+//   const ok = await skConfirm({ title: 'Clear list?', body: '...', confirm: 'Clear', cancel: 'Keep' });
+//
+window.skConfirm = function skConfirm(opts) {
+  const o = Object.assign({
+    title:   'Are you sure?',
+    body:    '',
+    confirm: 'Confirm',
+    cancel:  'Cancel',
+    danger:  true,   // confirm button gets the orange/red look when true
+  }, opts || {});
+  return new Promise(resolve => {
+    const backdrop = document.createElement('div');
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.style.cssText = [
+      'position:fixed', 'inset:0',
+      'background:rgba(0,0,0,0.72)',
+      'backdrop-filter:blur(6px)',
+      '-webkit-backdrop-filter:blur(6px)',
+      'display:flex', 'align-items:center', 'justify-content:center',
+      'z-index:9999',
+      'padding:20px',
+      'opacity:0',
+      'transition:opacity .15s ease',
+      'font-family:"Inter",sans-serif',
+    ].join(';');
+    backdrop.innerHTML = `
+      <div style="
+        position:relative;
+        max-width:420px; width:100%;
+        background:linear-gradient(180deg, rgba(255,106,0,0.08) 0%, rgba(20,12,28,0.96) 60%);
+        border:1.5px solid rgba(255,106,0,0.45);
+        border-radius:18px;
+        box-shadow:0 0 0 1px rgba(255,106,0,0.12), 0 18px 60px rgba(0,0,0,0.6), 0 0 80px rgba(255,106,0,0.18);
+        padding:28px 26px 22px;
+        text-align:center;
+        transform:scale(0.96);
+        transition:transform .18s ease;
+      ">
+        <img src="logo.png" alt="Sake Kitty Cards" style="width:54px;height:54px;border-radius:50%;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,106,0,0.35)" />
+        <h3 style="
+          font-family:'Bangers',cursive;
+          font-size:30px; letter-spacing:.04em;
+          margin:0 0 10px;
+          background:linear-gradient(135deg, var(--orange,#ff6a00), var(--pink,#ff4e6a));
+          -webkit-background-clip:text; background-clip:text;
+          -webkit-text-fill-color:transparent;
+          line-height:1.15;
+          padding:0 6px 4px;
+        ">${escapeHtml(o.title)}</h3>
+        <p style="font-size:14px; color:rgba(255,255,255,0.78); line-height:1.55; margin:0 4px 22px">${escapeHtml(o.body)}</p>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap">
+          <button data-skc="cancel" class="btn btn-outline btn-sm" style="min-width:120px;justify-content:center">${escapeHtml(o.cancel)}</button>
+          <button data-skc="confirm" class="btn ${o.danger ? 'btn-primary' : 'btn-secondary'}" style="min-width:120px;justify-content:center">${escapeHtml(o.confirm)}</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    requestAnimationFrame(() => {
+      backdrop.style.opacity = '1';
+      backdrop.querySelector('div').style.transform = 'scale(1)';
+    });
+
+    function close(result) {
+      backdrop.style.opacity = '0';
+      backdrop.querySelector('div').style.transform = 'scale(0.96)';
+      document.removeEventListener('keydown', onKey);
+      setTimeout(() => { backdrop.remove(); resolve(result); }, 150);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(false); }
+      else if (e.key === 'Enter') { e.preventDefault(); close(true); }
+    }
+    backdrop.querySelector('[data-skc="confirm"]').addEventListener('click', () => close(true));
+    backdrop.querySelector('[data-skc="cancel"]').addEventListener('click', () => close(false));
+    backdrop.addEventListener('click', e => { if (e.target === backdrop) close(false); });
+    document.addEventListener('keydown', onKey);
+    backdrop.querySelector('[data-skc="confirm"]').focus();
+  });
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+};

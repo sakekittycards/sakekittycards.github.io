@@ -14,7 +14,10 @@ URL_TEXT = 'linktr.ee/soflocardmasters'
 
 PAGE_W, PAGE_H = 2400, 3600       # 4x6 portrait @ 600 DPI
 GRID_COLS, GRID_ROWS = 2, 3
-STICKER_FILL = 0.72                # vs 0.85 on Sake Kitty -> noticeably more spacing
+# Bumped from 0.72 after the first print — the gap between stickers was
+# nearly as wide as the stickers themselves. 0.92 lands stickers at ~1.84"
+# diameter with ~3.5mm gaps, comfortably above the Pixcut cutter's spec.
+STICKER_FILL = 0.92
 
 # === STEP 1: copy the source into the repo so we don't depend on Downloads ===
 src_external = r'C:\Users\lunar\Downloads\ChatGPT Image Apr 30, 2026, 11_55_22 PM.png'
