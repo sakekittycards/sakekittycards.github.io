@@ -1313,6 +1313,65 @@
       }
       return out;
     }
+    // Last-resort search fallback — assets/all-cards-fallback.json built from
+    // PriceCharting's full Pokemon catalog (every row with a TCGplayer
+    // productId). 46k entries, 2.5MB raw / ~700KB gzipped, lazy-loaded only
+    // when primary searches return few results. Used for IDENTITY ONLY —
+    // pricing still flows through /tcg/market via the worker so we never
+    // anchor on PriceCharting's loose-price (which diverges from TCGplayer).
+    let _allCardsIndex = null;
+    let _allCardsLoading = null;
+    const _ALL_CARDS_URL = 'assets/all-cards-fallback.json?v=1';
+    function loadAllCardsIndex() {
+      if (_allCardsIndex) return Promise.resolve(_allCardsIndex);
+      if (_allCardsLoading) return _allCardsLoading;
+      _allCardsLoading = fetch(_ALL_CARDS_URL)
+        .then(r => r.ok ? r.json() : [])
+        .then(arr => { _allCardsIndex = Array.isArray(arr) ? arr : []; return _allCardsIndex; })
+        .catch(() => { _allCardsIndex = []; return _allCardsIndex; });
+      return _allCardsLoading;
+    }
+    // Heuristic to tell if a fallback row is sealed (PriceCharting doesn't tag
+    // it). Same keyword list as searchSealed uses for TCG CSV products.
+    function _isFallbackSealed(name) {
+      const lower = (name || '').toLowerCase();
+      return SEALED_KEYWORDS.some(kw => lower.includes(kw));
+    }
+    // Substring-search the fallback index. Returns rows shaped like the JP
+    // / sealed search rows so they can flow through addTcgCsvItem unchanged.
+    async function searchAllCardsFallback(tokens, excludeProductIds) {
+      if (!tokens.length) return [];
+      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+      const idx = await loadAllCardsIndex();
+      if (!idx.length) return [];
+      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const exclude = excludeProductIds instanceof Set ? excludeProductIds : new Set();
+      const out = [];
+      for (let i = 0; i < idx.length && out.length < 14; i++) {
+        const [name, console_, productId] = idx[i];
+        if (exclude.has(productId)) continue;
+        const hay = stripApos(`${name} ${console_}`.toLowerCase());
+        let allMatch = true;
+        for (const t of cleaned) {
+          if (!hay.includes(t)) { allMatch = false; break; }
+        }
+        if (!allMatch) continue;
+        const isJp = console_.includes('Japanese');
+        const isSealed = _isFallbackSealed(name);
+        out.push({
+          productId,
+          name,
+          set: console_.replace(/^Pokemon\s+/, ''),  // strip "Pokemon " prefix for nicer display
+          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
+          market: null,         // resolved by /tcg/market on dropdown enrichment
+          url: '',
+          lang: isJp ? 'jp' : 'en',
+          isSealed,
+        });
+      }
+      return out;
+    }
+
     // FormSubmit fallback (keep if user hasn't set up Web3Forms yet)
     const FORMSUBMIT_URL = 'https://formsubmit.co/ajax/nick@sakekittycards.com';
 
@@ -1499,10 +1558,7 @@
         const jpName = jpNameRes.status === 'fulfilled' ? (jpNameRes.value || [])    : [];
 
         // Merge JP results: existing set-name-based hits (csv.japanese) PLUS
-        // character-name-based hits (jpName), deduped by productId. The
-        // set-name path also returns JP sealed; keep those — only character-
-        // name search filters sealed out (gradeable singles only is grading-
-        // prep's concern). Cap at 14 for dropdown size.
+        // character-name-based hits (jpName), deduped by productId.
         const seenJpPids = new Set();
         const mergedJp = [];
         for (const r of (csv.japanese || [])) {
@@ -1514,14 +1570,56 @@
           mergedJp.push(r);
           if (r.productId != null) seenJpPids.add(r.productId);
         }
+
+        // Fall back to PriceCharting's full Pokemon index for ANY card we
+        // didn't already match. Identity only — productId joins to TCGplayer
+        // for live pricing via /tcg/market. Loaded lazily on first use, cached
+        // thereafter. Excludes productIds already in our results to avoid dupes.
+        const seenSealedPids = new Set((csv.sealed || []).map(r => r.productId).filter(Boolean));
+        const excludeFromFallback = new Set([...seenJpPids, ...seenSealedPids]);
+        const fallback = await searchAllCardsFallback(searchTokens, excludeFromFallback);
+        for (const r of fallback) {
+          if (r.lang === 'jp') {
+            mergedJp.push(r);
+          } else if (r.isSealed) {
+            csv.sealed = (csv.sealed || []).concat(r);
+          }
+          // English non-sealed fallback rows: only add if pokemontcg.io
+          // returned nothing or very few — otherwise we'd flood the dropdown
+          // with PC-derived duplicates of cards pokemontcg.io already showed.
+          else if (cards.length < 5) {
+            // Tag with a synthetic shape so renderResults' "Singles" path can
+            // display it. Simulate the pokemontcg.io row shape minimally.
+            cards.push({
+              id: `pc_${r.productId}`,
+              name: r.name,
+              number: '',
+              images: { small: r.image },
+              set: { name: r.set },
+              tcgplayer: { prices: {} },  // will get filled by lookupTcgCsvSinglePrice fallback
+              _fallbackProductId: r.productId,  // for dropdown enrichment
+            });
+          }
+        }
         csv.japanese = mergedJp.slice(0, 14);
+        csv.sealed   = (csv.sealed || []).slice(0, 12);
 
         // For any card pokemontcg.io returned WITHOUT TCGplayer prices, look
         // it up on TCG CSV (TCGplayer Market Price) before rendering. This
         // fixes the "No price" / "N/A" gap on older sets and certain promos.
+        // PC-fallback entries skip TCG CSV (we don't have set+number to match
+        // on) and go straight to /tcg/market with their productId.
         await Promise.all(cards.map(async c => {
           const has = c.tcgplayer?.prices && Object.keys(c.tcgplayer.prices).length > 0;
           if (has) return;
+          if (c._fallbackProductId) {
+            const m = await resolveMarketForProduct(c._fallbackProductId);
+            if (m != null) {
+              c.tcgplayer = c.tcgplayer || {};
+              c.tcgplayer.prices = { normal: { market: m } };
+            }
+            return;
+          }
           const csvMarket = await lookupTcgCsvSinglePrice(c);
           if (csvMarket != null) {
             // Inject as a synthetic 'normal' variant so expandVariants picks
