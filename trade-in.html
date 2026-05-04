@@ -1616,12 +1616,34 @@
       });
     }
 
+    // sakekitty-prices worker — exposes /tcg/lastsold?productId=N which hits
+    // TCGplayer's free /v2/product/{id}/latestsales endpoint server-side and
+    // returns an average of recent sold transactions. We use it as a 3rd-tier
+    // fallback for raw cards where pokemontcg.io has no tcgplayer.prices AND
+    // TCG CSV has no marketPrice — typically older Japanese promo / vintage
+    // sets. Deployed at workers/prices/. Edge-cached for 6h.
+    const PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
+    async function lookupLastSoldAndFill(cardId, productId) {
+      try {
+        const res = await fetch(`${PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(productId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data?.ok || data.avgPrice == null) return;
+        const card = cards.find(c => c.id === cardId);
+        if (card && card.market == null) {
+          // Only fill if the user hasn't already entered a manual value.
+          card.market = data.avgPrice;
+          renderList();
+        }
+      } catch { /* network failure / blocked — leave the manual-entry input visible */ }
+    }
     function addTcgCsvItem(row) {
       const isJp = row.lang === 'jp';
       const isSealed = row.isSealed;
       const displayName = (isJp ? '[JP] ' : '') + row.name;
+      const cardId = (isSealed ? 'sealed_' : 'card_') + row.productId + '_' + Date.now();
       cards.push({
-        id: (isSealed ? 'sealed_' : 'card_') + row.productId + '_' + Date.now(),
+        id: cardId,
         type: isSealed ? 'sealed' : 'card',
         name: displayName,
         set: row.set || (isSealed ? 'Sealed Product' : ''),
@@ -1629,10 +1651,15 @@
         image: row.image || '',
         market: row.market,
         condition: isSealed ? 'Sealed' : 'NM',
+        productId: row.productId,
       });
       searchInput.value = '';
       resultsEl.classList.remove('open');
       renderList();
+      // No TCG CSV market for this card? Async-try TCGplayer recent-sold avg.
+      if (row.market == null && row.productId) {
+        lookupLastSoldAndFill(cardId, row.productId);
+      }
     }
 
     function addCard(card, variantKey, variantLabel, price) {

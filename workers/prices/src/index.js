@@ -3,9 +3,13 @@
 // with spoofed browser headers + response caching. Used by trade-in.html.
 //
 // Endpoints:
-//   GET /health             — liveness
-//   GET /lookup?q=<query>   — search + return summarized prices
-//   GET /dev/raw?q=<query>  — raw HTML passthrough (for debugging parser)
+//   GET /health                       — liveness
+//   GET /lookup?q=<query>             — search + return summarized prices (130point graded sold)
+//   GET /dev/raw?q=<query>            — raw HTML passthrough (for debugging parser)
+//   GET /tcg/lastsold?productId=<id>  — TCGplayer recent sold avg via mpapi.tcgplayer.com
+//                                       (used by trade-in.html to fill in market price for raw
+//                                       cards TCG CSV / pokemontcg.io don't have a marketPrice
+//                                       for — older JP promos, vintage sets, etc.)
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -55,6 +59,12 @@ export default {
         const q = (url.searchParams.get('q') || '').trim();
         if (!q) return new Response('q parameter required', { status: 400 });
         return await fetch130pointRaw(q);
+      }
+
+      if (path === '/tcg/lastsold' && request.method === 'GET') {
+        const pid = (url.searchParams.get('productId') || '').trim();
+        if (!/^\d+$/.test(pid)) return json({ error: 'productId must be numeric' }, 400);
+        return await fetchTcgLastSold(pid, ctx, env);
       }
 
       return json({ error: 'not found', path }, 404);
@@ -209,6 +219,83 @@ function summarize(prices) {
     min:    sorted[0],
     max:    sorted[sorted.length - 1],
   };
+}
+
+// ─── TCGplayer recent sold (mpapi /latestsales) ────────────────────────────
+// Free, no auth, no SkuId required (just productId). Returns last 25 sold
+// transactions for the product, across all conditions/variants/languages.
+// We average purchasePrice on the most recent N sales as a market anchor for
+// cards TCG CSV doesn't carry a marketPrice for. Edge-cached aggressively
+// because TCGplayer IP-blocks workers that hammer it.
+async function fetchTcgLastSold(productId, ctx, env) {
+  const cache    = caches.default;
+  const cacheKey = new Request(`https://sakekitty-prices.internal/tcg/lastsold?id=${productId}`, { method: 'GET' });
+
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  let upstream;
+  try {
+    upstream = await fetch(`https://mpapi.tcgplayer.com/v2/product/${productId}/latestsales`, {
+      method:  'POST',
+      headers: {
+        'User-Agent':  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept':      'application/json',
+        'Content-Type':'application/json',
+        'Origin':      'https://www.tcgplayer.com',
+        'Referer':     `https://www.tcgplayer.com/product/${productId}`,
+      },
+      body: JSON.stringify({ limit: 25, offset: 0, listingType: 'All', conditions: [], languages: [], variants: [] }),
+      cf:   { cacheTtl: 0, cacheEverything: false },
+    });
+  } catch (err) {
+    return json({ ok: false, error: `fetch threw: ${err.message || err}` });
+  }
+
+  if (!upstream.ok) {
+    return json({ ok: false, error: `HTTP ${upstream.status}`, status: upstream.status });
+  }
+
+  let payload;
+  try {
+    payload = await upstream.json();
+  } catch (err) {
+    return json({ ok: false, error: 'non-json upstream response' });
+  }
+
+  // Drop ListingWithPhotos — those are typically off-center / abnormal copies
+  // that skew the average. Same filter the reprice pipeline applies.
+  const sales = (payload?.data || [])
+    .filter(s => s && s.listingType !== 'ListingWithPhotos' && Number.isFinite(+s.purchasePrice) && +s.purchasePrice > 0);
+
+  let avg = null;
+  let recentSamples = [];
+  if (sales.length) {
+    // Use up to the most recent 10 sales for a stable but recent average. Drop
+    // the highest+lowest if we have ≥5 to trim outliers.
+    const recent = sales.slice(0, 10).map(s => +s.purchasePrice).sort((a, b) => a - b);
+    const trimmed = recent.length >= 5 ? recent.slice(1, -1) : recent;
+    avg = +(trimmed.reduce((a, b) => a + b, 0) / trimmed.length).toFixed(2);
+    recentSamples = recent.slice(0, 5);
+  }
+
+  const ttl = Number(env.CACHE_TTL_SECONDS) || 21600;
+  const body = JSON.stringify({
+    ok:        true,
+    productId,
+    sales:     sales.length,
+    avgPrice:  avg,
+    samples:   recentSamples,
+  });
+  const response = new Response(body, {
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type':  'application/json',
+      'Cache-Control': `public, max-age=${ttl}`,
+    },
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
