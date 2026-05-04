@@ -737,7 +737,10 @@
             </div>
           </div>
 
-          <h3 style="margin-top:28px">Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:28px">
+            <h3 style="margin:0">Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400"></span></h3>
+            <button id="clearListBtn" class="btn btn-outline btn-sm" style="white-space:nowrap">Clear All</button>
+          </div>
           <div id="tradeList" class="ti-list"></div>
         </div>
 
@@ -817,7 +820,6 @@
 
           <div class="ti-actions">
             <button id="sendListBtn" class="btn btn-primary" disabled>Send to Sake Kitty</button>
-            <button id="clearListBtn" class="btn btn-outline btn-sm">Clear All</button>
           </div>
 
           <p class="ti-disclaimer">
