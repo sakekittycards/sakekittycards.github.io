@@ -1806,7 +1806,17 @@
     async function resolveMarketForProduct(productId) {
       const market = await lookupTcgMarket(productId);
       if (market != null) return market;
-      return await lookupTcgLastSold(productId);
+      const lastSold = await lookupTcgLastSold(productId);
+      if (lastSold != null) return lastSold;
+      // Last resort before manual entry: PriceCharting loose-price (raw NM).
+      // PC's loose-price diverges from TCGplayer's published market in some
+      // cases, but for cards TCGplayer has zero data on (no listings, no
+      // recent sales), it's still a better customer-facing anchor than blank.
+      // Per project rule: PC is the FINAL fallback only, not the primary.
+      const idx = await loadPcGradedIndex();
+      const data = idx[String(productId)];
+      if (data && data[0] != null && data[0] > 0) return data[0];
+      return null;
     }
     async function lookupLastSoldAndFill(cardId, productId) {
       const price = await resolveMarketForProduct(productId);
@@ -2228,8 +2238,10 @@
           // Try to auto-fill the value field from PriceCharting for the
           // currently-selected grade. We need a TCGplayer productId to look
           // up the card; pokemontcg.io doesn't ship one, so resolve via the
-          // PC fallback index by name + set.
-          const pid = await resolveEnProductIdForGraded(card.name, card.set?.name);
+          // PC fallback index by name + set + NUMBER (number is essential —
+          // a card name like "Mega Charizard Y ex" has multiple printings
+          // in the same set, so without the number we'd match the wrong one).
+          const pid = await resolveEnProductIdForGraded(card.name, card.set?.name, card.number);
           selectedGradedCard._productId = pid;
           await tryAutoFillGradedValue();
           if (!gradedValue.value) gradedValue.focus();
@@ -2272,13 +2284,29 @@
         }
       }
     }
-    // Resolve a TCGplayer productId for an English card via PC fallback name+console match.
-    async function resolveEnProductIdForGraded(name, setName) {
+    // Resolve a TCGplayer productId for an English card via PC fallback
+    // name + set + NUMBER match. Number is critical when a card name has
+    // multiple printings (Mega Charizard Y ex #22 vs #294 in Ascended Heroes).
+    async function resolveEnProductIdForGraded(name, setName, number) {
       if (!name) return null;
       const idx = await loadAllCardsIndex();
       if (!idx.length) return null;
       const nameLower = name.toLowerCase().trim();
       const setLower  = (setName || '').toLowerCase();
+      const numStr    = number ? String(number).replace(/^0+/, '') : '';
+      // Pass 1: name + set + number (best match)
+      if (numStr) {
+        for (const [pcName, pcConsole, pcPid] of idx) {
+          const m = pcName.match(/^(.*?)\s*#(\S+)\s*$/);
+          if (!m) continue;
+          const pcBase = m[1].toLowerCase().trim();
+          const pcNum  = m[2].replace(/^0+/, '');
+          if (pcBase !== nameLower) continue;
+          if (pcNum !== numStr) continue;
+          if (!setLower || pcConsole.toLowerCase().includes(setLower)) return pcPid;
+        }
+      }
+      // Pass 2: name + set, no number — first match
       for (const [pcName, pcConsole, pcPid] of idx) {
         const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
         if (baseName !== nameLower) continue;
