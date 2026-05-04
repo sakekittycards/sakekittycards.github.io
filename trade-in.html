@@ -1316,6 +1316,32 @@
 
     let cards = [];       // items the user added
     let searchTimeout;
+
+    // Cart persistence — survives accidental tab close. Saved on every
+    // mutation that flows through renderList() / updateTotals(); cleared by
+    // the Clear All button. Schema-versioned so we can break it later if the
+    // card object shape changes without crashing on stale data.
+    const STORAGE_KEY = 'sk_tradein_v1';
+    function saveCart() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 1, cards, bulkQtys }));
+      } catch { /* localStorage off / quota — silent */ }
+    }
+    function loadCart() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data?.v !== 1) return;  // schema mismatch, ignore
+        if (Array.isArray(data.cards)) cards = data.cards;
+        if (Array.isArray(data.bulkQtys) && data.bulkQtys.length === bulkQtys.length) {
+          for (let i = 0; i < bulkQtys.length; i++) bulkQtys[i] = +data.bulkQtys[i] || 0;
+        }
+      } catch { /* corrupted entry — ignore */ }
+    }
+    function clearStoredCart() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    }
     const searchInput = document.getElementById('searchInput');
     const resultsEl   = document.getElementById('searchResults');
     const listEl      = document.getElementById('tradeList');
@@ -1872,6 +1898,7 @@
         });
       });
       updateTotals();
+      saveCart();  // persist on every render so accidental tab-close restores
     }
 
     function getBulkTotals() {
@@ -1965,6 +1992,7 @@
         inp.addEventListener('input', () => {
           bulkQtys[+inp.dataset.idx] = Math.max(0, parseInt(inp.value) || 0);
           updateTotals();
+          saveCart();
         });
       });
       tbody.querySelectorAll('.qty-btn').forEach(btn => {
@@ -1976,7 +2004,14 @@
           const input = tbody.querySelector(`.bulk-qty[data-idx="${idx}"]`);
           input.value = next === 0 ? '' : next;
           updateTotals();
+          saveCart();
         });
+      });
+      // After (re-)building the bulk rows, push any restored bulkQtys values
+      // back into the inputs so a refresh shows the saved quantities.
+      tbody.querySelectorAll('.bulk-qty').forEach(inp => {
+        const q = bulkQtys[+inp.dataset.idx];
+        if (q > 0) inp.value = q;
       });
     }
 
@@ -2308,14 +2343,17 @@
     clearBtn.addEventListener('click', () => {
       const bulk = getBulkTotals();
       if (!cards.length && bulk.qty === 0) return;
-      if (confirm('Clear everything (cards and bulk)?')) {
+      if (confirm('Clear everything (cards and bulk)? This will remove all cards from your list.')) {
         cards = [];
         bulkQtys.fill(0);
         document.querySelectorAll('.bulk-qty').forEach(inp => { inp.value = ''; });
+        clearStoredCart();
         renderList();
       }
     });
 
+    // Hydrate from localStorage BEFORE first render so saved cart shows up.
+    loadCart();
     renderBulkRows();
     renderList();
     // Warm the groups cache so the first sealed search feels instant
