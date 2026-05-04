@@ -574,10 +574,11 @@
           if (exclude.has(productId)) continue;
           // Grading prep handles only single cards (sealed boosters aren't gradeable).
           if (_isFallbackSealed(name)) continue;
-          // Only Japanese + Chinese here; English comes from pokemontcg.io.
+          // Only Japanese here. Chinese is excluded from grading prep entirely
+          // per user policy 2026-05-04 — Chinese cards are only allowed in the
+          // Sell/Trade graded form, never in raw lookups or grading screening.
           const isJp = console_.includes('Japanese');
-          const isCn = console_.includes('Chinese');
-          if (!isJp && !isCn) continue;
+          if (!isJp) continue;
           const hay = stripApos(`${name} ${console_}`.toLowerCase());
           let allMatch = true;
           for (const t of cleaned) {
@@ -591,7 +592,7 @@
           const cleanName = m ? m[1].trim() : name;
           const number    = m ? m[2] : '';
           out.push({
-            lang: isJp ? 'jp' : 'cn',
+            lang: 'jp',
             name: cleanName,
             setName: console_.replace(/^Pokemon\s+/, ''),
             number,
@@ -942,9 +943,8 @@
           }
 
           gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
-            const badgeText = r.lang === 'jp' ? 'JP' : (r.lang === 'cn' ? 'CN' : '');
-            const jpBadge = badgeText
-              ? `<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">${badgeText}</span>`
+            const jpBadge = r.lang === 'jp'
+              ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
               : '';
             return `
               <div class="gp-result" data-ri="${i}">
@@ -960,8 +960,7 @@
           gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
             el.addEventListener('click', async () => {
               const r = gpSearchResults[+el.dataset.ri];
-              const langPrefix = r.lang === 'jp' ? '[JP] ' : (r.lang === 'cn' ? '[CN] ' : '');
-              const displayName = langPrefix + r.name;
+              const displayName = r.lang === 'jp' ? `[JP] ${r.name}` : r.name;
               const cardEntry = {
                 name: displayName,
                 set:  r.setName,

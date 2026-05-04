@@ -1365,19 +1365,22 @@
         if (!allMatch) continue;
         const isJp = console_.includes('Japanese');
         const isCn = console_.includes('Chinese');
+        // Chinese is excluded from RAW card search per user policy 2026-05-04
+        // — Chinese only surfaces in the graded card form (searchGradedSuggestions
+        // pulls Chinese matches separately so customers can trade in graded
+        // Chinese cards but not raw / non-graded ones).
+        if (isCn) continue;
         const isSealed = _isFallbackSealed(name);
         const pidStr = String(productId);
-        const isPcOnly = pidStr.startsWith('pc:');  // Chinese cards TCGplayer doesn't carry
+        const isPcOnly = pidStr.startsWith('pc:');
         out.push({
           productId,
           name,
-          set: console_.replace(/^Pokemon\s+/, ''),  // strip "Pokemon " prefix for nicer display
-          // TCGplayer CDN doesn't host Chinese-card images. For pc:... ids we
-          // leave image blank and let the onerror handler hide the broken icon.
+          set: console_.replace(/^Pokemon\s+/, ''),
           image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
-          market: null,         // resolved by /tcg/market or PC fallback on dropdown enrichment
+          market: null,
           url: '',
-          lang: isJp ? 'jp' : (isCn ? 'cn' : 'en'),
+          lang: isJp ? 'jp' : 'en',
           isSealed,
         });
       }
@@ -1689,25 +1692,19 @@
         `));
       }
 
-      // 2) Japanese + Chinese (cards + sealed) — same dropdown section, lang
-      // badge per row distinguishes them. Section icon swaps to 🌏 if any
-      // Chinese rows are present so the header isn't lying.
+      // 2) Japanese (cards + sealed). Chinese is excluded from raw search
+      // per user policy — only allowed in the graded card form.
       if (jpRows.length) {
-        const anyCn = jpRows.some(r => r.lang === 'cn');
-        const anyJp = jpRows.some(r => r.lang === 'jp');
-        const headerIcon  = anyCn && anyJp ? '🌏' : (anyCn ? '🇨🇳' : '🇯🇵');
-        const headerLabel = anyCn && anyJp ? 'Japanese / Chinese' : (anyCn ? 'Chinese' : 'Japanese');
-        html.push(sectionHeader(headerIcon, headerLabel, '#ff4e6a', 'rgba(255,78,106,0.08)'));
+        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
         html.push(...jpRows.map((r, i) => {
           const typeTag = r.isSealed
             ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
             : '';
-          const badgeText = r.lang === 'cn' ? 'CN' : 'JP';
           return `
             <div class="ti-result" data-jp-idx="${i}">
               <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
               <div class="ti-result-info">
-                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">${badgeText}</span>${r.name}${typeTag}</div>
+                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
                 <div class="ti-result-set">${r.set}</div>
               </div>
               ${priceHTML(r.market)}
@@ -1844,8 +1841,8 @@
     }
     function addTcgCsvItem(row) {
       const isSealed = row.isSealed;
-      const langPrefix = row.lang === 'jp' ? '[JP] ' : (row.lang === 'cn' ? '[CN] ' : '');
-      const displayName = langPrefix + row.name;
+      // Chinese is filtered out upstream (raw policy), so only JP gets a prefix here.
+      const displayName = (row.lang === 'jp' ? '[JP] ' : '') + row.name;
       const cardId = (isSealed ? 'sealed_' : 'card_') + row.productId + '_' + Date.now();
       cards.push({
         id: cardId,
@@ -2205,6 +2202,42 @@
       gradedSearchTimeout = setTimeout(() => searchGradedSuggestions(v), 300);
     });
 
+    // Chinese cards are EXCLUDED from raw search but ALLOWED in the graded form
+    // — pulled in here from the all-cards-fallback index. Returns pseudo-card
+    // objects shaped like pokemontcg.io entries so renderGradedSuggestions
+    // can treat them uniformly.
+    async function searchChineseGradedCandidates(tokens) {
+      if (!tokens.length) return [];
+      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+      const idx = await loadAllCardsIndex();
+      if (!idx.length) return [];
+      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const out = [];
+      for (let i = 0; i < idx.length && out.length < 8; i++) {
+        const [name, console_, productId] = idx[i];
+        if (!console_.includes('Chinese')) continue;
+        const hay = stripApos(`${name} ${console_}`.toLowerCase());
+        let allMatch = true;
+        for (const t of cleaned) {
+          if (!hay.includes(t)) { allMatch = false; break; }
+        }
+        if (!allMatch) continue;
+        const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
+        const baseName = m ? m[1].trim() : name;
+        const number   = m ? m[2] : '';
+        out.push({
+          id: `pc-${productId}`,
+          name: baseName,
+          number,
+          images: { small: '' },  // PC doesn't ship CDN-hosted images for Chinese
+          set: { name: console_.replace(/^Pokemon\s+/, '') },
+          _productId: productId,    // pre-resolved so click handler skips lookup
+          _isChinese: true,         // for rendering the CN badge
+        });
+      }
+      return out;
+    }
+
     async function searchGradedSuggestions(query) {
       const tokens = query.trim().toLowerCase().split(/\s+/).filter(t => t.length > 1);
       if (!tokens.length) { gradedResults.classList.remove('open'); return; }
@@ -2215,11 +2248,15 @@
       gradedResults.classList.add('open');
       try {
         const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=10&orderBy=-set.releaseDate`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(res.status);
-        const data  = await res.json();
-        const items = data.data || [];
-        renderGradedSuggestions(items);
+        // Pokemontcg.io for English + JP that's already in their database, plus
+        // a parallel PC fallback search for Chinese (not in pokemontcg.io).
+        const [enRes, cnRes] = await Promise.allSettled([
+          fetch(url).then(r => r.ok ? r.json() : Promise.reject('en error')),
+          searchChineseGradedCandidates(tokens),
+        ]);
+        const items   = enRes.status === 'fulfilled' ? (enRes.value.data || []) : [];
+        const chinese = cnRes.status === 'fulfilled' ? (cnRes.value || [])      : [];
+        renderGradedSuggestions(items.concat(chinese));
       } catch {
         gradedResults.innerHTML = '<div class="ti-status">Couldn\'t load suggestions — just type the card name manually.</div>';
       }
@@ -2230,15 +2267,18 @@
         gradedResults.innerHTML = '<div class="ti-status">No matches found — type the name manually and we\'ll verify on intake.</div>';
         return;
       }
-      gradedResults.innerHTML = items.map(c => `
+      gradedResults.innerHTML = items.map(c => {
+        const cnBadge = c._isChinese
+          ? '<span style="color:#ff4e6a;font-weight:700;font-size:9px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 5px;border-radius:3px;margin-right:5px">CN</span>'
+          : '';
+        return `
         <button type="button" class="ti-result" data-card-id="${escG(c.id)}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 10px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;color:inherit">
           <img src="${escG(c.images?.small || '')}" alt="" style="width:36px;height:50px;object-fit:cover;border-radius:3px;flex-shrink:0;background:rgba(255,255,255,0.05)" onerror="this.style.visibility='hidden'" />
           <div style="flex:1;min-width:0;overflow:hidden">
-            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escG(c.name)}</div>
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cnBadge}${escG(c.name)}</div>
             <div style="font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escG(c.set?.name || '')}${c.number ? ` · #${escG(c.number)}` : ''}</div>
           </div>
-        </button>
-      `).join('');
+        </button>`;}).join('');
 
       gradedResults.querySelectorAll('.ti-result').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -2250,13 +2290,15 @@
           gradedName.value = `${card.name} · ${card.set?.name || ''}${card.number ? ` · #${card.number}` : ''}`;
           gradedResults.classList.remove('open');
           // Try to auto-fill the value field from PriceCharting for the
-          // currently-selected grade. We need a TCGplayer productId to look
-          // up the card; pokemontcg.io doesn't ship one, so resolve via the
-          // PC fallback index by name + set + NUMBER (number is essential —
-          // a card name like "Mega Charizard Y ex" has multiple printings
-          // in the same set, so without the number we'd match the wrong one).
-          const pid = await resolveEnProductIdForGraded(card.name, card.set?.name, card.number);
-          selectedGradedCard._productId = pid;
+          // currently-selected grade. Chinese candidates already carry a
+          // pre-resolved _productId from the PC fallback search; pokemontcg.io
+          // English cards don't ship one, so resolve via name + set + NUMBER
+          // (number is essential — Mega Charizard Y ex has multiple printings
+          // in the same set, so without it we'd match the wrong one).
+          if (!selectedGradedCard._productId) {
+            selectedGradedCard._productId =
+              await resolveEnProductIdForGraded(card.name, card.set?.name, card.number);
+          }
           await tryAutoFillGradedValue();
           if (!gradedValue.value) gradedValue.focus();
         });
@@ -2375,10 +2417,13 @@
       if (isNaN(val) || val <= 0) { alert('Please enter an estimated value.'); gradedValue.focus(); return; }
       if (!cert) { alert('Please enter the cert number from the slab label.'); gradedCert.focus(); return; }
       const picked = selectedGradedCard;
+      const pickedName = picked
+        ? (picked._isChinese ? `[CN] ${picked.name}` : picked.name)
+        : name;
       cards.push({
         id: 'graded_' + Date.now(),
         type: 'graded',
-        name:   picked ? picked.name : name,
+        name:   pickedName,
         set:    picked ? (picked.set?.name || 'Graded') : 'Graded',
         number: picked ? (picked.number || '') : '',
         image:  picked ? (picked.images?.small || '') : '',
