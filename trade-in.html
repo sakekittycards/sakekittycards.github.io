@@ -1610,7 +1610,10 @@
         const cash   = adjusted != null ? adjusted * r.cash   : null;
         const credit = adjusted != null ? adjusted * r.credit : null;
         const marketLabel = isGraded ? 'Value' : 'Market';
-        const marketStr = c.market != null ? fmt(c.market) : 'N/A';
+        // Market reflects the CURRENT condition so it stays consistent with the
+        // cash + credit offers below (which are also condition-adjusted). For
+        // graded items COND_MULT is 1.0, so this is a no-op there.
+        const marketStr = adjusted != null ? fmt(adjusted) : 'N/A';
         const offerStr  = (cash != null && credit != null)
           ? `<span class="offer">Cash ${fmt(cash)}</span> · <span class="offer credit">Credit ${fmt(credit)}</span>`
           : `<span style="color:var(--dim)">Price unavailable — contact us</span>`;
@@ -1721,7 +1724,9 @@
         if (c.market == null) continue;
         const adj = c.market * COND_MULT[c.condition];
         const r = ratesFor(c);
-        market += c.market;
+        // Use the condition-adjusted value so the Market total stays in lockstep
+        // with the per-card Market display (which now reflects condition too).
+        market += adj;
         cardsCash   += adj * r.cash;
         cardsCredit += adj * r.credit;
       }

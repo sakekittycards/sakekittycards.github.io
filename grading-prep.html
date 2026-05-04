@@ -427,8 +427,91 @@
       const SVC = { standard: 3, detailed: 5, prep_only: 5, prep: 5 };
 
       let gpCards = [];
-      let gpSearchResults = [];
+      let gpSearchResults = [];   // unified results array — both EN + JP entries normalized
       let gpTimeout;
+
+      // TCG CSV proxy — same Cloudflare worker trade-in.html uses for the
+      // sealed search. We piggyback on it here ONLY to get Japanese cards
+      // (pokemontcg.io is English-only). Free, no auth, no rate limits.
+      const TCGCSV_BASE = 'https://tcgcsv-proxy.nwilliams23999.workers.dev';
+      const SEALED_KEYWORDS = [
+        'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
+        'elite trainer','etb','premium collection','ultra premium','upc',
+        'collection box','special collection','premium playmat',
+        'tin','mini tin','pin collection','pin tin',
+        'build & battle','build and battle','trainer kit','theme deck','battle deck','league battle',
+        'gift set','deluxe','display case','case file','stadium',
+        'v box','vmax box','vstar box','v battle','starter set','starter collection',
+      ];
+      let gpJpGroupsCache = null;
+      const gpJpProductsCache = {};
+
+      function isSealedProduct(product) {
+        const name = (product.name || '').toLowerCase();
+        return SEALED_KEYWORDS.some(kw => name.includes(kw));
+      }
+      async function loadJpGroups() {
+        if (gpJpGroupsCache) return gpJpGroupsCache;
+        try {
+          const res = await fetch(`${TCGCSV_BASE}/jp/groups`);
+          if (!res.ok) throw new Error('groups fetch failed');
+          const data = await res.json();
+          gpJpGroupsCache = data.results || [];
+        } catch {
+          gpJpGroupsCache = [];
+        }
+        return gpJpGroupsCache;
+      }
+      async function loadJpProducts(group) {
+        const key = String(group.groupId);
+        if (gpJpProductsCache[key]) return gpJpProductsCache[key];
+        try {
+          const res = await fetch(`${TCGCSV_BASE}/jp/${group.groupId}/products`);
+          if (!res.ok) throw new Error('products fetch failed');
+          const data = await res.json();
+          gpJpProductsCache[key] = data.results || [];
+        } catch {
+          gpJpProductsCache[key] = [];
+        }
+        return gpJpProductsCache[key];
+      }
+
+      // Find Japanese singles whose group/product names match all tokens.
+      // Sealed products are filtered out — you can't grade a sealed booster.
+      async function searchJapanese(tokens) {
+        if (!tokens.length) return [];
+        const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+        const dehyphen = s => s.replace(/-/g, '');
+        const includesLoose = (haystack, needle) =>
+          haystack.includes(needle) || dehyphen(haystack).includes(dehyphen(needle));
+        const groups = await loadJpGroups();
+        if (!groups.length) return [];
+        const matching = groups.filter(g => {
+          const name = stripApos((g.name || '').toLowerCase());
+          const abbr = stripApos((g.abbreviation || '').toLowerCase());
+          return tokens.some(t => includesLoose(name, t) || includesLoose(abbr, t));
+        }).slice(0, 12);
+        if (!matching.length) return [];
+        const productArrays = await Promise.all(matching.map(loadJpProducts));
+        const out = [];
+        productArrays.forEach((products, i) => {
+          const group = matching[i];
+          for (const p of products) {
+            if (isSealedProduct(p)) continue;
+            const haystack = stripApos(`${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase());
+            if (!tokens.every(t => includesLoose(haystack, t))) continue;
+            const numField = (p.extendedData || []).find(d => d.name === 'Number');
+            out.push({
+              lang: 'jp',
+              name: p.name,
+              setName: group.name || '',
+              number: numField ? numField.value : '',
+              image: p.imageUrl || '',
+            });
+          }
+        });
+        return out.slice(0, 14);
+      }
 
       const gpSearchEl = document.getElementById('gpSearch');
       const gpResultsEl = document.getElementById('gpResults');
@@ -609,30 +692,82 @@
         gpResultsEl.innerHTML = '<div class="gp-status">Searching…</div>';
         gpResultsEl.classList.add('open');
         try {
+          // Strip Japanese-promo slash codes ("242/SV-P", "001/S-P") into two
+          // tokens so the set hint can match the JP TCG CSV group while the
+          // number matches the product. Pure numeric slashes ("170/198") are
+          // left intact for buildQuery to handle as English set-total format.
+          const qq = q.replace(/(\d+)\s*\/\s*([a-z][a-z0-9-]*)/gi, '$1 $2');
           // Keep single-digit tokens too — "4" can be a real card number (Base Set Charizard).
-          const tokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
+          const tokens = qq.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
           const lucene = buildQuery(tokens);
           if (!lucene) { gpResultsEl.classList.remove('open'); return; }
-          const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`);
-          const data = res.ok ? await res.json() : {};
-          gpSearchResults = data.data || [];
+
+          // Fire English (pokemontcg.io) and Japanese (TCG CSV) in parallel.
+          const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
+          const [enRes, jpRes] = await Promise.allSettled([
+            fetch(enUrl).then(r => r.ok ? r.json() : Promise.reject('en error')),
+            searchJapanese(tokens),
+          ]);
+
+          const enCards = enRes.status === 'fulfilled' ? (enRes.value.data || []) : [];
+          const jpCards = jpRes.status === 'fulfilled' ? (jpRes.value || [])      : [];
+
+          // Unified results array: each entry has the shape used by the click
+          // handler. EN entries keep the pokemontcg.io card on .raw for image
+          // gallery use; JP entries are TCG-CSV-shaped already.
+          gpSearchResults = [];
+          for (const c of enCards) {
+            gpSearchResults.push({
+              lang: 'en',
+              name: c.name,
+              setName: c.set?.name || '',
+              number: c.number || '',
+              image: c.images?.small || '',
+            });
+          }
+          for (const j of jpCards) {
+            gpSearchResults.push({
+              lang: 'jp',
+              name: j.name,
+              setName: j.setName || '',
+              number: j.number || '',
+              image: j.image || '',
+            });
+          }
+
           if (!gpSearchResults.length) {
             gpResultsEl.innerHTML = '<div class="gp-status">No results — try a different spelling, or add it manually below.</div>';
             return;
           }
-          gpResultsEl.innerHTML = gpSearchResults.map((c, i) => `
-            <div class="gp-result" data-ri="${i}">
-              <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
-              <div class="gp-result-info">
-                <div class="gp-result-name">${c.name}</div>
-                <div class="gp-result-set">${c.set?.name || ''}${c.number ? ' · #' + c.number : ''}</div>
+
+          gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
+            const jpBadge = r.lang === 'jp'
+              ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
+              : '';
+            return `
+              <div class="gp-result" data-ri="${i}">
+                <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+                <div class="gp-result-info">
+                  <div class="gp-result-name">${jpBadge}${r.name}</div>
+                  <div class="gp-result-set">${r.setName}${r.number ? ' · #' + r.number : ''}</div>
+                </div>
               </div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
+
           gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
             el.addEventListener('click', () => {
-              const c = gpSearchResults[+el.dataset.ri];
-              gpCards.push({ name: c.name, set: c.set?.name || '', num: c.number || '', img: c.images?.small || '', svc: 'standard', prep: false });
+              const r = gpSearchResults[+el.dataset.ri];
+              const displayName = r.lang === 'jp' ? `[JP] ${r.name}` : r.name;
+              gpCards.push({
+                name: displayName,
+                set:  r.setName,
+                num:  r.number,
+                img:  r.image,
+                svc:  'standard',
+                prep: false,
+                lang: r.lang,
+              });
               gpSearchEl.value = '';
               gpResultsEl.classList.remove('open');
               renderList();
