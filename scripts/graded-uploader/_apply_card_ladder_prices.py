@@ -35,24 +35,24 @@ OUT_PATH = Path(__file__).resolve().parent / "_card_ladder_prices.csv"
 
 
 def markup(base: float) -> float:
+    """Tiered markup (user-mandated 2026-05-04 evening, replaces earlier
+    1.22/1.16/1.12 schedule). Lower fees + lower base markup."""
     if base < 200:
-        return base * 1.22 + 5
+        return base * 1.15 + 3
     if base < 1000:
-        return base * 1.16 + 15
-    return base * 1.12
+        return base * 1.10 + 10
+    return base * 1.08
 
 
 def snap_clean(price: float) -> int:
-    """Round to the nearest integer ending in 0, 5, or 9. Ties round up."""
+    """Round to the nearest integer ending in 0 or 5. Ties round up."""
     if price <= 0:
         return 0
-    base = int(round(price))
     candidates: list[int] = []
-    # Look 12 in each direction; that's enough to reach every clean ending.
-    for n in range(max(1, base - 12), base + 13):
-        if n % 10 in (0, 5, 9):
+    base = int(round(price))
+    for n in range(max(1, base - 6), base + 7):
+        if n % 5 == 0:
             candidates.append(n)
-    # Prefer closest; break ties by rounding UP (better for the seller).
     candidates.sort(key=lambda n: (abs(n - price), -n))
     return candidates[0]
 
