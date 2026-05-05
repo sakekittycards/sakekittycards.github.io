@@ -1091,12 +1091,15 @@ async function updateGradedItem(request, base, squareHeaders, env) {
 
   // Build the new title + description. Match the format uploadGradedItem
   // uses, but accept a `grader` override (PSA / CGC / BGS / etc.) so we
-  // don't hard-code "PSA" on slabs from other companies.
-  const grader = String(card.grader || 'PSA').toUpperCase();
-  const gradeMatch = card.grade ? card.grade.match(/(\d{1,2}(?:\.\d)?)/) : null;
-  const gradeNum = gradeMatch ? gradeMatch[1] : '';
+  // don't hard-code "PSA" on slabs from other companies. Grade is used
+  // verbatim so qualifiers like "Pristine 10" or "Gem Mint 10" stay in
+  // the title (otherwise the shop categorizer drops the slab into Singles
+  // because it doesn't lead with a recognized grader-grade prefix).
+  const grader = String(card.grader || 'PSA');  // case as supplied — caller picks display style
+  const gradeStr = String(card.grade || '').trim();
   const titleParts = [];
-  if (gradeNum)         titleParts.push(`${grader} ${gradeNum}`);
+  if (gradeStr)         titleParts.push(`${grader} ${gradeStr}`);
+  else                  titleParts.push(grader);
   if (card.year)        titleParts.push(card.year);
   if (card.set_name)    titleParts.push(card.set_name);
   if (card.name)        titleParts.push(card.name);

@@ -71,21 +71,30 @@ def cert_from_desc(item: dict) -> str | None:
 
 
 def parse_cl_grade(condition: str) -> tuple[str, str]:
-    """Split 'CGC Pristine' / 'PSA 10' / 'BGS 8.5' / 'CGC 9.5' into
-    (grader, grade-numeric-or-label)."""
-    s = (condition or "").strip().upper()
-    grader = "PSA"
-    if "CGC" in s: grader = "CGC"
-    elif "BGS" in s: grader = "BGS"
-    elif "SGC" in s: grader = "SGC"
-    elif "PSA" in s: grader = "PSA"
-    # Find numeric grade
+    """Split 'CGC Pristine' / 'PSA 10' / 'BGS 8.5' into (grader, grade_label)
+    where grade_label is what gets rendered after the grader in the title.
+    For CGC Pristine slabs (no number on the slab label per CGC's convention
+    but it IS effectively a 10), we render 'Pristine 10' so the shop's
+    categorizer recognizes the title as graded and the customer sees the
+    full grade designation."""
+    s = (condition or "").strip()
+    s_upper = s.upper()
+    if "CGC" in s_upper: grader = "CGC"
+    elif "BGS" in s_upper: grader = "BGS"
+    elif "SGC" in s_upper: grader = "SGC"
+    elif "PSA" in s_upper or "GEM" in s_upper: grader = "PSA"
+    else: grader = "PSA"
     m = re.search(r"\d+(?:\.\d+)?", s)
     if m:
+        # Has explicit number — preserve any qualifier word in proper case
+        # (e.g. "CGC 8.5" -> "8.5"; "PSA 10" -> "10").
         return grader, m.group(0)
-    # No number — qualifier-only (e.g. "CGC Pristine"). Leave the qualifier.
-    qualifier = s.replace(grader, "").strip()
-    return grader, qualifier  # passed as-is to the title builder
+    # Qualifier-only condition. CGC Pristine implies CGC Pristine 10
+    # (CGC's convention: Pristine is their highest grade, equivalent to a 10).
+    qualifier = re.sub(r"^(CGC|BGS|SGC|PSA)\s*", "", s, flags=re.IGNORECASE).strip()
+    if qualifier.lower() == "pristine":
+        return grader, "Pristine 10"
+    return grader, qualifier or "10"
 
 
 def build_target_title(grader: str, grade: str, year: str, set_: str, name: str, number: str) -> str:
