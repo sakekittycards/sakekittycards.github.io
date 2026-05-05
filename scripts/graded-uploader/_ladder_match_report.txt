@@ -1,0 +1,81 @@
+Card Ladder -> pricing.csv match report
+======================================================================
+Card Ladder priced rows: 72
+Matched (reuse existing processed images): 22
+Unmatched (need new scan or image processing): 50
+
+=== MATCHED (will be uploaded with existing images, new price) ===
+  $  385  Deoxys                    2023  Crown Zenith Galarian Gallery       cert 121116624
+  $ 4030  Venusaur                  1999  Base                                cert 65570346
+  $  509  Arceus VSTAR              2023  Crown Zenith Galarian Gallery       cert 95199161
+  $  315  Latias ex                 2024  2024 Pokemon SV7a JP                cert 99513425
+  $  409  Bulbasaur                 2025  Mega Evolution                      cert 145316191
+  $  655  Groudon                   2023  Paradox Rift                        cert 98922016
+  $  420  Origin Forme Palkia VSTAR 2023  Crown Zenith Galarian Gallery       cert 108973922
+  $  769  Mew ex                    2023  151                                 cert 84497733
+  $  390  Mega Latias ex            2025  Pokemon Mega Evolution JP           cert 146746311
+  $ 1059  FA Espeon VMAX            2021  Fusion Strike Secret                cert 99211118
+  $  509  Squirtle                  2023  151                                 cert 89676057
+  $  829  Mega Dragonite ex         2025  Pokemon M2a JP                      cert 143411379
+  $  450  Origin Forme Dialga VSTAR 2023  Crown Zenith Galarian Gallery       cert 75183695
+  $ 3135  Mega Dragonite ex (Special Illustration Rare) 2025  Pokemon Ascended                    cert 151350422
+  $  245  Charizard ex (Ultra Rare) 2023  Obsidian Flames                     cert 95276041
+  $  539  Flittle                   2024  Paldean Fates                       cert 104313030
+  $  315  Rayquaza                  2020  Vivid Voltage                       cert 60607369
+  $ 1080  FA Charizard V            2022  Brilliant Stars                     cert 93059213
+  $  245  Charizard ex (Ultra Rare) 2023  Obsidian Flames                     cert 95276041
+  $  365  Pidgeotto (Illustration Rare) 2023  Obsidian Flames                     cert 112214360
+  $ 1059  Roaring Moon ex (Special Illustration Rare) 2025  Prismatic Evolutions                cert 143540438
+  $  295  Radiant Eevee             2022  Pokemon GO Premium Collection (SWSH cert 73843148
+
+=== UNMATCHED Card Ladder rows (need image processing) ===
+  $  655  Rayquaza VMAX             2021  VMAX Climax (Japanese)              (PSA 10)  key=rayquazavmax|2021|vmaxclimaxjapanese|PSA10
+  $ 1230  Blastoise Holo            1999  Base Set 2                          (PSA 9)  key=blastoiseholo|1999|baseset2|PSA9
+  $ 1175  Mewtwo GX Rainbow         2017  Shining Legends                     (PSA 8)  key=mewtwogxrainbow|2017|shininglegends|PSA8
+  $ 1345  Moltres                   1998  Japanese Vending Series II          (PSA 10)  key=moltres|1998|japanesevendingseriesii|PSA10
+  $  769  Bulbasaur Promo           2025  Pokemon Mega Evolution              (PSA 10)  key=bulbasaurpromo|2025|pokemonmegaevolution|PSA10
+  $  450  Charizard VMAX FA         2023  Shiny Star V (JP)                   (PSA 10)  key=charizardvmaxfa|2023|shinystarvjp|PSA10
+  $ 3920  Pikachu Grey Felt Hat     2023  SV Black Star Promos                (PSA 10)  key=pikachugreyfelthat|2023|svblackstarpromos|PSA10
+  $  500  M Sableye & Tyranitar GX  2019  Unified Minds                       (PSA 9)  key=msableyetyranitargx|2019|unifiedminds|PSA9
+  $ 8400  Charizard Stadium TIP-Shiny 2000  Danone Pokemon (French Promo)       (PSA 10)  key=charizardstadiumtipshiny|2000|danonepokemonfrenchpromo|PSA10
+  $  450  Charizard V FA            2022  Brilliant Stars                     (PSA 9)  key=charizardvfa|2022|brilliantstars|PSA9
+  $ 2689  Umbreon VMAX Alt Art      2021  Evolving Skies                      (PSA 9)  key=umbreonvmaxaltart|2021|evolvingskies|PSA9
+  $ 1400  Rocket's Wobbuffet Promo  2025  SV Black Star Promos                (PSA 10)  key=rocketswobbuffetpromo|2025|svblackstarpromos|PSA10
+  $ 3920  Pikachu Grey Felt Hat     2023  SV Black Star Promos                (PSA 10)  key=pikachugreyfelthat|2023|svblackstarpromos|PSA10
+  $  479  Mewtwo V FA               2022  Pokemon GO                          (PSA 10)  key=mewtwovfa|2022|pokemongo|PSA10
+  $ 1680  Dragonite V FA            2021  Evolving Skies                      (PSA 10)  key=dragonitevfa|2021|evolvingskies|PSA10
+  $ 1510  Pikachu ex SIR            2024  Surging Sparks                      (PSA 10)  key=pikachuexsir|2024|surgingsparks|PSA10
+  $ 1510  Charizard VSTAR           2022  SWSH Black Star Promos              (PSA 10)  key=charizardvstar|2022|swshblackstarpromos|PSA10
+  $  175  Milotic ex SAR            2024  SV8 JP                              (PSA 10)  key=miloticexsar|2024|sv8jp|PSA10
+  $  365  Rowlet & Alolan Exeggutor GX 2019  Sky Legend JP                       (PSA 10)  key=rowletalolanexeggutorgx|2019|skylegendjp|PSA10
+  $   49  Flittle Shiny             2023  Paldean Fates                       (PSA 10)  key=flittleshiny|2023|paldeanfates|PSA10
+  $  115  Psyduck IR                2023  Pokemon 151                         (PSA 9)  key=psyduckir|2023|pokemon151|PSA9
+  $ 1230  Pikachu 1st Ed            1999  Jungle                              (PSA 10)  key=pikachu1sted|1999|jungle|PSA10
+  $  829  Rocket's Scyther Holo     2000  Gym Heroes                          (PSA 9)  key=rocketsscytherholo|2000|gymheroes|PSA9
+  $  315  Raichu Holo               1999  Base Set 2                          (PSA 9)  key=raichuholo|1999|baseset2|PSA9
+  $  225  Radiant Charizard         2023  Crown Zenith                        (PSA 10)  key=radiantcharizard|2023|crownzenith|PSA10
+  $  145  Squirtle AR               2023  SV2a JP                             (PSA 10)  key=squirtlear|2023|sv2ajp|PSA10
+  $  209  Celebi Holo JP            2000  Neo 3                               (PSA 9)  key=celebiholojp|2000|neo3|PSA9
+  $  225  Alakazam Holo             1999  Base Set                            (PSA 8)  key=alakazamholo|1999|baseset|PSA8
+  $  129  Raikou V FA               2023  Crown Zenith GG                     (PSA 9)  key=raikouvfa|2023|crownzenithgg|PSA9
+  $  625  Shaymin EX                2016  XY Promo                            (PSA 8)  key=shayminex|2016|xypromo|PSA8
+  $ 1625  Red's Pikachu             2023  JP SM Promo                         (PSA 10)  key=redspikachu|2023|jpsmpromo|PSA10
+  $ 1059  Pikachu ex Worlds 2023    2023  JP                                  (PSA 10)  key=pikachuexworlds2023|2023|jp|PSA10
+  $  390  Magikarp AR               2023  SV1a JP                             (PSA 10)  key=magikarpar|2023|sv1ajp|PSA10
+  $  225  Lillie's Clefairy ex      2024  Journey Together                    (PSA 9)  key=lilliesclefairyex|2024|journeytogether|PSA9
+  $  245  Charizard Reverse         2016  XY Evolutions                       (PSA 9)  key=charizardreverse|2016|xyevolutions|PSA9
+  $  509  Umbreon Gold Star         2021  Celebrations                        (PSA 10)  key=umbreongoldstar|2021|celebrations|PSA10
+  $  385  Mega Charizard X ex       2015  XY-P JP                             (PSA 10)  key=megacharizardxex|2015|xypjp|PSA10
+  $  189  Hypno Holo                1999  Fossil                              (PSA 9)  key=hypnoholo|1999|fossil|PSA9
+  $  335  Eevee Yu Nagaba           2024  SV JP Promo                         (CGC 10)  key=eeveeyunagaba|2024|svjppromo|CGC10
+  $ 1569  Charizard Holo            1999  Base                                (BGS 8.5)  key=charizardholo|1999|base|BGS8.5
+  $ 1230  Umbreon Holo JP           2000  Neo 2                               (PSA 10)  key=umbreonholojp|2000|neo2|PSA10
+  $  595  Dark Gengar Holo          2000  Neo Destiny                         (PSA 10)  key=darkgengarholo|2000|neodestiny|PSA10
+  $  365  Feraligatr                2000  Neo Genesis                         (CGC 8.5)  key=feraligatr|2000|neogenesis|CGC8.5
+  $  539  Pikachu VMAX              2022  Vivid Voltage                       (PSA 10)  key=pikachuvmax|2022|vividvoltage|PSA10
+  $  315  Celebi JP                 2000  Neo 3                               (PSA 9)  key=celebijp|2000|neo3|PSA9
+  $  595  Eevee ex                  2025  SP Collection                       (PSA 10)  key=eeveeex|2025|spcollection|PSA10
+  $  595  Eevee ex                  2025  SP Collection                       (PSA 10)  key=eeveeex|2025|spcollection|PSA10
+  $  270  Venusaur                  1999  Base                                (PSA 7)  key=venusaur|1999|base|PSA7
+  $  175  M Charizard EX            2016  12                                  (PSA 7)  key=mcharizardex|2016|12|PSA7
+  $ 3360  Pikachu                   2025  Pokemon Simplified Chinese 151 C-Co (PSA 10)  key=pikachu|2025|pokemonsimplifiedchinese151ccollection151|PSA10

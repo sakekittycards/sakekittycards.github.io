@@ -93,6 +93,10 @@ export default {
         return await updateGradedItem(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/update-graded-price' && request.method === 'POST') {
+        return await updateGradedPrice(request, base, squareHeaders, env);
+      }
+
       if (path === '/admin/replace-graded-images' && request.method === 'POST') {
         return await replaceGradedImages(request, base, squareHeaders, env);
       }
@@ -1130,6 +1134,98 @@ async function updateGradedItem(request, base, squareHeaders, env) {
     item_id:  foundId,
     title,
     listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(foundId)}`,
+  });
+}
+
+
+// Admin: update the PRICE on an existing graded-card listing without touching
+// title/description/images. Body: {cert, price_cents}. Looks up the item by
+// "Cert #: <cert>" in description, walks its variations, sets each one's
+// pricing_type to FIXED_PRICING and price_money.amount = price_cents.
+// Used by the Card Ladder re-pricing flow so we don't need to delete +
+// re-upload an item just to change its price.
+async function updateGradedPrice(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+
+  const cert = String(body.cert || '').trim();
+  const priceCents = Number(body.price_cents);
+  if (!cert) return json({ error: 'missing_cert' }, 400);
+  if (!Number.isFinite(priceCents) || priceCents <= 0) return json({ error: 'invalid_price_cents' }, 400);
+
+  // Find the item by "Cert #: <cert>" in description (same lookup pattern
+  // as updateGradedItem). Walk paginated /v2/catalog/list.
+  let cursor = '';
+  let foundId = null;
+  for (let page = 0; page < 20; page++) {
+    const listUrl = `${base}/v2/catalog/list?types=ITEM${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const r = await fetch(listUrl, { headers: squareHeaders });
+    const d = await r.json();
+    if (!r.ok) return json({ error: 'square_list_failed', detail: d }, r.status);
+    const objs = d.objects || [];
+    const match = objs.find(o =>
+      o.type === 'ITEM' &&
+      (o.item_data?.description || '').includes(`Cert #: ${cert}`)
+    );
+    if (match) { foundId = match.id; break; }
+    cursor = d.cursor || '';
+    if (!cursor) break;
+  }
+  if (!foundId) return json({ error: 'item_not_found_for_cert', cert }, 404);
+
+  // Re-read the full item so we have variation IDs + versions.
+  const readRes = await fetch(
+    `${base}/v2/catalog/object/${encodeURIComponent(foundId)}`,
+    { headers: squareHeaders },
+  );
+  const readData = await readRes.json();
+  if (!readRes.ok || !readData.object) {
+    return json({ error: 'square_read_failed', detail: readData }, readRes.status);
+  }
+  const fullItem = readData.object;
+  const variations = fullItem.item_data?.variations || [];
+  if (!variations.length) return json({ error: 'no_variations_on_item' }, 422);
+
+  // Update every variation's price. Most graded items have a single variation,
+  // but loop in case Square ever produces multi-variation graded listings.
+  const updatedVariations = variations.map(v => ({
+    ...v,
+    item_variation_data: {
+      ...(v.item_variation_data || {}),
+      pricing_type: 'FIXED_PRICING',
+      price_money: { amount: Math.round(priceCents), currency: 'USD' },
+    },
+  }));
+
+  const updated = {
+    ...fullItem,
+    item_data: {
+      ...fullItem.item_data,
+      variations: updatedVariations,
+    },
+  };
+
+  const upRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST',
+    headers: squareHeaders,
+    body: JSON.stringify({
+      idempotency_key: crypto.randomUUID(),
+      object: updated,
+    }),
+  });
+  const upData = await upRes.json();
+  if (!upRes.ok) return json({ error: 'square_update_failed', detail: upData }, upRes.status);
+
+  return json({
+    ok:       true,
+    item_id:  foundId,
+    price_cents: Math.round(priceCents),
+    variations_updated: variations.length,
   });
 }
 

@@ -1,0 +1,96 @@
+Square <-> Card Ladder match (key: year, grade, number)
+========================================================================
+
+=== KEEP & UPDATE PRICE (50) ===
+  cert 121116624  $  385  PSA 10 2023 Crown Zenith Galarian Gallery Deoxys #GG12
+  cert 65570346  $ 4030  PSA 10 1999 Base Venusaur #15
+  cert 95199161  $  509  PSA 10 2023 Crown Zenith Galarian Gallery Arceus VSTAR #GG70
+  cert 107496657  $  655  PSA 10 2021 VMAX Climax (Japanese) FA Rayquaza VMAX #252
+  cert 139206918  $  409  PSA 10 2025 Pokemon Mega Evolution Mega Venusaur ex (Special Illustration Rare) 
+  cert 98922016  $  655  PSA 10 2023 Paradox Rift Groudon #199
+  cert 99746732  $ 1230  PSA 9 1999 Base Set Blastoise Holo #2
+  cert 108973922  $  420  PSA 10 2023 Crown Zenith Galarian Gallery Origin Forme Palkia VSTAR (Gold Secret
+  cert 131611480  $ 1175  PSA 8 2017 Shining Legends Mewtwo GX (Secret Rainbow) #78
+  cert 84566703  $ 1345  PSA 10 1998 Japanese Vending Series II Moltres #146
+  cert 145316191  $  769  PSA 10 2025 Pokemon Mega Evolution Bulbasaur (Mega Evolution Stamped Promo) #133
+  cert 94676138  $ 3920  PSA 10 2023 Scarlet & Violet Black Star Promos Pikachu with Grey Felt Hat #85
+  cert 134321907  $  500  PSA 9 2019 Unified Minds M Sableye & Tyranitar GX (Tag Team) #226
+  cert 63063677  $ 8400  PSA 10 2000 Danone Pokemon (French Promo) Charizard Stadium TIP-Shiny #2
+  cert 110772487  $  450  PSA 9 2022 Brilliant Stars FA Charizard V #154
+  cert 84497733  $  769  PSA 10 2023 151 Mew ex #205
+  cert 146746311  $  390  PSA 10 2025 Pokemon Mega Evolution JP Mega Latias ex #181
+  cert 99211118  $ 1059  PSA 10 2021 Fusion Strike Secret FA Espeon VMAX #270
+  cert 143411379  $  829  PSA 10 2025 Pokemon M2a JP Mega Dragonite ex #246
+  cert 110420477  $ 2689  PSA 9 2021 Evolving Skies FA Umbreon VMAX (Alt Art) #215
+  cert 75183695  $  450  PSA 10 2023 Crown Zenith Galarian Gallery Origin Forme Dialga VSTAR (Gold Secret
+  cert 135860324  $ 1400  PSA 10 2025 Scarlet & Violet Black Star Promos Rocket's Wobbuffet (Destined Riva
+  cert 102607615  $ 3920  PSA 10 2023 Scarlet & Violet Black Star Promos Pikachu with Grey Felt Hat #85
+  cert 151350422  $ 3135  PSA 10 2025 Pokemon Ascended Mega Dragonite ex (Special Illustration Rare) #290
+  cert 113910492  $  479  PSA 10 2022 Pokemon GO FA Mewtwo V #072
+  cert 106438552  $ 1680  PSA 10 2021 Evolving Skies FA Dragonite V #192
+  cert 119392108  $ 1510  PSA 10 2024 Surging Sparks Pikachu ex (Special Illustration Rare) #238
+  cert 102369962  $  245  PSA 10 2023 Obsidian Flames Charizard ex (Ultra Rare) #215
+  cert 105740011  $ 1510  PSA 10 2022 SWSH Black Star Promos FA Charizard VSTAR (Ultra Premium Collection)
+  cert 114068076  $  175  PSA 10 2024 Pokemon Card SV8 (Japanese) Milotic ex (Special Art Rare) #131
+  cert 113090244  $  365  PSA 10 2019 Japanese Sky Legend (Sun & Moon) Rowlet & Alolan Exeggutor GX (Tag T
+  cert 120406485  $  115  PSA 9 2023 Pokemon Card 151 Psyduck (Illustration Rare) #175
+  cert 44690212  $ 1230  PSA 10 1999 Jungle Pikachu (1st Edition) #60
+  cert 51557052  $  829  PSA 9 2000 Gym Heroes Rocket's Scyther Holo (1st Edition) #13
+  cert 65570347  $  270  PSA 7 1999 Base Set Venusaur Holo #15
+  cert 88084896  $  225  PSA 10 2023 Crown Zenith Radiant Charizard #020
+  cert 89676057  $  145  PSA 10 2023 Pokemon Card SV2a (Japanese) Squirtle (Art Rare) #170
+  cert 50358384  $  209  PSA 9 2000 Japanese Neo 3 Celebi Holo #251
+  cert 56276763  $  225  PSA 8 1999 Base Set Alakazam Holo #1
+  cert 83320225  $  129  PSA 9 2023 Crown Zenith Galarian Gallery FA Raikou V #GG41
+  cert 93059213  $ 1080  PSA 10 2022 Brilliant Stars FA Charizard V #154
+  cert 146059525  $ 1059  PSA 10 2023 World Championships 2023 (Japanese) Pikachu ex #001
+  cert 95276041  $  245  PSA 10 2023 Obsidian Flames Charizard ex (Ultra Rare) #215
+  cert 112214360  $  365  PSA 10 2023 Obsidian Flames Pidgeotto (Illustration Rare) #208
+  cert 92889917  $  390  PSA 10 2023 Pokemon Card 151 (Japanese SV1a) Magikarp (Art Rare) #080
+  cert 73843148  $  295  PSA 10 2022 Pokemon GO Premium Collection (SWSH BSP) Radiant Eevee #230
+  cert 72016903  $  245  PSA 9 2016 XY Evolutions Charizard (Reverse Foil) #11
+  cert 101757294  $  175  PSA 7 2016 XY Generations M Charizard EX #12
+  cert 56731424  $  189  PSA 9 1999 Fossil Hypno Holo #8
+  cert 4322429002  $ 1059  PSA 10 2023 Scarlet & Violet Promos (Japanese) Eevee (Yu Nagaba illustrator) #00
+
+=== DELETE FROM SQUARE (17) ===
+  cert 99513425  yr=2024 grade=PSA10 num=87  PSA 10 2024 2024 Pokemon SV7a JP Latias ex #087
+  cert 111350109  yr=2020 grade=PSA10 num=308  PSA 10 2020 Shiny Star V (Japanese) FA Charizard VMAX #308
+  cert 4321131035  yr=2023 grade=10 num=202/165  CGC PRISTINE 10 2023 Pokemon Card 151 (Japanese) Blastoise ex (Special Art Rare)
+  cert 0014250139  yr=1999 grade= num=4  BGS NM-MT+ 8.5 1999 Base Set Unlimited Charizard Holo #4
+  cert 138441842  yr=2000 grade=PSA9 num=197  PSA 9 2000 Japanese Neo 2 Umbreon Holo #197
+  cert 115079776  yr=2024 grade=PSA10 num=233  PSA 10 2024 Paldean Fates Gardevoir ex (Special Illustration Rare) #233
+  cert 104313030  yr=2024 grade=PSA10 num=164  PSA 10 2024 Paldean Fates Flittle (Shiny Rare) #164
+  cert 54700750  yr=2000 grade=PSA9 num=16  PSA 9 2000 Base Set 2 Raichu Holo #16
+  cert 60607369  yr=2020 grade=PSA10 num=138  PSA 10 2020 Vivid Voltage Rayquaza (Amazing Rare) #138
+  cert 98517579  yr=2017 grade=PSA8 num=77  PSA 8 2017 XY Premium Trainer Collection Promo FA Shaymin EX #77a
+  cert 97957537  yr=2018 grade=PSA10 num=270  PSA 10 2018 Pokemon Center 20th Anniversary (Japanese SM Promo) Red's Pikachu #2
+  cert 61407202  yr=2002 grade=PSA6 num=6  PSA 6 2002 Neo Destiny Dark Gengar Holo #6
+  cert 118341038  yr=2025 grade=PSA9 num=184  PSA 9 2025 Journey Together Lillie's Clefairy ex (Special Illustration Rare) #18
+  cert 143540438  yr=2025 grade=PSA10 num=162  PSA 10 2025 Prismatic Evolutions Roaring Moon ex (Special Illustration Rare) #16
+  cert 6136935033  yr=2023 grade=PSA10 num=17  PSA 10 2023 Celebrations Classic Collection Umbreon Gold Star #17
+  cert 6130902118  yr=2014 grade=PSA10 num=  PSA 10 2014 Black Star Promos (Japanese) Mega Charizard X ex #XY-P
+  cert 3914522049  yr=2000 grade=PSA8 num=5  PSA 8 2000 Neo Genesis Feraligatr Holo #5
+
+=== CL NOT ON SQUARE (21) — NEEDS IMAGE PROCESSING ===
+  $  315  Latias ex                      2023  SV7a JP                             #87 (PSA 10)
+  $  450  Charizard VMAX FA              2023  Shiny Star V (JP)                   #308 (PSA 10)
+  $  509  Blastoise ex SAR               2023  Card 151 JP                         #202/165 (PSA 10)
+  $  539  Gardevoir ex SIR               2023  Paldean Fates                       #233 (PSA 10)
+  $   49  Flittle Shiny                  2023  Paldean Fates                       #164 (PSA 10)
+  $  315  Raichu Holo                    1999  Base Set 2                          #16 (PSA 9)
+  $  315  Rayquaza Amazing Rare          2022  Vivid Voltage                       #138 (PSA 10)
+  $  625  Shaymin EX                     2016  XY Promo                            #77a (PSA 8)
+  $ 1625  Red's Pikachu                  2023  JP SM Promo                         #270 (PSA 10)
+  $  225  Lillie's Clefairy ex           2024  Journey Together                    #184 (PSA 9)
+  $ 1059  Roaring Moon ex                2024  Prismatic Evolutions                #162 (PSA 10)
+  $  509  Umbreon Gold Star              2021  Celebrations                        #17 (PSA 10)
+  $  385  Mega Charizard X ex            2015  XY-P JP                             #XY-P (PSA 10)
+  $  335  Eevee Yu Nagaba                2024  SV JP Promo                         #1 (CGC 10)
+  $ 1569  Charizard Holo                 1999  Base                                #4 (BGS 8.5)
+  $ 1230  Umbreon Holo JP                2000  Neo 2                               #197 (PSA 10)
+  $  595  Dark Gengar Holo               2000  Neo Destiny                         #6 (PSA 10)
+  $  365  Feraligatr                     2000  Neo Genesis                         #5 (CGC 8.5)
+  $  539  Pikachu VMAX                   2022  Vivid Voltage                       #188 (PSA 10)
+  $  595  Eevee ex                       2025  SP Collection                       #174 (PSA 10)
+  $ 3360  Pikachu                        2025  Pokemon Simplified Chinese 151 C-Co #172 (PSA 10)
