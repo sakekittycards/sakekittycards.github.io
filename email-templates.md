@@ -78,6 +78,11 @@ Heads up: Final payout depends on verification once cards
 arrive — if counts or condition differ from the submission,
 we'll send an updated offer before processing.
 
+Note: bulk buylist is **English Pokémon only**. Japanese
+and Chinese bulk isn't accepted. Individual graded or
+high-value singles in those languages are fine — just
+the bulk tiers are English-only.
+
 Next steps:
   1. Reply to confirm and we'll send shipping instructions.
   2. Please organize cards by type before shipping —

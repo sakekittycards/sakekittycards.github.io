@@ -99,6 +99,7 @@ def main() -> None:
         final = snap_clean(marked)
         out_rows.append({
             "sk_code":     (r.get("Notes") or "").strip(),
+            "cert":        (r.get("Slab Serial #") or "").strip(),
             "card_name":   (r.get("Player") or "").strip(),
             "card_full":   (r.get("Card") or "").strip(),
             "year":        (r.get("Year") or "").strip(),

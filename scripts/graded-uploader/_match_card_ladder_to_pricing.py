@@ -177,9 +177,32 @@ def main() -> int:
                 used_pricing.add(i); return p["row"]
         return None
 
+    # Build cert-index for direct matching when Card Ladder has Slab Serial #.
+    # Strip leading zeros — pricing.csv stores BGS certs zero-padded
+    # (e.g., 0014250139) but Card Ladder strips them (14250139).
+    def cert_key(s: str) -> str:
+        return (s or "").strip().lstrip("0")
+
+    cert_index: dict[str, int] = {}
+    for i, p in enumerate(pricing_norm):
+        ck = cert_key(p["row"].get("cert", ""))
+        if ck:
+            cert_index[ck] = i
+
     matched = []
     unmatched = []
     for lrow in ladder:
+        # Pass 0: direct cert match (most reliable when CL has Slab Serial #)
+        cl_cert = cert_key(lrow.get("cert", ""))
+        if cl_cert and cl_cert in cert_index:
+            i = cert_index[cl_cert]
+            if i not in used_pricing:
+                used_pricing.add(i)
+                hit = pricing_norm[i]["row"]
+                matched.append((lrow, hit))
+                hit["your_price"] = lrow["final_price"]
+                continue
+
         cl_name_raw = card_ladder_player_to_match(lrow)
         cl_name   = normalize_name(cl_name_raw)
         cl_tokens = name_tokens(cl_name_raw)
@@ -191,7 +214,7 @@ def main() -> int:
             matched.append((lrow, hit))
             hit["your_price"] = lrow["final_price"]
         else:
-            unmatched.append((lrow, f"{cl_name}|{cl_year}|{cl_set}|{cl_grade}"))
+            unmatched.append((lrow, f"cert={cl_cert} {cl_name}|{cl_year}|{cl_set}|{cl_grade}"))
 
     print(f"[match]   matched (will reuse existing images): {len(matched)}")
     print(f"[match]   unmatched (need fresh scan/process): {len(unmatched)}")
