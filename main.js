@@ -163,6 +163,74 @@ function spawnSingleDrip() {
   setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
 }
 
+// ── Easter egg: 69 clicks on Andrew & Grace's vendor photo summons a dancing beaver ──
+(function initBeaverEgg() {
+  const photo = document.querySelector('img.vendor-avatar[src*="andrew-grace"]');
+  if (!photo) return;
+  const TARGET = 69;
+  let count = 0;
+  let resetTimer = null;
+  photo.style.cursor = 'pointer';
+  photo.addEventListener('click', () => {
+    count += 1;
+    photo.style.transition = 'transform 110ms ease-out';
+    photo.style.transform = 'scale(0.95)';
+    setTimeout(() => { photo.style.transform = ''; }, 110);
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(() => { count = 0; }, 6000);
+    if (count >= TARGET) {
+      count = 0;
+      summonDancingBeaver();
+    }
+  });
+})();
+
+function summonDancingBeaver() {
+  if (document.querySelector('.sk-beaver')) return;
+  if (!document.getElementById('sk-beaver-style')) {
+    const style = document.createElement('style');
+    style.id = 'sk-beaver-style';
+    style.textContent = `
+      .sk-beaver {
+        position: fixed; bottom: 8vh; left: 50%;
+        font-size: 140px; line-height: 1;
+        z-index: 99999; pointer-events: none;
+        filter: drop-shadow(0 8px 18px rgba(0,0,0,.55));
+        animation:
+          sk-beaver-drift 6s ease-in-out infinite,
+          sk-beaver-fade  9s forwards;
+      }
+      .sk-beaver-inner {
+        display: inline-block;
+        animation: sk-beaver-dance 0.5s ease-in-out infinite;
+      }
+      @keyframes sk-beaver-dance {
+        0%,100% { transform: translateY(0) rotate(-14deg) }
+        50%     { transform: translateY(-22px) rotate(14deg) }
+      }
+      @keyframes sk-beaver-drift {
+        0%,100% { transform: translateX(-50%) }
+        25%     { transform: translateX(-280px) }
+        75%     { transform: translateX( 220px) }
+      }
+      @keyframes sk-beaver-fade {
+        0%,88% { opacity: 1 }
+        100%   { opacity: 0 }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  const beaver = document.createElement('div');
+  beaver.className = 'sk-beaver';
+  beaver.setAttribute('aria-hidden', 'true');
+  const inner = document.createElement('span');
+  inner.className = 'sk-beaver-inner';
+  inner.textContent = '🦫';
+  beaver.appendChild(inner);
+  document.body.appendChild(beaver);
+  setTimeout(() => beaver.remove(), 9000);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Cart state + drawer UI
 // ═══════════════════════════════════════════════════════════════════════════

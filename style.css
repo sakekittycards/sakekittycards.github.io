@@ -877,7 +877,7 @@ body.cart-open { overflow: hidden; }
 }
 .inventory-paused-note strong { color: var(--orange); }
 
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(188px,1fr)); gap: 22px; }
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); gap: 26px; }
 
 /* Graded cards filter + sort controls */
 .graded-controls {
