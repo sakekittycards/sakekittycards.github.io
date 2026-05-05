@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=91" />
+  <link rel="stylesheet" href="style.css?v=92" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1018,7 +1018,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=32"></script>
+  <script src="main.js?v=33"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -2251,7 +2251,7 @@
       // preview image plus a short "what to look for" note.
       tbody.innerHTML = BULK_RATES.map((r, i) => {
         const thumb = r.img
-          ? `<img src="${esc(r.img)}" alt="${esc(r.name)} example" class="bulk-thumb" loading="lazy" decoding="async"
+          ? `<img src="${escG(r.img)}" alt="${escG(r.name)} example" class="bulk-thumb" loading="lazy" decoding="async"
                  onerror="this.style.display='none'" />`
           : `<div class="bulk-thumb bulk-thumb-empty" aria-hidden="true">?</div>`;
         return `
@@ -2280,7 +2280,7 @@
           <td colspan="5">
             <div class="bulk-expand-inner">
               ${r.img
-                ? `<img src="${esc(r.img)}" alt="${esc(r.name)} large example" class="bulk-expand-img" loading="lazy" decoding="async"
+                ? `<img src="${escG(r.img)}" alt="${escG(r.name)} large example" class="bulk-expand-img" loading="lazy" decoding="async"
                        onerror="this.style.display='none'" />`
                 : ''}
               <div class="bulk-expand-text">
