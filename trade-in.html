@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=95" />
+  <link rel="stylesheet" href="style.css?v=96" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -118,6 +118,49 @@
 
     /* List */
     .ti-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    /* Empty-list state — brand-glow stage with three drifting rarity
+       glyphs (★ ◆ ●) over a soft halo. Same energy as the cart-drawer
+       empty state. Selectors are doubled with .gp-* so grading-prep.html
+       can reuse the keyframes / structure (paired-form rule). */
+    .ti-empty-stage, .gp-empty-stage {
+      position: relative;
+      width: 130px; height: 80px;
+      margin: 0 auto 14px;
+    }
+    .ti-empty-stage::before, .gp-empty-stage::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 50% 55%, rgba(255,106,0,0.25), transparent 65%),
+        radial-gradient(circle at 30% 35%, rgba(255,0,128,0.16), transparent 60%);
+      filter: blur(13px);
+      animation: tiEmptyPulse 3.4s ease-in-out infinite;
+    }
+    .ti-empty-glyph, .gp-empty-glyph {
+      position: absolute;
+      font-size: 26px; line-height: 1; font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      animation: tiEmptyFloat 4.2s ease-in-out infinite;
+    }
+    .ti-empty-glyph.tg-1, .gp-empty-glyph.gg-1 { left: 16%; top: 8%;  color: #ff6a00; animation-delay: 0s; }
+    .ti-empty-glyph.tg-2, .gp-empty-glyph.gg-2 { left: 46%; top: 22%; color: #ff0080; animation-delay: 0.6s; font-size: 30px; }
+    .ti-empty-glyph.tg-3, .gp-empty-glyph.gg-3 { left: 76%; top: 12%; color: #00d4ff; animation-delay: 1.2s; }
+    @keyframes tiEmptyFloat {
+      0%, 100% { transform: translateY(0) rotate(-4deg); opacity: 0.85; }
+      50%      { transform: translateY(-10px) rotate(4deg); opacity: 1; }
+    }
+    @keyframes tiEmptyPulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50%      { opacity: 1.0; transform: scale(1.10); }
+    }
+    .ti-empty h5, .gp-empty h5 {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin: 0 0 4px;
+      padding: 2px 0 4px;
+    }
     .ti-empty {
       padding: 40px 20px; text-align: center;
       color: var(--dim); font-size: 14px; line-height: 1.7;
@@ -311,6 +354,84 @@
       background: linear-gradient(135deg,var(--orange),var(--pink));
       color: #fff;
       box-shadow: 0 2px 8px rgba(255,106,0,0.35);
+    }
+
+    /* Payout-tier rate card — replaces the 8-row dense list with four
+       tier cards grouped by rate. Best rate (90/100) gets a brand-glow
+       crown treatment so it reads as the headline; lower tiers fade. */
+    .ti-rate-card {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .ti-rate-card-header {
+      font-size: 10px; font-weight: 700; color: var(--dim);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .ti-rate-card-sub {
+      font-size: 11px; color: var(--dim); line-height: 1.5;
+      margin: 0 0 12px;
+    }
+    .ti-rate-tier {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      transition: border-color .18s, background .18s, transform .18s;
+    }
+    .ti-rate-tier:hover {
+      border-color: rgba(255,106,0,0.30);
+      background: rgba(255,106,0,0.04);
+      transform: translateX(2px);
+    }
+    /* Top-tier (90/100) gets the headline treatment — gradient border + glow. */
+    .ti-rate-tier.ti-rate-top {
+      background: linear-gradient(135deg, rgba(255,106,0,0.10) 0%, rgba(255,0,128,0.08) 60%, rgba(123,47,255,0.06) 100%);
+      border: 1px solid rgba(255,106,0,0.45);
+      box-shadow: 0 0 20px rgba(255,106,0,0.10);
+    }
+    .ti-rate-tier.ti-rate-top:hover {
+      box-shadow: 0 0 28px rgba(255,106,0,0.22);
+    }
+    .ti-rate-tier.ti-rate-base { opacity: 0.78; }
+    .ti-rate-tier-rate {
+      display: flex; align-items: baseline; gap: 4px;
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.5px;
+      line-height: 1;
+      flex-shrink: 0;
+      min-width: 86px;
+    }
+    .ti-rate-tier-rate .rate-cash   { color: var(--orange); }
+    .ti-rate-tier-rate .rate-credit { color: var(--cyan); }
+    .ti-rate-tier-rate .rate-sep    { color: var(--dim); font-size: 16px; }
+    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-cash,
+    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-credit {
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+    .ti-rate-tier-items {
+      list-style: none; padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 1px;
+    }
+    .ti-rate-tier-items li {
+      font-size: 12.5px; color: var(--text); line-height: 1.55;
+      padding-left: 10px;
+      position: relative;
+    }
+    .ti-rate-tier-items li::before {
+      content: '';
+      position: absolute; left: 0; top: 50%;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--orange);
+      transform: translateY(-50%);
+      opacity: 0.7;
     }
 
     /* "Heads up" disclosure — collapsed by default to keep the search
@@ -930,32 +1051,56 @@
             <div class="ti-totals-label">Store Credit Total</div>
             <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
           </div>
-          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Rates by Item Type</div>
-            <div style="display:grid;grid-template-columns:auto 1fr auto;row-gap:7px;column-gap:14px;font-size:12px;align-items:baseline">
-              <span style="color:var(--text);font-weight:600">Singles &lt; $25</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">60%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">70%</span></span>
+          <div class="ti-rate-card">
+            <div class="ti-rate-card-header">Payout Tiers</div>
+            <p class="ti-rate-card-sub">Cash / Credit. Items earning the same payout are grouped together.</p>
 
-              <span style="color:var(--text);font-weight:600">Singles $25 – $50</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">65%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span></span>
+            <div class="ti-rate-tier ti-rate-top">
+              <div class="ti-rate-tier-rate">
+                <span class="rate-cash">90%</span>
+                <span class="rate-sep">/</span>
+                <span class="rate-credit">100%</span>
+              </div>
+              <ul class="ti-rate-tier-items">
+                <li>Singles ≥ $500</li>
+                <li>Graded ≥ $1,000</li>
+              </ul>
+            </div>
 
-              <span style="color:var(--text);font-weight:600">Singles ≥ $50</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span></span>
+            <div class="ti-rate-tier">
+              <div class="ti-rate-tier-rate">
+                <span class="rate-cash">85%</span>
+                <span class="rate-sep">/</span>
+                <span class="rate-credit">95%</span>
+              </div>
+              <ul class="ti-rate-tier-items">
+                <li>Singles $300–$499</li>
+                <li>Graded $500–$999</li>
+              </ul>
+            </div>
 
-              <span style="color:var(--text);font-weight:600">Sealed</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span></span>
+            <div class="ti-rate-tier">
+              <div class="ti-rate-tier-rate">
+                <span class="rate-cash">80%</span>
+                <span class="rate-sep">/</span>
+                <span class="rate-credit">90%</span>
+              </div>
+              <ul class="ti-rate-tier-items">
+                <li>Singles $100–$299</li>
+                <li>Sealed</li>
+                <li>Graded under $500</li>
+              </ul>
+            </div>
 
-              <span style="color:var(--text);font-weight:600">Graded &lt; $1k</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span></span>
-
-              <span style="color:var(--text);font-weight:600">Graded ≥ $1k</span>
-              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">95%</span></span>
+            <div class="ti-rate-tier ti-rate-base">
+              <div class="ti-rate-tier-rate">
+                <span class="rate-cash">70%</span>
+                <span class="rate-sep">/</span>
+                <span class="rate-credit">80%</span>
+              </div>
+              <ul class="ti-rate-tier-items">
+                <li>Singles under $100</li>
+              </ul>
             </div>
           </div>
 
@@ -1069,7 +1214,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=36"></script>
+  <script src="main.js?v=37"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -1151,29 +1296,35 @@
     ];
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
-    // Trade-in rates (online — a touch below booth rates to leave room for quotes)
-    //   Booth:  Cards 70/80 · Sealed 80/90 · Graded <$1k 80/90 · Graded ≥$1k 90/100
-    //   Online: Cards tiered by value · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95
+    // Trade-in rates (online — singles tier up steeply on chase cards so we
+    // stay competitive with major buylists / TCGplayer buylist prices).
+    //   Singles: <$100 70/80 · ≥$100 80/90 · ≥$300 85/95 · ≥$500 90/100
+    //   Sealed 80/90 · Graded <$500 80/90 · Graded $500–$999 85/95 · Graded ≥$1k 90/100
+    // Updated 2026-05-05: sealed bumped 75→80, graded re-tiered into three
+    // bands. Trade credit follows cash + 10pts on every tier.
     const RATES = {
-      card_low:    { cash: 0.60, credit: 0.70 },   // raw singles under $25
-      card_mid:    { cash: 0.65, credit: 0.75 },   // raw singles $25–$50
-      card_high:   { cash: 0.75, credit: 0.85 },   // raw singles $50 and up
-      sealed:      { cash: 0.75, credit: 0.85 },
-      graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $1,000
-      graded_high: { cash: 0.85, credit: 0.95 },   // graded cards $1,000 and up
+      card_base:   { cash: 0.70, credit: 0.80 },   // raw singles under $100
+      card_100:    { cash: 0.80, credit: 0.90 },   // raw singles $100–$299
+      card_300:    { cash: 0.85, credit: 0.95 },   // raw singles $300–$499
+      card_500:    { cash: 0.90, credit: 1.00 },   // raw singles $500 and up
+      sealed:      { cash: 0.80, credit: 0.90 },
+      graded_low:  { cash: 0.80, credit: 0.90 },   // graded cards under $500
+      graded_mid:  { cash: 0.85, credit: 0.95 },   // graded cards $500–$999
+      graded_high: { cash: 0.90, credit: 1.00 },   // graded cards $1,000 and up
     };
     function ratesFor(item) {
       if (item.type === 'sealed') return RATES.sealed;
       if (item.type === 'graded') {
-        return (item.market != null && item.market >= 1000) ? RATES.graded_high : RATES.graded_low;
+        const m = item.market;
+        if (m != null && m >= 1000) return RATES.graded_high;
+        if (m != null && m >= 500)  return RATES.graded_mid;
+        return RATES.graded_low;
       }
-      // Raw singles — tier by market value. Flat 60% on a $200 chase card
-      // is way below what any competitive buylist offers; tiering up to 80%
-      // on $50+ keeps us in line with what booth offers and what major
-      // buylists pay on chase cards.
-      if (item.market != null && item.market >= 50) return RATES.card_high;
-      if (item.market != null && item.market >= 25) return RATES.card_mid;
-      return RATES.card_low;
+      // Raw singles — tier by market value.
+      if (item.market != null && item.market >= 500) return RATES.card_500;
+      if (item.market != null && item.market >= 300) return RATES.card_300;
+      if (item.market != null && item.market >= 100) return RATES.card_100;
+      return RATES.card_base;
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50, DMG: 0.30,
@@ -2111,7 +2262,16 @@
     function renderList() {
       countEl.textContent = cards.length ? `(${cards.length})` : '';
       if (!cards.length) {
-        listEl.innerHTML = `<div class="ti-empty"><div class="icon">🎴</div>Your list is empty. Search above or add a sealed product.</div>`;
+        listEl.innerHTML = `
+          <div class="ti-empty">
+            <div class="ti-empty-stage" aria-hidden="true">
+              <span class="ti-empty-glyph tg-1">★</span>
+              <span class="ti-empty-glyph tg-2">◆</span>
+              <span class="ti-empty-glyph tg-3">●</span>
+            </div>
+            <h5>Your list is empty</h5>
+            <div>Search above or add a sealed product to get started.</div>
+          </div>`;
         updateTotals();
         return;
       }
@@ -2610,29 +2770,41 @@
     // Resolve a TCGplayer productId for an English card via PC fallback
     // name + set + NUMBER match. Number is critical when a card name has
     // multiple printings (Mega Charizard Y ex #22 vs #294 in Ascended Heroes).
+    // Normalize a card name for cross-source comparison. pokemontcg.io
+    // uses hyphens for XY-era subtypes ("Gengar-EX", "Charizard-GX"), PC's
+    // index uses spaces ("Gengar EX"). Without normalization the resolver
+    // returns null on hyphenated names and the price/grade lookups fail.
+    function normalizeCardName(s) {
+      return (s || '')
+        .toLowerCase()
+        .replace(/[-]/g, ' ')   // hyphens → spaces
+        .replace(/\s+/g, ' ')   // collapse runs of whitespace
+        .trim();
+    }
+
     async function resolveEnProductIdForGraded(name, setName, number) {
       if (!name) return null;
       const idx = await loadAllCardsIndex();
       if (!idx.length) return null;
-      const nameLower = name.toLowerCase().trim();
-      const setLower  = (setName || '').toLowerCase();
-      const numStr    = number ? String(number).replace(/^0+/, '') : '';
+      const nameNorm = normalizeCardName(name);
+      const setLower = (setName || '').toLowerCase();
+      const numStr   = number ? String(number).replace(/^0+/, '') : '';
       // Pass 1: name + set + number (best match)
       if (numStr) {
         for (const [pcName, pcConsole, pcPid] of idx) {
           const m = pcName.match(/^(.*?)\s*#(\S+)\s*$/);
           if (!m) continue;
-          const pcBase = m[1].toLowerCase().trim();
-          const pcNum  = m[2].replace(/^0+/, '');
-          if (pcBase !== nameLower) continue;
+          const pcBaseNorm = normalizeCardName(m[1]);
+          const pcNum      = m[2].replace(/^0+/, '');
+          if (pcBaseNorm !== nameNorm) continue;
           if (pcNum !== numStr) continue;
           if (!setLower || pcConsole.toLowerCase().includes(setLower)) return pcPid;
         }
       }
       // Pass 2: name + set, no number — first match
       for (const [pcName, pcConsole, pcPid] of idx) {
-        const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
-        if (baseName !== nameLower) continue;
+        const baseNorm = normalizeCardName(pcName.replace(/\s*#\S+\s*$/, ''));
+        if (baseNorm !== nameNorm) continue;
         if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
         if (!setLower) return pcPid;
       }
