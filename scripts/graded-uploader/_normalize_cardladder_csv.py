@@ -23,6 +23,23 @@ CL_HEADERS = [
 ]
 
 
+def apply_markup(base: float) -> int:
+    """Same tiered markup the Square sync uses (user-mandated 2026-05-04 pm).
+    Rounded to nearest integer ending in 0 or 5; ties round up."""
+    if base <= 0:
+        return 0
+    if base < 200:
+        marked = base * 1.15 + 3
+    elif base < 1000:
+        marked = base * 1.10 + 10
+    else:
+        marked = base * 1.08
+    base_int = int(round(marked))
+    cands = [n for n in range(max(1, base_int - 6), base_int + 7) if n % 5 == 0]
+    cands.sort(key=lambda n: (abs(n - marked), -n))
+    return cands[0] if cands else 0
+
+
 def build_card_title(name: str, year: str, set_: str, number: str, condition: str) -> str:
     """Match the format CL uses for the 'Card' column when fully populated:
     '<year> <set> <name> #<num> <condition>' — falls back gracefully when
@@ -89,16 +106,19 @@ def normalize_row(row: list[str]) -> list[str] | None:
         return None
 
     title = build_card_title(name, year, set_, number, condition)
+    # Current Value preserved as the user entered it — Card Ladder replaces it
+    # with their market data when re-imported. Profit = Current Value − Investment.
     try:
-        profit = str(float(cur_val or 0) - float(investment or 0)) if cur_val else ""
+        cur_f = float(cur_val) if cur_val else 0.0
+        inv_f = float(investment or 0)
+        profit_v = cur_f - inv_f
+        profit_out = str(int(profit_v)) if profit_v == int(profit_v) else f"{profit_v:.2f}"
     except ValueError:
-        profit = ""
-    if profit and profit.endswith(".0"):
-        profit = profit[:-2]
+        profit_out = ""
 
     return [
         date, qty, title, name, year, set_, variation, number, category,
-        condition, investment, cur_val, profit, "", cert, "", sk,
+        condition, investment, cur_val, profit_out, "", cert, "", sk,
     ]
 
 

@@ -34,9 +34,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+# `re` is imported above; format-detection regex needs it.
+
 HERE = Path(__file__).resolve().parent
 INVENTORY_CSV = Path(r"D:\Dropbox\Personal Use\sakekitty_inventory_full.csv")
-GOSPEL_CSV    = Path(r"C:\Users\lunar\Downloads\cardladder_import - Sheet1.csv")
+GOSPEL_CSV    = Path(r"C:\Users\lunar\Downloads\cardladder_import - Sheet1 (1).csv")
 PENDING_OUT   = HERE / "_inventory_pending_upload.csv"
 WORKER_BASE   = "https://sakekitty-square.nwilliams23999.workers.dev"
 
@@ -56,9 +58,12 @@ def get_token() -> str | None:
 
 # ── Pricing helpers ────────────────────────────────────────────────────────
 def markup(base: float) -> float:
-    if base < 200: return base * 1.15 + 3
-    if base < 1000: return base * 1.10 + 10
-    return base * 1.08
+    """User-mandated 2026-05-05 — softer schedule (replaces the earlier
+    1.15+3/1.10+10/1.08 tier). Still above market everywhere, but trimmed
+    by ~3 percentage points on the multiplier and ~half on the flat add."""
+    if base < 200: return base * 1.10 + 2
+    if base < 1000: return base * 1.07 + 5
+    return base * 1.05
 
 def snap_clean(p: float) -> int:
     """Round to nearest integer ending in 0 or 5; ties round up."""
@@ -174,15 +179,34 @@ def main() -> int:
                 if not row or len(row) < 14: continue
                 # First row may be a header — skip if column 1 isn't numeric
                 if not row[1].strip().isdigit(): continue
-                name      = row[2].strip()
-                year      = row[3].strip()
-                set_      = row[4].strip()
-                number    = row[6].strip()
-                condition = row[8].strip()
-                cert      = row[11].strip()
-                try: base = float((row[12] or "0").replace(",", "").strip() or "0")
-                except: continue
-                sk        = row[13].strip() if len(row) > 13 else ""
+                # Detect format by position 3: 4-digit year = short format,
+                # otherwise full 17-col format (where position 3 is Player name).
+                pos3 = (row[3] or "").strip()
+                is_short = bool(re.fullmatch(r"\d{4}", pos3))
+                if is_short:
+                    name      = row[2].strip()
+                    year      = row[3].strip()
+                    set_      = row[4].strip()
+                    number    = row[6].strip()
+                    condition = row[8].strip()
+                    cert      = row[11].strip()
+                    try: base = float((row[12] or "0").replace(",", "").strip() or "0")
+                    except: continue
+                    sk        = row[13].strip() if len(row) > 13 else ""
+                else:
+                    # Full 17-col format: 0=Date, 1=Qty, 2=Card title, 3=Player,
+                    # 4=Year, 5=Set, 6=Variation, 7=Number, 8=Category, 9=Condition,
+                    # 10=Investment, 11=CurrentValue, 12=Profit, 13=LadderId,
+                    # 14=SlabSerial, 15=Population, 16=Notes
+                    name      = row[3].strip()
+                    year      = row[4].strip() if len(row) > 4 else ""
+                    set_      = row[5].strip() if len(row) > 5 else ""
+                    number    = row[7].strip() if len(row) > 7 else ""
+                    condition = row[9].strip() if len(row) > 9 else ""
+                    cert      = row[14].strip() if len(row) > 14 else ""
+                    try: base = float((row[11] or "0").replace(",", "").strip() or "0")
+                    except: continue
+                    sk        = row[16].strip() if len(row) > 16 else ""
                 if base <= 0 or not name: continue
                 inv.append({
                     "sk":       sk,

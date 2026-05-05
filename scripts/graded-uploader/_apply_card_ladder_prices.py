@@ -35,13 +35,14 @@ OUT_PATH = Path(__file__).resolve().parent / "_card_ladder_prices.csv"
 
 
 def markup(base: float) -> float:
-    """Tiered markup (user-mandated 2026-05-04 evening, replaces earlier
-    1.22/1.16/1.12 schedule). Lower fees + lower base markup."""
+    """User-mandated 2026-05-05 — softer schedule (replaces the earlier
+    1.15+3/1.10+10/1.08 tier). Still above market but trimmed by ~3 points
+    on the multiplier and ~half on the flat add."""
     if base < 200:
-        return base * 1.15 + 3
+        return base * 1.10 + 2
     if base < 1000:
-        return base * 1.10 + 10
-    return base * 1.08
+        return base * 1.07 + 5
+    return base * 1.05
 
 
 def snap_clean(price: float) -> int:
