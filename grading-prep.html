@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=95" />
+  <link rel="stylesheet" href="style.css?v=96" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -496,7 +496,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=36"></script>
+  <script src="main.js?v=37"></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -592,29 +592,42 @@
       // Charizard Y ex #22" vs "Mega Charizard Y ex #294" both in Ascended
       // Heroes — without the number, we'd grab the wrong productId and the
       // grade panel would show wildly wrong values).
+      // Normalize a card name for comparison across data sources. pokemontcg.io
+      // uses hyphens for XY-era subtypes ("Gengar-EX", "Charizard-GX"), PC's
+      // index uses spaces ("Gengar EX", "Charizard GX"). Without normalization
+      // strict equality fails and the productId resolution returns null —
+      // which silently kills the grading-prep profit panel for that card.
+      function normalizeCardName(s) {
+        return (s || '')
+          .toLowerCase()
+          .replace(/[-]/g, ' ')      // hyphens → spaces
+          .replace(/\s+/g, ' ')      // collapse runs of whitespace
+          .trim();
+      }
+
       async function resolveEnProductId(name, setName, number) {
         if (!name) return null;
         const idx = await loadAllCardsIndex();
         if (!idx.length) return null;
-        const nameLower = name.toLowerCase().trim();
-        const setLower  = (setName || '').toLowerCase();
-        const numStr    = number ? String(number).replace(/^0+/, '') : '';  // strip leading zeros for compare
+        const nameNorm = normalizeCardName(name);
+        const setLower = (setName || '').toLowerCase();
+        const numStr   = number ? String(number).replace(/^0+/, '') : '';  // strip leading zeros for compare
         // Pass 1: name + set + number (best match)
         if (numStr) {
           for (const [pcName, pcConsole, pcPid] of idx) {
             const m = pcName.match(/^(.*?)\s*#(\S+)\s*$/);
             if (!m) continue;
-            const pcBase = m[1].toLowerCase().trim();
-            const pcNum  = m[2].replace(/^0+/, '');
-            if (pcBase !== nameLower) continue;
+            const pcBaseNorm = normalizeCardName(m[1]);
+            const pcNum      = m[2].replace(/^0+/, '');
+            if (pcBaseNorm !== nameNorm) continue;
             if (pcNum !== numStr) continue;
             if (!setLower || pcConsole.toLowerCase().includes(setLower)) return pcPid;
           }
         }
         // Pass 2: name + set, no number — first match
         for (const [pcName, pcConsole, pcPid] of idx) {
-          const baseName = pcName.replace(/\s*#\S+\s*$/, '').toLowerCase().trim();
-          if (baseName !== nameLower) continue;
+          const baseNorm = normalizeCardName(pcName.replace(/\s*#\S+\s*$/, ''));
+          if (baseNorm !== nameNorm) continue;
           if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
           if (!setLower) return pcPid;
         }
