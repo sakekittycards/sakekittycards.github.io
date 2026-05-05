@@ -39,12 +39,14 @@ sakekittycards@gmail.com
 
 ───────────────────────────────────────
 Payout Tiers (reference)
-  Singles <$25 .... 60% cash / 70% credit
-  Singles $25–$50 . 65% cash / 75% credit
-  Singles ≥$50 .... 75% cash / 85% credit
-  Sealed .......... 75% cash / 85% credit
-  Graded <$1k ..... 75% cash / 85% credit
-  Graded ≥$1k ..... 85% cash / 95% credit
+  Singles <$100 ......... 70% cash / 80% credit
+  Singles $100–$299 ..... 80% cash / 90% credit
+  Singles $300–$499 ..... 85% cash / 95% credit
+  Singles ≥$500 ......... 90% cash / 100% credit
+  Sealed ................ 80% cash / 90% credit
+  Graded <$500 .......... 80% cash / 90% credit
+  Graded $500–$999 ...... 85% cash / 95% credit
+  Graded ≥$1,000 ........ 90% cash / 100% credit
 
 Store credit is always worth more — use it on any
 future purchase from our shop.
