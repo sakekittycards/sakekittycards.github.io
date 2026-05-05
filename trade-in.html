@@ -976,17 +976,21 @@
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
             <div style="font-size:10px;font-weight:700;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px">Rates by Item Type</div>
             <div style="display:grid;grid-template-columns:auto 1fr auto;row-gap:7px;column-gap:14px;font-size:12px;align-items:baseline">
-              <span style="color:var(--text);font-weight:600">Singles &lt; $25</span>
+              <span style="color:var(--text);font-weight:600">Singles &lt; $100</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">60%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">70%</span></span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">70%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">80%</span></span>
 
-              <span style="color:var(--text);font-weight:600">Singles $25 – $50</span>
+              <span style="color:var(--text);font-weight:600">Singles ≥ $100</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">65%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span></span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">80%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">90%</span></span>
 
-              <span style="color:var(--text);font-weight:600">Singles ≥ $50</span>
+              <span style="color:var(--text);font-weight:600">Singles ≥ $300</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
-              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">75%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span></span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">85%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">95%</span></span>
+
+              <span style="color:var(--text);font-weight:600">Singles ≥ $500</span>
+              <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
+              <span><span style="color:var(--orange);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">90%</span> <span style="color:var(--dim)">/</span> <span style="color:var(--cyan);font-weight:700;font-family:'Bangers',cursive;font-size:19px;letter-spacing:0.5px">100%</span></span>
 
               <span style="color:var(--text);font-weight:600">Sealed</span>
               <span style="color:var(--dim);font-size:10px;letter-spacing:0.3px">Cash / Credit</span>
@@ -1194,13 +1198,15 @@
     ];
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
-    // Trade-in rates (online — a touch below booth rates to leave room for quotes)
-    //   Booth:  Cards 70/80 · Sealed 80/90 · Graded <$1k 80/90 · Graded ≥$1k 90/100
-    //   Online: Cards tiered by value · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95
+    // Trade-in rates (online — singles tier up steeply on chase cards so we
+    // stay competitive with major buylists / TCGplayer buylist prices).
+    //   Singles: <$100 70/80 · ≥$100 80/90 · ≥$300 85/95 · ≥$500 90/100
+    //   Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95
     const RATES = {
-      card_low:    { cash: 0.60, credit: 0.70 },   // raw singles under $25
-      card_mid:    { cash: 0.65, credit: 0.75 },   // raw singles $25–$50
-      card_high:   { cash: 0.75, credit: 0.85 },   // raw singles $50 and up
+      card_base:   { cash: 0.70, credit: 0.80 },   // raw singles under $100
+      card_100:    { cash: 0.80, credit: 0.90 },   // raw singles $100–$299
+      card_300:    { cash: 0.85, credit: 0.95 },   // raw singles $300–$499
+      card_500:    { cash: 0.90, credit: 1.00 },   // raw singles $500 and up
       sealed:      { cash: 0.75, credit: 0.85 },
       graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $1,000
       graded_high: { cash: 0.85, credit: 0.95 },   // graded cards $1,000 and up
@@ -1210,13 +1216,11 @@
       if (item.type === 'graded') {
         return (item.market != null && item.market >= 1000) ? RATES.graded_high : RATES.graded_low;
       }
-      // Raw singles — tier by market value. Flat 60% on a $200 chase card
-      // is way below what any competitive buylist offers; tiering up to 80%
-      // on $50+ keeps us in line with what booth offers and what major
-      // buylists pay on chase cards.
-      if (item.market != null && item.market >= 50) return RATES.card_high;
-      if (item.market != null && item.market >= 25) return RATES.card_mid;
-      return RATES.card_low;
+      // Raw singles — tier by market value.
+      if (item.market != null && item.market >= 500) return RATES.card_500;
+      if (item.market != null && item.market >= 300) return RATES.card_300;
+      if (item.market != null && item.market >= 100) return RATES.card_100;
+      return RATES.card_base;
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50, DMG: 0.30,
