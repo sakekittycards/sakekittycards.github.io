@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=86" />
+  <link rel="stylesheet" href="style.css?v=93" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -575,6 +575,105 @@
     .bulk-table .credit-price { color: var(--cyan); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
     .bulk-table .line-total { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Bangers',cursive; font-size: 15px; letter-spacing: 0.5px; }
 
+    /* Bulk row name + thumbnail + click-to-expand example panel.
+       Each row's first cell becomes a button (no native chrome) so the
+       customer can tap anywhere across the thumbnail / name area to open
+       the example panel. The thumbnail glows orange on hover so it's
+       discoverable as interactive. */
+    .bulk-name-btn {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%;
+      padding: 0; margin: 0;
+      background: transparent; border: 0; color: inherit;
+      text-align: left; cursor: pointer;
+      font: inherit;
+    }
+    .bulk-thumb {
+      flex-shrink: 0;
+      width: 44px; height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      transition: border-color .18s, transform .18s, box-shadow .18s;
+    }
+    .bulk-thumb-empty {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--dim); font-weight: 700; font-size: 18px;
+    }
+    .bulk-name-btn:hover .bulk-thumb,
+    .bulk-name-btn:focus-visible .bulk-thumb,
+    .bulk-name-btn[aria-expanded="true"] .bulk-thumb {
+      border-color: rgba(255,106,0,0.55);
+      transform: translateY(-1px) scale(1.04);
+      box-shadow: 0 4px 14px rgba(255,106,0,0.35);
+    }
+    .bulk-name-text {
+      display: flex; flex-direction: column; gap: 2px;
+      min-width: 0;
+    }
+    .bulk-name-btn:hover strong,
+    .bulk-name-btn:focus-visible strong { color: var(--orange); }
+    .bulk-hint {
+      font-size: 11px; color: var(--dim);
+      letter-spacing: 0.4px; text-transform: uppercase;
+      transition: color .18s;
+    }
+    .bulk-name-btn:hover .bulk-hint,
+    .bulk-name-btn[aria-expanded="true"] .bulk-hint { color: var(--orange); }
+    .bulk-name-btn[aria-expanded="true"] .bulk-hint::before { content: '× '; }
+
+    /* The hidden expander row that flips open beneath each bulk row.
+       The inner panel uses the brand orange/pink gradient hint without
+       overpowering — the focus is the example image alongside the
+       "what to look for" note. */
+    .bulk-expand-row td {
+      padding: 0; border-bottom: 1px solid var(--border);
+      background: rgba(255,106,0,0.04);
+    }
+    .bulk-expand-inner {
+      display: flex; gap: 18px; align-items: flex-start;
+      padding: 18px 16px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(255,106,0,0.10), transparent 50%),
+        radial-gradient(circle at 100% 100%, rgba(255,0,128,0.08), transparent 50%);
+      border-left: 3px solid var(--orange);
+      animation: bulkExpandIn 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @keyframes bulkExpandIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .bulk-expand-img {
+      flex-shrink: 0;
+      width: 140px; height: auto;
+      border-radius: 10px;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+      transition: transform .35s ease;
+    }
+    .bulk-expand-img:hover { transform: scale(1.04) rotate(-1deg); }
+    .bulk-expand-text { min-width: 0; }
+    .bulk-expand-text h5 {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin: 0 0 6px;
+      padding: 2px 0 4px;
+    }
+    .bulk-expand-text p {
+      font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0;
+    }
+    @media (max-width: 640px) {
+      .bulk-thumb { width: 38px; height: 52px; }
+      .bulk-hint { font-size: 10px; }
+      .bulk-expand-inner { gap: 14px; padding: 14px 12px; }
+      .bulk-expand-img { width: 110px; }
+      .bulk-expand-text h5 { font-size: 16px; }
+      .bulk-expand-text p { font-size: 12.5px; }
+    }
+
     /* +/- nudge buttons */
     .qty-group { display: inline-flex; align-items: center; gap: 6px; }
     .qty-btn {
@@ -919,7 +1018,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=27"></script>
+  <script src="main.js?v=34"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -954,23 +1053,50 @@
     })();
   </script>
   <script>
-    // Bulk-per-card rates (used by the bulk section below the card search)
+    // Bulk-per-card rates (used by the bulk section below the card search).
+    // `img` and `note` power the click-to-expand example panel under each row
+    // — image URLs are pokemontcg.io CDN paths (already a primary data source
+    // for this page), `note` is the "what to look for" hint.
     const BULK_RATES = [
-      { name: 'Common / Uncommon',                   cash: 0.01, credit: 0.01 },
-      { name: 'Rare (Non-Holo)',                     cash: 0.01, credit: 0.01 },
-      { name: 'Reverse Holo',                        cash: 0.02, credit: 0.03 },
-      { name: 'Holo Rare',                           cash: 0.02, credit: 0.03 },
-      { name: 'Holo Promo',                          cash: 0.02, credit: 0.03 },
-      { name: 'GX, EX, or V',                        cash: 0.25, credit: 0.35 },
-      { name: 'VMAX / VSTAR',                        cash: 0.35, credit: 0.50 },
-      { name: 'Full Art (Textured)',                 cash: 0.40, credit: 0.55 },
-      { name: 'Secret / Hyper Rare (Textured)',      cash: 1.00, credit: 1.30 },
-      { name: 'Illustration Rare (Scarlet & Violet)',cash: 0.40, credit: 0.55 },
-      { name: 'Trainer / Galarian Gallery',          cash: 0.25, credit: 0.35 },
-      { name: 'Radiant / Amazing Rare',              cash: 0.05, credit: 0.07 },
-      { name: 'BREAK',                               cash: 0.25, credit: 0.35 },
-      { name: 'Bulk CGC Graded Card',                cash: 2.50, credit: 3.25 },
-      { name: 'Bulk PSA / BGS Graded Card',          cash: 5.00, credit: 6.00 },
+      { name: 'Common / Uncommon',                   cash: 0.01, credit: 0.01,
+        img:  'https://images.pokemontcg.io/base1/46.png',
+        note: 'Most cards in a booster pack. Black filled circle (●) for Common or filled diamond (◆) for Uncommon at the bottom of the card.' },
+      { name: 'Rare (Non-Holo)',                     cash: 0.01, credit: 0.01,
+        img:  'https://images.pokemontcg.io/base1/17.png',
+        note: 'Black star (★) symbol at the bottom. The artwork itself has no shiny holographic foil pattern.' },
+      { name: 'Reverse Holo',                        cash: 0.02, credit: 0.03,
+        img:  'https://images.pokemontcg.io/swsh4/25.png',
+        note: 'Any rarity where the card frame and yellow border are holographic but the artwork itself is NOT shiny. Common in modern booster packs as the "guaranteed shiny" slot.' },
+      { name: 'Holo Rare',                           cash: 0.02, credit: 0.03,
+        img:  'https://images.pokemontcg.io/base1/4.png',
+        note: 'Black star (★) symbol with shiny foil pattern only on the artwork window. Classic Pokemon TCG holo — Base Set Charizard is the iconic example.' },
+      { name: 'Holo Promo',                          cash: 0.02, credit: 0.03,
+        img:  'https://images.pokemontcg.io/swshp/SWSH018.png',
+        note: 'Set symbol replaced by a "Promo" star. Distributed at events, in special boxes, or via promotional product (no booster pack).' },
+      { name: 'GX, EX, or V',                        cash: 0.25, credit: 0.35,
+        img:  'https://images.pokemontcg.io/sm115/9.png',
+        note: 'Card name ends in "GX", "EX", or "V". Side-bordered design, big HP totals, often a special attack or ability with consequences when knocked out.' },
+      { name: 'VMAX / VSTAR',                        cash: 0.35, credit: 0.50,
+        img:  'https://images.pokemontcg.io/swsh3/20.png',
+        note: 'Card name ends in "VMAX" or "VSTAR". VMAX shows an oversized illustration filling the card; VSTAR has a star-burst design. Massive HP (300+).' },
+      { name: 'Full Art (Textured)',                 cash: 0.40, credit: 0.55,
+        img:  'https://images.pokemontcg.io/sv3pt5/199.png',
+        note: 'Artwork extends edge-to-edge with a textured/embossed surface you can feel. Pokémon ex Special Illustration Rares and full-art Trainers.' },
+      { name: 'Secret / Hyper Rare (Textured)',      cash: 1.00, credit: 1.30,
+        img:  'https://images.pokemontcg.io/swsh4/188.png',
+        note: 'Card numbered HIGHER than the set total (e.g. 188/185). Rainbow finish on Pokémon or gold finish on Trainers. Always textured.' },
+      { name: 'Illustration Rare (Scarlet & Violet)',cash: 0.40, credit: 0.55,
+        img:  'https://images.pokemontcg.io/sv1/216.png',
+        note: 'Scarlet & Violet era only. Story-style artwork showing the Pokémon in a scene. Marked "Illustration Rare" or "Special Illustration Rare" in the rarity field.' },
+      { name: 'Trainer / Galarian Gallery',          cash: 0.25, credit: 0.35,
+        img:  'https://images.pokemontcg.io/swsh12pt5gg/GG65.png',
+        note: 'Crown Zenith Galarian Gallery subset (numbered GG01–GG70) and other modern full-art Trainer cards.' },
+      { name: 'Radiant / Amazing Rare',              cash: 0.05, credit: 0.07,
+        img:  'https://images.pokemontcg.io/pgo/11.png',
+        note: 'Radiant Pokémon (silver foil card name, Sword & Shield Pokémon GO era) or Amazing Rare (multi-color geometric pattern, Vivid Voltage era).' },
+      { name: 'BREAK',                               cash: 0.25, credit: 0.35,
+        img:  'https://images.pokemontcg.io/xy11/8.png',
+        note: 'Read sideways. Gold plastic-foil banner across the card with the BREAK name. XY-era only — never appeared in any other generation.' },
     ];
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
@@ -2119,9 +2245,26 @@
     function renderBulkRows() {
       const tbody = document.getElementById('bulkRows');
       if (!tbody) return;
-      tbody.innerHTML = BULK_RATES.map((r, i) => `
-        <tr>
-          <td><strong>${r.name}</strong></td>
+      // Each bulk type renders as TWO rows: the data row (qty + rates) and a
+      // hidden expander row beneath it that opens when the user clicks the
+      // example thumbnail or the "?" hint button. The expander shows a larger
+      // preview image plus a short "what to look for" note.
+      tbody.innerHTML = BULK_RATES.map((r, i) => {
+        const thumb = r.img
+          ? `<img src="${escG(r.img)}" alt="${escG(r.name)} example" class="bulk-thumb" loading="lazy" decoding="async"
+                 onerror="this.style.display='none'" />`
+          : `<div class="bulk-thumb bulk-thumb-empty" aria-hidden="true">?</div>`;
+        return `
+        <tr class="bulk-row" data-row="${i}">
+          <td>
+            <button type="button" class="bulk-name-btn" data-toggle="${i}" aria-expanded="false" aria-controls="bulkExpand${i}">
+              ${thumb}
+              <span class="bulk-name-text">
+                <strong>${r.name}</strong>
+                <span class="bulk-hint" aria-hidden="true">tap for example</span>
+              </span>
+            </button>
+          </td>
           <td style="text-align:center">
             <div class="qty-group">
               <button type="button" class="qty-btn" data-nudge="-1" data-idx="${i}" aria-label="Decrease">−</button>
@@ -2133,7 +2276,21 @@
           <td class="credit-price" style="text-align:right">${fmt(r.credit)}</td>
           <td class="line-total" data-line="${i}">—</td>
         </tr>
-      `).join('');
+        <tr class="bulk-expand-row" id="bulkExpand${i}" hidden>
+          <td colspan="5">
+            <div class="bulk-expand-inner">
+              ${r.img
+                ? `<img src="${escG(r.img)}" alt="${escG(r.name)} large example" class="bulk-expand-img" loading="lazy" decoding="async"
+                       onerror="this.style.display='none'" />`
+                : ''}
+              <div class="bulk-expand-text">
+                <h5>${r.name}</h5>
+                <p>${r.note || ''}</p>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
       tbody.querySelectorAll('.bulk-qty').forEach(inp => {
         inp.addEventListener('input', () => {
           bulkQtys[+inp.dataset.idx] = Math.max(0, parseInt(inp.value) || 0);
@@ -2151,6 +2308,30 @@
           input.value = next === 0 ? '' : next;
           updateTotals();
           saveCart();
+        });
+      });
+      // Click the row's name/thumbnail button to toggle its example panel.
+      // Only one panel is open at a time — opening one closes whichever was
+      // already open, keeps the table compact on long lists.
+      tbody.querySelectorAll('.bulk-name-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = +btn.dataset.toggle;
+          const target = document.getElementById(`bulkExpand${idx}`);
+          const isOpen = !target.hasAttribute('hidden');
+          // Close any other open expander first.
+          tbody.querySelectorAll('.bulk-expand-row').forEach(row => {
+            if (row !== target) row.setAttribute('hidden', '');
+          });
+          tbody.querySelectorAll('.bulk-name-btn').forEach(b => {
+            if (b !== btn) b.setAttribute('aria-expanded', 'false');
+          });
+          if (isOpen) {
+            target.setAttribute('hidden', '');
+            btn.setAttribute('aria-expanded', 'false');
+          } else {
+            target.removeAttribute('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+          }
         });
       });
       // After (re-)building the bulk rows, push any restored bulkQtys values

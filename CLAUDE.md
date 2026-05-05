@@ -114,7 +114,7 @@ Bangers' character feet sit further below the baseline than a normal line-box al
 - **No plushies on the site (yet).** Don't add "plushies" to customer-facing copy. Once Nick has actual plushie SKUs in Square, restore the references to faq.html shipping copy + shop.html section subs (was removed 2026-05-01).
 - **No direct-sale singles on the site (yet).** Singles are listed on TCGPlayer only. Don't claim direct-on-this-site singles availability in homepage hero / shop section sub / meta descriptions. Trade-in BUYS singles (keep that copy intact). Once direct singles are listed, restore the references (was removed 2026-05-01).
 - **Trade-in tiers:** Raw singles tier by market value — <$25: 60/70, $25–$50: 65/75, ≥$50: 75/85 · Sealed 75/85 · Graded <$1k 75/85 · Graded ≥$1k 85/95. Codified in `trade-in.html`. Raw-singles rates tier up by value to stay competitive on chase cards (a flat 60% across all values was uncompetitive on $200+ cards where booth would offer 80–90%).
-- **Bulk rates:** 15 categories, defined in `BULK_RATES` array in trade-in.html. Keep in sync if categories change.
+- **Bulk rates:** 13 categories, defined in `BULK_RATES` array in trade-in.html. Keep in sync if categories change. Bulk CGC + Bulk PSA/BGS graded buckets were removed 2026-05-05 — graded sells via the per-card form (cert # + value) on the same page.
 - **Payment methods:** Venmo, PayPal, Cash App. **Zelle is NOT an option.** Square in progress (see below).
 
 ## In-flight / next up

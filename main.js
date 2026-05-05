@@ -163,6 +163,86 @@ function spawnSingleDrip() {
   setTimeout(() => blob.remove(), (fallDur + 1) * 1000);
 }
 
+// ── Easter egg: 69 clicks on Andrew & Grace's vendor photo summons a dancing beaver ──
+(function initBeaverEgg() {
+  const photo = document.querySelector('img.vendor-avatar[src*="andrew-grace"]');
+  if (!photo) return;
+  const TARGET = 69;
+  let count = 0;
+  let resetTimer = null;
+  photo.style.cursor = 'pointer';
+  photo.style.transition = 'transform 110ms ease-out, box-shadow 200ms ease-out, filter 200ms ease-out';
+  photo.addEventListener('click', () => {
+    count += 1;
+    photo.style.transform = 'scale(0.95)';
+    setTimeout(() => { photo.style.transform = ''; }, 110);
+    // Progressive glow so the user knows clicks are registering — gets
+    // hotter the closer you get to TARGET.
+    const heat = Math.min(1, count / TARGET);
+    const glow = 8 + heat * 32;
+    photo.style.boxShadow = `0 0 ${glow}px rgba(255,${Math.round(180 - heat * 130)},0,${0.35 + heat * 0.55})`;
+    photo.style.filter    = `saturate(${1 + heat * 0.6}) brightness(${1 + heat * 0.15})`;
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(() => {
+      count = 0;
+      photo.style.boxShadow = '';
+      photo.style.filter    = '';
+    }, 10000);
+    if (count >= TARGET) {
+      count = 0;
+      photo.style.boxShadow = '';
+      photo.style.filter    = '';
+      summonDancingBeaver();
+    }
+  });
+})();
+
+function summonDancingBeaver() {
+  if (document.querySelector('.sk-beaver')) return;
+  if (!document.getElementById('sk-beaver-style')) {
+    const style = document.createElement('style');
+    style.id = 'sk-beaver-style';
+    style.textContent = `
+      .sk-beaver {
+        position: fixed; bottom: 8vh; left: 50%;
+        font-size: 140px; line-height: 1;
+        z-index: 99999; pointer-events: none;
+        filter: drop-shadow(0 8px 18px rgba(0,0,0,.55));
+        animation:
+          sk-beaver-drift 6s ease-in-out infinite,
+          sk-beaver-fade  9s forwards;
+      }
+      .sk-beaver-inner {
+        display: inline-block;
+        animation: sk-beaver-dance 0.5s ease-in-out infinite;
+      }
+      @keyframes sk-beaver-dance {
+        0%,100% { transform: translateY(0) rotate(-14deg) }
+        50%     { transform: translateY(-22px) rotate(14deg) }
+      }
+      @keyframes sk-beaver-drift {
+        0%,100% { transform: translateX(-50%) }
+        25%     { transform: translateX(-280px) }
+        75%     { transform: translateX( 220px) }
+      }
+      @keyframes sk-beaver-fade {
+        0%,88% { opacity: 1 }
+        100%   { opacity: 0 }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  const beaver = document.createElement('div');
+  beaver.className = 'sk-beaver';
+  beaver.setAttribute('aria-hidden', 'true');
+  const inner = document.createElement('span');
+  inner.className = 'sk-beaver-inner';
+  inner.textContent = '🦫';
+  beaver.appendChild(inner);
+  document.body.appendChild(beaver);
+  setTimeout(() => beaver.remove(), 9000);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Cart state + drawer UI
 // ═══════════════════════════════════════════════════════════════════════════
