@@ -11,6 +11,7 @@ Output: same folder as input, name "<input>_normalized.csv".
 from __future__ import annotations
 
 import csv
+import re
 import sys
 from pathlib import Path
 
@@ -36,47 +37,53 @@ def build_card_title(name: str, year: str, set_: str, number: str, condition: st
 
 
 def normalize_row(row: list[str]) -> list[str] | None:
-    """Map input row (14 or 17 columns) to the canonical 17-column form."""
+    """Map input row (14, 16, or 17 columns) to the canonical 17-column form.
+    Both short and full formats sometimes serialize to 16 cols due to trailing
+    blanks, so format is detected by looking at position 3: a 4-digit year
+    means short format (name at 2, year at 3); anything else means full
+    format (title at 2, player at 3, year at 4)."""
     n = len(row)
     if n < 12:
         return None  # too sparse to be meaningful
 
-    if n == 14:
-        # Short format observed in the user's CL imports:
+    pos3 = (row[3] or "").strip() if n > 3 else ""
+    is_short = bool(re.fullmatch(r"\d{4}", pos3))
+
+    if is_short:
         # 0=Date(empty), 1=Qty, 2=Name, 3=Year, 4=Set, 5=Variation, 6=Number,
         # 7=Category, 8=Condition, 9=Investment, 10=duplicate-condition,
         # 11=Cert/SlabSerial, 12=CurrentValue, 13=SK/Notes
         date    = row[0]
-        qty     = row[1]
+        qty     = row[1] or "1"
         name    = row[2]
         year    = row[3]
-        set_    = row[4]
-        variation = row[5]
-        number  = row[6]
-        category = row[7] or "Pokemon"
-        condition = row[8]
-        investment = row[9] or "0"
-        cert    = row[11]
-        cur_val = row[12]
-        sk      = row[13]
+        set_    = row[4] if n > 4 else ""
+        variation = row[5] if n > 5 else ""
+        number  = row[6] if n > 6 else ""
+        category = (row[7] if n > 7 else "") or "Pokemon"
+        condition = row[8] if n > 8 else ""
+        investment = (row[9] if n > 9 else "") or "0"
+        cert    = row[11] if n > 11 else ""
+        cur_val = row[12] if n > 12 else ""
+        sk      = row[13] if n > 13 else ""
     else:
-        # Full format (16 or 17 cols, like the Pikachu Art Rare row):
-        # 0=Date, 1=Qty, 2=Card title, 3=Player, 4=Year, 5=Set, 6=Variation,
-        # 7=Number, 8=Category, 9=Condition, 10=Investment, 11=CurrentValue,
-        # 12=PotentialProfit, 13=LadderId, 14=SlabSerial, 15=Population, 16=Notes
+        # Full format: 0=Date, 1=Qty, 2=Card title, 3=Player, 4=Year, 5=Set,
+        # 6=Variation, 7=Number, 8=Category, 9=Condition, 10=Investment,
+        # 11=CurrentValue, 12=PotentialProfit, 13=LadderId, 14=SlabSerial,
+        # 15=Population, 16=Notes
         date    = row[0]
-        qty     = row[1]
-        name    = row[3]
-        year    = row[4]
-        set_    = row[5]
-        variation = row[6]
-        number  = row[7]
-        category = row[8] or "Pokemon"
-        condition = row[9]
-        investment = row[10] or "0"
-        cur_val = row[11] if len(row) > 11 else ""
-        cert    = row[14] if len(row) > 14 else ""
-        sk      = row[16] if len(row) > 16 else ""
+        qty     = row[1] or "1"
+        name    = row[3] if n > 3 else ""
+        year    = row[4] if n > 4 else ""
+        set_    = row[5] if n > 5 else ""
+        variation = row[6] if n > 6 else ""
+        number  = row[7] if n > 7 else ""
+        category = (row[8] if n > 8 else "") or "Pokemon"
+        condition = row[9] if n > 9 else ""
+        investment = (row[10] if n > 10 else "") or "0"
+        cur_val = row[11] if n > 11 else ""
+        cert    = row[14] if n > 14 else ""
+        sk      = row[16] if n > 16 else ""
 
     if not name and not cert:
         return None
