@@ -109,11 +109,14 @@ def parse_square_item(it: dict) -> dict:
     m = re.search(r"\b(19\d{2}|20\d{2})\b", name)
     if m: out["year"] = m.group(1)
 
-    # Grade (PSA 10, CGC 10, BGS 9.5, etc.)
-    m = re.search(r"(PSA|CGC|BGS|SGC|PRISTINE|GEMMT|GEM\s*MT|NM-MT)\s*(\d+(?:\.\d)?)", name, re.IGNORECASE)
-    if m:
-        out["raw_grade"] = m.group(0)
-        out["grade_norm"] = normalize_grade(m.group(0))
+    # Grade. Two-step: find the grader prefix (PSA/CGC/BGS/SGC) and the
+    # numeric grade, allowing descriptive words between them (e.g.
+    # 'BGS NM-MT+ 8.5', 'CGC PRISTINE 10', 'PSA GEM MT 10').
+    grader_match = re.search(r"\b(PSA|CGC|BGS|SGC)\b", name, re.IGNORECASE)
+    num_match    = re.search(r"\b(\d+(?:\.\d)?)\b", name[grader_match.end():] if grader_match else "")
+    if grader_match and num_match:
+        out["raw_grade"]  = f"{grader_match.group(1).upper()} {num_match.group(1)}"
+        out["grade_norm"] = normalize_grade(out["raw_grade"])
 
     # Card number — '#NN' suffix anywhere
     m = re.search(r"#([A-Za-z]*\d+(?:/\d+)?)", name)
@@ -136,37 +139,60 @@ def main() -> int:
     ladder = list(csv.DictReader(LADDER_CSV.open("r", encoding="utf-8")))
     print(f"[m2] {len(ladder)} CL priced rows")
 
-    # CL index keyed by (year, grade_norm, number_norm)
-    cl_idx: dict[tuple, dict] = {}
+    # CL index keyed primarily by (grade_norm, number_norm). Year is too
+    # unreliable in Card Ladder data (set release year vs grading year vs
+    # printed year all conflict — observed mismatches up to 5 years on the
+    # same physical card). Multiple CL rows can share (grade, number) when
+    # a card was reprinted in a later set; we keep ALL of them and pick the
+    # closest-year match at lookup time.
+    cl_idx: dict[tuple, list[dict]] = {}
     for row in ladder:
         key = (
-            (row.get("year") or "").strip(),
             normalize_grade(row.get("grade") or ""),
             normalize_number(row.get("number") or ""),
         )
-        cl_idx.setdefault(key, row)
+        cl_idx.setdefault(key, []).append(row)
 
     # Square graded items
     square = fetch_square(token)
     graded = [it for it in square if is_graded(it)]
     print(f"[m2] Square: {len(square)} items, {len(graded)} graded")
 
+    used_cl = set()  # don't double-match the same CL row to two Square items
     keep, delete = [], []
     for it in graded:
         sq = parse_square_item(it)
-        key = (sq["year"], sq["grade_norm"], sq["number_norm"])
-        cl_row = cl_idx.get(key)
-        if cl_row and sq["number_norm"]:
-            keep.append((sq, cl_row))
+        if not sq["number_norm"]:
+            delete.append(sq); continue
+        candidates = cl_idx.get((sq["grade_norm"], sq["number_norm"]), [])
+        # Filter out CL rows already used; pick the closest-year remaining one.
+        try: sq_year = int(sq["year"]) if sq["year"] else None
+        except: sq_year = None
+        best = None; best_diff = 99
+        for c in candidates:
+            cid = id(c)
+            if cid in used_cl: continue
+            try: cl_year = int((c.get("year") or "").strip())
+            except: cl_year = None
+            diff = abs(cl_year - sq_year) if (cl_year and sq_year) else 99
+            if diff < best_diff:
+                best, best_diff = c, diff
+        # Accept the match if year diff <=5 (CL data entry tolerance) OR if
+        # year is missing on either side (still consider a match — number+grade
+        # is unique enough for graded slabs).
+        if best is not None and best_diff <= 5:
+            used_cl.add(id(best))
+            keep.append((sq, best))
         else:
             delete.append(sq)
 
-    # Also surface CL rows that aren't on Square (need image processing later)
-    matched_keys = {(it[0]["year"], it[0]["grade_norm"], it[0]["number_norm"]) for it in keep}
+    # CL rows not matched to any Square item — these need image processing
+    # (new acquisitions not yet on the site).
     cl_unlisted = []
-    for k, row in cl_idx.items():
-        if k not in matched_keys and k[0] and k[2]:  # require year + number
-            cl_unlisted.append(row)
+    for rows_for_key in cl_idx.values():
+        for r in rows_for_key:
+            if id(r) not in used_cl and (r.get("number") or "").strip():
+                cl_unlisted.append(r)
 
     print(f"[m2]   keep on Square + price-update: {len(keep)}")
     print(f"[m2]   delete from Square (not in CL): {len(delete)}")
