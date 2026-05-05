@@ -122,6 +122,40 @@
     }
     @media (max-width:480px) { .prep-steps { grid-template-columns:1fr; } }
 
+    /* ── Grading profit estimate panel (collapsible per card) ──
+       Default state shows the top-profit teaser inline with the rest of
+       the card's metadata so customers don't need a click to know whether
+       the math works. Tap to expand the full per-grade chip breakdown. */
+    .gp-profit-panel { background:rgba(0,0,0,0.20); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+    .gp-profit-panel > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 7px 10px;
+      font-size: 12px; line-height: 1.45;
+      display: flex; align-items: center; gap: 8px;
+      transition: background .15s, border-color .15s;
+    }
+    .gp-profit-panel > summary::-webkit-details-marker { display: none; }
+    .gp-profit-panel > summary:hover { background: rgba(255,106,0,0.06); }
+    .gp-profit-panel .gp-profit-chev {
+      margin-left: auto;
+      color: var(--muted);
+      transition: transform .2s ease;
+      font-size: 12px;
+    }
+    .gp-profit-panel[open] .gp-profit-chev { transform: rotate(180deg); color: var(--orange); }
+    .gp-profit-panel .gp-profit-body {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding: 8px 10px 10px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; line-height: 1.5;
+      animation: gpProfitOpen 240ms ease-out;
+    }
+    @keyframes gpProfitOpen {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     /* ── Grading Prep Terms agreement checkbox ── */
     .gp-terms-agree { display:flex; align-items:flex-start; gap:8px; padding:10px 0 14px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }
     .gp-terms-agree input { margin-top:3px; flex-shrink:0; accent-color:var(--orange); cursor:pointer; }
@@ -722,13 +756,26 @@
         const noProfitNote = !profitable.length
           ? `<span style="color:var(--dim);font-size:11px">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor at current market</span>`
           : '';
+        // Teaser shown in the collapsed state — surfaces the highest-profit
+        // grade so the customer knows whether expanding is worth it without
+        // having to click. Falls back to the no-profit note when nothing
+        // clears the fee floor.
+        const topProfit = profitable.length
+          ? Math.max(...profitable.map(g => g.val - PSA_FEE_ESTIMATE - baseline))
+          : 0;
+        const summary = profitable.length
+          ? `<span style="color:var(--muted)">💰 Grading profit estimate</span> <span style="color:#7fdc7f;font-weight:600">best +$${topProfit.toFixed(2)}</span> <span style="color:var(--dim)">· ${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
+          : `<span style="color:var(--muted)">💰 Grading profit estimate</span> <span style="color:var(--dim)">· no grade clears the ~$${PSA_FEE_ESTIMATE} fee floor</span>`;
         return `
-          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;padding:6px 8px;background:rgba(0,0,0,0.20);border-radius:6px;font-size:12px;line-height:1.5">
-            ${ungradedNote}
-            ${profitable.length ? `<span style="color:var(--dim);font-size:11px">·</span>` : ''}
-            ${profitChips}
-            ${noProfitNote}
-          </div>
+          <details class="gp-profit-panel" style="margin-top:8px">
+            <summary>${summary}<span class="gp-profit-chev" aria-hidden="true">▾</span></summary>
+            <div class="gp-profit-body">
+              ${ungradedNote}
+              ${profitable.length ? `<span style="color:var(--dim);font-size:11px">·</span>` : ''}
+              ${profitChips}
+              ${noProfitNote}
+            </div>
+          </details>
         `;
       }
       // Lazy-load the graded index the first time renderList runs with cards
