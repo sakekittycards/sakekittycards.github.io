@@ -318,10 +318,54 @@ button { font-family: inherit; }
 }
 .cart-drawer-footer:empty { display: none; }
 
-.cart-empty { text-align: center; padding: 60px 20px; }
-.cart-empty-icon { font-size: 56px; opacity: 0.4; margin-bottom: 14px; }
-.cart-empty h4 { font-size: 17px; margin-bottom: 6px; }
-.cart-empty p { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+.cart-empty { text-align: center; padding: 50px 20px; }
+.cart-empty h4 {
+  font-family: 'Bangers', cursive;
+  font-size: 22px; letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 6px;
+  padding: 2px 0 6px;
+}
+.cart-empty p { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin-bottom: 22px; max-width: 280px; margin-left: auto; margin-right: auto; }
+.cart-empty-ctas { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.cart-empty-ctas .btn { min-width: 200px; }
+
+/* Floating card-rarity-symbol stage that replaces the old grey 🛒 emoji.
+   Three little glyphs (★ holo rare, ◆ uncommon, ● common) drift on
+   independent timing over a soft brand-glow halo — the cart feels alive
+   even when there's nothing in it. Pure CSS, no images. */
+.cart-empty-stage {
+  position: relative;
+  width: 130px; height: 100px;
+  margin: 0 auto 18px;
+}
+.cart-empty-glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 50% 55%, rgba(255,106,0,0.30), transparent 65%),
+    radial-gradient(circle at 30% 35%, rgba(255,0,128,0.18), transparent 60%);
+  filter: blur(14px);
+  animation: cartEmptyPulse 3.4s ease-in-out infinite;
+}
+.cart-empty-card {
+  position: absolute;
+  font-size: 28px; line-height: 1;
+  font-weight: 700;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.45);
+  animation: cartEmptyFloat 4.2s ease-in-out infinite;
+}
+.cart-empty-card.cec-1 { left: 14%;  top: 8%;  color: #ff6a00; animation-delay: 0s;    }
+.cart-empty-card.cec-2 { left: 46%;  top: 24%; color: #ff0080; animation-delay: 0.6s;  font-size: 32px; }
+.cart-empty-card.cec-3 { left: 76%;  top: 14%; color: #00d4ff; animation-delay: 1.2s; }
+@keyframes cartEmptyFloat {
+  0%, 100% { transform: translateY(0) rotate(-4deg); opacity: 0.85; }
+  50%      { transform: translateY(-12px) rotate(4deg); opacity: 1; }
+}
+@keyframes cartEmptyPulse {
+  0%, 100% { opacity: 0.7;  transform: scale(1);    }
+  50%      { opacity: 1.0;  transform: scale(1.10); }
+}
 
 .cart-item {
   display: grid;
