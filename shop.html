@@ -221,7 +221,7 @@
       // merch grid. Merch (Printful-fulfilled apparel) stays live since
       // print-on-demand doesn't need restocking. Flip back to false to
       // restore card sections + the TCGPlayer banner.
-      const SK_INVENTORY_PAUSED = true;
+      const SK_INVENTORY_PAUSED = false;
 
       if (SK_INVENTORY_PAUSED) {
         document.getElementById('tcgplayerBanner').hidden = true;
@@ -235,7 +235,7 @@
       // banner above the rest of the shop. Square data is NOT touched —
       // every graded item stays in the catalog. Flip back to false to
       // restore the full shop.
-      const GRADED_AT_SHOW = true;
+      const GRADED_AT_SHOW = false;
 
       const sectionsWrap = document.getElementById('shopSections');
       const status       = document.getElementById('shopStatus');
