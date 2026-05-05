@@ -313,6 +313,52 @@
       box-shadow: 0 2px 8px rgba(255,106,0,0.35);
     }
 
+    /* "Heads up" disclosure — collapsed by default to keep the search
+       area calm. Cyan/purple gradient hint matches the original notice
+       styling so the brand cue persists at a glance even when collapsed. */
+    .ti-heads-up {
+      margin-top: 14px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.05));
+      border: 1px solid rgba(0,212,255,0.20);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color .18s, background .18s;
+    }
+    .ti-heads-up[open] {
+      border-color: rgba(0,212,255,0.40);
+      background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.08));
+    }
+    .ti-heads-up > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 11px 14px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12.5px; line-height: 1.45; color: var(--muted);
+    }
+    .ti-heads-up > summary::-webkit-details-marker { display: none; }
+    .ti-hu-icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
+    .ti-hu-label { flex: 1; min-width: 0; }
+    .ti-hu-label strong { color: var(--cyan); font-weight: 700; }
+    .ti-hu-chev {
+      flex-shrink: 0;
+      color: var(--cyan);
+      font-size: 13px;
+      transition: transform .22s ease;
+    }
+    .ti-heads-up[open] .ti-hu-chev { transform: rotate(180deg); }
+    .ti-hu-body {
+      padding: 0 14px 14px 41px;
+      font-size: 12.5px; color: var(--muted); line-height: 1.65;
+      animation: tiHuOpen 220ms ease-out;
+    }
+    .ti-hu-body strong { color: var(--muted); }
+    .ti-hu-body a { color: var(--orange); font-weight: 600; text-decoration: none; }
+    .ti-hu-body a:hover { text-decoration: underline; }
+    @keyframes tiHuOpen {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
     /* Add Sealed toggle + form */
     .ti-sealed-toggle {
       margin-top: 14px;
@@ -803,17 +849,22 @@
             You can also search just by the number printed on the card — <em>"170/198"</em>, <em>"170"</em>, English promo IDs like <em>"SWSH001"</em>, <em>"BW17"</em>, <em>"TG01"</em>, <em>"GG70"</em>, <em>"SV01"</em>, or Japanese promo numbers like <em>"242/SV-P"</em>, <em>"001/S-P"</em>, <em>"024/SM-P"</em>.
           </p>
 
-          <!-- Important note -->
-          <div style="margin-top:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(0,212,255,0.05),rgba(123,47,255,0.05));border:1px solid rgba(0,212,255,0.2);border-radius:10px;display:flex;gap:12px;align-items:flex-start">
-            <div style="font-size:18px;line-height:1;padding-top:1px">💡</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.65">
-              <strong style="color:var(--cyan)">Heads up:</strong> this tool is a work in progress. If the search doesn't find a card, or the price looks off,
-              <a href="contact.html" style="color:var(--orange);font-weight:600">reach out to us</a> and we'll help directly.
-              We also recommend <strong style="color:var(--muted)">photographing your cards before shipping</strong> — it helps us verify everything on intake.
+          <!-- Heads-up disclosure — collapsed by default to keep the search
+               area clean. Customers who tap it get the same full notice. -->
+          <details class="ti-heads-up">
+            <summary>
+              <span class="ti-hu-icon">💡</span>
+              <span class="ti-hu-label"><strong>Heads up:</strong> tool is a work in progress + how mismatched variants get repriced</span>
+              <span class="ti-hu-chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="ti-hu-body">
+              This tool is a work in progress. If the search doesn't find a card, or the price looks off,
+              <a href="contact.html">reach out to us</a> and we'll help directly.
+              We also recommend <strong>photographing your cards before shipping</strong> — it helps us verify everything on intake.
               If a card ends up being a different variant than what was selected (say Unlimited vs 1st Edition Charizard), pricing will be adjusted to the correct current market value.
               Final pricing is always based on actual condition and variant at inspection.
             </div>
-          </div>
+          </details>
 
           <button type="button" class="ti-sealed-toggle" id="gradedToggle">🏆 Have a graded card? Add it with value</button>
 
@@ -2016,11 +2067,28 @@
       searchInput.value = '';
       resultsEl.classList.remove('open');
       renderList();
+      // Fallback chain hookup — same pattern addTcgCsvItem uses for JP/sealed.
+      // If the card landed without a market price but we already have a
+      // productId (PC-fallback search results carry _fallbackProductId), fire
+      // the resolveMarketForProduct chain immediately so customers see a
+      // price within a second of adding.
+      if (cardEntry.market == null && cardEntry.productId) {
+        lookupLastSoldAndFill(cardEntry.id, cardEntry.productId);
+      }
+      // Primary pokemontcg.io results don't ship a productId — resolve one
+      // async by name+set+number, then ALSO kick the price chain if market
+      // is still empty. Without this second step English cards that
+      // pokemontcg.io has no tcgplayer.prices.market for (rarer printings,
+      // promos, etc.) would stay stuck on "No data found" even though our
+      // worker chain could have filled them.
       if (!cardEntry.productId) {
         resolveEnProductIdForGraded(card.name, card.set?.name, card.number).then(pid => {
           if (pid && cards.includes(cardEntry)) {
             cardEntry.productId = pid;
             renderList();
+            if (cardEntry.market == null) {
+              lookupLastSoldAndFill(cardEntry.id, pid);
+            }
           }
         });
       }
