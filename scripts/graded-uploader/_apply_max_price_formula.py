@@ -60,12 +60,15 @@ PC_GRADE_COL = {
 
 # ─── markup ────────────────────────────────────────────────────────────────
 def markup(base: float) -> float:
-    """Tightened formula 2026-05-05 evening — replaces morning's 1.10/1.07/1.05."""
+    """Headroom schedule (2026-05-05 night) — user wants more breathing room
+    above market than the morning's 1.10/1.07/1.05 schedule. Back to the
+    original aggressive 1.15+3 / 1.10+10 / 1.08 — combined with multi-source
+    max-of-sources, this lifts every card meaningfully above prior list."""
     if base < 200:
-        return base * 1.08 + 2
+        return base * 1.15 + 3
     if base < 1000:
-        return base * 1.04 + 5
-    return base * 1.02
+        return base * 1.10 + 10
+    return base * 1.08
 
 
 def snap_clean(price: float) -> int:

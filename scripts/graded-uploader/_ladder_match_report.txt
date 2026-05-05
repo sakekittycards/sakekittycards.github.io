@@ -5,58 +5,58 @@ Matched (reuse existing processed images): 53
 Unmatched (need new scan or image processing): 0
 
 === MATCHED (will be uploaded with existing images, new price) ===
-  $  180  Charizard (Reverse Foil)  2016  XY Evolutions                       cert 72016903
-  $  250  Charizard & Braixen-GX          Cosmic Eclipse                      cert 50358384
-  $  415  Pikachu VMAX              2022  Vivid Voltage                       cert 147655076
-  $  630  Bulbasaur                 2025  Mega Evolution                      cert 145316191
-  $  135  Psychic Energy            2024  Gym Heroes                          cert 114068076
-  $  355  M Aggron-EX               2022  Primal Clash                        cert 110772487
-  $  345  Jasmine                   2025  Team Up                             cert 139206918
-  $ 1430  Dangerous Drill           2021  Team Up                             cert 106438552
-  $ 2970  Pikachu with Grey Felt Hat 2023  Scarlet & Violet Black Star Promos  cert 102607615
-  $ 2970  Pikachu with Grey Felt Hat 2023  Scarlet & Violet Black Star Promos  cert 94676138
-  $  345  Origin Forme Dialga VSTAR 2023  Crown Zenith Galarian Gallery       cert 75183695
-  $  465  Arceus VSTAR              2023  Crown Zenith Galarian Gallery       cert 95199161
-  $  350  Origin Forme Palkia VSTAR 2023  Crown Zenith Galarian Gallery       cert 108973922
-  $  405  Umbreon Gold Star         2023  Celebrations Classic Collection     cert 6136935033
-  $ 1135  Pikachu                   1999  Emerald                             cert 44690212
-  $  860  FA Espeon VMAX            2021  Fusion Strike Secret                cert 99211118
-  $  490  Eevee ex                  2025  Scarlet & Violet Promos             cert 146514325
-  $  490  Eevee ex                  2025  Scarlet & Violet Promos             cert 126435156
-  $  225  Latias ex                 2024  2024 Pokemon SV7a JP                cert 99513425
-  $  465  Volcarona-GX              2021  Cosmic Eclipse                      cert 107496657
-  $  910  Umbreon Holo JP           2000  Neo 2                               cert 138441842
-  $  785  Roaring Moon ex (Special Illustration Rare) 2025  Prismatic Evolutions                cert 143540438
-  $ 7765  Charizard Stadium TIP-Shiny 2000  Danone Pokemon (French Promo)       cert 63063677
-  $ 1325  Weavile                   2024  Cosmic Eclipse                      cert 119392108
-  $ 1375  Charizard Holo            1999  Base Unlimited                      cert 0014250139
-  $  110  Zapdos Holo               1999  Base                                cert 139036804
-  $  975  Kangaskhan-EX             2017  Flashfire                           cert 131611480
-  $  395  Goomy                     2022  Flashfire                           cert 113910492
-  $  230  Blastoise ex SAR          2023  Card 151 JP                         cert 4321131035
-  $ 1470  Moltres                   1998  151                                 cert 84566703
-  $  735  Rampardos                       Platinum                            cert 51557052
-  $ 1030  Dark Gengar Holo          2000  Neo Destiny                         cert 61407202
-  $  310  Mega Latias ex            2025  Pokemon Mega Evolution JP           cert 146746311
-  $ 2220  FA Umbreon VMAX           2021  Evolving Skies Secret               cert 110420477
-  $ 1140  Blastoise Holo            1999  Base Set 2                          cert 99746732
-  $  410  FA Shaymin EX             2017  XY Premium Trainer Collection Promo cert 98517579
-  $ 1150  Rocket's Wobbuffet (Destined Rivals Pokemon Center ETB) 2025  Scarlet & Violet Black Star Promos  cert 135860324
-  $  315  Deoxys                    2023  Crown Zenith Galarian Gallery       cert 121116624
-  $ 3315  Venusaur                  1999  Base                                cert 65570346
-  $  215  Blastoise & Piplup-GX     2023  Cosmic Eclipse                      cert 102369962
-  $  265  Absol                     1999  Legend Maker                        cert 65570347
-  $  360  Magikarp (Art Rare)       2023  Pokemon Card 151 (Japanese SV1a)    cert 92889917
-  $  215  Charizard ex (Ultra Rare) 2023  Obsidian Flames                     cert 95276041
-  $  225  Rayquaza                  2020  Vivid Voltage                       cert 60607369
-  $  215  Pidgeotto (Illustration Rare) 2023  Obsidian Flames                     cert 112214360
-  $  260  Eevee (Yu Nagaba illustrator) 2023  Scarlet & Violet Promos (Japanese)  cert 4322429002
-  $  425  Professor Oak's Setup     2024  Cosmic Eclipse                      cert 115079776
-  $  310  Mega Charizard X ex       2014  Black Star Promos (Japanese)        cert 6130902118
-  $  250  Sandile                   2019  Flashfire                           cert 113090244
-  $  380  FAICHARIZARDVMAX SHINYSTARV 2020  POKEMONJPN.SWSH                     cert 111350109
-  $  400  Mega Lopunny & Jigglypuff-GX 2019  Cosmic Eclipse                      cert 134321907
-  $ 3010  Pikachu (Art Rare)        2025  Pokemon Simplified Chinese 151 C-Co cert 128159429
-  $  145  Feraligatr Holo           2000  Neo Genesis                         cert 3914522049
+  $  195  Charizard (Reverse Foil)  2016  XY Evolutions                       cert 72016903
+  $  270  Charizard & Braixen-GX          Cosmic Eclipse                      cert 50358384
+  $  445  Pikachu VMAX              2022  Vivid Voltage                       cert 147655076
+  $  670  Bulbasaur                 2025  Mega Evolution                      cert 145316191
+  $  145  Psychic Energy            2024  Gym Heroes                          cert 114068076
+  $  380  M Aggron-EX               2022  Primal Clash                        cert 110772487
+  $  370  Jasmine                   2025  Team Up                             cert 139206918
+  $ 1510  Dangerous Drill           2021  Team Up                             cert 106438552
+  $ 3145  Pikachu with Grey Felt Hat 2023  Scarlet & Violet Black Star Promos  cert 102607615
+  $ 3145  Pikachu with Grey Felt Hat 2023  Scarlet & Violet Black Star Promos  cert 94676138
+  $  370  Origin Forme Dialga VSTAR 2023  Crown Zenith Galarian Gallery       cert 75183695
+  $  495  Arceus VSTAR              2023  Crown Zenith Galarian Gallery       cert 95199161
+  $  375  Origin Forme Palkia VSTAR 2023  Crown Zenith Galarian Gallery       cert 108973922
+  $  430  Umbreon Gold Star         2023  Celebrations Classic Collection     cert 6136935033
+  $ 1200  Pikachu                   1999  Emerald                             cert 44690212
+  $  910  FA Espeon VMAX            2021  Fusion Strike Secret                cert 99211118
+  $  520  Eevee ex                  2025  Scarlet & Violet Promos             cert 146514325
+  $  520  Eevee ex                  2025  Scarlet & Violet Promos             cert 126435156
+  $  240  Latias ex                 2024  2024 Pokemon SV7a JP                cert 99513425
+  $  495  Volcarona-GX              2021  Cosmic Eclipse                      cert 107496657
+  $  965  Umbreon Holo JP           2000  Neo 2                               cert 138441842
+  $  835  Roaring Moon ex (Special Illustration Rare) 2025  Prismatic Evolutions                cert 143540438
+  $ 8225  Charizard Stadium TIP-Shiny 2000  Danone Pokemon (French Promo)       cert 63063677
+  $ 1405  Weavile                   2024  Cosmic Eclipse                      cert 119392108
+  $ 1455  Charizard Holo            1999  Base Unlimited                      cert 0014250139
+  $  115  Zapdos Holo               1999  Base                                cert 139036804
+  $ 1040  Kangaskhan-EX             2017  Flashfire                           cert 131611480
+  $  425  Goomy                     2022  Flashfire                           cert 113910492
+  $  250  Blastoise ex SAR          2023  Card 151 JP                         cert 4321131035
+  $ 1555  Moltres                   1998  151                                 cert 84566703
+  $  780  Rampardos                       Platinum                            cert 51557052
+  $ 1095  Dark Gengar Holo          2000  Neo Destiny                         cert 61407202
+  $  335  Mega Latias ex            2025  Pokemon Mega Evolution JP           cert 146746311
+  $ 2350  FA Umbreon VMAX           2021  Evolving Skies Secret               cert 110420477
+  $ 1205  Blastoise Holo            1999  Base Set 2                          cert 99746732
+  $  435  FA Shaymin EX             2017  XY Premium Trainer Collection Promo cert 98517579
+  $ 1215  Rocket's Wobbuffet (Destined Rivals Pokemon Center ETB) 2025  Scarlet & Violet Black Star Promos  cert 135860324
+  $  340  Deoxys                    2023  Crown Zenith Galarian Gallery       cert 121116624
+  $ 3510  Venusaur                  1999  Base                                cert 65570346
+  $  230  Blastoise & Piplup-GX     2023  Cosmic Eclipse                      cert 102369962
+  $  285  Absol                     1999  Legend Maker                        cert 65570347
+  $  385  Magikarp (Art Rare)       2023  Pokemon Card 151 (Japanese SV1a)    cert 92889917
+  $  230  Charizard ex (Ultra Rare) 2023  Obsidian Flames                     cert 95276041
+  $  245  Rayquaza                  2020  Vivid Voltage                       cert 60607369
+  $  235  Pidgeotto (Illustration Rare) 2023  Obsidian Flames                     cert 112214360
+  $  275  Eevee (Yu Nagaba illustrator) 2023  Scarlet & Violet Promos (Japanese)  cert 4322429002
+  $  455  Professor Oak's Setup     2024  Cosmic Eclipse                      cert 115079776
+  $  335  Mega Charizard X ex       2014  Black Star Promos (Japanese)        cert 6130902118
+  $  270  Sandile                   2019  Flashfire                           cert 113090244
+  $  405  FAICHARIZARDVMAX SHINYSTARV 2020  POKEMONJPN.SWSH                     cert 111350109
+  $  430  Mega Lopunny & Jigglypuff-GX 2019  Cosmic Eclipse                      cert 134321907
+  $ 3185  Pikachu (Art Rare)        2025  Pokemon Simplified Chinese 151 C-Co cert 128159429
+  $  155  Feraligatr Holo           2000  Neo Genesis                         cert 3914522049
 
 === UNMATCHED Card Ladder rows (need image processing) ===
