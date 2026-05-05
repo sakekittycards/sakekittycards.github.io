@@ -465,10 +465,18 @@ window.SK = {
     if (cart.length === 0) {
       body.innerHTML = `
         <div class="cart-empty">
-          <div class="cart-empty-icon">🛒</div>
-          <h4>Your cart is empty</h4>
-          <p>Head to the shop to add plushies, cards, and more.</p>
-          <a href="shop.html" class="btn btn-primary btn-sm">Shop Now</a>
+          <div class="cart-empty-stage" aria-hidden="true">
+            <span class="cart-empty-glow"></span>
+            <span class="cart-empty-card cec-1">★</span>
+            <span class="cart-empty-card cec-2">◆</span>
+            <span class="cart-empty-card cec-3">●</span>
+          </div>
+          <h4>Cart's quiet for now</h4>
+          <p>Browse graded slabs, sealed, and merch — or send your cards in for a quote.</p>
+          <div class="cart-empty-ctas">
+            <a href="shop.html" class="btn btn-primary btn-sm">Shop the Catalog</a>
+            <a href="trade-in.html" class="btn btn-outline btn-sm">Sell / Trade →</a>
+          </div>
         </div>
       `;
       footer.innerHTML = '';
