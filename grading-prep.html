@@ -557,6 +557,11 @@
       // to PSA X, here's the market and the profit margin after grading fees"
       // inline on each added card. Schema: { productId: [ungraded, psa8, psa9,
       // psa95, psa10, bgs10] } in dollars. Built by build_pc_graded_index.py.
+      // Note: only positions [1..5] (graded values) are used here. The [0]
+      // ungraded baseline is now sourced from TCGplayer (gpTcgRawCache below)
+      // because PC's loose-price drifts from TCGplayer's market and the
+      // TCGplayer number is the one customers anchor on. PC ungraded only
+      // gets used as a final fallback for synthetic pc:* productIds (CN cards).
       let gpGradedIndex = null;
       let gpGradedLoading = null;
       const PC_GRADED_URL = 'assets/pc-graded.json?v=1';
@@ -568,6 +573,51 @@
           .then(d => { gpGradedIndex = d || {}; return gpGradedIndex; })
           .catch(() => { gpGradedIndex = {}; return gpGradedIndex; });
         return gpGradedLoading;
+      }
+
+      // TCGplayer raw market price cache — the same /tcg/market and
+      // /tcg/lastsold worker the trade-in form uses. Populated lazily as
+      // cards are added; results memoize so re-renders don't re-fetch.
+      // Used as the "Ungraded" baseline in the profit panel so the raw
+      // anchor matches what customers see on TCGplayer's product page.
+      const GP_PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
+      const gpTcgRawCache = Object.create(null);  // pidStr -> number | null
+      async function gpLookupTcgMarket(pid) {
+        try {
+          const r = await fetch(`${GP_PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
+          if (!r.ok) return null;
+          const d = await r.json();
+          return d?.ok && d.market != null ? d.market : null;
+        } catch { return null; }
+      }
+      async function gpLookupTcgLastSold(pid) {
+        try {
+          const r = await fetch(`${GP_PRICES_WORKER}/tcg/lastsold?productId=${encodeURIComponent(pid)}`);
+          if (!r.ok) return null;
+          const d = await r.json();
+          return d?.ok && d.avgPrice != null ? d.avgPrice : null;
+        } catch { return null; }
+      }
+      async function gpResolveTcgRaw(productId) {
+        const pidStr = String(productId);
+        if (pidStr in gpTcgRawCache) return gpTcgRawCache[pidStr];
+        // Synthetic pc:* productIds are Chinese cards TCGplayer doesn't carry —
+        // no point hitting the worker. Cache null so we don't retry.
+        if (pidStr.startsWith('pc:')) { gpTcgRawCache[pidStr] = null; return null; }
+        const m  = await gpLookupTcgMarket(productId);
+        if (m != null) { gpTcgRawCache[pidStr] = m; return m; }
+        const ls = await gpLookupTcgLastSold(productId);
+        gpTcgRawCache[pidStr] = ls;
+        return ls;
+      }
+      // Fire the lookup for any card with a productId we haven't priced yet,
+      // then trigger a re-render so the panel shows the freshly-fetched value.
+      function gpEnsureTcgRaw(card) {
+        if (!card || !card.productId) return;
+        const pidStr = String(card.productId);
+        if (pidStr in gpTcgRawCache) return;
+        gpTcgRawCache[pidStr] = null;  // mark in-flight so we don't double-fetch
+        gpResolveTcgRaw(card.productId).then(() => renderList());
       }
 
       // PC-fallback all-cards index — used to resolve TCGplayer productIds for
@@ -789,7 +839,13 @@
         if (!c.productId || !gpGradedIndex) return '';
         const data = gpGradedIndex[String(c.productId)];
         if (!data) return '';
-        const [ungraded, psa8, psa9, psa95, psa10, bgs10] = data;
+        const [pcUngraded, psa8, psa9, psa95, psa10, bgs10] = data;
+        // Ungraded baseline: prefer TCGplayer market (cached after gpEnsureTcgRaw
+        // fires on add). Falls back to PriceCharting loose-price ONLY when the
+        // worker chain returned nothing (typically synthetic pc:* productIds
+        // for Chinese cards, where TCGplayer doesn't carry the card).
+        const tcgRaw = gpTcgRawCache[String(c.productId)];
+        const ungraded = (tcgRaw != null) ? tcgRaw : (pcUngraded || null);
         const ungradedNote = ungraded
           ? `<span style="color:var(--muted)">Ungraded ~$${ungraded.toFixed(2)}</span>`
           : '';
@@ -858,6 +914,9 @@
         // a productId — the panel only renders for those, no point loading
         // 1.5MB of JSON if the customer only added manual entries.
         if (gpCards.some(c => c.productId)) ensureGradedIndexLoaded();
+        // Fire the TCGplayer raw-price lookup for any newly-added card.
+        // Function memoizes on the cache so repeated renders don't re-fetch.
+        gpCards.forEach(c => gpEnsureTcgRaw(c));
 
         gpListEl.innerHTML = gpCards.map((c, i) => `
           <div class="gp-item">
