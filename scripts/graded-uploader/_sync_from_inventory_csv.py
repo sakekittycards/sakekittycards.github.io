@@ -36,6 +36,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 INVENTORY_CSV = Path(r"D:\Dropbox\Personal Use\sakekitty_inventory_full.csv")
+GOSPEL_CSV    = Path(r"C:\Users\lunar\Downloads\cardladder_import - Sheet1.csv")
 PENDING_OUT   = HERE / "_inventory_pending_upload.csv"
 WORKER_BASE   = "https://sakekitty-square.nwilliams23999.workers.dev"
 
@@ -158,34 +159,76 @@ def main() -> int:
     token = get_token()
     if not token: print("[sync] SK_ADMIN_TOKEN not set"); return 1
 
-    if not INVENTORY_CSV.exists():
-        print(f"[sync] {INVENTORY_CSV} not found"); return 1
-
-    # ── Step 1: Read inventory + apply markup ──
-    rows = list(csv.DictReader(INVENTORY_CSV.open("r", encoding="utf-8-sig")))
+    # Prefer the Card Ladder import CSV (gospel) when present — that's the
+    # user's hand-typed truth list. Fall back to sakekitty_inventory_full.csv
+    # if the gospel hasn't been refreshed.
     inv: list[dict] = []
-    for r in rows:
-        try: base = float((r.get("price") or "0").replace(",", "").strip() or "0")
-        except: continue
-        if base <= 0: continue
-        final = snap_clean(markup(base))
-        inv.append({
-            "sk":       (r.get("card_id") or "").strip(),
-            "name":     (r.get("name") or "").strip(),
-            "set":      (r.get("set") or "").strip(),
-            "number":   (r.get("number") or "").strip(),
-            "condition":(r.get("condition") or "").strip(),
-            "base":     base,
-            "final":    final,
-            "g_norm":   normalize_grade(r.get("condition") or ""),
-            "n_norm":   normalize_number(r.get("number") or ""),
-            "tokens":   name_tokens(r.get("name") or ""),
-        })
+    if GOSPEL_CSV.exists():
+        # Card Ladder import format, no header. Field positions:
+        # 0=date, 1=qty, 2=name, 3=year, 4=set, 5=variation, 6=number,
+        # 7=category, 8=condition, 9=investment, 10=condition_repeat,
+        # 11=cert, 12=current_value, 13=sk_code
+        print(f"[sync] reading Card Ladder gospel CSV: {GOSPEL_CSV.name}")
+        with GOSPEL_CSV.open("r", encoding="utf-8-sig", newline="") as f:
+            for row in csv.reader(f):
+                if not row or len(row) < 14: continue
+                # First row may be a header — skip if column 1 isn't numeric
+                if not row[1].strip().isdigit(): continue
+                name      = row[2].strip()
+                year      = row[3].strip()
+                set_      = row[4].strip()
+                number    = row[6].strip()
+                condition = row[8].strip()
+                cert      = row[11].strip()
+                try: base = float((row[12] or "0").replace(",", "").strip() or "0")
+                except: continue
+                sk        = row[13].strip() if len(row) > 13 else ""
+                if base <= 0 or not name: continue
+                inv.append({
+                    "sk":       sk,
+                    "name":     name,
+                    "set":      set_,
+                    "number":   number,
+                    "condition":condition,
+                    "year":     year,
+                    "cert":     cert,
+                    "base":     base,
+                    "final":    snap_clean(markup(base)),
+                    "g_norm":   normalize_grade(condition),
+                    "n_norm":   normalize_number(number),
+                    "tokens":   name_tokens(name),
+                })
+    elif INVENTORY_CSV.exists():
+        print(f"[sync] reading inventory CSV: {INVENTORY_CSV.name}")
+        with INVENTORY_CSV.open("r", encoding="utf-8-sig", newline="") as f:
+            for r in csv.DictReader(f):
+                try: base = float((r.get("price") or "0").replace(",", "").strip() or "0")
+                except: continue
+                if base <= 0: continue
+                inv.append({
+                    "sk":       (r.get("card_id") or "").strip(),
+                    "name":     (r.get("name") or "").strip(),
+                    "set":      (r.get("set") or "").strip(),
+                    "number":   (r.get("number") or "").strip(),
+                    "condition":(r.get("condition") or "").strip(),
+                    "year":     "",
+                    "cert":     "",
+                    "base":     base,
+                    "final":    snap_clean(markup(base)),
+                    "g_norm":   normalize_grade(r.get("condition") or ""),
+                    "n_norm":   normalize_number(r.get("number") or ""),
+                    "tokens":   name_tokens(r.get("name") or ""),
+                })
+    else:
+        print(f"[sync] no input CSV found at {GOSPEL_CSV} or {INVENTORY_CSV}"); return 1
     print(f"[sync] inventory: {len(inv)} cards")
 
-    # Index inventory by (grade, number) for matching
-    inv_by_key: dict[tuple, list[dict]] = {}
+    # Two indexes: by cert (primary, exact) and by (grade, number) (fallback).
+    inv_by_cert: dict[str, dict] = {}
+    inv_by_key:  dict[tuple, list[dict]] = {}
     for row in inv:
+        if row.get("cert"):
+            inv_by_cert[row["cert"]] = row
         inv_by_key.setdefault((row["g_norm"], row["n_norm"]), []).append(row)
 
     # ── Step 2: Inspect Square ──
@@ -194,28 +237,35 @@ def main() -> int:
     print(f"[sync] Square: {len(items)} items, {len(graded)} graded")
 
     # ── Step 3: Match Square → inventory ──
-    used_inv = set()  # don't double-match
+    # Pass 1: cert-exact (strongest signal, comes straight from PSA/CGC slab).
+    # Pass 2: (grade, number) with name-token tiebreaker for items where the
+    # Square cert isn't in the gospel CSV (older listings, OCR misses).
+    used_inv = set()
     keep, delete = [], []
     for it in graded:
         name = (it.get("item_data") or {}).get("name", "")
         cert = cert_from_desc(it)
         g, n = parse_square_grade_number(name)
-        if not n:
-            delete.append((it, cert, name, "no card number parsed")); continue
-        cands = inv_by_key.get((g, n), [])
-        # Tiebreaker: name-token overlap with the Square title
-        sq_tokens = name_tokens(name)
-        best, best_score = None, -1
-        for c in cands:
-            if id(c) in used_inv: continue
-            overlap = len(c["tokens"] & sq_tokens)
-            if overlap > best_score:
-                best, best_score = c, overlap
-        if best is not None:
-            used_inv.add(id(best))
-            keep.append((it, cert, name, best))
+        match = None
+        if cert and cert in inv_by_cert and id(inv_by_cert[cert]) not in used_inv:
+            match = inv_by_cert[cert]
+        if match is None and n:
+            cands = inv_by_key.get((g, n), [])
+            sq_tokens = name_tokens(name)
+            best, best_score = None, -1
+            for c in cands:
+                if id(c) in used_inv: continue
+                overlap = len(c["tokens"] & sq_tokens)
+                if overlap > best_score:
+                    best, best_score = c, overlap
+            match = best
+        if match is not None:
+            used_inv.add(id(match))
+            keep.append((it, cert, name, match))
+        elif not n:
+            delete.append((it, cert, name, "no card number parsed"))
         else:
-            delete.append((it, cert, name, f"no inventory row with grade={g} num={n}"))
+            delete.append((it, cert, name, f"no inventory row with cert={cert} or grade={g} num={n}"))
 
     pending = [c for c in inv if id(c) not in used_inv]
 
