@@ -171,15 +171,27 @@ function spawnSingleDrip() {
   let count = 0;
   let resetTimer = null;
   photo.style.cursor = 'pointer';
+  photo.style.transition = 'transform 110ms ease-out, box-shadow 200ms ease-out, filter 200ms ease-out';
   photo.addEventListener('click', () => {
     count += 1;
-    photo.style.transition = 'transform 110ms ease-out';
     photo.style.transform = 'scale(0.95)';
     setTimeout(() => { photo.style.transform = ''; }, 110);
+    // Progressive glow so the user knows clicks are registering — gets
+    // hotter the closer you get to TARGET.
+    const heat = Math.min(1, count / TARGET);
+    const glow = 8 + heat * 32;
+    photo.style.boxShadow = `0 0 ${glow}px rgba(255,${Math.round(180 - heat * 130)},0,${0.35 + heat * 0.55})`;
+    photo.style.filter    = `saturate(${1 + heat * 0.6}) brightness(${1 + heat * 0.15})`;
     clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => { count = 0; }, 6000);
+    resetTimer = setTimeout(() => {
+      count = 0;
+      photo.style.boxShadow = '';
+      photo.style.filter    = '';
+    }, 10000);
     if (count >= TARGET) {
       count = 0;
+      photo.style.boxShadow = '';
+      photo.style.filter    = '';
       summonDancingBeaver();
     }
   });
