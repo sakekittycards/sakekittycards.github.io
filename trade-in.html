@@ -118,6 +118,49 @@
 
     /* List */
     .ti-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    /* Empty-list state — brand-glow stage with three drifting rarity
+       glyphs (★ ◆ ●) over a soft halo. Same energy as the cart-drawer
+       empty state. Selectors are doubled with .gp-* so grading-prep.html
+       can reuse the keyframes / structure (paired-form rule). */
+    .ti-empty-stage, .gp-empty-stage {
+      position: relative;
+      width: 130px; height: 80px;
+      margin: 0 auto 14px;
+    }
+    .ti-empty-stage::before, .gp-empty-stage::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 50% 55%, rgba(255,106,0,0.25), transparent 65%),
+        radial-gradient(circle at 30% 35%, rgba(255,0,128,0.16), transparent 60%);
+      filter: blur(13px);
+      animation: tiEmptyPulse 3.4s ease-in-out infinite;
+    }
+    .ti-empty-glyph, .gp-empty-glyph {
+      position: absolute;
+      font-size: 26px; line-height: 1; font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.45);
+      animation: tiEmptyFloat 4.2s ease-in-out infinite;
+    }
+    .ti-empty-glyph.tg-1, .gp-empty-glyph.gg-1 { left: 16%; top: 8%;  color: #ff6a00; animation-delay: 0s; }
+    .ti-empty-glyph.tg-2, .gp-empty-glyph.gg-2 { left: 46%; top: 22%; color: #ff0080; animation-delay: 0.6s; font-size: 30px; }
+    .ti-empty-glyph.tg-3, .gp-empty-glyph.gg-3 { left: 76%; top: 12%; color: #00d4ff; animation-delay: 1.2s; }
+    @keyframes tiEmptyFloat {
+      0%, 100% { transform: translateY(0) rotate(-4deg); opacity: 0.85; }
+      50%      { transform: translateY(-10px) rotate(4deg); opacity: 1; }
+    }
+    @keyframes tiEmptyPulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50%      { opacity: 1.0; transform: scale(1.10); }
+    }
+    .ti-empty h5, .gp-empty h5 {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin: 0 0 4px;
+      padding: 2px 0 4px;
+    }
     .ti-empty {
       padding: 40px 20px; text-align: center;
       color: var(--dim); font-size: 14px; line-height: 1.7;
@@ -2111,7 +2154,16 @@
     function renderList() {
       countEl.textContent = cards.length ? `(${cards.length})` : '';
       if (!cards.length) {
-        listEl.innerHTML = `<div class="ti-empty"><div class="icon">🎴</div>Your list is empty. Search above or add a sealed product.</div>`;
+        listEl.innerHTML = `
+          <div class="ti-empty">
+            <div class="ti-empty-stage" aria-hidden="true">
+              <span class="ti-empty-glyph tg-1">★</span>
+              <span class="ti-empty-glyph tg-2">◆</span>
+              <span class="ti-empty-glyph tg-3">●</span>
+            </div>
+            <h5>Your list is empty</h5>
+            <div>Search above or add a sealed product to get started.</div>
+          </div>`;
         updateTotals();
         return;
       }

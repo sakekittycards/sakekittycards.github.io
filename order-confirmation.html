@@ -40,18 +40,208 @@
   </nav>
 
   <main class="page-content">
-    <div class="section" style="padding-top:calc(var(--nav-h) + 80px);text-align:center;max-width:560px;margin:0 auto">
-      <div style="width:96px;height:96px;margin:0 auto 24px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--pink));display:flex;align-items:center;justify-content:center;font-size:52px;color:#fff;box-shadow:0 12px 40px rgba(255,106,0,0.45)">✓</div>
-      <h1 style="font-family:'Bangers',cursive;font-size:clamp(36px,7vw,56px);letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px">Order Confirmed!</h1>
-      <p style="font-size:16px;color:var(--muted);line-height:1.7;margin-bottom:12px">Thanks for shopping with Sake Kitty Cards. We received your order and will get it packed and shipped within 48 hours.</p>
-      <p style="font-size:14px;color:var(--dim);line-height:1.7;margin-bottom:32px">A receipt has been emailed to you. If anything looks off, reach out on <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">Instagram</a> or <a href="mailto:sakekittycards@gmail.com" style="color:var(--orange)">sakekittycards@gmail.com</a>.</p>
+    <!-- Confetti burst — particles fired from the checkmark on page load.
+         Pure CSS keyframes, JS spawns them once. Skipped if user prefers
+         reduced motion. -->
+    <div class="oc-confetti" id="ocConfetti" aria-hidden="true"></div>
 
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <div class="section oc-wrap">
+      <!-- Animated check medallion: glow halo grows in, then the SVG check
+           strokes draw — creates a gratifying "completed" beat. -->
+      <div class="oc-medallion">
+        <div class="oc-medallion-glow"></div>
+        <div class="oc-medallion-disc">
+          <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
+            <path class="oc-check-path" d="M14 29 L24 39 L43 18" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <h1 class="oc-heading">Order Confirmed!</h1>
+      <p class="oc-lead">Thanks for shopping with Sake Kitty Cards.<br/>We'll have it packed and shipped within 48 hours.</p>
+
+      <!-- What's next — three short cards explaining the post-order journey
+           so customers know what to expect (avoids the "okay now what" beat
+           that bare confirmation pages always have). -->
+      <div class="oc-next">
+        <div class="oc-step">
+          <div class="oc-step-icon">📧</div>
+          <h4>Receipt sent</h4>
+          <p>Check your inbox for the order details and total.</p>
+        </div>
+        <div class="oc-step">
+          <div class="oc-step-icon">📦</div>
+          <h4>Packed within 48h</h4>
+          <p>Penny sleeves, top loaders, bubble mailer. Insurance auto-added at $100+.</p>
+        </div>
+        <div class="oc-step">
+          <div class="oc-step-icon">🚚</div>
+          <h4>Tracking on ship</h4>
+          <p>You'll get a shipping email with tracking the moment it goes out.</p>
+        </div>
+      </div>
+
+      <p class="oc-help">Anything looks off? Reach out on <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">Instagram</a> or <a href="mailto:sakekittycards@gmail.com">sakekittycards@gmail.com</a> — we'll make it right.</p>
+
+      <div class="oc-ctas">
         <a href="shop.html" class="btn btn-primary">Keep Shopping</a>
         <a href="index.html" class="btn btn-outline">Back to Home</a>
       </div>
     </div>
   </main>
+
+  <style>
+    /* ── Order confirmation — celebration moment ── */
+    .oc-wrap {
+      padding-top: calc(var(--nav-h) + 60px);
+      padding-bottom: 80px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Medallion: halo + disc + drawn check */
+    .oc-medallion {
+      position: relative;
+      width: 120px; height: 120px;
+      margin: 0 auto 28px;
+      animation: ocMedalIn 700ms cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
+    }
+    .oc-medallion-glow {
+      position: absolute; inset: -22px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(255,106,0,0.55) 0%, transparent 70%),
+        radial-gradient(circle, rgba(255,0,128,0.40) 30%, transparent 80%);
+      filter: blur(18px);
+      animation: ocGlowPulse 2.4s ease-in-out infinite;
+    }
+    .oc-medallion-disc {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), transparent 40%),
+        linear-gradient(135deg, var(--orange), var(--pink) 70%);
+      box-shadow:
+        0 14px 40px rgba(255,106,0,0.45),
+        inset 0 -4px 12px rgba(0,0,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .oc-check-path {
+      stroke-dasharray: 60;
+      stroke-dashoffset: 60;
+      animation: ocCheckDraw 600ms cubic-bezier(0.4, 0, 0.2, 1) 280ms forwards;
+    }
+    @keyframes ocMedalIn {
+      0%   { opacity: 0; transform: scale(0.5) rotate(-12deg); }
+      60%  { opacity: 1; transform: scale(1.08) rotate(2deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    @keyframes ocCheckDraw { to { stroke-dashoffset: 0; } }
+    @keyframes ocGlowPulse {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50%      { opacity: 1.0; transform: scale(1.10); }
+    }
+
+    .oc-heading {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(40px, 7.5vw, 64px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 50%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+      padding: 4px 0 8px;
+      animation: ocFadeUp 700ms ease 200ms both;
+    }
+    .oc-lead {
+      font-size: 16px; color: var(--muted); line-height: 1.7;
+      margin: 0 auto 38px; max-width: 460px;
+      animation: ocFadeUp 700ms ease 320ms both;
+    }
+    .oc-help {
+      font-size: 13.5px; color: var(--dim); line-height: 1.7; margin: 28px 0 22px;
+      animation: ocFadeUp 700ms ease 720ms both;
+    }
+    .oc-help a { color: var(--orange); text-decoration: none; font-weight: 600; }
+    .oc-help a:hover { text-decoration: underline; }
+
+    .oc-next {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 0 auto 8px;
+      max-width: 680px;
+      animation: ocFadeUp 700ms ease 480ms both;
+    }
+    .oc-step {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 14px;
+      text-align: center;
+      transition: border-color .22s, background .22s, transform .22s;
+    }
+    .oc-step:hover {
+      border-color: rgba(255,106,0,0.4);
+      background: rgba(255,106,0,0.04);
+      transform: translateY(-3px);
+    }
+    .oc-step-icon { font-size: 26px; margin-bottom: 8px; }
+    .oc-step h4 {
+      font-size: 13px; font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.4px; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .oc-step p { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+    .oc-ctas {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: ocFadeUp 700ms ease 880ms both;
+    }
+
+    @keyframes ocFadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Confetti — small absolute-positioned squares spawned from the
+       medallion area on load, fired upward + outward, fading at the end. */
+    .oc-confetti {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .oc-confetti span {
+      position: absolute;
+      top: calc(var(--nav-h) + 110px);
+      left: 50%;
+      width: 9px; height: 14px;
+      transform-origin: center;
+      animation: ocConfettiFall var(--dur, 2.4s) cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay, 0s) forwards;
+      opacity: 0;
+    }
+    @keyframes ocConfettiFall {
+      0%   { opacity: 0; transform: translate(0, 0) rotate(0); }
+      8%   { opacity: 1; }
+      100% { opacity: 0; transform: translate(var(--tx, 0px), var(--ty, 280px)) rotate(var(--rot, 720deg)); }
+    }
+
+    @media (max-width: 600px) {
+      .oc-next { grid-template-columns: 1fr; max-width: 360px; }
+      .oc-medallion { width: 100px; height: 100px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .oc-medallion, .oc-medallion-glow, .oc-check-path,
+      .oc-heading, .oc-lead, .oc-next, .oc-help, .oc-ctas,
+      .oc-confetti span { animation: none !important; }
+      .oc-check-path { stroke-dashoffset: 0 !important; }
+    }
+  </style>
 
   <footer class="site-footer">
     <div class="footer-inner">
@@ -87,6 +277,40 @@
     // here after a successful checkout; for Venmo/PayPal the cart is cleared
     // in the drawer flow instead, but clearing again here is harmless.
     try { localStorage.removeItem('sk_cart_v1'); } catch {}
+
+    // Confetti spawn — fires once on load, ~28 colored particles burst
+    // outward + downward from the medallion, randomized angle/distance/
+    // rotation/duration so the celebration feels organic rather than
+    // mechanical. Skipped under prefers-reduced-motion.
+    (function spawnConfetti() {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const stage = document.getElementById('ocConfetti');
+      if (!stage) return;
+      const colors = ['#ff6a00', '#ff0080', '#7b2fff', '#00d4ff', '#ffcc00', '#7fdc7f'];
+      const N = 32;
+      for (let i = 0; i < N; i++) {
+        const span = document.createElement('span');
+        // Spread across a 70vw band centered on the medallion, fall up to 90vh
+        const angle = (Math.random() - 0.5) * 0.7;     // radians-ish, biased horizontal
+        const dist  = 280 + Math.random() * 360;
+        const tx    = Math.sin(angle) * dist + (Math.random() - 0.5) * 60;
+        const ty    = Math.cos(Math.abs(angle)) * dist + 60;
+        const rot   = (360 + Math.random() * 1080) * (Math.random() < 0.5 ? -1 : 1);
+        const dur   = 1.8 + Math.random() * 1.6;
+        const delay = Math.random() * 0.25;
+        span.style.background = colors[i % colors.length];
+        span.style.setProperty('--tx', tx.toFixed(0) + 'px');
+        span.style.setProperty('--ty', ty.toFixed(0) + 'px');
+        span.style.setProperty('--rot', rot.toFixed(0) + 'deg');
+        span.style.setProperty('--dur', dur.toFixed(2) + 's');
+        span.style.setProperty('--delay', delay.toFixed(2) + 's');
+        // Slight horizontal jitter at start so they don't all spawn on a vertical line
+        span.style.marginLeft = ((Math.random() - 0.5) * 80).toFixed(0) + 'px';
+        stage.appendChild(span);
+      }
+      // Sweep them out of the DOM after the longest animation finishes
+      setTimeout(() => { stage.innerHTML = ''; }, 4000);
+    })();
   </script>
 </body>
 </html>
