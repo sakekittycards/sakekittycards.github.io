@@ -118,14 +118,6 @@
       <nav class="shop-cat-nav" id="shopCatNav" hidden aria-label="Shop categories"></nav>
 
       <div id="shopSections" hidden>
-        <section class="shop-section" id="shopSectionMerch" hidden>
-          <h3 class="shop-section-title">Apparel &amp; Merch <span class="shop-section-sub">tees, accessories</span></h3>
-          <div class="product-grid" id="shopGridMerch"></div>
-        </section>
-        <section class="shop-section" id="shopSectionSingles" hidden>
-          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
-          <div class="product-grid" id="shopGridSingles"></div>
-        </section>
         <section class="shop-section" id="shopSectionGraded" hidden>
           <h3 class="shop-section-title">Graded Cards <span class="shop-section-sub">PSA · BGS · CGC · SGC slabs</span></h3>
           <div class="graded-controls" id="gradedControls">
@@ -174,6 +166,14 @@
           </div>
           <p class="graded-count" id="gradedCount" hidden></p>
           <div class="product-grid" id="shopGridGraded"></div>
+        </section>
+        <section class="shop-section" id="shopSectionSingles" hidden>
+          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
+          <div class="product-grid" id="shopGridSingles"></div>
+        </section>
+        <section class="shop-section" id="shopSectionMerch" hidden>
+          <h3 class="shop-section-title">Apparel &amp; Merch <span class="shop-section-sub">tees, accessories</span></h3>
+          <div class="product-grid" id="shopGridMerch"></div>
         </section>
       </div>
 
@@ -435,9 +435,9 @@
         // Both are kept in sync (active-state highlight, click handlers).
         const catNav = document.getElementById('shopCatNav');
         const catOrder = [
-          { key: 'merch',   label: 'Apparel & Merch', sec: 'shopSectionMerch'   },
-          { key: 'singles', label: 'Singles & Sealed', sec: 'shopSectionSingles' },
           { key: 'graded',  label: 'Graded Cards',     sec: 'shopSectionGraded'  },
+          { key: 'singles', label: 'Singles & Sealed', sec: 'shopSectionSingles' },
+          { key: 'merch',   label: 'Apparel & Merch',  sec: 'shopSectionMerch'   },
         ];
         const visibleCats = catOrder.filter(c => buckets[c.key].length > 0);
         const pillsHtml = visibleCats
