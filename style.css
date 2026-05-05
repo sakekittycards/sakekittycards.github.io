@@ -1104,6 +1104,17 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
+/* Graded slabs are square 4096x4096 with brand-color framing baked into
+   the image. Override the 5/7 portrait crop so the full slab renders
+   edge-to-edge — same look the product detail page shows. */
+.product-card.graded .product-img,
+.product-card.graded .product-img-real {
+  aspect-ratio: 1/1;
+}
+.product-card.graded .product-img-real {
+  object-fit: cover;
+}
+
 /* ── Shop loading/empty/error states ── */
 .shop-status {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
