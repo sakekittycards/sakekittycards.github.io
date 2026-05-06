@@ -72,6 +72,21 @@ def title_matches_card(title: str, card_name: str, card_number: str) -> bool:
     t = title.upper().replace(".", " ").replace("-", " ")
     t_compact = t.replace(" ", "")
 
+    # Reject sealed/unopened products — those are different products from
+    # the user's slabbed graded card (e.g., Van Gogh sealed promo packs at
+    # $20K+ vs the slabbed PSA 10 at ~$3K).
+    sealed_signals = ("SEALED", "UNOPENED", "BOOSTER PACK", "BOOSTER BOX",
+                       "ETB ", "ELITE TRAINER", "BUNDLE", "CASE")
+    if any(s in t for s in sealed_signals):
+        return False
+
+    # Reject items that mention OTHER graders' grades alongside ours
+    # (e.g., "BGS 9.5 PSA 10 Equivalent" is a BGS slab, not a PSA slab).
+    # If the title has a clear "<grader> N" for a DIFFERENT grader and
+    # also mentions our grade only as "Equivalent", it's a wrong-grader match.
+    if "EQUIVALENT" in t:
+        return False
+
     # Card number must be in the title (most discriminating signal)
     num = (card_number or "").strip().upper().lstrip("0")
     if num:
