@@ -74,37 +74,18 @@
       .mustache.grown { animation: mustacheGrow 0.4s ease-out forwards; }
     }
 
-    /* Vendor cards — top neon-accent strip per role tone, lifts on hover.
-       Promotes the shipping.html accent pattern site-wide so cards have
-       per-card identity instead of looking generic. */
-    .vendor-card { position: relative; overflow: hidden; transition: transform .25s ease, border-color .2s, box-shadow .25s, background .2s; }
-    .vendor-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0;
-      height: 5px;
-      border-radius: var(--r) var(--r) 0 0;
-    }
-    .vendor-card.tone-orange::before {
-      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
-      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
-    }
-    .vendor-card.tone-pink::before {
-      background: linear-gradient(90deg, #ff0080 0%, #ff6a00 100%);
-      box-shadow: 0 0 14px rgba(255,0,128,0.55), 0 0 4px rgba(255,0,128,0.85);
-    }
-    .vendor-card.tone-cyan::before {
-      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
-      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
-    }
-    .vendor-card.tone-purple::before {
-      background: linear-gradient(90deg, #b46cff 0%, #7b2fff 100%);
-      box-shadow: 0 0 14px rgba(123,47,255,0.55), 0 0 4px rgba(123,47,255,0.85);
-    }
+    /* Vendor cards — top neon-accent strip per role tone via box-shadow inset
+       (avoids overflow:hidden clipping the mustache easter-egg animation). */
+    .vendor-card { position: relative; transition: transform .25s ease, border-color .2s, box-shadow .25s, background .2s; }
+    .vendor-card.tone-orange { box-shadow: inset 0 5px 0 0 #ff6a00, 0 0 14px rgba(255,157,0,0.20); }
+    .vendor-card.tone-pink   { box-shadow: inset 0 5px 0 0 #ff0080, 0 0 14px rgba(255,0,128,0.20); }
+    .vendor-card.tone-cyan   { box-shadow: inset 0 5px 0 0 #00d4ff, 0 0 14px rgba(0,212,255,0.20); }
+    .vendor-card.tone-purple { box-shadow: inset 0 5px 0 0 #7b2fff, 0 0 14px rgba(123,47,255,0.22); }
     .vendor-card:hover { transform: translateY(-3px); }
-    .vendor-card.tone-orange:hover { border-color: rgba(255,106,0,0.55); box-shadow: 0 8px 28px rgba(255,106,0,0.18); }
-    .vendor-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55); box-shadow: 0 8px 28px rgba(255,0,128,0.18); }
-    .vendor-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: 0 8px 28px rgba(0,212,255,0.18); }
-    .vendor-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: 0 8px 28px rgba(123,47,255,0.18); }
-    .vendor-card { padding-top: 32px; }
+    .vendor-card.tone-orange:hover { border-color: rgba(255,106,0,0.55); box-shadow: inset 0 5px 0 0 #ff6a00, 0 8px 28px rgba(255,106,0,0.22); }
+    .vendor-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55); box-shadow: inset 0 5px 0 0 #ff0080, 0 8px 28px rgba(255,0,128,0.22); }
+    .vendor-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: inset 0 5px 0 0 #00d4ff, 0 8px 28px rgba(0,212,255,0.22); }
+    .vendor-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: inset 0 5px 0 0 #7b2fff, 0 8px 28px rgba(123,47,255,0.22); }
     /* Closing brand strip — confident page-end before global footer.
        Same pattern as shipping.html's .pack-brand-strip. */
     .pack-brand-strip {
