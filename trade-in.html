@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=96" />
+  <link rel="stylesheet" href="style.css?v=97" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -35,6 +35,98 @@
       background: linear-gradient(135deg,var(--orange),var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       margin-bottom: 14px;
+    }
+
+    /* Headline rates banner — sits above the search, brand-glow framed.
+       The "up to" framing is the marketing hook; the per-tier rate panel
+       further down delivers the detailed math for serious sellers. */
+    .ti-headline-rates {
+      position: relative;
+      max-width: var(--max-w);
+      margin: 0 auto 22px;
+      padding: 22px 24px 18px;
+      border-radius: var(--r);
+      background:
+        radial-gradient(circle at 18% 30%, rgba(255,106,0,0.18), transparent 55%),
+        radial-gradient(circle at 82% 70%, rgba(255,0,128,0.16), transparent 55%),
+        linear-gradient(135deg, rgba(20,20,38,0.85), rgba(15,32,80,0.65));
+      border: 1px solid rgba(255,106,0,0.45);
+      box-shadow: 0 0 32px rgba(255,106,0,0.18), 0 6px 28px rgba(0,0,0,0.35);
+      text-align: center;
+      overflow: hidden;
+    }
+    .ti-headline-rates::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%);
+      transform: translateX(-100%);
+      animation: tiHrShimmer 5.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes tiHrShimmer {
+      0%, 60% { transform: translateX(-100%); }
+      80%     { transform: translateX(100%); }
+      100%    { transform: translateX(100%); }
+    }
+    .ti-hr-stack {
+      display: flex; align-items: center; justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .ti-hr-line {
+      display: inline-flex; align-items: baseline; gap: 8px;
+    }
+    .ti-hr-prefix {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
+    .ti-hr-num {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(38px, 7vw, 56px);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      padding: 2px 0 6px;
+    }
+    .ti-hr-cash   {
+      background: linear-gradient(135deg, var(--orange), #ffae00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(255,106,0,0.45));
+    }
+    .ti-hr-credit {
+      background: linear-gradient(135deg, var(--cyan), #b78dff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(0,212,255,0.45));
+    }
+    .ti-hr-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--text);
+      text-transform: lowercase;
+      letter-spacing: 0.3px;
+    }
+    .ti-hr-divider {
+      font-family: 'Bangers', cursive;
+      font-size: 32px;
+      color: var(--dim);
+      line-height: 1;
+      opacity: 0.5;
+    }
+    .ti-hr-sub {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin: 0;
+      max-width: 460px;
+      margin-left: auto; margin-right: auto;
+    }
+    .ti-hr-sub strong { color: var(--orange); }
+    @media (max-width: 540px) {
+      .ti-headline-rates { padding: 18px 16px 14px; margin-bottom: 16px; }
+      .ti-hr-divider { display: none; }
+      .ti-hr-stack { gap: 6px; flex-direction: column; }
     }
 
     /* Search */
@@ -918,6 +1010,26 @@
       <p>Sell bulk, singles, sealed, or graded — cash or store credit, your choice. Build a list below and we'll get back with a quote. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only · no jumbo / oversized cards.</strong></p>
     </div>
 
+    <!-- Headline rates banner — surfaces the best-case payout so casual
+         scrollers know it's worth their time. Detailed tier table to the
+         right of the search box has the actual breakdown. -->
+    <div class="ti-headline-rates">
+      <div class="ti-hr-stack">
+        <div class="ti-hr-line">
+          <span class="ti-hr-prefix">Up to</span>
+          <span class="ti-hr-num ti-hr-cash">90%</span>
+          <span class="ti-hr-label">cash</span>
+        </div>
+        <div class="ti-hr-divider" aria-hidden="true">·</div>
+        <div class="ti-hr-line">
+          <span class="ti-hr-prefix">Up to</span>
+          <span class="ti-hr-num ti-hr-credit">100%</span>
+          <span class="ti-hr-label">store credit</span>
+        </div>
+      </div>
+      <p class="ti-hr-sub">Tiered by item type and value — see the full <strong>Payout Tiers</strong> panel below for the per-tier breakdown.</p>
+    </div>
+
     <div class="section" style="padding-top:0">
 
       <!-- Cash vs. Store Credit explainer -->
@@ -1214,7 +1326,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=37"></script>
+  <script src="main.js?v=38"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
