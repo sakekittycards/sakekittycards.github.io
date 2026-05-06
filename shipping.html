@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=100" />
+  <link rel="stylesheet" href="style.css?v=103" />
   <style>
     /* ── Shipping guide local styles ── */
     .pack-tagline {
@@ -34,13 +34,26 @@
       display: flex; flex-direction: column;
     }
     .tier-photo {
-      width: 100%; height: auto; display: block;
+      width: 100%;
+      aspect-ratio: 5 / 1;        /* uniform horizontal strip — fits the source images cleanly */
+      object-fit: contain;
+      object-position: center;
+      display: block;
       border-radius: var(--r-sm);
       margin: 4px 0 18px;
-      background: rgba(255,255,255,0.02);
+      padding: 8px 14px;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 70%),
+        linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.10));
       border: 1px solid var(--border);
     }
-    .tier-bulk .tier-photo { margin-bottom: 22px; }
+    .tier-bulk .tier-photo {
+      aspect-ratio: 5 / 1.4;     /* tier4 is slightly taller */
+      margin-bottom: 22px;
+    }
+    @media (max-width: 540px) {
+      .tier-photo { padding: 6px 10px; }
+    }
     .tier-card:hover { background: var(--bg-card-hover); }
     .tier-card.tone-pink   { border-color: rgba(255,0,128,0.35);   box-shadow: 0 0 0 1px rgba(255,0,128,0.15) inset, 0 0 32px rgba(255,0,128,0.08); }
     .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.35);   box-shadow: 0 0 0 1px rgba(0,212,255,0.15) inset, 0 0 32px rgba(0,212,255,0.08); }
@@ -308,17 +321,17 @@
         <!-- Tier 1 -->
         <article class="tier-card tone-pink">
           <h2 class="tier-head">1 Card</h2>
-          <p class="tier-sub">Each card in its own top loader.</p>
+          <p class="tier-sub">Each card in its own top loader. <strong style="color:#ff7a96">PWE</strong> works for low-value singles &lt;$20.</p>
           <img class="tier-photo" src="assets/shipping/tier1.png" alt="Sleeved card → top loader → team bag → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place the card in a clear plastic <strong>penny sleeve</strong>.</span></li>
             <li><span>Insert the sleeved card into a <strong>top loader</strong>.</span></li>
             <li><span>Place the top loader inside a <strong>team bag</strong> and seal with tape.</span></li>
-            <li><span>Place the team-bagged card in a <strong>bubble mailer</strong> and seal.</span></li>
+            <li><span>Place the team-bagged card in a <strong>bubble mailer</strong> (recommended for <strong>$20+</strong>) — or a <strong>plain white envelope (PWE)</strong> for sub-$20 cards. Seal.</span></li>
           </ol>
           <div class="tip">
             <svg class="tip-icon" viewBox="0 0 24 24" fill="none"><path d="M12 3v2M5.6 5.6l1.4 1.4M3 12h2M19 12h2M17 6.9l1.4-1.4M9 18h6M10 21h4M9 14a4 4 0 1 1 6 0c-.6.7-1 1.5-1 2.5V18h-4v-1.5c0-1-.4-1.8-1-2.5Z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div><span class="tip-label">Tip </span>The team bag keeps the top loader clean and protects the card during transit.</div>
+            <div><span class="tip-label">PWE Rule </span>OK for cards under <strong>$20</strong> when properly sleeved + top-loaded. For anything more valuable use a bubble mailer with tracking — PWE has no tracking and limited insurance.</div>
           </div>
         </article>
 
@@ -478,6 +491,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=40"></script>
+  <script src="main.js?v=43"></script>
 </body>
 </html>
