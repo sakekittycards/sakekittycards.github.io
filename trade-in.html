@@ -1036,7 +1036,7 @@
     <div class="ti-headline-rates">
       <div class="ti-hr-card ti-hr-cash-card">
         <div class="ti-hr-prefix">Up to</div>
-        <div class="ti-hr-num">92%</div>
+        <div class="ti-hr-num">90%</div>
         <div class="ti-hr-label">cash payout</div>
       </div>
       <div class="ti-hr-card ti-hr-credit-card">
@@ -1186,23 +1186,13 @@
 
             <div class="ti-rate-tier ti-rate-top">
               <div class="ti-rate-tier-rate">
-                <span class="rate-cash">92%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">100%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Graded ≥ $2,000</li>
-              </ul>
-            </div>
-
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
                 <span class="rate-cash">90%</span>
                 <span class="rate-sep">/</span>
                 <span class="rate-credit">100%</span>
               </div>
               <ul class="ti-rate-tier-items">
                 <li>Singles ≥ $750</li>
+                <li>Graded ≥ $2,000</li>
               </ul>
             </div>
 
@@ -1496,7 +1486,7 @@
       graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $250
       graded_mid:  { cash: 0.82, credit: 0.92 },   // graded cards $250–$749
       graded_high: { cash: 0.87, credit: 0.97 },   // graded cards $750–$1,999
-      graded_chase:{ cash: 0.92, credit: 1.00 },   // graded cards $2,000 and up
+      graded_chase:{ cash: 0.90, credit: 1.00 },   // graded cards $2,000 and up — capped at 90% cash per Nick
     };
     function ratesFor(item) {
       if (item.type === 'sealed') {

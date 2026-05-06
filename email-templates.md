@@ -49,7 +49,7 @@ Payout Tiers (reference)
   Graded <$250 .......... 75% cash / 85% credit
   Graded $250–$749 ...... 82% cash / 92% credit
   Graded $750–$1,999 .... 87% cash / 97% credit
-  Graded ≥$2,000 ........ 92% cash / 100% credit
+  Graded ≥$2,000 ........ 90% cash / 100% credit
 
 Store credit is always worth more — use it on any
 future purchase from our shop.
