@@ -130,27 +130,133 @@
 
     /* ── Preferred turnaround selector ── */
     .gp-turnaround { padding-top:14px; margin-top:14px; border-top:1px solid var(--border); }
-    .gp-turnaround-row { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
+    /* 5-tier grid — wraps to 2 cols on narrow screens; tier cards have
+       breathing room so labels + day counts don't crowd each other. */
+    .gp-turnaround-row { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
     .gp-tier-btn {
       background:rgba(255,255,255,.04);
       border:1.5px solid var(--border);
-      border-radius:8px;
+      border-radius:10px;
       color:var(--text);
-      font-size:13px; font-weight:600;
+      font-size:13px; font-weight:700;
       font-family:'Inter',sans-serif;
       cursor:pointer;
-      padding:8px 6px;
-      display:flex; flex-direction:column; align-items:center; gap:2px;
-      transition:border-color .15s,background .15s;
+      padding:11px 6px 10px;
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      transition:border-color .15s, background .15s, transform .15s, box-shadow .2s;
+      min-height:64px;
     }
-    .gp-tier-btn:hover { border-color:rgba(255,106,0,.45); }
-    .gp-tier-btn.active { border-color:var(--orange); background:rgba(255,106,0,.09); }
-    .gp-tier-btn .tier-days { font-size:11px; color:var(--dim); font-weight:500; letter-spacing:.3px; }
+    .gp-tier-btn:hover { border-color:rgba(255,106,0,.45); transform:translateY(-1px); }
+    .gp-tier-btn.active {
+      border-color:var(--orange);
+      background:rgba(255,106,0,.09);
+      box-shadow:0 0 0 1px rgba(255,106,0,.25) inset, 0 4px 14px rgba(255,106,0,.15);
+    }
+    .gp-tier-btn .tier-days {
+      font-size:11px;
+      color:var(--dim);
+      font-weight:500;
+      letter-spacing:.3px;
+      font-variant-numeric: tabular-nums;
+    }
     .gp-tier-btn.active .tier-days { color:var(--muted); }
     .gp-turnaround-note { font-size:13px; color:var(--dim); line-height:1.55; margin:0; }
-    @media (max-width:520px) {
+    @media (max-width:720px) {
+      .gp-turnaround-row { grid-template-columns:repeat(3,1fr); }
+    }
+    @media (max-width:480px) {
       .gp-turnaround-row { grid-template-columns:repeat(2,1fr); }
     }
+
+    /* Submission preference 2-button grid — bigger tap targets. */
+    .gp-submit-row {
+      display:grid; grid-template-columns:repeat(2,1fr);
+      gap:8px; margin-bottom:12px;
+    }
+    .gp-submit-row .gp-tier-btn { padding:13px 10px 11px; min-height:72px; }
+
+    /* Form labels — explicit, visible, brand-aligned. */
+    .gp-field-label {
+      display:block;
+      font-size:11.5px; font-weight:700;
+      color:var(--muted);
+      letter-spacing:1px; text-transform:uppercase;
+      margin:14px 0 6px;
+    }
+    .gp-field-label .req { color:var(--orange); margin-left:3px; }
+    .gp-field-label.first { margin-top:0; }
+
+    /* Radio-pill group for shipping/hand-off preference. */
+    .gp-radio-pills {
+      display:grid; grid-template-columns:repeat(2,1fr);
+      gap:8px; margin-bottom:6px;
+    }
+    .gp-radio-pill {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      padding:10px 8px;
+      background:rgba(255,255,255,.04);
+      border:1.5px solid var(--border);
+      border-radius:10px;
+      font-family:'Inter',sans-serif;
+      font-size:13px; font-weight:700;
+      color:var(--text);
+      cursor:pointer; user-select:none;
+      transition:border-color .15s, background .15s;
+    }
+    .gp-radio-pill input { display:none; }
+    .gp-radio-pill:hover { border-color:rgba(255,106,0,.45); }
+    .gp-radio-pill.active {
+      border-color:var(--orange);
+      background:rgba(255,106,0,.09);
+      box-shadow:0 0 0 1px rgba(255,106,0,.25) inset;
+    }
+    .gp-radio-pill small {
+      font-size:11px; color:var(--dim); font-weight:500;
+      letter-spacing:0.3px; text-transform:none;
+    }
+    .gp-radio-pill.active small { color:var(--muted); }
+
+    /* Trust strip — 5 reassurance bullets above the form. */
+    .gp-trust-strip {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+      gap:10px;
+      max-width:920px; margin:0 auto 28px;
+      padding:18px 20px;
+      background:linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.04));
+      border:1px solid rgba(0,212,255,0.22);
+      border-radius:var(--r);
+    }
+    .gp-trust-item {
+      display:flex; align-items:flex-start; gap:10px;
+      font-size:13px; color:rgba(229,229,247,0.82); line-height:1.5;
+    }
+    .gp-trust-item::before {
+      content:'✓';
+      flex-shrink:0;
+      width:20px; height:20px;
+      display:inline-flex; align-items:center; justify-content:center;
+      border-radius:50%;
+      background:linear-gradient(135deg, #00d4ff, #2f8fff);
+      color:#fff;
+      font-size:11px; font-weight:800;
+      box-shadow:0 0 10px rgba(0,212,255,0.40);
+    }
+
+    /* Screening disclaimer — brand-tinted callout, not scary or legalese. */
+    .gp-screen-disclaimer {
+      display:flex; align-items:flex-start; gap:10px;
+      padding:11px 14px;
+      background:rgba(255,184,77,0.06);
+      border:1px solid rgba(255,184,77,0.30);
+      border-radius:8px;
+      font-size:12.5px; line-height:1.55; color:rgba(229,229,247,0.80);
+      margin:0 0 18px;
+    }
+    .gp-screen-disclaimer .gsd-icon {
+      flex-shrink:0; font-size:16px; line-height:1;
+    }
+    .gp-screen-disclaimer strong { color:#ffcc66; font-weight:700; }
 
     /* ── Card Prep add-on strip ── */
     .service-addon { display:flex; align-items:flex-start; gap:40px; margin-top:20px; padding:28px 32px; background:var(--bg-card); border:1.5px dashed rgba(0,212,255,.25); border-radius:var(--r); transition:border-color .2s,background .2s; }
@@ -399,7 +505,7 @@
         <div class="combine-box-icon">🎴</div>
         <div>
           <h3>Error Cards Welcome</h3>
-          <p>Miscuts, misprints, wrong backs — all welcome. We send error cards to <strong style="color:var(--text)">CGC</strong> for their detailed error labeling and handle the submission on your behalf.</p>
+          <p>Miscuts, misprints, wrong backs — all welcome. We send error cards to <strong style="color:var(--text)">PSA or CGC</strong> for their detailed error labeling and handle the submission on your behalf.</p>
         </div>
       </div>
     </div>
@@ -466,6 +572,22 @@
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
+      <!-- Trust strip — 5 reassurance bullets before the form. -->
+      <ul class="gp-trust-strip" aria-label="What to expect">
+        <li class="gp-trust-item"><span><strong>English &amp; Japanese Pokémon</strong> only</span></li>
+        <li class="gp-trust-item"><span><strong>No substances or alterations</strong> — microfiber dust-off only</span></li>
+        <li class="gp-trust-item"><span><strong>Screening results emailed</strong> in 2–3 business days</span></li>
+        <li class="gp-trust-item"><span><strong>We review every request</strong> before you ship anything</span></li>
+        <li class="gp-trust-item"><span><strong>Prep fee refunded</strong> if a card fails screening</span></li>
+      </ul>
+
+      <!-- Screening disclaimer — sets expectation up front, before customers
+           start picking services. Mirrors the line above the submit button. -->
+      <div class="gp-screen-disclaimer" style="max-width:920px;margin:0 auto 24px">
+        <span class="gsd-icon" aria-hidden="true">ℹ️</span>
+        <span><strong>Heads up:</strong> Screening does not guarantee a specific grade. Final grades are determined by PSA, CGC, or Beckett.</span>
+      </div>
+
       <div id="gpFormInner">
         <div class="gp-layout">
 
@@ -486,25 +608,38 @@
               Card not coming up? (e.g. Topps Pokémon, certain promos, sealed-period oddballs) —
               <button type="button" id="gpManualToggle" style="background:none;border:none;color:var(--orange);text-decoration:underline;cursor:pointer;font:inherit;padding:0">add it manually</button>.
             </p>
-            <div class="gp-manual-form" id="gpManualForm" hidden style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
-              <div class="gp-contact-label" style="margin-bottom:10px">Add Card Manually</div>
-              <input type="text" id="gpManualName" class="gp-input" placeholder="Card name *" />
-              <input type="text" id="gpManualSet"  class="gp-input" placeholder="Set or year (e.g. 1999 Topps Pokémon)" />
-              <input type="text" id="gpManualNum"  class="gp-input" placeholder="Card number (optional)" />
-              <div style="display:flex;gap:8px;margin-top:4px">
-                <button type="button" class="btn btn-primary btn-sm" id="gpManualAdd" style="flex:1;justify-content:center">Add to List</button>
+            <div class="gp-manual-form" id="gpManualForm" hidden style="background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px">
+              <div class="gp-contact-label" style="margin-bottom:12px">Add a Card by Hand</div>
+              <label class="gp-field-label first" for="gpManualName">Card Name<span class="req">*</span></label>
+              <input type="text" id="gpManualName" class="gp-input" placeholder="e.g. Charizard, Mewtwo, Hisuian Basculin" />
+              <label class="gp-field-label" for="gpManualSet">Set or Year</label>
+              <input type="text" id="gpManualSet"  class="gp-input" placeholder="e.g. 1999 Topps Pokémon, Base Set Shadowless" />
+              <label class="gp-field-label" for="gpManualNum">Card Number <span style="color:var(--dim);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+              <input type="text" id="gpManualNum"  class="gp-input" placeholder="e.g. 4/102, SWSH273" />
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <button type="button" class="btn btn-primary btn-sm" id="gpManualAdd" style="flex:1;justify-content:center">Add Card to List</button>
                 <button type="button" class="btn btn-outline btn-sm" id="gpManualCancel">Cancel</button>
               </div>
             </div>
             <div class="gp-list" id="gpList">
               <div class="gp-empty">
                 <div class="gp-empty-stage" aria-hidden="true">
-                  <span class="gp-empty-glyph gg-1">★</span>
-                  <span class="gp-empty-glyph gg-2">◆</span>
-                  <span class="gp-empty-glyph gg-3">●</span>
+                  <svg viewBox="0 0 64 80" style="width:54px;height:68px;display:block;margin:0 auto;filter:drop-shadow(0 0 14px rgba(255,106,0,0.35))">
+                    <rect x="4" y="4" width="56" height="72" rx="6" ry="6" fill="none" stroke="url(#gpEmptyGrad)" stroke-width="2.4"/>
+                    <circle cx="32" cy="34" r="10" fill="none" stroke="url(#gpEmptyGrad)" stroke-width="2"/>
+                    <line x1="14" y1="56" x2="50" y2="56" stroke="url(#gpEmptyGrad)" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="14" y1="62" x2="42" y2="62" stroke="url(#gpEmptyGrad)" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+                    <defs>
+                      <linearGradient id="gpEmptyGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#ff6a00"/>
+                        <stop offset="50%" stop-color="#ff0080"/>
+                        <stop offset="100%" stop-color="#7b2fff"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
                 </div>
                 <h5>Your list is empty</h5>
-                <div>Search for a card above (or add manually) to start your list.</div>
+                <div>Search for a card above — or click <strong style="color:var(--orange)">add it manually</strong> if it's not coming up.</div>
               </div>
             </div>
           </div>
@@ -524,17 +659,21 @@
               </div>
             </div>
 
+            <!-- Only renders when at least one card has a Card Prep service selected.
+                 Hidden by default so customers don't see Card Prep choices unless
+                 they're relevant to the current list. -->
             <div class="gp-submit-pref" id="gpSubmitPref" hidden>
-              <div class="gp-contact-label">Submission (Card Prep)</div>
-              <div class="gp-submit-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px">
+              <div class="gp-contact-label">Submission Choice <span style="color:var(--orange);font-weight:600;text-transform:none;letter-spacing:0;font-size:11px">— only applies to Card Prep</span></div>
+              <div class="gp-submit-row">
                 <button type="button" class="gp-tier-btn active" data-submit="through_us">Submit through us<span class="tier-days">PSA / CGC / Beckett</span></button>
                 <button type="button" class="gp-tier-btn" data-submit="return_to_me">Return for self-submit<span class="tier-days">Prep only, no submission</span></button>
               </div>
-              <p class="gp-turnaround-note" style="margin-bottom:14px">Pick <strong style="color:var(--muted)">Return for self-submit</strong> if you have your own grading account or want to use a different service. We'll prep, sleeve, top-load, and ship the cards back ready to submit.</p>
+              <p class="gp-turnaround-note" style="margin-bottom:14px">Pick <strong style="color:var(--muted)">Return for self-submit</strong> if you have your own grading account or want to use a different service. We'll prep, sleeve, place each card in a card saver, and return the cards ready to submit.</p>
             </div>
 
+            <!-- Only visible when Card Prep is selected AND submitting through us. -->
             <div class="gp-turnaround" id="gpTurnaround" hidden>
-              <div class="gp-contact-label">Preferred Turnaround (Card Prep)</div>
+              <div class="gp-contact-label">Preferred Turnaround <span style="color:var(--orange);font-weight:600;text-transform:none;letter-spacing:0;font-size:11px">— Card Prep + Submit through us</span></div>
               <div class="gp-turnaround-row" id="gpTierRow">
                 <button type="button" class="gp-tier-btn" data-tier="value">Value<span class="tier-days">~75 days</span></button>
                 <button type="button" class="gp-tier-btn" data-tier="value_plus">Value Plus<span class="tier-days">~45 days</span></button>
@@ -546,17 +685,46 @@
             </div>
 
             <div class="gp-contact">
-              <div class="gp-contact-label">Your Info</div>
-              <input type="text"  id="gpName"  class="gp-input" placeholder="Your name *" />
-              <input type="email" id="gpEmail" class="gp-input" placeholder="Email address *" />
-              <textarea id="gpNotes" class="gp-textarea" placeholder="Notes — mail-in or in-person, any specific concerns…"></textarea>
+              <div class="gp-contact-label" style="margin-bottom:0">Your Info</div>
+
+              <label class="gp-field-label" for="gpName">Full Name<span class="req">*</span></label>
+              <input type="text" id="gpName" class="gp-input" placeholder="Ash Ketchum" required />
+
+              <label class="gp-field-label" for="gpEmail">Email Address<span class="req">*</span></label>
+              <input type="email" id="gpEmail" class="gp-input" placeholder="ash@pokemon.com" required />
+
+              <label class="gp-field-label" for="gpPhone">Phone or Instagram Handle <span style="color:var(--dim);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+              <input type="text" id="gpPhone" class="gp-input" placeholder="(555) 123-4567 · or @yourhandle" />
+
+              <label class="gp-field-label">Hand-Off Preference<span class="req">*</span></label>
+              <div class="gp-radio-pills" id="gpHandoffPills">
+                <label class="gp-radio-pill active">
+                  <input type="radio" name="gpHandoff" value="mail_in" checked />
+                  Mail In
+                  <small>USPS / UPS / FedEx</small>
+                </label>
+                <label class="gp-radio-pill">
+                  <input type="radio" name="gpHandoff" value="in_person" />
+                  In Person
+                  <small>At a show or pop-up</small>
+                </label>
+              </div>
+
+              <label class="gp-field-label" for="gpNotes">Notes <span style="color:var(--dim);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+              <textarea id="gpNotes" class="gp-textarea" placeholder="Specific concerns, the show you're meeting us at, anything else we should know…"></textarea>
+            </div>
+
+            <!-- Disclaimer above the submit button — sets correct expectation. -->
+            <div class="gp-screen-disclaimer" style="margin-top:6px">
+              <span class="gsd-icon" aria-hidden="true">ℹ️</span>
+              <span><strong>Heads up:</strong> Screening doesn't guarantee a specific grade. Final grades are determined by PSA, CGC, or Beckett.</span>
             </div>
 
             <label class="gp-terms-agree">
               <input type="checkbox" id="gpTermsAgree" />
               <span>I have read and agree to the <a href="grading-terms.html" target="_blank" rel="noopener">Grading Prep Terms</a>.</span>
             </label>
-            <button id="gpSendBtn" class="btn btn-primary" disabled style="width:100%;justify-content:center">Send Request</button>
+            <button id="gpSendBtn" class="btn btn-primary" disabled style="width:100%;justify-content:center;font-size:15px;letter-spacing:0.3px">Submit Grading Prep Request</button>
           </div>
 
         </div>
@@ -892,8 +1060,20 @@
       if (gpTermsAgreeEl) gpTermsAgreeEl.addEventListener('change', recalc);
       const gpNameEl = document.getElementById('gpName');
       const gpEmailEl = document.getElementById('gpEmail');
+      const gpPhoneEl = document.getElementById('gpPhone');
       const gpTurnaroundEl = document.getElementById('gpTurnaround');
       const gpSubmitPrefEl = document.getElementById('gpSubmitPref');
+      let gpHandoff = 'mail_in';
+      // Wire the hand-off radio pills (mail-in vs in-person). Pure visual
+      // toggle — submission reads the value out of the checked radio input.
+      document.querySelectorAll('.gp-radio-pill').forEach(label => {
+        label.addEventListener('click', () => {
+          document.querySelectorAll('.gp-radio-pill').forEach(l => l.classList.remove('active'));
+          label.classList.add('active');
+          const input = label.querySelector('input[type="radio"]');
+          if (input) { input.checked = true; gpHandoff = input.value; }
+        });
+      });
 
       // PSA tier labels — shown when a customer picks Card Prep.
       const TIER_LABELS = {
@@ -1343,6 +1523,9 @@
       gpSendBtn.addEventListener('click', async () => {
         const name = gpNameEl.value.trim();
         const email = gpEmailEl.value.trim();
+        const phone = (gpPhoneEl && gpPhoneEl.value.trim()) || '';
+        const handoff = gpHandoff || 'mail_in';
+        const handoffLabel = handoff === 'in_person' ? 'In Person (at a show or pop-up)' : 'Mail In';
         const notes = document.getElementById('gpNotes').value.trim();
         if (!gpCards.length || !name || !email) return;
 
@@ -1382,7 +1565,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name, email,
-            phone: '',
+            phone,
+            handoff,
             notes,
             tier: submittingForCustomer ? tier.name : '',
             submission: anyPrep ? gpSubmitPref : '',
@@ -1405,6 +1589,8 @@
             replyto: email,
             Name: name,
             Email: email,
+            Phone: phone || '(not provided)',
+            'Hand-Off': handoffLabel,
             'Card Count': String(gpCards.length),
             'Estimated Total': fmt(total),
             'Submission': submissionLine,
@@ -1443,7 +1629,7 @@
           `;
         } catch (err) {
           gpSendBtn.disabled = false;
-          gpSendBtn.textContent = 'Send Request';
+          gpSendBtn.textContent = 'Submit Grading Prep Request';
           alert('Submission failed. Please try again or email us at nick@sakekittycards.com');
         }
       });
