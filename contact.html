@@ -25,6 +25,40 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=104" />
+  <style>
+    /* Closing brand strip — confident page-end before global footer.
+       Same pattern as shipping.html's .pack-brand-strip. */
+    .pack-brand-strip {
+      margin: 56px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -70,13 +104,13 @@
           <p style="font-size:12px;color:var(--dim);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Connect · Shop · Follow</p>
           <div class="contact-methods">
 
-            <a href="mailto:sakekittycards@gmail.com" class="contact-method">
+            <a href="mailto:nick@sakekittycards.com" class="contact-method">
               <div class="cm-icon" style="background:linear-gradient(135deg,#ff6a00,#ff4e00);color:#fff">
                 <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
               </div>
               <div class="cm-info">
                 <strong>Email</strong>
-                <span>sakekittycards@gmail.com</span>
+                <span>nick@sakekittycards.com</span>
               </div>
             </a>
 
@@ -255,7 +289,7 @@
                 }
               } catch (err) {
                 status.style.color = '#ff7a96';
-                status.textContent = 'Couldn\'t send — please email sakekittycards@gmail.com directly.';
+                status.textContent = 'Couldn\'t send — please email nick@sakekittycards.com directly.';
                 btn.disabled = false;
                 btn.textContent = 'Send Message';
               }
@@ -265,6 +299,17 @@
 
       </div>
     </div>
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+    </div>
+
   </main>
 
   <footer class="site-footer">
