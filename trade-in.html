@@ -7,6 +7,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sell / Trade — Sake Kitty Cards</title>
   <meta name="description" content="Sell or trade your Pokémon cards — singles, sealed, graded, and bulk. Instant rough estimate, cash or store credit." />
+
+  <!-- Canonical + Social preview (added 2026-05-06 SEO pass) -->
+  <link rel="canonical" href="https://sakekittycards.com/trade-in.html" />
+  <meta property="og:title" content="Sell or Trade Your Pokémon Cards — Sake Kitty Cards" />
+  <meta property="og:description" content="Sell or trade your Pokémon cards to Sake Kitty Cards. Up to 90% cash or 100% store credit on singles, sealed, and graded. Quick instant estimates." />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/trade-in.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sell or Trade Your Pokémon Cards — Sake Kitty Cards" />
+  <meta name="twitter:description" content="Sell or trade your Pokémon cards to Sake Kitty Cards. Up to 90% cash or 100% store credit on singles, sealed, and graded. Quick instant estimates." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -477,87 +491,129 @@
       box-shadow: 0 2px 8px rgba(255,106,0,0.35);
     }
 
-    /* Payout-tier rate card — flat reference table (not interactive
-       cards). Each row: rate column + items column with bullet
-       separators. No hover effects, no fake-clickable styling — it's
-       informational. Top tier gets a subtle gradient strip, not a
-       glowing border. */
-    .ti-rate-card {
-      margin-top: 14px;
-      padding-top: 12px;
+    /* Payout-tier matrix — types as rows, value bands as columns, rate
+       at the intersection. Customer reads ROW (their type) → COLUMN
+       (their value) → cell (cash/credit). Cleanest scanning pattern
+       for "what's my rate?" lookup queries.
+
+       Brand treatment: top column (≥$1k) gets an orange-glow accent so
+       the headline rate is glanceable; graded row's middle cells get
+       a subtle cyan tint to mark the +2-5pt slab bonus. Type labels
+       stack on the left with color-coded indicator stripes. */
+    .ti-rate-matrix {
+      margin-top: 16px;
+      padding-top: 14px;
       border-top: 1px solid var(--border);
     }
-    .ti-rate-card-header {
-      font-size: 10px; font-weight: 700; color: var(--dim);
-      letter-spacing: 1.5px; text-transform: uppercase;
-      margin-bottom: 4px;
+    .trm-title {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.04em;
+      line-height: 1.25;
+      padding: 2px 0 6px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 2px;
     }
-    .ti-rate-card-sub {
+    .trm-sub {
       font-size: 11px; color: var(--dim); line-height: 1.5;
-      margin: 0 0 10px;
+      margin: 0 0 12px;
     }
-    .ti-rate-tier {
+    .trm-grid {
       display: grid;
-      grid-template-columns: 92px 1fr;
-      gap: 14px;
-      align-items: baseline;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      grid-template-columns: 64px repeat(4, 1fr);
+      gap: 4px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px;
+      overflow: hidden;
     }
-    .ti-rate-tier:last-child { border-bottom: none; }
-    /* Top tier — subtle gradient highlight strip across the full row.
-       No border, no glow — just enough emphasis to mark it as the
-       best-case headline. */
-    .ti-rate-tier.ti-rate-top {
-      background: linear-gradient(90deg, rgba(255,106,0,0.08), rgba(255,106,0,0.02) 70%, transparent);
-      border-radius: 6px;
-      padding: 10px 10px;
-      margin: 0 -10px 2px;
-      border-bottom: 1px solid rgba(255,106,0,0.18);
-    }
-    .ti-rate-tier-rate {
-      display: flex; align-items: baseline; gap: 4px;
-      font-family: 'Inter', sans-serif; font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      font-size: 20px; letter-spacing: -0.8px;
-      line-height: 1;
-      flex-shrink: 0;
-    }
-    /* Gradient text-fill + brand glow on every tier rate (was solid
-       color + glow on top only). Numbers feel branded without losing
-       legibility — Inter digits stay distinct (no 7-vs-1 ambiguity). */
-    .ti-rate-tier-rate .rate-cash {
-      background: linear-gradient(135deg, var(--orange), #ffae00);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 6px rgba(255,106,0,0.35));
-    }
-    .ti-rate-tier-rate .rate-credit {
-      background: linear-gradient(135deg, var(--cyan), #b78dff);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 6px rgba(0,212,255,0.35));
-    }
-    .ti-rate-tier-rate .rate-sep { color: var(--dim); font-size: 16px; }
-    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-cash {
-      filter: drop-shadow(0 0 12px rgba(255,106,0,0.6));
-    }
-    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-credit {
-      filter: drop-shadow(0 0 12px rgba(0,212,255,0.6));
-    }
-    /* Items list — inline with bullet separators. Fills the column
-       horizontally instead of stacking, which kills the awkward right-
-       side empty space the column-stacked version had. */
-    .ti-rate-tier-items {
-      list-style: none; padding: 0; margin: 0;
-      font-size: 12.5px; color: var(--text); line-height: 1.55;
-    }
-    .ti-rate-tier-items li {
-      display: inline;
-    }
-    .ti-rate-tier-items li + li::before {
-      content: ' · ';
+    /* Column headers (value bands) — small caps row at the top */
+    .trm-th {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.4px;
       color: var(--dim);
-      margin: 0 4px;
-      font-weight: 700;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 4px 2px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .trm-th-corner { border-bottom-color: transparent; }
+    .trm-th-top {
+      color: var(--orange);
+      letter-spacing: 0.5px;
+    }
+    /* Type-label cells — left column, color-coded indicator stripe */
+    .trm-row-label {
+      display: flex; align-items: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.4px;
+      color: var(--text);
+      text-transform: uppercase;
+      padding: 8px 0 8px 8px;
+      position: relative;
+    }
+    .trm-row-label::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 14px; bottom: 14px;
+      width: 3px;
+      border-radius: 2px;
+    }
+    .trm-singles::before { background: var(--orange); }
+    .trm-sealed::before  { background: var(--pink); }
+    .trm-graded::before  { background: var(--cyan); }
+
+    /* Rate cells — Inter 800, brand-color gradient text fill, glow */
+    .trm-cell {
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      font-size: 14px; letter-spacing: -0.5px;
+      padding: 8px 4px;
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(255,255,255,0.025);
+      transition: background .18s;
+    }
+    .trm-slash {
+      color: var(--dim);
+      font-weight: 600;
+      font-size: 12px;
+      margin: 0 2px;
+    }
+    /* Top column — orange brand accent. Best rate, eye should land here. */
+    .trm-cell-top {
+      background: linear-gradient(135deg, rgba(255,106,0,0.18), rgba(255,0,128,0.10));
+      color: var(--orange);
+      box-shadow: inset 0 0 0 1px rgba(255,106,0,0.35);
+      filter: drop-shadow(0 0 6px rgba(255,106,0,0.20));
+    }
+    /* Graded bonus middle cells — cyan tint, signals the +2-5pt bump */
+    .trm-cell-bonus {
+      background: rgba(0,212,255,0.07);
+      box-shadow: inset 0 0 0 1px rgba(0,212,255,0.15);
+      color: var(--cyan);
+    }
+    .trm-foot {
+      font-size: 10.5px; color: var(--dim); line-height: 1.5;
+      margin: 10px 2px 0;
+      font-style: italic;
+    }
+    /* Mobile: matrix columns get tight. Drop the type-label column to
+       a header per type with the cells inlined below. */
+    @media (max-width: 540px) {
+      .trm-grid {
+        grid-template-columns: 56px repeat(4, 1fr);
+        gap: 3px;
+        padding: 6px;
+      }
+      .trm-th { font-size: 9px; padding: 3px 1px 5px; }
+      .trm-cell { font-size: 12px; padding: 7px 2px; }
+      .trm-row-label { font-size: 10px; padding-left: 7px; }
     }
 
     /* "Heads up" disclosure — collapsed by default to keep the search
@@ -1013,13 +1069,14 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
 
   <nav class="site-nav" id="siteNav">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">
-        <img src="logo.png" alt="Sake Kitty Cards" />
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
@@ -1039,7 +1096,7 @@
     </div>
   </nav>
 
-  <main class="page-content">
+  <main id="main" class="page-content">
     <div class="page-hero">
       <h1>Sell / Trade</h1>
       <p>Sell bulk, singles, sealed, or graded — cash or store credit, your choice. Build a list below and we'll get back with a quote. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only · no jumbo / oversized cards.</strong></p>
@@ -1195,91 +1252,45 @@
             <div class="ti-totals-label">Store Credit Total</div>
             <div class="ti-totals-value credit" id="totalCredit">$0.00</div>
           </div>
-          <div class="ti-rate-card">
-            <div class="ti-rate-card-header">Payout Tiers</div>
-            <p class="ti-rate-card-sub">Cash / Credit. Items earning the same payout are grouped together.</p>
+          <!-- Payout-tier matrix: rows = item type, columns = value bands.
+               Customer reads down to their type, across to the band they
+               estimate. Top column (≥$1k) gets a brand-orange highlight
+               so the headline rate is glanceable. Graded row's middle
+               cells get a subtle cyan tint to show the +2-5pt bonus. -->
+          <div class="ti-rate-matrix">
+            <div class="trm-title">Payout Tiers</div>
+            <p class="trm-sub">Cash / Trade Credit, by item type and market value.</p>
 
-            <div class="ti-rate-tier ti-rate-top">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">90%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">100%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Singles ≥ $1,000</li>
-                <li>Sealed ≥ $1,000</li>
-                <li>Graded ≥ $1,000</li>
-              </ul>
-            </div>
+            <div class="trm-grid">
+              <!-- Header row -->
+              <div class="trm-th trm-th-corner"></div>
+              <div class="trm-th">&lt;$100</div>
+              <div class="trm-th">$100–$499</div>
+              <div class="trm-th">$500–$999</div>
+              <div class="trm-th trm-th-top">≥$1,000</div>
 
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">87%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">97%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Graded $500–$999</li>
-              </ul>
-            </div>
+              <!-- Singles row -->
+              <div class="trm-row-label trm-singles">Singles</div>
+              <div class="trm-cell">70<span class="trm-slash">/</span>80</div>
+              <div class="trm-cell">80<span class="trm-slash">/</span>90</div>
+              <div class="trm-cell">85<span class="trm-slash">/</span>95</div>
+              <div class="trm-cell trm-cell-top">90<span class="trm-slash">/</span>100</div>
 
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">85%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">95%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Singles $500–$999</li>
-                <li>Sealed $500–$999</li>
-              </ul>
-            </div>
+              <!-- Sealed row -->
+              <div class="trm-row-label trm-sealed">Sealed</div>
+              <div class="trm-cell">70<span class="trm-slash">/</span>80</div>
+              <div class="trm-cell">80<span class="trm-slash">/</span>90</div>
+              <div class="trm-cell">85<span class="trm-slash">/</span>95</div>
+              <div class="trm-cell trm-cell-top">90<span class="trm-slash">/</span>100</div>
 
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">82%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">92%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Graded $100–$499</li>
-              </ul>
+              <!-- Graded row -->
+              <div class="trm-row-label trm-graded">Graded</div>
+              <div class="trm-cell trm-cell-bonus">75<span class="trm-slash">/</span>85</div>
+              <div class="trm-cell trm-cell-bonus">82<span class="trm-slash">/</span>92</div>
+              <div class="trm-cell trm-cell-bonus">87<span class="trm-slash">/</span>97</div>
+              <div class="trm-cell trm-cell-top">90<span class="trm-slash">/</span>100</div>
             </div>
-
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">80%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">90%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Singles $100–$499</li>
-                <li>Sealed $100–$499</li>
-              </ul>
-            </div>
-
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">75%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">85%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Graded under $100</li>
-              </ul>
-            </div>
-
-            <div class="ti-rate-tier">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">70%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">80%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Singles under $100</li>
-                <li>Sealed under $100</li>
-              </ul>
-            </div>
+            <p class="trm-foot">Graded gets a +2&ndash;5 point bump in the middle bands &mdash; slabs sell faster, less variance.</p>
           </div>
 
           <div class="ti-contact">
@@ -1357,7 +1368,7 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-brand">
-        <img src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
         <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
           <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
           @sakekittycards

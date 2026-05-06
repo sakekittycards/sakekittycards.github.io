@@ -149,6 +149,10 @@ def cert_key(s: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true",
+                     help="Push update for every cert, even if the title already "
+                          "matches. Use after worker description changes so the "
+                          "new description format propagates to existing listings.")
     args = ap.parse_args()
 
     token = get_token()
@@ -185,8 +189,8 @@ def main() -> int:
             no_match.append((cert_str, cur_name))
             continue
         desired = build_title(cl_row)
-        if cur_name.strip() == desired.strip():
-            continue  # already in sync
+        if cur_name.strip() == desired.strip() and not args.force:
+            continue  # already in sync — but --force pushes anyway
         diffs.append({
             "cert": cert_str,
             "cur": cur_name,
