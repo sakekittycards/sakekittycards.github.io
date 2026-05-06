@@ -209,7 +209,8 @@ button { font-family: inherit; }
   filter:
     drop-shadow(0 0 12px rgba(255,106,0,0.3))
     drop-shadow(0 1px 2px rgba(0,0,0,0.85));
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 /* Extra readability for nav links over the lava background */
 .nav-links a {
   text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.6);
@@ -326,7 +327,7 @@ button { font-family: inherit; }
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   margin-bottom: 6px;
   padding: 2px 0 6px;
-}
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .cart-empty p { color: var(--muted); font-size: 13.5px; line-height: 1.6; margin-bottom: 22px; max-width: 280px; margin-left: auto; margin-right: auto; }
 .cart-empty-ctas { display: flex; flex-direction: column; gap: 10px; align-items: center; }
 .cart-empty-ctas .btn { min-width: 200px; }
@@ -546,7 +547,8 @@ button { font-family: inherit; }
   letter-spacing: 0.04em; margin: 0 0 6px;
   background: linear-gradient(135deg, var(--orange), var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .pay-modal-sub {
   font-size: 14px; color: var(--muted); line-height: 1.6;
   margin: 0 0 18px;
@@ -592,8 +594,9 @@ button { font-family: inherit; }
   padding: 3px 0;
 }
 .pay-modal-totals .grand {
-  font-family: 'Bangers', cursive; font-size: 18px;
-  color: var(--text); letter-spacing: 0.5px;
+  font-family: 'Inter', sans-serif; font-weight: 700; font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text); letter-spacing: 0;
   padding-top: 8px; margin-top: 4px;
   border-top: 1px solid var(--border);
 }
@@ -626,7 +629,8 @@ button { font-family: inherit; }
   letter-spacing: 0.04em; margin: 0 0 10px;
   background: linear-gradient(135deg, var(--orange), var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .cart-order-success p {
   font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 auto 10px; max-width: 320px;
 }
@@ -646,7 +650,7 @@ body.cart-open { overflow: hidden; }
 }
 .page-hero h1 {
   font-family: 'Bangers', cursive; font-size: clamp(38px,8vw,76px);
-  letter-spacing: 0.03em; line-height: 1; padding: 0 10px;
+  letter-spacing: 0.03em; line-height: 1.25; padding: 0 10px;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   filter: drop-shadow(0 0 20px rgba(255,106,0,0.35)); margin-bottom: 14px;
@@ -661,7 +665,8 @@ body.cart-open { overflow: hidden; }
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   filter: drop-shadow(0 0 12px rgba(255,106,0,0.25));
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .section-sub { font-size: 15px; color: var(--muted); margin-top: 8px; max-width: 520px; line-height: 1.7; }
 .divider { width: 56px; height: 3px; background: linear-gradient(90deg,var(--orange),var(--purple)); border-radius: 2px; margin-top: 10px; }
 
@@ -743,7 +748,8 @@ body.cart-open { overflow: hidden; }
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .show-banner-body p { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0; }
 .show-banner-body a { color: var(--orange); text-decoration: none; font-weight: 600; }
 .show-banner-body a:hover { text-decoration: underline; }
@@ -1252,7 +1258,7 @@ body.cart-open { overflow: hidden; }
 .event-card { padding: 28px; }
 .event-date { width: 52px; height: 52px; background: linear-gradient(135deg,var(--orange),var(--pink)); border-radius: var(--r-sm); display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; line-height: 1.1; }
 .event-date .mo { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-.event-date .dy { font-family: 'Bangers',cursive; font-size: 22px; }
+.event-date .dy { font-family: 'Inter',sans-serif; font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums; letter-spacing: -0.5px; }
 .event-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
 .event-loc { font-size: 14px; color: var(--dim); margin-bottom: 8px; }
 .event-card p { font-size: 15px; color: var(--muted); line-height: 1.65; }
@@ -1331,7 +1337,8 @@ body.cart-open { overflow: hidden; }
   background-clip: text;
   margin: 36px 0 6px;
   padding-top: 6px;
-}
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .faq-q {
   width: 100%; text-align: left; background: none; border: none; color: var(--text);
   font-family: 'Inter',sans-serif; font-size: 16px; font-weight: 600;
@@ -1353,7 +1360,9 @@ body.cart-open { overflow: hidden; }
 .about-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
 .about-img { width: 100%; max-width: 340px; border-radius: 20px; box-shadow: 0 0 60px rgba(255,106,0,.25),0 0 120px rgba(123,47,255,.15); animation: floatImg 5s ease-in-out infinite; }
 @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-.about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(28px,5vw,46px); letter-spacing: 0.04em; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px; }
+.about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(28px,5vw,46px); letter-spacing: 0.04em; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px;
+  padding-bottom: 8px;  /* Bangers descender clip fix */;
+  line-height: 1.25;  /* Bangers descender clip fix */}
 .about-text p { font-size: 15px; color: var(--muted); line-height: 1.85; margin-bottom: 14px; }
 .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
 .value-card { padding: 22px; text-align: center; }

@@ -10,12 +10,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=96" />
+  <link rel="stylesheet" href="style.css?v=98" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
     .gp-col { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:22px; }
-    .gp-col-title { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.04em; background:linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px; }
+    .gp-col-title { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.04em; line-height:1.25; padding:2px 0 8px; background:linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px; }
 
     .gp-search-wrap { position:relative; margin-bottom:14px; }
     .gp-search { width:100%; padding:13px 18px 13px 44px; background:rgba(255,255,255,.09); border:1.5px solid rgba(255,106,0,.40); border-radius:var(--r-pill); color:var(--text); font-size:15px; font-family:'Inter',sans-serif; outline:none; box-shadow:0 0 0 1px rgba(255,106,0,.10),0 4px 18px rgba(255,106,0,.10); transition:border-color .2s,box-shadow .2s,background .2s; }
@@ -72,7 +72,7 @@
       background:linear-gradient(135deg,var(--orange),var(--pink));
       -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
       margin:0 0 4px; padding:2px 0 4px;
-    }
+      line-height: 1.25;  /* Bangers descender clip fix */}
 
     .gp-item { display:grid; grid-template-columns:44px 1fr auto; gap:12px; align-items:start; padding:10px 12px; background:linear-gradient(135deg,rgba(255,106,0,0.10) 0%,rgba(255,106,0,0.03) 50%,rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,106,0,0.25); border-radius:var(--r-sm); box-shadow:0 2px 10px rgba(255,106,0,0.05); transition:border-color .15s,box-shadow .15s,background .15s; }
     .gp-item:hover { border-color:rgba(255,106,0,0.45); box-shadow:0 3px 14px rgba(255,106,0,0.10); background:linear-gradient(135deg,rgba(255,106,0,0.14) 0%,rgba(255,106,0,0.05) 50%,rgba(255,255,255,0.03) 100%); }
@@ -90,11 +90,11 @@
     .gp-check-label.active { border-color:var(--cyan); background:rgba(0,212,255,.07); }
     .gp-svc-name { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
     .gp-radio-label.active .gp-svc-name, .gp-check-label.active .gp-svc-name { color:var(--text); }
-    .gp-svc-price { font-family:'Bangers',cursive; font-size:24px; letter-spacing:.04em; color:var(--orange); line-height:1.1; }
+    .gp-svc-price { font-family:'Inter',sans-serif; font-weight:700; font-variant-numeric:tabular-nums; font-size:22px; letter-spacing:-0.5px; color:var(--orange); line-height:1.1; }
     .gp-svc-price.cyan { color:var(--cyan); }
 
     .gp-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-    .gp-item-cost { font-family:'Bangers',cursive; font-size:20px; color:var(--orange); letter-spacing:.04em; line-height:1; }
+    .gp-item-cost { font-family:'Inter',sans-serif; font-weight:700; font-variant-numeric:tabular-nums; font-size:18px; color:var(--orange); letter-spacing:-0.3px; line-height:1; }
     .gp-remove { background:none; border:none; color:var(--dim); cursor:pointer; font-size:20px; padding:2px 4px; line-height:1; transition:color .15s; }
     .gp-remove:hover { color:#ff6b6b; }
 
@@ -102,7 +102,7 @@
     .gp-totals-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
     .gp-totals-row:last-child { border-bottom:none; }
     .gp-totals-label { font-size:14px; color:var(--muted); }
-    .gp-totals-val { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.5px; }
+    .gp-totals-val { font-family:'Inter',sans-serif; font-weight:700; font-variant-numeric:tabular-nums; font-size:20px; letter-spacing:-0.5px; }
     .gp-total-orange { color:var(--orange); }
 
     .gp-contact { padding-top:14px; margin-top:2px; border-top:1px solid var(--border); margin-bottom:14px; }
@@ -496,7 +496,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=37"></script>
+  <script src="main.js?v=39"></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -1321,7 +1321,7 @@
             : '';
           const orderLine = orderNum
             ? `<p style="font-size:12px;color:var(--dim);margin-top:8px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700">Order Number</p>
-               <p style="font-family:'Bangers',cursive;font-size:28px;letter-spacing:0.04em;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:4px">${orderNum}</p>`
+               <p style="font-family:'Inter',sans-serif;font-weight:800;font-variant-numeric:tabular-nums;font-size:24px;letter-spacing:-0.3px;background:linear-gradient(135deg,var(--orange),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:4px">${orderNum}</p>`
             : '';
 
           document.getElementById('gpFormInner').innerHTML = `
