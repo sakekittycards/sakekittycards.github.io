@@ -212,47 +212,74 @@
       display: grid; gap: 22px;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       margin-bottom: 28px;
+      align-items: stretch;
     }
+    /* Thin neon accent bar at the top of each card via ::before, not a full
+       gradient header. Title sits cleanly below it in solid white with a
+       per-tone text-shadow glow so the icon + name read together. */
     .tipbox {
+      position: relative;
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 20px 20px 18px;
+      border-radius: var(--r); padding: 26px 22px 20px;
+      display: flex; flex-direction: column;
+    }
+    .tipbox::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0;
+      height: 6px;
+      border-radius: var(--r) var(--r) 0 0;
+    }
+    .tipbox.tone-blue::before {
+      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
+      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
+    }
+    .tipbox.tone-amber::before {
+      background: linear-gradient(90deg, #ffd24d 0%, #ff9d00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
     }
     .tipbox h4 {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 12px;
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: 22px; line-height: 1.25; padding: 2px 0 6px;
-      margin-bottom: 8px;
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-size: 24px; line-height: 1.2; padding: 4px 0 4px;
+      margin: 4px 0 14px;
+      color: #fff;
     }
-    .tipbox.tone-blue h4 { background: linear-gradient(135deg, #00d4ff, #2f8fff); }
-    .tipbox.tone-amber h4 { background: linear-gradient(135deg, #ffd24d, #ff9d00); }
-    .tipbox h4 svg { width: 22px; height: 22px; flex: 0 0 22px; -webkit-text-fill-color: initial; }
-    .tipbox.tone-blue h4 svg path { stroke: #00d4ff; }
+    .tipbox.tone-blue  h4 { text-shadow: 0 0 14px rgba(0,212,255,0.45); }
+    .tipbox.tone-amber h4 { text-shadow: 0 0 14px rgba(255,157,0,0.45); }
+    .tipbox h4 svg { width: 22px; height: 22px; flex: 0 0 22px; }
+    .tipbox.tone-blue  h4 svg path { stroke: #00d4ff; fill: none; }
     .tipbox.tone-amber h4 svg path { stroke: #ffd24d; fill: none; }
     .tipbox ul { list-style: none; padding: 0; margin: 0; }
     .tipbox li {
-      font-size: 14px; line-height: 1.55; padding: 5px 0 5px 22px; position: relative;
+      font-size: 15px; line-height: 1.6; padding: 6px 0 6px 24px; position: relative;
+      color: var(--text);
     }
     .tipbox.tone-blue li::before,
     .tipbox.tone-amber li::before {
-      content: ""; position: absolute; left: 0; top: 9px;
+      content: ""; position: absolute; left: 0; top: 11px;
       width: 12px; height: 7px; border-left: 2px solid; border-bottom: 2px solid;
       transform: rotate(-45deg); border-radius: 1px;
     }
-    .tipbox.tone-blue li::before { border-color: #00d4ff; }
+    .tipbox.tone-blue  li::before { border-color: #00d4ff; }
     .tipbox.tone-amber li::before { border-color: #ffd24d; }
 
-    /* ── Closing thank you ── */
+    /* ── Closing thank you — neon-bordered, with the heart vertically
+       centered, and the body copy bumped slightly for readability. ── */
     .pack-thanks {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 28px 28px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,0,128,0.30);
+      box-shadow:
+        0 0 0 1px rgba(255,0,128,0.10) inset,
+        0 0 32px rgba(255,0,128,0.14),
+        0 0 64px rgba(255,106,0,0.06);
+      border-radius: var(--r); padding: 26px 28px;
       display: flex; gap: 22px; align-items: center;
+      margin-top: 4px;
     }
     .heart-pulse {
       flex: 0 0 56px; width: 56px; height: 56px;
       display: grid; place-items: center;
       background: linear-gradient(135deg, #ff0080 0%, #ff6a00 100%);
-      border-radius: 50%; box-shadow: 0 0 32px rgba(255,0,128,0.35);
+      border-radius: 50%; box-shadow: 0 0 32px rgba(255,0,128,0.45);
       animation: heartPulse 2.4s ease-in-out infinite;
     }
     .heart-pulse svg { width: 28px; height: 28px; fill: #fff; }
@@ -260,22 +287,57 @@
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.07); }
     }
+    .pack-thanks-body { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
     .pack-thanks h3 {
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: clamp(24px, 3vw, 32px); line-height: 1.25; padding: 2px 0 6px;
-      margin-bottom: 4px;
+      font-size: clamp(26px, 3.2vw, 34px); line-height: 1.2; padding: 4px 0 6px;
+      margin: 0;
       background: linear-gradient(135deg, #ff0080, #ff6a00);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .pack-thanks p { font-size: 14.5px; line-height: 1.6; color: var(--muted); margin: 0; }
+    .pack-thanks p { font-size: 15px; line-height: 1.6; color: rgba(229,229,247,0.86); margin: 0; }
 
     .pack-footline {
-      text-align: center; margin: 36px 0 0;
+      text-align: center; margin: 18px 0 0;
       font-family: 'Bangers', cursive; letter-spacing: 0.06em;
-      font-size: clamp(18px, 2.6vw, 24px); line-height: 1.25; padding: 2px 0 4px;
-      color: var(--dim);
+      font-size: clamp(16px, 2.2vw, 20px); line-height: 1.25; padding: 2px 0 4px;
+      color: rgba(229,229,247,0.55);
     }
     .pack-footline .star { color: #ff0080; padding: 0 12px; }
+
+    /* ── Branded close strip — compact closing element so the page doesn't
+       fade into empty black before hitting the site footer. Sits between
+       the slogan and the global <footer>. ── */
+    .pack-brand-strip {
+      margin: 26px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -422,7 +484,7 @@
         <section class="tipbox tone-blue">
           <h4>
             <svg viewBox="0 0 24 24" fill="none"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7zM7 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM18 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
-            Shipping Tips
+            Shipping Materials
           </h4>
           <ul>
             <li>Use bubble mailers for small orders.</li>
@@ -434,7 +496,7 @@
         <section class="tipbox tone-amber">
           <h4>
             <svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.4 6.75 19.15l1-5.85L3.5 9.15l5.9-.85L12 3Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
-            Extra Tips
+            Before You Ship
           </h4>
           <ul>
             <li>Include your name / order # inside the package.</li>
@@ -451,13 +513,25 @@
         <div class="heart-pulse">
           <svg viewBox="0 0 24 24"><path d="M12 21s-8-5.4-8-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.6-8 11-8 11Z"/></svg>
         </div>
-        <div>
+        <div class="pack-thanks-body">
           <h3>Thank You!</h3>
           <p>Properly packed cards show you care about the hobby. We appreciate your business and trust.</p>
         </div>
       </div>
 
       <p class="pack-footline"><span class="star">★</span> Pack it right. Ship it safe. Let's keep the hobby awesome. <span class="star">★</span></p>
+
+      <!-- Compact branded close strip — gives the page a confident ending
+           before falling into the global site footer. -->
+      <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+        <span class="pbs-name">SAKE KITTY CARDS</span>
+        <span class="pbs-dot" aria-hidden="true"></span>
+        <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+        <span class="pbs-dot" aria-hidden="true"></span>
+        <a href="https://sakekittycards.com">sakekittycards.com</a>
+        <span class="pbs-dot" aria-hidden="true"></span>
+        <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+      </div>
 
     </div>
   </main>
