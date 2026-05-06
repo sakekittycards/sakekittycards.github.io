@@ -90,7 +90,7 @@
               </div>
             </a>
 
-            <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211/feedback" target="_blank" rel="noopener" class="contact-method">
+            <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="contact-method">
               <div class="cm-icon" style="background:#fff;padding:3px">
                 <img src="tcgplayer-logo.jpg" alt="TCGplayer" style="width:100%;height:100%;object-fit:contain" />
               </div>
@@ -188,10 +188,15 @@
           </div>
         </div>
 
-        <!-- Contact form -->
+        <!-- Contact form — posts via Web3Forms (same access key as trade-in /
+             grading-prep so we don't need a second integration). -->
         <div class="contact-form-box">
           <h3>Send a Message</h3>
-          <form action="mailto:sakekittycards@gmail.com" method="get" enctype="text/plain">
+          <form id="contactForm">
+            <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+            <input type="hidden" name="subject" value="Sake Kitty Contact Form" />
+            <input type="hidden" name="from_name" value="Sake Kitty Cards Contact" />
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
             <div class="form-group">
               <label for="name">Your Name</label>
               <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
@@ -201,23 +206,62 @@
               <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
             </div>
             <div class="form-group">
-              <label for="subject">Subject</label>
-              <select id="subject" name="subject">
-                <option value="general">General Question</option>
-                <option value="order">Order Inquiry</option>
-                <option value="selling">Selling Cards to You</option>
-                <option value="trade">Trade Inquiry</option>
-                <option value="event">Event / Collab</option>
-                <option value="other">Other</option>
+              <label for="topic">Subject</label>
+              <select id="topic" name="topic">
+                <option value="General Question">General Question</option>
+                <option value="Order Inquiry">Order Inquiry</option>
+                <option value="Selling Cards to You">Selling Cards to You</option>
+                <option value="Trade Inquiry">Trade Inquiry</option>
+                <option value="Event / Collab">Event / Collab</option>
+                <option value="Other">Other</option>
               </select>
             </div>
             <div class="form-group">
               <label for="message">Message</label>
-              <textarea id="message" name="body" placeholder="What's on your mind?"></textarea>
+              <textarea id="message" name="message" placeholder="What's on your mind?" required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Send Message</button>
+            <button type="submit" class="btn btn-primary" id="contactSubmit" style="width:100%;justify-content:center">Send Message</button>
+            <p id="contactStatus" style="margin:14px 0 0;font-size:13.5px;line-height:1.55;color:var(--muted);min-height:18px"></p>
           </form>
         </div>
+        <script>
+          (function () {
+            const form = document.getElementById('contactForm');
+            if (!form) return;
+            const btn = document.getElementById('contactSubmit');
+            const status = document.getElementById('contactStatus');
+            form.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              btn.disabled = true;
+              btn.textContent = 'Sending…';
+              status.textContent = '';
+              status.style.color = 'var(--muted)';
+              try {
+                const fd = new FormData(form);
+                // Compose subject line so Nick sees the topic at a glance
+                const topic = fd.get('topic') || 'General Question';
+                fd.set('subject', `Contact: ${topic}`);
+                const res = await fetch('https://api.web3forms.com/submit', {
+                  method: 'POST', body: fd
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                  status.style.color = '#50dc8c';
+                  status.textContent = 'Message sent — we\'ll reply within 24 hours.';
+                  form.reset();
+                  btn.textContent = 'Sent ✓';
+                } else {
+                  throw new Error(data && data.message ? data.message : 'Submission failed');
+                }
+              } catch (err) {
+                status.style.color = '#ff7a96';
+                status.textContent = 'Couldn\'t send — please email sakekittycards@gmail.com directly.';
+                btn.disabled = false;
+                btn.textContent = 'Send Message';
+              }
+            });
+          })();
+        </script>
 
       </div>
     </div>
@@ -246,6 +290,7 @@
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
         <a href="gift-cards.html">Gift Cards</a>
       </nav>
     </div>
