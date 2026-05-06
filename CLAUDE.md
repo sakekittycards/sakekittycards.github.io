@@ -23,6 +23,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - `trade-in.html` — "Sell / Trade" unified page: card search (singles/sealed/Japanese/graded) AND bulk rates. Submits via Web3Forms with cards + bulk subtotals + grand total.
 - `buylist.html` — **redirect only** to trade-in.html (legacy link support). Don't restore old content.
 - `track.html` — customer-facing grading-prep order tracker. Takes `?order=SK-YYYY-XXXXXX`, shows an 8-stage status bar, card list, and PSA cert numbers once graded. Hits `GET /grading/track` on the worker.
+- `shipping.html` — "How to Pack Your Cards" guide. Pure content page (no forms/data). Four packing tiers (1 / up-to-10 / 10-19 / 20+), DO NOT rules, clear-sleeve rules, shipping/extra tips. Visuals are cropped photo strips at `assets/shipping/tier{1-4}.png` (extracted from the original ChatGPT infographic). Linked from nav and footer between Sell/Trade and Grading Prep on every page.
 - `faq.html`, `about.html`, `contact.html` — info pages
 
 ## Conventions

@@ -31,7 +31,16 @@
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: var(--r); padding: 26px 22px 22px;
       position: relative; transition: background .2s, border-color .2s;
+      display: flex; flex-direction: column;
     }
+    .tier-photo {
+      width: 100%; height: auto; display: block;
+      border-radius: var(--r-sm);
+      margin: 4px 0 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+    }
+    .tier-bulk .tier-photo { margin-bottom: 22px; }
     .tier-card:hover { background: var(--bg-card-hover); }
     .tier-card.tone-pink   { border-color: rgba(255,0,128,0.35);   box-shadow: 0 0 0 1px rgba(255,0,128,0.15) inset, 0 0 32px rgba(255,0,128,0.08); }
     .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.35);   box-shadow: 0 0 0 1px rgba(0,212,255,0.15) inset, 0 0 32px rgba(0,212,255,0.08); }
@@ -300,6 +309,7 @@
         <article class="tier-card tone-pink">
           <h2 class="tier-head">1 Card</h2>
           <p class="tier-sub">Each card in its own top loader.</p>
+          <img class="tier-photo" src="assets/shipping/tier1.png" alt="Sleeved card → top loader → team bag → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place the card in a clear plastic <strong>penny sleeve</strong>.</span></li>
             <li><span>Insert the sleeved card into a <strong>top loader</strong>.</span></li>
@@ -316,6 +326,7 @@
         <article class="tier-card tone-cyan">
           <h2 class="tier-head">Up to 10 Cards</h2>
           <p class="tier-sub">Up to 10 cards in one team bag.</p>
+          <img class="tier-photo" src="assets/shipping/tier2.png" alt="Stack of sleeved cards → team bag → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place each card in its own clear plastic <strong>sleeve</strong>.</span></li>
             <li><span>Place up to <strong>10 sleeved cards</strong> in a team bag and seal with tape.</span></li>
@@ -331,6 +342,7 @@
         <article class="tier-card tone-purple">
           <h2 class="tier-head">10 – 19 Cards</h2>
           <p class="tier-sub">10 to 19 cards ship in a bubble mailer.</p>
+          <img class="tier-photo" src="assets/shipping/tier3.png" alt="Stack of sleeved cards → two team bags → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place each card in its own clear plastic <strong>sleeve</strong>.</span></li>
             <li><span>Place <strong>10 to 19 sleeved cards</strong> in one or two team bags (10 max per bag) and seal with tape.</span></li>
@@ -346,6 +358,7 @@
         <article class="tier-card tone-orange tier-bulk">
           <h2 class="tier-head">20+ Cards / Large Collections</h2>
           <p class="tier-sub">20+ cards up to 1,000+ cards.</p>
+          <img class="tier-photo" src="assets/shipping/tier4.png" alt="Card storage box → storage box inside shipping box with peanuts → sealed shipping box" loading="lazy" />
           <div class="bulk-body">
             <ol class="step-list">
               <li><span>Sort and stack cards neatly in a <strong>card storage box</strong>, ETB, or similar sturdy container.</span></li>
