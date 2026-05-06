@@ -1,6 +1,6 @@
 # Sake Kitty Cards Site
 
-Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycards@gmail.com.
+Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekittycards.com (customer-facing). The `sakekittycards@gmail.com` Google account is the underlying inbox / Web3Forms recipient, but Nick does **not** want it shown anywhere on the public site — always use `nick@sakekittycards.com` in mailto: links and display copy.
 
 ## Stack
 
@@ -9,7 +9,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: sakekittycard
 - **Tech:** vanilla HTML/CSS/JS, no framework, no build step
 - **Cache-buster:** `?v=N` on style.css and main.js. Bump when shipping CSS/JS.
 - **Fonts:** Bangers (display) + Inter (body), Google Fonts
-- **Forms:** Web3Forms (access key is inline in trade-in.html and contact.html) → sakekittycards@gmail.com
+- **Forms:** Web3Forms (access key is inline in trade-in.html, grading-prep.html, contact.html) → routes to sakekittycards@gmail.com inbox under the hood, but customer-facing display always uses nick@sakekittycards.com
 - **Card data:** pokemontcg.io (English singles) + TCG CSV via our Cloudflare Worker proxy at `https://tcgcsv-proxy.nwilliams23999.workers.dev` (English sealed + Japanese)
 
 ## Pages
