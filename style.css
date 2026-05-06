@@ -25,6 +25,30 @@
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+
+/* Skip-to-content link — visually hidden until keyboard focus, then
+   pinned to the top so screen-reader / Tab users can jump past the nav
+   straight to <main>. Brand colors so it doesn't feel out of place. */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 12px;
+  z-index: 9999;
+  background: var(--orange, #ff6a00);
+  color: #000;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 14px;
+  transition: top 160ms ease-out;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 12px;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 button { font-family: inherit; }
