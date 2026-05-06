@@ -210,14 +210,36 @@
     .legend-today { border: 1.5px solid rgba(255,106,0,.5); background: transparent; }
     .legend-selected { background: linear-gradient(135deg,var(--orange),var(--pink)); }
 
-    /* Coordinator CTA */
+    /* Coordinator CTA — top neon-accent strip + solid border (was dashed). */
     .coordinator-cta {
       margin-top: 28px;
-      padding: 40px 28px;
+      padding: 44px 28px 36px;
       text-align: center;
-      border: 1px dashed rgba(255,106,0,0.3);
+      position: relative; overflow: hidden;
+      border: 1px solid rgba(255,106,0,0.3);
       border-radius: var(--r);
       background: linear-gradient(135deg, rgba(255,106,0,0.05), rgba(123,47,255,0.05));
+      transition: transform .25s ease, border-color .2s, box-shadow .25s;
+    }
+    .coordinator-cta::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
+    }
+    .coordinator-cta.tone-purple::before {
+      background: linear-gradient(90deg, #b46cff 0%, #7b2fff 100%);
+      box-shadow: 0 0 14px rgba(123,47,255,0.55), 0 0 4px rgba(123,47,255,0.85);
+    }
+    .coordinator-cta:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,106,0,0.55);
+      box-shadow: 0 8px 28px rgba(255,106,0,0.16);
+    }
+    .coordinator-cta.tone-purple:hover {
+      border-color: rgba(123,47,255,0.55);
+      box-shadow: 0 8px 28px rgba(123,47,255,0.18);
     }
     .coordinator-icon { font-size: 38px; margin-bottom: 10px; filter: drop-shadow(0 0 14px rgba(255,106,0,0.4)); }
     .coordinator-cta h3 {
@@ -310,7 +332,7 @@
       </div>
 
       <!-- Whatnot streams callout -->
-      <div class="coordinator-cta" style="background:linear-gradient(135deg,rgba(123,47,255,.07),rgba(255,0,128,.05));border-color:rgba(123,47,255,.3);margin-top:32px">
+      <div class="coordinator-cta tone-purple" style="background:linear-gradient(135deg,rgba(123,47,255,.07),rgba(255,0,128,.05));border-color:rgba(123,47,255,.3);margin-top:32px">
         <div class="coordinator-icon" style="filter:drop-shadow(0 0 14px rgba(123,47,255,0.5))">📺</div>
         <h3 style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Catch us on Whatnot</h3>
         <p>Can't make it in person? Andrew hosts live Sake Kitty card breaks and showcases on Whatnot. Upcoming streams show on the calendar above — follow us to get notified when each one goes live.</p>

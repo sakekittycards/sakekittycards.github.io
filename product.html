@@ -316,7 +316,7 @@
     <div class="pdp-zoom-hint">Pinch / scroll to zoom · drag to pan</div>
   </div>
 
-  <!-- Make Offer modal — buyers submit offers via Web3Forms; email lands in sakekittycards@gmail.com -->
+  <!-- Make Offer modal — buyers submit offers via Web3Forms; email lands in nick@sakekittycards.com -->
   <div class="pay-modal" id="offerModal" aria-hidden="true">
     <div class="pay-modal-panel" role="dialog" aria-labelledby="offerModalTitle">
       <button class="pay-modal-close" id="offerModalClose" aria-label="Close">×</button>
@@ -918,7 +918,7 @@
         setTimeout(() => { addBtn.textContent = orig; }, 1400);
       });
 
-      // Make Offer — submits via Web3Forms to sakekittycards@gmail.com.
+      // Make Offer — submits via Web3Forms to nick@sakekittycards.com.
       // Hidden card-metadata fields ride along so Nick sees full context in
       // the email without the buyer having to type any of it.
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -1021,7 +1021,7 @@
           offerSubmit.disabled    = false;
           offerSubmit.textContent = 'Send Offer';
           alert("Couldn't send your offer: " + (err.message || 'unknown error') +
-                "\n\nYou can also email sakekittycards@gmail.com directly.");
+                "\n\nYou can also email nick@sakekittycards.com directly.");
         }
       });
     })();

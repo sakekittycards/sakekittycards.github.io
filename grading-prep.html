@@ -209,6 +209,40 @@
     .gp-terms-agree a { color:var(--orange); text-decoration:none; font-weight:600; }
     .gp-terms-agree a:hover { text-decoration:underline; }
 
+    /* Neon-accent service cards — promotes shipping.html's top-accent pattern.
+       Each card gets a 5px gradient top strip per tone + softer hover lift. */
+    .service-card { position: relative; overflow: hidden; }
+    .service-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+    }
+    .service-card.tone-cyan::before {
+      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
+      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
+    }
+    .service-card.tone-orange::before {
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
+    }
+    .service-card.tone-cyan:hover {
+      border-color: rgba(0,212,255,0.55);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.20) inset, 0 0 36px rgba(0,212,255,0.16);
+    }
+    .service-card.tone-orange:hover,
+    .service-card.tone-orange.featured {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 1px var(--orange), 0 8px 32px rgba(255,106,0,0.22);
+    }
+    .service-addon { position: relative; overflow: hidden; }
+    .service-addon::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+      background: linear-gradient(90deg, #b46cff 0%, #7b2fff 100%);
+      box-shadow: 0 0 14px rgba(123,47,255,0.55), 0 0 4px rgba(123,47,255,0.85);
+    }
+
     /* Shipping Guide callout — pink→orange tone, sits between "How It Works"
        and the submission form so customers see the packing reference before
        they ship. Mirrors the same pattern used on trade-in.html. */
@@ -299,7 +333,7 @@
       <div class="service-grid" style="grid-template-columns:repeat(2,1fr)">
 
         <!-- Standard Screen -->
-        <div class="service-card">
+        <div class="service-card tone-cyan">
           <div class="service-name">Standard Screen</div>
           <div class="service-tagline">Simple pass/fail — worth submitting or not?</div>
           <div class="service-price">$3<sub>/card</sub></div>
@@ -313,7 +347,7 @@
         </div>
 
         <!-- Detailed Screen -->
-        <div class="service-card featured">
+        <div class="service-card featured tone-orange">
           <div class="service-badge">Most Popular</div>
           <div class="service-name">Detailed Screen</div>
           <div class="service-tagline">Full breakdown — know exactly why a card fails</div>
@@ -1410,7 +1444,7 @@
         } catch (err) {
           gpSendBtn.disabled = false;
           gpSendBtn.textContent = 'Send Request';
-          alert('Submission failed. Please try again or email us at sakekittycards@gmail.com');
+          alert('Submission failed. Please try again or email us at nick@sakekittycards.com');
         }
       });
 

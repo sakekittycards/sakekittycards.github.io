@@ -73,8 +73,71 @@
     @media (prefers-reduced-motion: reduce) {
       .mustache.grown { animation: mustacheGrow 0.4s ease-out forwards; }
     }
-  </style>
-</head>
+
+    /* Vendor cards — top neon-accent strip per role tone, lifts on hover.
+       Promotes the shipping.html accent pattern site-wide so cards have
+       per-card identity instead of looking generic. */
+    .vendor-card { position: relative; overflow: hidden; transition: transform .25s ease, border-color .2s, box-shadow .25s, background .2s; }
+    .vendor-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+    }
+    .vendor-card.tone-orange::before {
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
+    }
+    .vendor-card.tone-pink::before {
+      background: linear-gradient(90deg, #ff0080 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,0,128,0.55), 0 0 4px rgba(255,0,128,0.85);
+    }
+    .vendor-card.tone-cyan::before {
+      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
+      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
+    }
+    .vendor-card.tone-purple::before {
+      background: linear-gradient(90deg, #b46cff 0%, #7b2fff 100%);
+      box-shadow: 0 0 14px rgba(123,47,255,0.55), 0 0 4px rgba(123,47,255,0.85);
+    }
+    .vendor-card:hover { transform: translateY(-3px); }
+    .vendor-card.tone-orange:hover { border-color: rgba(255,106,0,0.55); box-shadow: 0 8px 28px rgba(255,106,0,0.18); }
+    .vendor-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55); box-shadow: 0 8px 28px rgba(255,0,128,0.18); }
+    .vendor-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: 0 8px 28px rgba(0,212,255,0.18); }
+    .vendor-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: 0 8px 28px rgba(123,47,255,0.18); }
+    .vendor-card { padding-top: 32px; }
+    /* Closing brand strip — confident page-end before global footer.
+       Same pattern as shipping.html's .pack-brand-strip. */
+    .pack-brand-strip {
+      margin: 56px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
@@ -114,7 +177,7 @@
       <div class="vendors-grid">
 
         <!-- Vendor 1 -->
-        <div class="card vendor-card">
+        <div class="card vendor-card tone-orange">
           <img src="nick.jpg" alt="Nick Williams" class="vendor-avatar" />
           <h3>Nick Williams</h3>
           <div class="vendor-specialty">Founder & Owner</div>
@@ -126,7 +189,7 @@
         </div>
 
         <!-- Vendor 2 -->
-        <div class="card vendor-card">
+        <div class="card vendor-card tone-pink">
           <div class="vendor-avatar-wrap" id="deliaAvatar" aria-label="Jonathan Delia">
             <img src="jonathan.jpg" alt="Jonathan Delia" class="vendor-avatar" />
             <svg class="mustache" id="deliaMustache" viewBox="0 0 200 70" aria-hidden="true">
@@ -149,7 +212,7 @@
         </div>
 
         <!-- Vendor 3 -->
-        <div class="card vendor-card">
+        <div class="card vendor-card tone-cyan">
           <img src="joshua.jpg" alt="Joshua Noplis" class="vendor-avatar" />
           <h3>Joshua Noplis</h3>
           <div class="vendor-specialty">Vendor</div>
@@ -157,7 +220,7 @@
         </div>
 
         <!-- Vendor 4 -->
-        <div class="card vendor-card">
+        <div class="card vendor-card tone-purple">
           <img src="andrew-grace.jpg" alt="Andrew &amp; Grace Williams" class="vendor-avatar" />
           <h3>Andrew &amp; Grace Williams</h3>
           <div class="vendor-specialty">Vendors · Whatnot Streams</div>
@@ -176,6 +239,17 @@
         <a href="contact.html" class="btn btn-outline btn-sm">Get in Touch</a>
       </div>
     </div>
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+    </div>
+
   </main>
 
   <footer class="site-footer">

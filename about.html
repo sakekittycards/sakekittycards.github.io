@@ -25,6 +25,66 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=104" />
+  <style>
+    /* About-page eyebrow under H1 — matches the shipping page's tagline rhythm. */
+    .about-tagline {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(13px, 2.2vw, 17px); letter-spacing: 0.06em;
+      text-transform: uppercase; margin-top: 14px;
+    }
+    .about-tagline .ok  { color: var(--cyan); }
+    .about-tagline .pop { color: var(--pink); }
+
+    /* Value cards — top neon-accent strip for visual identity. */
+    .value-card { position: relative; overflow: hidden; transition: transform .25s ease, border-color .2s, box-shadow .25s; }
+    .value-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: var(--r) var(--r) 0 0;
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 12px rgba(255,157,0,0.45);
+    }
+    .value-card:nth-child(2)::before { background: linear-gradient(90deg, #00d4ff, #2f8fff); box-shadow: 0 0 12px rgba(0,212,255,0.45); }
+    .value-card:nth-child(3)::before { background: linear-gradient(90deg, #b46cff, #7b2fff); box-shadow: 0 0 12px rgba(123,47,255,0.45); }
+    .value-card:nth-child(4)::before { background: linear-gradient(90deg, #ff0080, #ff6a00); box-shadow: 0 0 12px rgba(255,0,128,0.45); }
+    .value-card:nth-child(5)::before { background: linear-gradient(90deg, #50dc8c, #00d4ff); box-shadow: 0 0 12px rgba(80,220,140,0.40); }
+    .value-card:nth-child(6)::before { background: linear-gradient(90deg, #ffb84d, #ff0080); box-shadow: 0 0 12px rgba(255,184,77,0.45); }
+    .value-card { padding-top: 28px; }
+    .value-card:hover { transform: translateY(-3px); }
+
+    /* Closing brand strip — same pattern as shipping.html so the page ends
+       with intent before the global footer. */
+    .pack-brand-strip {
+      margin: 56px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -59,6 +119,7 @@
     <div class="page-hero">
       <h1>About Us</h1>
       <p>A crew of collectors with a big love for Pokémon cards.</p>
+      <p class="about-tagline">Honest <span class="ok">Condition</span> · Fair <span class="pop">Prices</span></p>
     </div>
 
     <!-- Story section -->
@@ -118,6 +179,17 @@
           <p>We're collectors first. We get it — because we've been there too.</p>
         </div>
       </div>
+    </div>
+
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
     </div>
 
   </main>

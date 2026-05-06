@@ -25,6 +25,40 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=104" />
+  <style>
+    /* Closing brand strip — confident page-end before global footer.
+       Same pattern as shipping.html's .pack-brand-strip. */
+    .pack-brand-strip {
+      margin: 56px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -116,7 +150,7 @@
 
         <div class="faq-item">
           <button class="faq-q">How do I check my gift card / store credit balance? <span class="faq-icon">+</span></button>
-          <div class="faq-a">Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards. Check your balance any time at <a href="gift-cards.html#balance" style="color:var(--orange)">the gift cards page</a> — just enter your card code. The same code works at our pop-up booths and online checkout. No expiration, no fees. Lost the code? Email <a href="mailto:sakekittycards@gmail.com" style="color:var(--orange)">sakekittycards@gmail.com</a> from the address that received it.</div>
+          <div class="faq-a">Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards. Check your balance any time at <a href="gift-cards.html#balance" style="color:var(--orange)">the gift cards page</a> — just enter your card code. The same code works at our pop-up booths and online checkout. No expiration, no fees. Lost the code? Email <a href="mailto:nick@sakekittycards.com" style="color:var(--orange)">nick@sakekittycards.com</a> from the address that received it.</div>
         </div>
 
         <h3 class="faq-section-heading">Grading &amp; Card Prep</h3>
@@ -219,6 +253,17 @@
         <a href="contact.html" class="btn btn-primary">Contact Us</a>
       </div>
     </div>
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+    </div>
+
   </main>
 
   <footer class="site-footer">

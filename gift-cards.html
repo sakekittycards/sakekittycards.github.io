@@ -36,15 +36,31 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 28px 26px;
+      padding: 32px 26px 28px;
       position: relative;
       overflow: hidden;
+      transition: transform .25s ease, border-color .2s, box-shadow .25s;
     }
     .gc-card::before {
       content: ''; position: absolute; inset: 0;
       background: radial-gradient(circle at top right, rgba(255,106,0,.08), transparent 60%);
       pointer-events: none;
     }
+    /* Top neon-accent strip — promotes the shipping-page accent pattern.
+       Buy card = orange, Balance card = cyan. */
+    .gc-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
+    }
+    .gc-card.balance::after {
+      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
+      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
+    }
+    .gc-card:hover { transform: translateY(-2px); border-color: rgba(255,106,0,0.35); box-shadow: 0 8px 28px rgba(255,106,0,0.10); }
+    .gc-card.balance:hover { border-color: rgba(0,212,255,0.40); box-shadow: 0 8px 28px rgba(0,212,255,0.12); }
     .gc-card-head {
       display: flex; align-items: center; gap: 12px;
       margin-bottom: 8px;
@@ -165,8 +181,39 @@
       font-size: 13px; line-height: 1.65; color: var(--muted);
     }
     .gc-policy-callout strong { color: var(--text); font-weight: 600; }
-  </style>
-</head>
+    /* Closing brand strip — confident page-end before global footer.
+       Same pattern as shipping.html's .pack-brand-strip. */
+    .pack-brand-strip {
+      margin: 56px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
@@ -248,9 +295,20 @@
 
       <div class="gc-policy-callout">
         <strong>The basics.</strong>
-        Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards — same code format, same redemption flow. <strong>No expiration date, no fees, no inactivity charges.</strong> Codes are non-refundable for cash and non-transferable. Lost the code? Email <a href="mailto:sakekittycards@gmail.com" style="color:var(--orange)">sakekittycards@gmail.com</a> from the address that received it. Full policy on the <a href="faq.html" style="color:var(--orange)">FAQ page</a>.
+        Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards — same code format, same redemption flow. <strong>No expiration date, no fees, no inactivity charges.</strong> Codes are non-refundable for cash and non-transferable. Lost the code? Email <a href="mailto:nick@sakekittycards.com" style="color:var(--orange)">nick@sakekittycards.com</a> from the address that received it. Full policy on the <a href="faq.html" style="color:var(--orange)">FAQ page</a>.
       </div>
     </div>
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+    </div>
+
   </main>
 
   <footer class="site-footer">
@@ -363,7 +421,7 @@
           `;
         } else {
           resultEl.className = 'gc-result error';
-          resultEl.textContent = "We couldn't find that code. Double-check the digits and try again, or email sakekittycards@gmail.com if it keeps failing.";
+          resultEl.textContent = "We couldn't find that code. Double-check the digits and try again, or email nick@sakekittycards.com if it keeps failing.";
         }
       } catch (err) {
         resultEl.className = 'gc-result error';
