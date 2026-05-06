@@ -1250,7 +1250,7 @@
                 <span class="rate-credit">85%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Graded $25–$99</li>
+                <li>Graded under $100</li>
               </ul>
             </div>
 
@@ -1261,19 +1261,8 @@
                 <span class="rate-credit">80%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Singles $25–$99</li>
-                <li>Sealed $25–$99</li>
-              </ul>
-            </div>
-
-            <div class="ti-rate-tier ti-rate-base">
-              <div class="ti-rate-tier-rate">
-                <span class="rate-cash">60%</span>
-                <span class="rate-sep">/</span>
-                <span class="rate-credit">70%</span>
-              </div>
-              <ul class="ti-rate-tier-items">
-                <li>Non-bulk Singles under $25</li>
+                <li>Singles under $100</li>
+                <li>Sealed under $100</li>
               </ul>
             </div>
           </div>
@@ -1470,18 +1459,17 @@
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
     // Trade-in rates (Option B — unified breakpoints across all item types).
-    // Same dollar bands ($25 / $100 / $500 / $1,000) for singles, sealed,
-    // and graded — just different starting rates. Graded gets a +2-5pt
-    // bump in the mid bands for slab sale-certainty. All types cap at
-    // 90/100 at $1,000+. Trade credit follows cash + 10pts.
+    // Three breakpoints: $100 / $500 / $1,000. Same bands for singles,
+    // sealed, and graded — just different starting rates. Graded gets a
+    // +2-5pt bump in the mid bands for slab sale-certainty. All types
+    // cap at 90/100 at $1,000+. Trade credit follows cash + 10pts.
     //
-    //   Singles: <$25 60/70 · $25–$99 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
-    //   Sealed:           — · $25–$99 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
-    //   Graded:           — · $25–$99 75/85 · $100–$499 82/92 · $500–$999 87/97 · ≥$1k 90/100
+    //   Singles: <$100 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
+    //   Sealed:  <$100 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
+    //   Graded:  <$100 75/85 · $100–$499 82/92 · $500–$999 87/97 · ≥$1k 90/100
     const RATES = {
-      card_micro:    { cash: 0.60, credit: 0.70 },   // singles only — under $25
-      base:          { cash: 0.70, credit: 0.80 },   // singles + sealed $25–$99
-      graded_base:   { cash: 0.75, credit: 0.85 },   // graded $25–$99
+      base:          { cash: 0.70, credit: 0.80 },   // singles + sealed under $100
+      graded_base:   { cash: 0.75, credit: 0.85 },   // graded under $100
       mid:           { cash: 0.80, credit: 0.90 },   // singles + sealed $100–$499
       graded_mid:    { cash: 0.82, credit: 0.92 },   // graded $100–$499
       high:          { cash: 0.85, credit: 0.95 },   // singles + sealed $500–$999
@@ -1506,8 +1494,7 @@
       if (m != null && m >= 1000) return RATES.top;
       if (m != null && m >= 500)  return RATES.high;
       if (m != null && m >= 100)  return RATES.mid;
-      if (m != null && m >= 25)   return RATES.base;
-      return RATES.card_micro;
+      return RATES.base;
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50, DMG: 0.30,
