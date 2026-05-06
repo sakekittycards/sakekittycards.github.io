@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=96" />
+  <link rel="stylesheet" href="style.css?v=98" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -74,10 +74,12 @@
     /* Info panel */
     .pdp-info { padding-top: 4px; }
     .pdp-name {
-      font-family: 'Bangers',cursive;
-      font-size: clamp(28px, 4vw, 40px);
-      letter-spacing: 0.04em;
-      line-height: 1.1;
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(24px, 3.6vw, 34px);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
       background: linear-gradient(135deg,var(--orange),var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       margin-bottom: 10px;
@@ -353,7 +355,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=37"></script>
+  <script src="main.js?v=39"></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
