@@ -598,6 +598,15 @@
       box-shadow: inset 0 0 0 1px rgba(0,212,255,0.15);
       color: var(--cyan);
     }
+    /* Not-accepted cell — muted X. Used for graded under $100 (slab cost outweighs the card). */
+    .trm-cell-na {
+      color: var(--dim);
+      font-weight: 400;
+      font-size: 16px;
+      background: rgba(255,255,255,0.015);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+      opacity: 0.65;
+    }
     .trm-foot {
       font-size: 10.5px; color: var(--dim); line-height: 1.5;
       margin: 10px 2px 0;
@@ -978,50 +987,106 @@
        The inner panel uses the brand orange/pink gradient hint without
        overpowering — the focus is the example image alongside the
        "what to look for" note. */
-    .bulk-expand-row td {
-      padding: 0; border-bottom: 1px solid var(--border);
-      background: rgba(255,106,0,0.04);
+    /* Bulk-example modal — opens when customer clicks a tier name/thumb.
+       Centered overlay with backdrop blur, big example image (up to
+       420px wide so the card details are actually visible), the
+       "what to look for" note, and the bulk rate per card. Tap outside,
+       press ESC, or click the × to close. */
+    .bulk-modal {
+      position: fixed; inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center; justify-content: center;
+      padding: 20px;
     }
-    .bulk-expand-inner {
-      display: flex; gap: 18px; align-items: flex-start;
-      padding: 18px 16px;
-      background:
-        radial-gradient(circle at 0% 0%, rgba(255,106,0,0.10), transparent 50%),
-        radial-gradient(circle at 100% 100%, rgba(255,0,128,0.08), transparent 50%);
-      border-left: 3px solid var(--orange);
-      animation: bulkExpandIn 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    .bulk-modal.open { display: flex; }
+    .bulk-modal-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.78);
+      backdrop-filter: blur(8px);
+      animation: bmFade 200ms ease;
     }
-    @keyframes bulkExpandIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .bulk-modal-panel {
+      position: relative;
+      max-width: 720px; width: 100%;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      background: linear-gradient(160deg, rgba(28,18,42,0.96), rgba(12,12,28,0.96));
+      border: 1px solid rgba(255,106,0,0.35);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255,106,0,0.18);
+      padding: 28px 28px 24px;
+      animation: bmRise 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    .bulk-expand-img {
-      flex-shrink: 0;
-      width: 140px; height: auto;
-      border-radius: 10px;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
-      transition: transform .35s ease;
+    @keyframes bmFade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes bmRise {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    .bulk-expand-img:hover { transform: scale(1.04) rotate(-1deg); }
-    .bulk-expand-text { min-width: 0; }
-    .bulk-expand-text h5 {
+    .bulk-modal-close {
+      position: absolute; top: 10px; right: 14px;
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 50%;
+      color: var(--muted);
+      font-size: 24px; line-height: 1; padding: 0 0 3px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .bulk-modal-close:hover { background: rgba(255,106,0,0.20); border-color: var(--orange); color: var(--orange); }
+    .bulk-modal-body {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    .bulk-modal-img {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .bulk-modal-text h4 {
       font-family: 'Bangers', cursive;
-      font-size: 18px; letter-spacing: 0.04em;
+      font-size: 28px; letter-spacing: 0.04em;
+      line-height: 1.25;
+      padding: 4px 0 8px;
       background: linear-gradient(135deg, var(--orange), var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin: 0 0 6px;
-      padding: 2px 0 4px;
-      line-height: 1.25;  /* Bangers descender clip fix */}
-    .bulk-expand-text p {
-      font-size: 13px; color: var(--muted); line-height: 1.6; margin: 0;
+      margin: 0 0 10px;
     }
+    .bulk-modal-text p {
+      font-size: 14px; color: var(--muted); line-height: 1.65;
+      margin: 0 0 16px;
+    }
+    .bulk-modal-text p strong { color: var(--text); }
+    .bulk-modal-rate {
+      padding: 12px 14px;
+      background: rgba(255,106,0,0.06);
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .bulk-modal-rate .bm-rate-label {
+      font-size: 11px; font-weight: 700;
+      color: var(--dim);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-right: 8px;
+    }
+    .bulk-modal-rate .bm-rate-cash   { font-weight: 800; color: var(--orange); }
+    .bulk-modal-rate .bm-rate-credit { font-weight: 800; color: var(--cyan); }
+    .bulk-modal-rate .bm-rate-sep    { color: var(--dim); }
     @media (max-width: 640px) {
+      .bulk-modal-panel { padding: 22px 18px 18px; max-width: 460px; }
+      .bulk-modal-body { grid-template-columns: 1fr; gap: 18px; }
+      .bulk-modal-img { max-width: 220px; margin: 0 auto; display: block; }
+      .bulk-modal-text h4 { font-size: 24px; text-align: center; }
       .bulk-thumb { width: 38px; height: 52px; }
       .bulk-hint { font-size: 10px; }
-      .bulk-expand-inner { gap: 14px; padding: 14px 12px; }
-      .bulk-expand-img { width: 110px; }
-      .bulk-expand-text h5 { font-size: 16px; }
-      .bulk-expand-text p { font-size: 12.5px; }
     }
 
     /* +/- nudge buttons */
@@ -1286,12 +1351,12 @@
 
               <!-- Graded row -->
               <div class="trm-row-label trm-graded">Graded</div>
-              <div class="trm-cell trm-cell-bonus">75<span class="trm-slash">/</span>85</div>
-              <div class="trm-cell trm-cell-bonus">82<span class="trm-slash">/</span>92</div>
-              <div class="trm-cell trm-cell-bonus">87<span class="trm-slash">/</span>97</div>
+              <div class="trm-cell trm-cell-na" aria-label="Graded under $100 not accepted">&times;</div>
+              <div class="trm-cell">80<span class="trm-slash">/</span>90</div>
+              <div class="trm-cell">85<span class="trm-slash">/</span>95</div>
               <div class="trm-cell trm-cell-top">90<span class="trm-slash">/</span>100</div>
             </div>
-            <p class="trm-foot">Graded gets a +2&ndash;5 point bump in the middle bands &mdash; slabs sell faster, less variance.</p>
+            <p class="trm-foot"><strong style="color:#aaa">Graded under $100 isn't accepted</strong> &mdash; slab cost outweighs the card.</p>
           </div>
 
           <div class="ti-contact">
@@ -1405,7 +1470,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=43"></script>
+  <script src="main.js?v=44"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -1486,37 +1551,28 @@
     ];
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
-    // Trade-in rates (Option B — unified breakpoints across all item types).
-    // Three breakpoints: $100 / $500 / $1,000. Same bands for singles,
-    // sealed, and graded — just different starting rates. Graded gets a
-    // +2-5pt bump in the mid bands for slab sale-certainty. All types
-    // cap at 90/100 at $1,000+. Trade credit follows cash + 10pts.
-    //
+    // Trade-in rates — unified breakpoints, graded matches singles/sealed in middle bands.
     //   Singles: <$100 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
     //   Sealed:  <$100 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
-    //   Graded:  <$100 75/85 · $100–$499 82/92 · $500–$999 87/97 · ≥$1k 90/100
+    //   Graded:  <$100 NOT ACCEPTED · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
+    // Trade credit follows cash + 10pts on every tier. Graded under $100
+    // isn't accepted as policy (slab cost outweighs the card) — the
+    // matrix shows ✕ in that cell. Form falls through to the singles
+    // base rate if a low-value graded card is added, so quotes stay
+    // sane even when the policy guidance is bypassed.
     const RATES = {
-      base:          { cash: 0.70, credit: 0.80 },   // singles + sealed under $100
-      graded_base:   { cash: 0.75, credit: 0.85 },   // graded under $100
-      mid:           { cash: 0.80, credit: 0.90 },   // singles + sealed $100–$499
-      graded_mid:    { cash: 0.82, credit: 0.92 },   // graded $100–$499
-      high:          { cash: 0.85, credit: 0.95 },   // singles + sealed $500–$999
-      graded_high:   { cash: 0.87, credit: 0.97 },   // graded $500–$999
-      top:           { cash: 0.90, credit: 1.00 },   // all types ≥$1,000
+      base: { cash: 0.70, credit: 0.80 },   // singles + sealed under $100
+      mid:  { cash: 0.80, credit: 0.90 },   // all types $100–$499
+      high: { cash: 0.85, credit: 0.95 },   // all types $500–$999
+      top:  { cash: 0.90, credit: 1.00 },   // all types ≥$1,000
     };
     function ratesFor(item) {
       const m = item.market;
-      if (item.type === 'sealed') {
+      if (item.type === 'sealed' || item.type === 'graded') {
         if (m != null && m >= 1000) return RATES.top;
         if (m != null && m >= 500)  return RATES.high;
         if (m != null && m >= 100)  return RATES.mid;
-        return RATES.base;
-      }
-      if (item.type === 'graded') {
-        if (m != null && m >= 1000) return RATES.top;
-        if (m != null && m >= 500)  return RATES.graded_high;
-        if (m != null && m >= 100)  return RATES.graded_mid;
-        return RATES.graded_base;
+        return RATES.base;   // graded <$100 not policy-accepted; fall through
       }
       // Raw singles
       if (m != null && m >= 1000) return RATES.top;
@@ -2683,7 +2739,7 @@
         return `
         <tr class="bulk-row" data-row="${i}">
           <td>
-            <button type="button" class="bulk-name-btn" data-toggle="${i}" aria-expanded="false" aria-controls="bulkExpand${i}">
+            <button type="button" class="bulk-name-btn" data-toggle="${i}" aria-haspopup="dialog">
               ${thumb}
               <span class="bulk-name-text">
                 <strong>${r.name}</strong>
@@ -2701,20 +2757,6 @@
           <td class="buy-price" style="text-align:right">${fmt(r.cash)}</td>
           <td class="credit-price" style="text-align:right">${fmt(r.credit)}</td>
           <td class="line-total" data-line="${i}">—</td>
-        </tr>
-        <tr class="bulk-expand-row" id="bulkExpand${i}" hidden>
-          <td colspan="5">
-            <div class="bulk-expand-inner">
-              ${r.img
-                ? `<img src="${escG(r.img)}" alt="${escG(r.name)} large example" class="bulk-expand-img" loading="lazy" decoding="async"
-                       onerror="this.style.display='none'" />`
-                : ''}
-              <div class="bulk-expand-text">
-                <h5>${r.name}</h5>
-                <p>${r.note || ''}</p>
-              </div>
-            </div>
-          </td>
         </tr>`;
       }).join('');
       tbody.querySelectorAll('.bulk-qty').forEach(inp => {
@@ -2736,28 +2778,14 @@
           saveCart();
         });
       });
-      // Click the row's name/thumbnail button to toggle its example panel.
-      // Only one panel is open at a time — opening one closes whichever was
-      // already open, keeps the table compact on long lists.
+      // Click the row's name/thumbnail button to open the example modal.
+      // Modal layout gives the example image enough room to actually
+      // see the card details — the old inline-row expander cramped the
+      // image down into a thin strip.
       tbody.querySelectorAll('.bulk-name-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const idx = +btn.dataset.toggle;
-          const target = document.getElementById(`bulkExpand${idx}`);
-          const isOpen = !target.hasAttribute('hidden');
-          // Close any other open expander first.
-          tbody.querySelectorAll('.bulk-expand-row').forEach(row => {
-            if (row !== target) row.setAttribute('hidden', '');
-          });
-          tbody.querySelectorAll('.bulk-name-btn').forEach(b => {
-            if (b !== btn) b.setAttribute('aria-expanded', 'false');
-          });
-          if (isOpen) {
-            target.setAttribute('hidden', '');
-            btn.setAttribute('aria-expanded', 'false');
-          } else {
-            target.removeAttribute('hidden');
-            btn.setAttribute('aria-expanded', 'true');
-          }
+          openBulkExampleModal(BULK_RATES[idx]);
         });
       });
       // After (re-)building the bulk rows, push any restored bulkQtys values
@@ -2772,6 +2800,64 @@
     document.getElementById('mbBtn').addEventListener('click', () => {
       document.getElementById('totalsCol').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+
+    // Bulk-example modal — opens when a customer clicks a tier name/thumbnail.
+    // Renders a much larger image + the "what to look for" note. Tap-outside,
+    // ESC key, or close button to dismiss.
+    function openBulkExampleModal(row) {
+      if (!row) return;
+      let modal = document.getElementById('bulkExampleModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'bulkExampleModal';
+        modal.className = 'bulk-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.innerHTML = `
+          <div class="bulk-modal-backdrop" data-close="1"></div>
+          <div class="bulk-modal-panel" role="document">
+            <button type="button" class="bulk-modal-close" aria-label="Close" data-close="1">×</button>
+            <div class="bulk-modal-body">
+              <img class="bulk-modal-img" alt="" />
+              <div class="bulk-modal-text">
+                <h4 class="bulk-modal-title"></h4>
+                <p class="bulk-modal-note"></p>
+                <div class="bulk-modal-rate"></div>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => {
+          if (e.target.dataset.close) closeBulkExampleModal();
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal.classList.contains('open')) closeBulkExampleModal();
+        });
+      }
+      const img = modal.querySelector('.bulk-modal-img');
+      if (row.img) {
+        img.src = row.img;
+        img.alt = row.name + ' example';
+        img.style.display = '';
+        img.onerror = () => { img.style.display = 'none'; };
+      } else {
+        img.style.display = 'none';
+      }
+      modal.querySelector('.bulk-modal-title').textContent = row.name;
+      modal.querySelector('.bulk-modal-note').innerHTML = row.note || '';
+      modal.querySelector('.bulk-modal-rate').innerHTML =
+        `<span class="bm-rate-label">Bulk rate:</span> ` +
+        `<span class="bm-rate-cash">${fmt(row.cash)}</span>` +
+        `<span class="bm-rate-sep"> / </span>` +
+        `<span class="bm-rate-credit">${fmt(row.credit)}</span> per card`;
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeBulkExampleModal() {
+      const modal = document.getElementById('bulkExampleModal');
+      if (modal) modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
 
     // Search input with debounce
     searchInput.addEventListener('input', e => {
