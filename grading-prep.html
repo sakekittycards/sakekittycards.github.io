@@ -208,6 +208,49 @@
     .gp-terms-agree input { margin-top:3px; flex-shrink:0; accent-color:var(--orange); cursor:pointer; }
     .gp-terms-agree a { color:var(--orange); text-decoration:none; font-weight:600; }
     .gp-terms-agree a:hover { text-decoration:underline; }
+
+    /* Shipping Guide callout — pink→orange tone, sits between "How It Works"
+       and the submission form so customers see the packing reference before
+       they ship. Mirrors the same pattern used on trade-in.html. */
+    .shipping-guide-btn {
+      display: flex; align-items: center; gap: 16px;
+      width: 100%;
+      padding: 16px 22px;
+      margin: 0 0 24px;
+      background: linear-gradient(135deg, rgba(255,0,128,0.08), rgba(255,106,0,0.10));
+      border: 1.5px solid rgba(255,0,128,0.4);
+      border-radius: var(--r);
+      color: var(--text);
+      text-decoration: none;
+      transition: transform .15s, border-color .15s, box-shadow .2s;
+      box-shadow: 0 4px 18px rgba(255,0,128,0.06);
+    }
+    .shipping-guide-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,0,128,0.85);
+      box-shadow: 0 8px 26px rgba(255,0,128,0.18);
+    }
+    .shipping-guide-btn .sgb-icon { font-size: 26px; flex-shrink: 0; line-height: 1; }
+    .shipping-guide-btn .sgb-text { flex: 1; min-width: 0; line-height: 1.4; }
+    .shipping-guide-btn .sgb-text strong {
+      display: block; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+    }
+    .shipping-guide-btn .sgb-text span { display: block; font-size: 13px; color: var(--muted); }
+    .shipping-guide-btn .sgb-arrow {
+      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      box-shadow: 0 3px 12px rgba(255,0,128,0.35);
+    }
+    @media (max-width: 560px) {
+      .shipping-guide-btn { padding: 14px 16px; gap: 12px; }
+      .shipping-guide-btn .sgb-icon { font-size: 22px; }
+      .shipping-guide-btn .sgb-text strong { font-size: 14px; }
+      .shipping-guide-btn .sgb-text span { font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -230,8 +273,8 @@
         <li><a href="events.html">Events</a></li>
         <li><a href="team.html">Our Team</a></li>
         <li><a href="trade-in.html">Sell / Trade</a></li>
-        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="faq.html">FAQ</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
@@ -368,6 +411,19 @@
       </div>
     </div>
 
+    <!-- Shipping Guide callout — bridge between How It Works (step 3 = ship)
+         and the submission form, so customers see the packing reference. -->
+    <div class="section" style="padding-top:0;padding-bottom:0">
+      <a href="shipping.html" class="shipping-guide-btn">
+        <span class="sgb-icon">📦</span>
+        <div class="sgb-text">
+          <strong>How to Pack Your Cards</strong>
+          <span>Step-by-step shipping guide — penny sleeves, top loaders, team bags, bubble mailers, bulk.</span>
+        </div>
+        <span class="sgb-arrow">→</span>
+      </a>
+    </div>
+
     <!-- Card intake form -->
     <div class="section" style="padding-top:0" id="submitSection">
       <div class="section-header" style="text-align:center">
@@ -502,8 +558,8 @@
         <a href="events.html">Events</a>
         <a href="team.html">Our Team</a>
         <a href="trade-in.html">Sell / Trade</a>
-        <a href="shipping.html">Shipping Guide</a>
         <a href="grading-prep.html">Grading Prep</a>
+        <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>

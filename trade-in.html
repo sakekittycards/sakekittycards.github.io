@@ -896,6 +896,49 @@
       .cond-standards-btn .csb-text span { font-size: 12px; }
     }
 
+    /* Shipping Guide callout — same shape as cond-standards-btn but pink→orange
+       tone (matches the shipping page's H1 gradient). Sits as sibling under
+       Card Conditioning so customers reading the form intro see both refs. */
+    .shipping-guide-btn {
+      display: flex; align-items: center; gap: 16px;
+      width: 100%;
+      padding: 16px 22px;
+      margin-bottom: 28px;
+      background: linear-gradient(135deg, rgba(255,0,128,0.08), rgba(255,106,0,0.10));
+      border: 1.5px solid rgba(255,0,128,0.4);
+      border-radius: var(--r);
+      color: var(--text);
+      text-decoration: none;
+      transition: transform .15s, border-color .15s, box-shadow .2s;
+      box-shadow: 0 4px 18px rgba(255,0,128,0.06);
+    }
+    .shipping-guide-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,0,128,0.85);
+      box-shadow: 0 8px 26px rgba(255,0,128,0.18);
+    }
+    .shipping-guide-btn .sgb-icon { font-size: 26px; flex-shrink: 0; line-height: 1; }
+    .shipping-guide-btn .sgb-text { flex: 1; min-width: 0; line-height: 1.4; }
+    .shipping-guide-btn .sgb-text strong {
+      display: block; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+    }
+    .shipping-guide-btn .sgb-text span { display: block; font-size: 13px; color: var(--muted); }
+    .shipping-guide-btn .sgb-arrow {
+      flex-shrink: 0;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      box-shadow: 0 3px 12px rgba(255,0,128,0.35);
+    }
+    @media (max-width: 560px) {
+      .shipping-guide-btn { padding: 14px 16px; gap: 12px; }
+      .shipping-guide-btn .sgb-icon { font-size: 22px; }
+      .shipping-guide-btn .sgb-text strong { font-size: 14px; }
+      .shipping-guide-btn .sgb-text span { font-size: 12px; }
+    }
+
     /* Conditioning-standards modal */
     .cond-modal { display: none; position: fixed; inset: 0; z-index: 1000; }
     .cond-modal.open { display: flex; align-items: center; justify-content: center; }
@@ -1209,8 +1252,8 @@
         <li><a href="events.html">Events</a></li>
         <li><a href="team.html">Our Team</a></li>
         <li><a href="trade-in.html">Sell / Trade</a></li>
-        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="faq.html">FAQ</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
@@ -1273,6 +1316,17 @@
         </div>
         <span class="csb-arrow">→</span>
       </button>
+
+      <!-- Shipping Guide callout — links to the packing-tiers page so customers
+           know how to ship cards safely once we accept the offer. -->
+      <a href="shipping.html" class="shipping-guide-btn">
+        <span class="sgb-icon">📦</span>
+        <div class="sgb-text">
+          <strong>How to Pack Your Cards</strong>
+          <span>Step-by-step shipping guide — penny sleeves, top loaders, team bags, bubble mailers, bulk.</span>
+        </div>
+        <span class="sgb-arrow">→</span>
+      </a>
 
       <div class="trade-layout">
 
@@ -1511,8 +1565,8 @@
         <a href="events.html">Events</a>
         <a href="team.html">Our Team</a>
         <a href="trade-in.html">Sell / Trade</a>
-        <a href="shipping.html">Shipping Guide</a>
         <a href="grading-prep.html">Grading Prep</a>
+        <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
