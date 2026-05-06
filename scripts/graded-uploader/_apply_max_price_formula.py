@@ -4,7 +4,9 @@ For each row in the Card Ladder CSV, gather the base price from up to three
 sources and use whichever is HIGHEST (user policy 2026-05-05):
   - Card Ladder Current Value (always available)
   - PriceCharting graded value (via productId lookup against pc-graded.json)
-  - 130point sales average (via the sakekitty-prices worker)
+  - eBay Sold Listings via Apify (caffein.dev/ebay-sold-listings actor),
+    last 5 sold totalPrice averaged. Real-time, replaces the blocked
+    130point worker as the live-comp source.
 
 Then apply the TIGHTENED tier markup (replaces 2026-05-05 morning's softer tiers):
   Base < $200:    Price = Base * 1.08 + $2
@@ -28,6 +30,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
+
+from _ebay_apify import fetch_or_cache as ebay_fetch, average_last_5 as ebay_avg5
 
 REPO_DIR = Path(__file__).resolve().parents[2]
 CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder.csv")
@@ -96,27 +100,8 @@ def name_tokens(s: str) -> set[str]:
     return {t for t in toks if len(t) > 1 and t not in stops}
 
 
-# ─── 130point worker ───────────────────────────────────────────────────────
-def query_130point(query: str, timeout: int = 30) -> float | None:
-    """Returns the average price from 130point's sales for this query, or None."""
-    try:
-        url = f"{LOOKUP_URL}?q={urllib.parse.quote(query)}"
-        req = urllib.request.Request(
-            url, headers={"User-Agent": "sake-kitty-pricer/1.0"}
-        )
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            data = json.loads(r.read())
-        if not data.get("ok"):
-            return None
-        summary = data.get("summary") or {}
-        avg = summary.get("avg")
-        count = summary.get("count", 0)
-        # Require a few sales for the avg to be meaningful
-        if avg is None or count < 3:
-            return None
-        return float(avg)
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError):
-        return None
+# 130point removed 2026-05-05 — worker is permanently 403'd by 130point's
+# anti-bot. eBay via Apify is the new live-comp source.
 
 
 # ─── PriceCharting via productId lookup ────────────────────────────────────
@@ -220,18 +205,12 @@ def main() -> None:
         pid = fuzzy_resolve_pid(player, set_, number, fallback)
         pc_price = pc_graded_price(pid, grade, pc_data)
 
-        # 130point via worker — query like "Year Player Number Grade"
-        # Worker scrapes 130point.com so a tighter query helps
-        query_parts = [year, player, f"#{number}" if number else "", grade]
-        query = " ".join(p for p in query_parts if p).strip()
-        tp_price = query_130point(query)
-
-        # Pick the highest of the three sources
+        # 130point removed — eBay sold listings handled in a separate step
+        # (_apply_ebay_reasoning.py) over the data fetched by _run_ebay_fetch.py.
+        # Pick the highest of the available sources at this stage (CL + PC).
         sources: list[tuple[str, float]] = [("CL", cl_value)]
         if pc_price is not None:
             sources.append(("PC", pc_price))
-        if tp_price is not None:
-            sources.append(("130p", tp_price))
         winner_name, winner_val = max(sources, key=lambda x: x[1])
 
         marked = markup(winner_val)
@@ -249,7 +228,7 @@ def main() -> None:
             "grade":       grade,
             "src_cl":      f"{cl_value:.2f}",
             "src_pc":      f"{pc_price:.2f}" if pc_price is not None else "",
-            "src_130p":    f"{tp_price:.2f}" if tp_price is not None else "",
+            "src_130p":    "",
             "src_winner":  winner_name,
             "base_value":  f"{winner_val:.2f}",
             "marked_up":   f"{marked:.2f}",
@@ -264,11 +243,10 @@ def main() -> None:
 
         # Status line — strip Unicode for the Windows console (cp1252)
         pc_str = f"PC=${pc_price:.0f}" if pc_price is not None else "PC=--"
-        tp_str = f"130p=${tp_price:.0f}" if tp_price is not None else "130p=--"
         safe_name = player[:30].encode("ascii", "replace").decode("ascii")
         print(
             f"[max] {i:>2}/{len(rows_in):>2} "
-            f"CL=${cl_value:>6.0f}  {pc_str:<12} {tp_str:<14} "
+            f"CL=${cl_value:>6.0f}  {pc_str:<12} "
             f"-> {winner_name:>4} ${winner_val:>6.0f}  ->  ${final:<5}  "
             f"{safe_name}"
         )
