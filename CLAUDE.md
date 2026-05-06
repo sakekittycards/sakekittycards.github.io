@@ -84,6 +84,15 @@ Each card in the list shows an inline **profit-margin panel** under the service 
 
 ProductId resolution: JP cards have it from the static index; English cards get it via name+set+number lookup against `all-cards-fallback.json`.
 
+### Grading Prep — locked business rules (don't drift)
+
+- **Card Prep = penny sleeve + card saver. NOT top loaders.** Don't reword to include "top-load" — Card Prep doesn't ship in top loaders. (Top loaders are a Tier-1 packing requirement on the shipping guide; that's different.)
+- **Error cards go to PSA OR CGC**, not just CGC. Customers can pick either. Don't revert to CGC-only without confirming.
+- **Screening disclaimer (locked phrase):** "Screening does not guarantee a specific grade. Final grades are determined by PSA, CGC, or Beckett." Appears on grading-prep.html twice (top trust banner + above submit button). Reuse verbatim in any related copy.
+- **CTA copy:** Submit button reads "Submit Grading Prep Request" (was "Send Request"). Failure-state reset uses the same string.
+- **Submission Choice + Turnaround panels are conditionally hidden** — Submission Choice only renders when at least one card has a Card Prep service selected; Turnaround only renders when Card Prep is selected AND submitting through us. Both reveals are intentional; don't make them always-visible.
+- **Form fields:** Name + Email (required) · Phone or Instagram Handle (optional) · Hand-Off Preference radio (Mail In default / In Person) · Notes (optional) · Terms checkbox (required). The submission worker payload + Web3Forms email both carry `phone` + `handoff`.
+
 ### Worker — `sakekitty-prices` (`workers/prices/`)
 
 Cloudflare Worker. Endpoints:
