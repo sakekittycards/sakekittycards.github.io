@@ -20,18 +20,24 @@ OUT_PATH = HERE / "_ebay_data_dump.json"
 
 
 def build_query(row: dict) -> str:
-    parts = [
-        (row.get("year") or "").strip(),
-        (row.get("set") or "").strip(),
-        (row.get("card_name") or "").strip(),
-        (row.get("number") or "").strip(),
-        (row.get("grade") or "").strip(),
-    ]
+    """Cleaner query — drop year + set (CL has weird artifacts there),
+    clean dashes/dots in player name, just card name + number + grade.
+    Keeps eBay's free-text matching focused on the most distinctive signals."""
+    name = (row.get("card_name") or "").strip()
+    number = (row.get("number") or "").strip()
+    grade = (row.get("grade") or "").strip()
+
+    # Clean player name: dashes/dots → spaces, normalize whitespace
+    name = re.sub(r"[-./]", " ", name)
+    name = re.sub(r"\s+", " ", name).strip()
+
+    parts = [name]
+    if number:
+        parts.append(number)
+    if grade:
+        parts.append(grade)
+
     q = " ".join(p for p in parts if p)
-    # Strip Pokemon prefix (already implied by being a card search)
-    q = re.sub(r"\bPokemon\s+", "", q, flags=re.I)
-    # Trim 'Set Variation' artifact and weird CL truncations
-    q = re.sub(r"\s+", " ", q).strip()
     return q
 
 
