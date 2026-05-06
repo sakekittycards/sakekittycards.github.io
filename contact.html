@@ -6,12 +6,12 @@
   <link rel="apple-touch-icon" href="logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Contact — Sake Kitty Cards</title>
-  <meta name="description" content="Get in touch with Sake Kitty Cards — we'd love to hear from you." />
+  <meta name="description" content="Get in touch with Sake Kitty Cards — questions, trade inquiries, grading prep, vendor opportunities, or collection deals. We respond within 24 hours." />
 
-  <!-- Canonical + Social preview (added 2026-05-06 SEO pass) -->
+  <!-- Canonical + Social preview -->
   <link rel="canonical" href="https://sakekittycards.com/contact.html" />
   <meta property="og:title" content="Contact — Sake Kitty Cards" />
-  <meta property="og:description" content="Get in touch with Sake Kitty Cards. We respond within 24 hours." />
+  <meta property="og:description" content="Reach Sake Kitty Cards via email, Instagram, TCGPlayer, Whatnot, or YouTube. We respond within 24 hours." />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -19,15 +19,355 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Contact — Sake Kitty Cards" />
-  <meta name="twitter:description" content="Get in touch with Sake Kitty Cards. We respond within 24 hours." />
+  <meta name="twitter:description" content="Reach Sake Kitty Cards via email, Instagram, TCGPlayer, Whatnot, or YouTube. We respond within 24 hours." />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=104" />
   <style>
-    /* Closing brand strip — confident page-end before global footer.
-       Same pattern as shipping.html's .pack-brand-strip. */
+    /* ═══ Contact page polish — promotes the shipping-page neon-accent
+       template with bigger hero, premium connect cards, response-time
+       pills, events CTA, improved form, and a trust block. All scoped
+       under .page-contact so it doesn't leak into the global stylesheet. ═══ */
+
+    .page-contact .page-hero {
+      padding-bottom: 24px;
+      position: relative;
+    }
+    .page-contact .page-hero h1 {
+      font-size: clamp(38px, 7vw, 64px);
+      background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 50%, #7b2fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter:
+        drop-shadow(0 0 18px rgba(255,106,0,0.30))
+        drop-shadow(0 0 48px rgba(255,0,128,0.18));
+      margin-bottom: 14px;
+    }
+    .page-contact .page-hero > p:not(.contact-tagline) {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.5;
+      color: rgba(229,229,247,0.80);
+      max-width: 560px;
+      margin: 14px auto 0;
+    }
+    .contact-tagline {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(13px, 2.2vw, 16px); letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    .contact-tagline .ok  { color: var(--cyan); }
+    .contact-tagline .pop { color: var(--pink); }
+
+    /* Ambient glow gradient behind hero/connect for depth */
+    .page-contact .section { position: relative; }
+    .page-contact .section.section-glow::before {
+      content: '';
+      position: absolute;
+      inset: -10% -10% -20% -10%;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 40% at 25% 30%, rgba(255,0,128,0.06), transparent 70%),
+        radial-gradient(ellipse 50% 35% at 75% 60%, rgba(0,212,255,0.06), transparent 70%);
+      filter: blur(24px);
+    }
+    .page-contact .section.section-glow > * { position: relative; z-index: 1; }
+
+    /* ── Response-time / hours pills ── */
+    .contact-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .cm-pill {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+    .cm-pill-cyan   { box-shadow: inset 0 3px 0 0 #00d4ff, 0 0 18px rgba(0,212,255,0.08); }
+    .cm-pill-orange { box-shadow: inset 0 3px 0 0 #ff6a00, 0 0 18px rgba(255,106,0,0.08); }
+    .cm-pill-pink   { box-shadow: inset 0 3px 0 0 #ff0080, 0 0 18px rgba(255,0,128,0.08); }
+    .cm-pill:hover { transform: translateY(-1px); }
+    .cm-pill .cm-pill-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+    .cm-pill .cm-pill-text { line-height: 1.4; }
+    .cm-pill strong {
+      display: block; font-size: 13.5px; font-weight: 700;
+      color: var(--text); letter-spacing: 0.2px;
+    }
+    .cm-pill .cm-pill-sub {
+      display: block; font-size: 12.5px; color: var(--muted);
+    }
+
+    /* ── Connect cards ── */
+    .connect-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .connect-card {
+      display: flex; flex-direction: column;
+      padding: 28px 22px 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      text-decoration: none; color: var(--text);
+      transition: transform .25s ease, border-color .2s, box-shadow .25s;
+    }
+    .connect-card.tone-orange { box-shadow: inset 0 5px 0 0 #ff6a00, 0 0 24px rgba(255,106,0,0.08); }
+    .connect-card.tone-pink   { box-shadow: inset 0 5px 0 0 #ff0080, 0 0 24px rgba(255,0,128,0.08); }
+    .connect-card.tone-cyan   { box-shadow: inset 0 5px 0 0 #00d4ff, 0 0 24px rgba(0,212,255,0.08); }
+    .connect-card.tone-purple { box-shadow: inset 0 5px 0 0 #7b2fff, 0 0 24px rgba(123,47,255,0.08); }
+    .connect-card.tone-red    { box-shadow: inset 0 5px 0 0 #ff3b30, 0 0 24px rgba(255,59,48,0.08); }
+    .connect-card:hover { transform: translateY(-3px); }
+    .connect-card.tone-orange:hover { border-color: rgba(255,106,0,0.55); box-shadow: inset 0 5px 0 0 #ff6a00, 0 8px 32px rgba(255,106,0,0.20); }
+    .connect-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55); box-shadow: inset 0 5px 0 0 #ff0080, 0 8px 32px rgba(255,0,128,0.20); }
+    .connect-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: inset 0 5px 0 0 #00d4ff, 0 8px 32px rgba(0,212,255,0.20); }
+    .connect-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: inset 0 5px 0 0 #7b2fff, 0 8px 32px rgba(123,47,255,0.20); }
+    .connect-card.tone-red:hover    { border-color: rgba(255,59,48,0.55);  box-shadow: inset 0 5px 0 0 #ff3b30, 0 8px 32px rgba(255,59,48,0.20); }
+
+    .connect-icon {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .connect-icon svg { width: 24px; height: 24px; }
+    .connect-icon img { width: 100%; height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
+    .connect-card.tone-orange .connect-icon { background: linear-gradient(135deg, #ffb84d, #ff6a00); color: #fff; }
+    .connect-card.tone-pink .connect-icon   { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+    .connect-card.tone-cyan .connect-icon   { background: #fff; }
+    .connect-card.tone-purple .connect-icon { background: #fff; }
+    .connect-card.tone-red .connect-icon    { background: #FF0000; color: #fff; }
+
+    .connect-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.04em;
+      margin: 0 0 6px;
+      padding: 2px 0 4px;
+      color: #fff;
+      line-height: 1.2;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .connect-card h3 .gold-star {
+      font-size: 12px; letter-spacing: 0;
+      color: #ffcc00;
+      text-shadow: 0 0 8px rgba(255,204,0,0.55);
+    }
+    .connect-card p {
+      font-size: 13.5px; color: rgba(229,229,247,0.75); line-height: 1.55;
+      margin: 0 0 14px;
+      flex: 1;
+    }
+    .connect-handle {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .connect-card.tone-orange .connect-handle { color: #ffc36e; }
+    .connect-card.tone-pink   .connect-handle { color: #ff66a0; }
+    .connect-card.tone-cyan   .connect-handle { color: #4ddfff; }
+    .connect-card.tone-purple .connect-handle { color: #c69aff; }
+    .connect-card.tone-red    .connect-handle { color: #ff7a72; }
+
+    /* ── Events CTA ── */
+    .contact-events-cta {
+      display: flex; align-items: center; gap: 16px;
+      max-width: 920px; margin: 0 auto;
+      padding: 18px 24px;
+      background: linear-gradient(135deg, rgba(123,47,255,0.08), rgba(255,0,128,0.06));
+      border: 1px solid rgba(123,47,255,0.30);
+      border-radius: var(--r);
+      color: var(--text); text-decoration: none;
+      transition: transform .15s, border-color .15s, box-shadow .2s;
+      box-shadow: 0 4px 18px rgba(123,47,255,0.06);
+    }
+    .contact-events-cta:hover {
+      transform: translateY(-1px);
+      border-color: rgba(123,47,255,0.55);
+      box-shadow: 0 8px 28px rgba(123,47,255,0.18);
+    }
+    .cec-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
+    .cec-text { flex: 1; min-width: 0; line-height: 1.45; }
+    .cec-text strong {
+      display: block; font-size: 15.5px; font-weight: 700;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .cec-text span { display: block; font-size: 13px; color: var(--muted); }
+    .cec-arrow {
+      flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #b46cff, #7b2fff);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      box-shadow: 0 3px 12px rgba(123,47,255,0.40);
+    }
+    @media (max-width: 540px) {
+      .contact-events-cta { padding: 14px 16px; gap: 12px; }
+      .cec-icon { font-size: 22px; }
+      .cec-text strong { font-size: 14px; }
+      .cec-text span { font-size: 12px; }
+    }
+
+    /* ── Form ── */
+    .contact-form-section {
+      max-width: 720px; margin: 0 auto;
+      padding: 36px 32px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: var(--r);
+      box-shadow: 0 0 0 1px rgba(255,106,0,0.08) inset, 0 0 36px rgba(255,106,0,0.06);
+    }
+    @media (max-width: 540px) {
+      .contact-form-section { padding: 24px 18px; }
+    }
+    .contact-form-intro h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(26px, 4vw, 32px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.25));
+      padding-bottom: 8px; line-height: 1.25;
+      margin: 0 0 6px;
+    }
+    .contact-form-intro p {
+      font-size: 14px; color: var(--muted); line-height: 1.6;
+      margin: 0 0 22px;
+    }
+    .contact-form-intro p a { color: var(--orange); font-weight: 600; text-decoration: none; }
+    .contact-form-intro p a:hover { text-decoration: underline; }
+
+    .contact-form .form-group { margin-bottom: 18px; }
+    .contact-form label {
+      display: block;
+      font-size: 11.5px; font-weight: 700;
+      color: var(--dim);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      width: 100%; box-sizing: border-box;
+      background: rgba(0,0,0,0.25);
+      border: 1.5px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+      outline: none;
+      border-color: rgba(255,106,0,0.65);
+      background: rgba(0,0,0,0.40);
+      box-shadow: 0 0 0 3px rgba(255,106,0,0.16), 0 0 22px rgba(255,106,0,0.14);
+    }
+    .contact-form textarea { min-height: 140px; resize: vertical; line-height: 1.55; }
+
+    .contact-form-cta {
+      width: 100%;
+      padding: 19px 16px 13px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.10em;
+      cursor: pointer;
+      box-shadow:
+        0 6px 22px rgba(255,106,0,0.32),
+        0 0 0 1px rgba(255,255,255,0.06) inset;
+      line-height: 1.2;
+      transition: transform .15s, box-shadow .15s, filter .15s;
+    }
+    .contact-form-cta:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow:
+        0 10px 28px rgba(255,106,0,0.42),
+        0 0 0 1px rgba(255,255,255,0.10) inset;
+      filter: brightness(1.05);
+    }
+    .contact-form-cta:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .contact-form-status {
+      margin: 14px 0 0;
+      font-size: 13.5px; line-height: 1.55;
+      color: var(--muted); min-height: 18px;
+      text-align: center;
+    }
+
+    /* ── Trust block ── */
+    .contact-trust {
+      max-width: 920px; margin: 0 auto;
+      padding: 36px 28px 28px;
+      text-align: center;
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 0%, rgba(255,106,0,0.06), transparent 70%),
+        var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--r);
+    }
+    .contact-trust h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(22px, 3.4vw, 30px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.20));
+      padding-bottom: 8px; line-height: 1.25;
+      margin: 0 0 8px;
+    }
+    .contact-trust p {
+      font-size: 14.5px; color: rgba(229,229,247,0.80); line-height: 1.65;
+      max-width: 600px; margin: 0 auto 18px;
+    }
+    .contact-trust-pills {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    }
+    .contact-trust-pills span {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.4px; text-transform: uppercase;
+      padding: 6px 12px;
+      border: 1px solid rgba(255,106,0,0.30);
+      border-radius: 100px;
+      color: rgba(255,255,255,0.85);
+      background: rgba(255,106,0,0.04);
+    }
+    .contact-trust-pills span.pill-cyan {
+      border-color: rgba(0,212,255,0.30);
+      background: rgba(0,212,255,0.05);
+      color: #b8eaff;
+    }
+    .contact-trust-pills span.pill-pink {
+      border-color: rgba(255,0,128,0.30);
+      background: rgba(255,0,128,0.05);
+      color: #ffb3d4;
+    }
+    .contact-trust-pills span.pill-purple {
+      border-color: rgba(123,47,255,0.30);
+      background: rgba(123,47,255,0.05);
+      color: #c69aff;
+    }
+
+    /* ── Closing brand strip ── */
     .pack-brand-strip {
       margin: 56px auto 0;
       max-width: 760px;
@@ -58,9 +398,14 @@
     @media (max-width: 520px) {
       .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
     }
+
+    /* Calmer blobs on this page so connect cards stay focal */
+    .page-contact .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-contact .page-hero,
+    .page-contact .section { max-width: 1240px; }
   </style>
 </head>
-<body>
+<body class="page-contact">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -90,215 +435,163 @@
   </nav>
 
   <main id="main" class="page-content">
+    <!-- Hero -->
     <div class="page-hero">
-      <h1>Contact Us</h1>
-      <p>Questions, orders, trades — we're here. We typically respond within 24 hours.</p>
+      <h1>Contact Sake Kitty Cards</h1>
+      <p class="contact-tagline">Real <span class="ok">Collectors</span> · Real <span class="pop">Conversations</span></p>
+      <p>Questions, trade inquiries, grading prep, vendor opportunities, or collection deals — reach out anytime. Typical response within 24 hours.</p>
     </div>
 
-    <div class="section" style="padding-top:0">
-      <div class="contact-split">
-
-        <!-- Contact methods -->
-        <div>
-          <h2 class="section-title" style="font-size:28px;margin-bottom:8px">Get in Touch</h2>
-          <p style="font-size:12px;color:var(--dim);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px">Connect · Shop · Follow</p>
-          <div class="contact-methods">
-
-            <a href="mailto:nick@sakekittycards.com" class="contact-method">
-              <div class="cm-icon" style="background:linear-gradient(135deg,#ff6a00,#ff4e00);color:#fff">
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-              </div>
-              <div class="cm-info">
-                <strong>Email</strong>
-                <span>nick@sakekittycards.com</span>
-              </div>
-            </a>
-
-            <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)">
-                <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              </div>
-              <div class="cm-info">
-                <strong>Instagram</strong>
-                <span>@sakekittycards</span>
-              </div>
-            </a>
-
-            <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:#fff;padding:3px">
-                <img src="tcgplayer-logo.jpg" alt="TCGplayer" style="width:100%;height:100%;object-fit:contain" />
-              </div>
-              <div class="cm-info">
-                <strong>TCGPlayer Store <span style="color:#ffcc00;font-size:12px;letter-spacing:0;margin-left:4px">★ Gold Star Seller</span></strong>
-                <span>Sake Kitty Cards</span>
-              </div>
-            </a>
-
-            <a href="/whatnot" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:#fff;padding:3px">
-                <img src="whatnot-logo.webp" alt="Whatnot" style="width:100%;height:100%;object-fit:contain" />
-              </div>
-              <div class="cm-info">
-                <strong>Whatnot Live</strong>
-                <span>@sakekittycards</span>
-              </div>
-            </a>
-
-            <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:#FF0000;color:#fff">
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:22px;height:22px"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              </div>
-              <div class="cm-info">
-                <strong>YouTube</strong>
-                <span>@SakeKittyCards</span>
-              </div>
-            </a>
-          </div>
-
-          <p style="font-size:12px;color:var(--dim);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:28px 0 14px">Accepted Payments</p>
-          <div class="contact-methods">
-            <a href="shop.html" class="contact-method">
-              <div class="cm-icon" style="background:linear-gradient(135deg,#4a4f58,#2a2e36);color:#fff">
-                <svg viewBox="0 0 24 24" style="width:24px;height:24px">
-                  <rect x="2" y="5" width="20" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                  <rect x="2" y="8.5" width="20" height="2.5" fill="currentColor"/>
-                  <rect x="5" y="14" width="3.2" height="2.2" rx="0.4" fill="#ffcc00"/>
-                  <rect x="13" y="15" width="6" height="1.3" rx="0.6" fill="currentColor" opacity="0.7"/>
-                </svg>
-              </div>
-              <div class="cm-info">
-                <strong>Credit / Debit Card</strong>
-                <span>Visa · MC · Amex · Discover</span>
-              </div>
-            </a>
-
-            <a href="shop.html" class="contact-method">
-              <div class="cm-icon" style="background:#000">
-                <svg viewBox="0 0 24 24" fill="#fff" style="width:22px;height:22px"><path d="M17.543 11.75c-.033-3.333 2.72-4.933 2.847-5.013-1.553-2.267-3.96-2.577-4.82-2.614-2.05-.207-4 1.203-5.04 1.203-1.04 0-2.643-1.175-4.357-1.142-2.24.033-4.314 1.307-5.467 3.317-2.337 4.037-.593 10.013 1.673 13.297 1.11 1.603 2.43 3.403 4.163 3.34 1.673-.067 2.307-1.083 4.337-1.083 2.033 0 2.607 1.083 4.383 1.05 1.81-.033 2.953-1.64 4.057-3.25 1.28-1.867 1.807-3.677 1.833-3.77-.04-.02-3.513-1.35-3.55-5.36zM13.66 2.61c.922-1.14 1.543-2.72 1.373-4.29-1.35.054-2.985.89-3.943 2.008-.87.983-1.63 2.56-1.42 4.097 1.51.117 3.053-.768 3.99-1.816"/></svg>
-              </div>
-              <div class="cm-info">
-                <strong>Apple Pay</strong>
-                <span>Available at checkout</span>
-              </div>
-            </a>
-
-            <a href="shop.html" class="contact-method">
-              <div class="cm-icon" style="background:#fff">
-                <svg viewBox="0 0 48 48" style="width:26px;height:26px">
-                  <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
-                  <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
-                  <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-                  <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
-                </svg>
-              </div>
-              <div class="cm-info">
-                <strong>Google Pay</strong>
-                <span>Available at checkout</span>
-              </div>
-            </a>
-
-            <a href="https://venmo.com/sakekittycards" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:linear-gradient(135deg,#008cff,#0060cc)">
-                <svg viewBox="0 0 24 24"><path d="M19.778 2c.34 1.168.489 2.361.489 3.792 0 3.986-3.402 9.167-6.167 12.813H7.833L5 2.979l5.906-.562 1.534 12.293C13.756 12.366 15.6 8.87 15.6 6.25c0-1.484-.244-2.485-.636-3.285L19.778 2z"/></svg>
-              </div>
-              <div class="cm-info">
-                <strong>Venmo</strong>
-                <span>@sakekittycards</span>
-              </div>
-            </a>
-
-            <a href="https://www.paypal.biz/sakekittycards" target="_blank" rel="noopener" class="contact-method">
-              <div class="cm-icon" style="background:#fff">
-                <svg viewBox="0 0 24 24" style="width:24px;height:24px">
-                  <path fill="#009cde" d="M20.067 8.478c.492.315.844.825.983 1.453.417 1.86-.518 4.27-2.615 5.73-1.636 1.14-3.697 1.39-5.893 1.39h-.385c-.503 0-.929.368-1.008.867l-.055.304-.632 4.013-.028.17c-.08.5-.504.868-1.008.868H6.064a.483.483 0 0 1-.478-.562l.03-.188 2.64-16.746.053-.32a.648.648 0 0 1 .637-.551H14.8c2.035 0 3.62.408 4.63 1.223a3.466 3.466 0 0 1 .637.678v.037z"/>
-                  <path fill="#003087" d="M18.69 7.46c.382-2.22-.08-3.765-1.39-5.1C15.84.899 13.285 0 10.02 0H.545C-.128 0-.7.485-.807 1.146l-3.94 24.929c-.08.499.302.947.807.947h5.852l1.468-9.275-.047.29a1.162 1.162 0 0 1 1.146-.978h2.773c5.446 0 9.717-2.207 10.96-8.586.037-.19.069-.373.095-.551-.162-.08-.162-.08-.162-.08a4.71 4.71 0 0 1 0-.067c-.008-.036-.016-.072-.024-.108a1.6 1.6 0 0 0-.433-.226z"/>
-                </svg>
-              </div>
-              <div class="cm-info">
-                <strong>PayPal</strong>
-                <span>paypal.biz/sakekittycards</span>
-              </div>
-            </a>
+    <!-- Response time / hours -->
+    <div class="section section-glow" style="padding-top:0;padding-bottom:18px">
+      <div class="contact-meta">
+        <div class="cm-pill cm-pill-cyan">
+          <span class="cm-pill-icon" aria-hidden="true">⚡</span>
+          <div class="cm-pill-text">
+            <strong>Typical response</strong>
+            <span class="cm-pill-sub">Within 24 hours</span>
           </div>
         </div>
-
-        <!-- Contact form — posts via Web3Forms (same access key as trade-in /
-             grading-prep so we don't need a second integration). -->
-        <div class="contact-form-box">
-          <h3>Send a Message</h3>
-          <form id="contactForm">
-            <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
-            <input type="hidden" name="subject" value="Sake Kitty Contact Form" />
-            <input type="hidden" name="from_name" value="Sake Kitty Cards Contact" />
-            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
-            <div class="form-group">
-              <label for="name">Your Name</label>
-              <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
-            </div>
-            <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
-            </div>
-            <div class="form-group">
-              <label for="topic">Subject</label>
-              <select id="topic" name="topic">
-                <option value="General Question">General Question</option>
-                <option value="Order Inquiry">Order Inquiry</option>
-                <option value="Selling Cards to You">Selling Cards to You</option>
-                <option value="Trade Inquiry">Trade Inquiry</option>
-                <option value="Event / Collab">Event / Collab</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="message">Message</label>
-              <textarea id="message" name="message" placeholder="What's on your mind?" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary" id="contactSubmit" style="width:100%;justify-content:center">Send Message</button>
-            <p id="contactStatus" style="margin:14px 0 0;font-size:13.5px;line-height:1.55;color:var(--muted);min-height:18px"></p>
-          </form>
+        <div class="cm-pill cm-pill-orange">
+          <span class="cm-pill-icon" aria-hidden="true">🎴</span>
+          <div class="cm-pill-text">
+            <strong>Show weekends</strong>
+            <span class="cm-pill-sub">Replies may run a bit slower</span>
+          </div>
         </div>
-        <script>
-          (function () {
-            const form = document.getElementById('contactForm');
-            if (!form) return;
-            const btn = document.getElementById('contactSubmit');
-            const status = document.getElementById('contactStatus');
-            form.addEventListener('submit', async (e) => {
-              e.preventDefault();
-              btn.disabled = true;
-              btn.textContent = 'Sending…';
-              status.textContent = '';
-              status.style.color = 'var(--muted)';
-              try {
-                const fd = new FormData(form);
-                // Compose subject line so Nick sees the topic at a glance
-                const topic = fd.get('topic') || 'General Question';
-                fd.set('subject', `Contact: ${topic}`);
-                const res = await fetch('https://api.web3forms.com/submit', {
-                  method: 'POST', body: fd
-                });
-                const data = await res.json();
-                if (data && data.success) {
-                  status.style.color = '#50dc8c';
-                  status.textContent = 'Message sent — we\'ll reply within 24 hours.';
-                  form.reset();
-                  btn.textContent = 'Sent ✓';
-                } else {
-                  throw new Error(data && data.message ? data.message : 'Submission failed');
-                }
-              } catch (err) {
-                status.style.color = '#ff7a96';
-                status.textContent = 'Couldn\'t send — please email nick@sakekittycards.com directly.';
-                btn.disabled = false;
-                btn.textContent = 'Send Message';
-              }
-            });
-          })();
-        </script>
-
+        <div class="cm-pill cm-pill-pink">
+          <span class="cm-pill-icon" aria-hidden="true">📍</span>
+          <div class="cm-pill-text">
+            <strong>Based in</strong>
+            <span class="cm-pill-sub">Florida · vending nationwide</span>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Connect cards -->
+    <div class="section section-glow" style="padding-top:18px">
+      <div class="section-header" style="text-align:center;margin-bottom:24px">
+        <h2 class="section-title" style="display:inline-block">Ways to Connect</h2>
+        <div class="divider" style="margin:10px auto 0"></div>
+      </div>
+
+      <div class="connect-grid">
+        <a href="mailto:nick@sakekittycards.com" class="connect-card tone-orange">
+          <div class="connect-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </div>
+          <h3>Email</h3>
+          <p>Best for trade quotes, collection deals, vendor inquiries, and anything detailed.</p>
+          <div class="connect-handle">nick@sakekittycards.com</div>
+        </a>
+
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="connect-card tone-pink">
+          <div class="connect-icon">
+            <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </div>
+          <h3>Instagram</h3>
+          <p>Fastest way to reach us — daily updates, inventory drops, and event announcements.</p>
+          <div class="connect-handle">@sakekittycards</div>
+        </a>
+
+        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="connect-card tone-cyan">
+          <div class="connect-icon">
+            <img src="tcgplayer-logo.jpg" alt="TCGplayer" />
+          </div>
+          <h3>TCGPlayer Store <span class="gold-star">★ Gold Star</span></h3>
+          <p>Browse our singles inventory — Gold Star Seller with 99%+ feedback rating.</p>
+          <div class="connect-handle">Shop on TCGPlayer →</div>
+        </a>
+
+        <a href="/whatnot" target="_blank" rel="noopener" class="connect-card tone-purple">
+          <div class="connect-icon">
+            <img src="whatnot-logo.webp" alt="Whatnot" />
+          </div>
+          <h3>Whatnot Live</h3>
+          <p>Live card breaks and showcases — catch us streaming throughout the week.</p>
+          <div class="connect-handle">@sakekittycards</div>
+        </a>
+
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="connect-card tone-red">
+          <div class="connect-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </div>
+          <h3>YouTube</h3>
+          <p>Episodes from shows, breaks, and behind-the-table content.</p>
+          <div class="connect-handle">@SakeKittyCards</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Events CTA -->
+    <div class="section" style="padding-top:24px;padding-bottom:0">
+      <a href="events.html" class="contact-events-cta">
+        <span class="cec-icon" aria-hidden="true">📅</span>
+        <div class="cec-text">
+          <strong>Catch us at a show</strong>
+          <span>Find Sake Kitty Cards at card shows across Florida and beyond. See the full schedule.</span>
+        </div>
+        <span class="cec-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <!-- Form -->
+    <div class="section" style="padding-top:36px">
+      <div class="contact-form-section">
+        <div class="contact-form-intro">
+          <h2 class="section-title" style="display:inline-block">Send a Message</h2>
+          <p>Drop a note and we'll get back within 24 hours. For trade quotes, the <a href="trade-in.html">Sell / Trade form</a> moves fastest. For grading questions, the <a href="grading-prep.html">Grading Prep page</a> has the full breakdown.</p>
+        </div>
+        <form id="contactForm" class="contact-form">
+          <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+          <input type="hidden" name="subject" value="Sake Kitty Contact Form" />
+          <input type="hidden" name="from_name" value="Sake Kitty Cards Contact" />
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
+          </div>
+          <div class="form-group">
+            <label for="topic">Subject</label>
+            <select id="topic" name="topic">
+              <option value="General Question">General Question</option>
+              <option value="Order Inquiry">Order Inquiry</option>
+              <option value="Selling Cards to You">Selling Cards to You</option>
+              <option value="Trade Inquiry">Trade Inquiry</option>
+              <option value="Grading Prep">Grading Prep</option>
+              <option value="Vendor / Event Collab">Vendor / Event Collab</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" placeholder="What's on your mind?" required></textarea>
+          </div>
+          <button type="submit" class="contact-form-cta" id="contactSubmit">Send Message</button>
+          <p id="contactStatus" class="contact-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Trust / community -->
+    <div class="section" style="padding-top:36px">
+      <div class="contact-trust">
+        <h3>Built by collectors, for collectors</h3>
+        <p>Sake Kitty Cards works with collectors, vendors, and players across the Pokémon TCG community — through shows, online sales, grading prep, and live events.</p>
+        <div class="contact-trust-pills">
+          <span>★ Gold Star Seller</span>
+          <span class="pill-cyan">99%+ Feedback</span>
+          <span class="pill-pink">FL · Vending Nationwide</span>
+          <span class="pill-purple">Honest Condition</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Compact branded close strip — confident page-end before global footer. -->
     <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
       <span class="pbs-name">SAKE KITTY CARDS</span>
@@ -343,5 +636,42 @@
   </footer>
 
   <script src="main.js?v=44"></script>
+  <script>
+    (function () {
+      const form = document.getElementById('contactForm');
+      if (!form) return;
+      const btn = document.getElementById('contactSubmit');
+      const status = document.getElementById('contactStatus');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        status.textContent = '';
+        status.style.color = 'var(--muted)';
+        try {
+          const fd = new FormData(form);
+          const topic = fd.get('topic') || 'General Question';
+          fd.set('subject', `Contact: ${topic}`);
+          const res = await fetch('https://api.web3forms.com/submit', {
+            method: 'POST', body: fd
+          });
+          const data = await res.json();
+          if (data && data.success) {
+            status.style.color = '#50dc8c';
+            status.textContent = 'Message sent — we\'ll reply within 24 hours.';
+            form.reset();
+            btn.textContent = 'Sent ✓';
+          } else {
+            throw new Error(data && data.message ? data.message : 'Submission failed');
+          }
+        } catch (err) {
+          status.style.color = '#ff7a96';
+          status.textContent = 'Couldn\'t send — please email nick@sakekittycards.com directly.';
+          btn.disabled = false;
+          btn.textContent = 'Send Message';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
