@@ -16,7 +16,10 @@
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
        so they don't bleed into the global stylesheet. ── */
     .page-shipping .bg-blob   { opacity: 0.06; filter: blur(140px); }
-    .page-shipping .page-content { max-width: 1240px; }
+    /* Bumped max-width on the centered children (hero + section) — putting it
+       on .page-content broke centering since that wrapper has no margin:0 auto. */
+    .page-shipping .page-hero,
+    .page-shipping .section { max-width: 1240px; }
     .page-shipping .page-hero {
       padding-bottom: 28px;        /* was 56px — pulls cards up ~28px */
     }
@@ -459,8 +462,8 @@
         <li><a href="events.html">Events</a></li>
         <li><a href="team.html">Our Team</a></li>
         <li><a href="trade-in.html">Sell / Trade</a></li>
-        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
         <li><a href="faq.html">FAQ</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
@@ -658,8 +661,8 @@
         <a href="events.html">Events</a>
         <a href="team.html">Our Team</a>
         <a href="trade-in.html">Sell / Trade</a>
-        <a href="shipping.html">Shipping Guide</a>
         <a href="grading-prep.html">Grading Prep</a>
+        <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
