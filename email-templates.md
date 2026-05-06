@@ -38,11 +38,10 @@ sakekittycards@gmail.com
 @sakekittycards on Instagram
 
 ───────────────────────────────────────
-Payout Tiers (reference — unified $25/$100/$500/$1,000 breakpoints)
-  Singles <$25 .......... 60% cash / 70% credit
-  Singles $25–$99 ....... 70% cash / 80% credit
-  Sealed  $25–$99 ....... 70% cash / 80% credit
-  Graded  $25–$99 ....... 75% cash / 85% credit
+Payout Tiers (reference — unified $100/$500/$1,000 breakpoints)
+  Singles <$100 ......... 70% cash / 80% credit
+  Sealed  <$100 ......... 70% cash / 80% credit
+  Graded  <$100 ......... 75% cash / 85% credit
   Singles $100–$499 ..... 80% cash / 90% credit
   Sealed  $100–$499 ..... 80% cash / 90% credit
   Graded  $100–$499 ..... 82% cash / 92% credit
