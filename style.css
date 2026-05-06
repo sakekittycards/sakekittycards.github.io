@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap');
 
 /* ── Variables ── */
 :root {
@@ -1020,6 +1020,54 @@ body.cart-open { overflow: hidden; }
   filter: blur(0) saturate(1);
   transform: scale(1);
 }
+
+/* Brand-colored conic-gradient spinner that overlays each product image
+   while it's loading. Visible only while the <img> still has .img-loading;
+   fades out as soon as it gets the .img-loaded class. Sits above the
+   skeleton glow but below the loaded image. The mask trick turns the
+   conic gradient into a thin ring (transparent inner circle, gradient
+   outer band).
+
+   Position: visually centered in the image area (image takes the top
+   ~72% of the card, info section the rest), so 36% from card top hits
+   the center of the image region. Same offset works for both 5/7 cards
+   (singles/merch) and 1/1 cards (graded). */
+.product-card::after {
+  content: '';
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #ff6a00 20%,
+    #ff0080 40%,
+    #7b2fff 60%,
+    #00d4ff 80%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  -webkit-mask: radial-gradient(circle, transparent 14px, #000 16px);
+          mask: radial-gradient(circle, transparent 14px, #000 16px);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+  animation: skBrandSpin 0.9s linear infinite;
+  transition: opacity 220ms ease-out;
+  filter: drop-shadow(0 0 8px rgba(255,0,128,0.35));
+}
+.product-card:has(.product-img-real.img-loading)::after {
+  opacity: 1;
+}
+@keyframes skBrandSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-card::after { animation-duration: 2.5s; }
+}
 @media (max-width: 640px) {
   .graded-controls { gap: 8px; padding: 10px 12px; }
   .graded-controls .ctrl { min-width: calc(50% - 6px); flex-grow: 1; }
@@ -1207,14 +1255,29 @@ body.cart-open { overflow: hidden; }
   padding: 60px 20px; text-align: center;
   color: var(--muted); font-size: 14px;
 }
+/* Brand conic-gradient ring — same vibe as the per-card image spinner.
+   Used by the top-of-shop "Loading products…" indicator. */
 .shop-spinner {
-  width: 36px; height: 36px;
-  border: 3px solid rgba(255,106,0,0.15);
-  border-top-color: var(--orange);
+  width: 44px; height: 44px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    #ff6a00 20%,
+    #ff0080 40%,
+    #7b2fff 60%,
+    #00d4ff 80%,
+    transparent 100%
+  );
   border-radius: 50%;
-  animation: shopSpin 0.8s linear infinite;
+  -webkit-mask: radial-gradient(circle, transparent 14px, #000 16px);
+          mask: radial-gradient(circle, transparent 14px, #000 16px);
+  animation: shopSpin 0.9s linear infinite;
+  filter: drop-shadow(0 0 10px rgba(255,0,128,0.4));
 }
 @keyframes shopSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .shop-spinner { animation-duration: 2.5s; }
+}
 .shop-empty, .shop-error {
   max-width: 440px; margin: 0 auto;
 }
