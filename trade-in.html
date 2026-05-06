@@ -9,8 +9,8 @@
   <meta name="description" content="Sell or trade your Pokémon cards — singles, sealed, graded, and bulk. Instant rough estimate, cash or store credit." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=98" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=99" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -382,12 +382,23 @@
     .ti-totals-label { font-size: 14px; color: var(--muted); }
     .ti-totals-label small { color: var(--dim); font-size: 11px; font-weight: 400; }
     .ti-totals-value {
-      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-family: 'Inter', sans-serif; font-weight: 800;
       font-variant-numeric: tabular-nums;
-      font-size: 20px; letter-spacing: -0.5px;
+      font-size: 22px; letter-spacing: -0.8px;
+      line-height: 1.15;
     }
-    .ti-totals-value.cash { color: var(--orange); }
-    .ti-totals-value.credit { color: var(--cyan); }
+    /* Cart totals also get the gradient-fill treatment so they read as
+       branded amounts, not generic numbers. */
+    .ti-totals-value.cash {
+      background: linear-gradient(135deg, var(--orange), #ffae00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(255,106,0,0.35));
+    }
+    .ti-totals-value.credit {
+      background: linear-gradient(135deg, var(--cyan), #b78dff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(0,212,255,0.35));
+    }
     .ti-totals-value.market { color: var(--text); }
 
     .ti-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
@@ -514,17 +525,30 @@
       display: flex; align-items: baseline; gap: 4px;
       font-family: 'Inter', sans-serif; font-weight: 800;
       font-variant-numeric: tabular-nums;
-      font-size: 20px; letter-spacing: -0.5px;
+      font-size: 22px; letter-spacing: -0.8px;
       line-height: 1;
       flex-shrink: 0;
-      min-width: 86px;
+      min-width: 92px;
     }
-    .ti-rate-tier-rate .rate-cash   { color: var(--orange); }
-    .ti-rate-tier-rate .rate-credit { color: var(--cyan); }
-    .ti-rate-tier-rate .rate-sep    { color: var(--dim); font-size: 16px; }
-    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-cash,
+    /* Gradient text-fill + brand glow on every tier rate (was solid
+       color + glow on top only). Numbers feel branded without losing
+       legibility — Inter digits stay distinct (no 7-vs-1 ambiguity). */
+    .ti-rate-tier-rate .rate-cash {
+      background: linear-gradient(135deg, var(--orange), #ffae00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(255,106,0,0.35));
+    }
+    .ti-rate-tier-rate .rate-credit {
+      background: linear-gradient(135deg, var(--cyan), #b78dff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 6px rgba(0,212,255,0.35));
+    }
+    .ti-rate-tier-rate .rate-sep { color: var(--dim); font-size: 16px; }
+    .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-cash {
+      filter: drop-shadow(0 0 12px rgba(255,106,0,0.6));
+    }
     .ti-rate-tier.ti-rate-top .ti-rate-tier-rate .rate-credit {
-      filter: drop-shadow(0 0 8px currentColor);
+      filter: drop-shadow(0 0 12px rgba(0,212,255,0.6));
     }
     .ti-rate-tier-items {
       list-style: none; padding: 0; margin: 0;
@@ -1145,7 +1169,7 @@
           </div>
 
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:28px;padding:14px 18px;background:rgba(255,106,0,0.06);border:1.5px solid rgba(255,106,0,0.40);border-radius:14px;box-shadow:0 0 0 1px rgba(255,106,0,0.10),0 4px 18px rgba(255,106,0,0.10);overflow:visible">
-            <h3 style="margin:0;line-height:1.25;padding:2px 0 6px">Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400;-webkit-text-fill-color:var(--dim);background:none;-webkit-background-clip:initial"></span></h3>
+            <h3 style="margin:0;line-height:1.3;padding:4px 0 12px">Your List <span id="listCount" style="font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);font-weight:400;-webkit-text-fill-color:var(--dim);background:none;-webkit-background-clip:initial"></span></h3>
             <button id="clearListBtn" class="btn btn-outline btn-sm" style="white-space:nowrap">Clear All</button>
           </div>
           <div id="tradeList" class="ti-list"></div>
@@ -1377,7 +1401,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=39"></script>
+  <script src="main.js?v=40"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
