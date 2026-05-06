@@ -12,7 +12,46 @@
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=104" />
   <style>
-    /* ── Shipping guide local styles ── */
+    /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
+       All hero / page-content / bg-blob tweaks scoped under .page-shipping
+       so they don't bleed into the global stylesheet. ── */
+    .page-shipping .bg-blob   { opacity: 0.06; filter: blur(140px); }
+    .page-shipping .page-content { max-width: 1240px; }
+    .page-shipping .page-hero {
+      padding-bottom: 28px;        /* was 56px — pulls cards up ~28px */
+    }
+    .page-shipping .page-hero h1 {
+      filter:
+        drop-shadow(0 0 18px rgba(255,106,0,0.30))
+        drop-shadow(0 0 48px rgba(255,0,128,0.18));
+      background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 50%, #7b2fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 16px;
+    }
+    .page-shipping .page-hero > p:not(.pack-tagline) {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.45;            /* tighter — was 1.6 default */
+      color: rgba(229,229,247,0.80);
+      max-width: 540px;
+    }
+    /* Section gets a soft ambient glow behind the card row so the center
+       of the page feels alive without competing with the cards themselves. */
+    .page-shipping .section {
+      position: relative;
+    }
+    .page-shipping .section::before {
+      content: '';
+      position: absolute;
+      inset: 20px 0 30% 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 40% at 25% 30%, rgba(255,0,128,0.06), transparent 70%),
+        radial-gradient(ellipse 50% 35% at 75% 60%, rgba(0,212,255,0.05), transparent 70%);
+      filter: blur(20px);
+    }
+    .page-shipping .section > * { position: relative; z-index: 1; }
+
     .pack-tagline {
       font-family: 'Inter', sans-serif; font-weight: 700;
       font-size: clamp(13px, 2.2vw, 17px); letter-spacing: 0.06em;
@@ -22,17 +61,64 @@
     .pack-tagline .pop { color: var(--pink); }
 
     .pack-grid {
-      display: grid; gap: 22px;
+      display: grid; gap: 24px;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       margin-bottom: 28px;
+      align-items: stretch;
     }
 
+    /* Tier card — neon accent header (thin 6px bar) instead of giant gradient
+       title. Title is white with per-tone text-shadow glow so it reads as
+       label, not as a colored block. Body content has more breathing room. */
     .tier-card {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 26px 22px 22px;
-      position: relative; transition: background .2s, border-color .2s;
+      border-radius: var(--r); padding: 32px 28px 24px;
+      position: relative; overflow: hidden;
+      transition: transform .25s ease, border-color .2s, box-shadow .25s, background .2s;
       display: flex; flex-direction: column;
     }
+    /* Top accent bar — same neon-strip pattern as .tipbox so the whole page
+       speaks one visual language. */
+    .tier-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 5px;
+      border-radius: var(--r) var(--r) 0 0;
+    }
+    .tone-pink::before {
+      background: linear-gradient(90deg, #ff0080 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,0,128,0.55), 0 0 4px rgba(255,0,128,0.85);
+    }
+    .tone-cyan::before {
+      background: linear-gradient(90deg, #00d4ff 0%, #2f8fff 100%);
+      box-shadow: 0 0 14px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.85);
+    }
+    .tone-purple::before {
+      background: linear-gradient(90deg, #b46cff 0%, #7b2fff 100%);
+      box-shadow: 0 0 14px rgba(123,47,255,0.55), 0 0 4px rgba(123,47,255,0.85);
+    }
+    .tone-orange::before {
+      background: linear-gradient(90deg, #ffd24d 0%, #ff6a00 100%);
+      box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
+    }
+
+    /* Small uppercase tag above the title — names what kind of shipment
+       this tier is so cards aren't visually anonymous before reading. */
+    .tier-label {
+      display: inline-block;
+      font-family: 'Inter', sans-serif;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      padding: 5px 10px 5px 11px;
+      border-radius: 4px;
+      margin: 2px 0 12px;
+      background: rgba(255,255,255,0.04);
+    }
+    .tone-pink   .tier-label { color: #ff66a0; border: 1px solid rgba(255,0,128,0.32); box-shadow: inset 0 0 14px rgba(255,0,128,0.06); }
+    .tone-cyan   .tier-label { color: #4ddfff; border: 1px solid rgba(0,212,255,0.32); box-shadow: inset 0 0 14px rgba(0,212,255,0.06); }
+    .tone-purple .tier-label { color: #c69aff; border: 1px solid rgba(123,47,255,0.32); box-shadow: inset 0 0 14px rgba(123,47,255,0.06); }
+    .tone-orange .tier-label { color: #ffc36e; border: 1px solid rgba(255,106,0,0.32); box-shadow: inset 0 0 14px rgba(255,106,0,0.06); }
+
     .tier-photo {
       width: 100%;
       aspect-ratio: 5 / 1;        /* uniform horizontal strip — fits the source images cleanly */
@@ -54,61 +140,75 @@
     @media (max-width: 540px) {
       .tier-photo { padding: 6px 10px; }
     }
-    .tier-card:hover { background: var(--bg-card-hover); }
-    .tier-card.tone-pink   { border-color: rgba(255,0,128,0.35);   box-shadow: 0 0 0 1px rgba(255,0,128,0.15) inset, 0 0 32px rgba(255,0,128,0.08); }
-    .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.35);   box-shadow: 0 0 0 1px rgba(0,212,255,0.15) inset, 0 0 32px rgba(0,212,255,0.08); }
-    .tier-card.tone-purple { border-color: rgba(123,47,255,0.40);  box-shadow: 0 0 0 1px rgba(123,47,255,0.18) inset, 0 0 32px rgba(123,47,255,0.10); }
-    .tier-card.tone-orange { border-color: rgba(255,106,0,0.40);   box-shadow: 0 0 0 1px rgba(255,106,0,0.18) inset, 0 0 32px rgba(255,106,0,0.10); }
+    .tier-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
+    .tier-card.tone-pink   { border-color: rgba(255,0,128,0.30);   box-shadow: 0 0 0 1px rgba(255,0,128,0.10) inset, 0 0 28px rgba(255,0,128,0.06); }
+    .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.30);   box-shadow: 0 0 0 1px rgba(0,212,255,0.10) inset, 0 0 28px rgba(0,212,255,0.06); }
+    .tier-card.tone-purple { border-color: rgba(123,47,255,0.34);  box-shadow: 0 0 0 1px rgba(123,47,255,0.13) inset, 0 0 28px rgba(123,47,255,0.08); }
+    .tier-card.tone-orange { border-color: rgba(255,106,0,0.34);   box-shadow: 0 0 0 1px rgba(255,106,0,0.13) inset, 0 0 28px rgba(255,106,0,0.08); }
+    /* Hover — lift + brighter neon glow per tone */
+    .tier-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55);   box-shadow: 0 0 0 1px rgba(255,0,128,0.22) inset, 0 0 44px rgba(255,0,128,0.18); }
+    .tier-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55);   box-shadow: 0 0 0 1px rgba(0,212,255,0.22) inset, 0 0 44px rgba(0,212,255,0.18); }
+    .tier-card.tone-purple:hover { border-color: rgba(123,47,255,0.60);  box-shadow: 0 0 0 1px rgba(123,47,255,0.26) inset, 0 0 44px rgba(123,47,255,0.22); }
+    .tier-card.tone-orange:hover { border-color: rgba(255,106,0,0.60);   box-shadow: 0 0 0 1px rgba(255,106,0,0.26) inset, 0 0 44px rgba(255,106,0,0.22); }
 
+    /* Title — white with per-tone text-shadow glow, reads as a clean label
+       above the photo instead of a giant gradient block. */
     .tier-head {
       font-family: 'Bangers', cursive; letter-spacing: 0.04em;
-      font-size: clamp(26px, 3.4vw, 36px); line-height: 1.25;
-      padding: 2px 0 8px; margin-bottom: 4px;
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2;
+      padding: 2px 0 4px; margin: 0 0 4px;
+      color: #fff;
     }
-    .tone-pink   .tier-head { background: linear-gradient(135deg, #ff0080, #ff6a00); filter: drop-shadow(0 0 12px rgba(255,0,128,0.30)); }
-    .tone-cyan   .tier-head { background: linear-gradient(135deg, #00d4ff, #2f8fff); filter: drop-shadow(0 0 12px rgba(0,212,255,0.30)); }
-    .tone-purple .tier-head { background: linear-gradient(135deg, #b46cff, #7b2fff); filter: drop-shadow(0 0 12px rgba(123,47,255,0.32)); }
-    .tone-orange .tier-head { background: linear-gradient(135deg, #ffb84d, #ff6a00); filter: drop-shadow(0 0 12px rgba(255,106,0,0.30)); }
+    .tone-pink   .tier-head { text-shadow: 0 0 14px rgba(255,0,128,0.50); }
+    .tone-cyan   .tier-head { text-shadow: 0 0 14px rgba(0,212,255,0.50); }
+    .tone-purple .tier-head { text-shadow: 0 0 14px rgba(123,47,255,0.55); }
+    .tone-orange .tier-head { text-shadow: 0 0 14px rgba(255,106,0,0.50); }
 
     .tier-sub {
-      font-size: 14px; font-weight: 500; color: var(--muted);
+      font-size: 14px; font-weight: 500; color: rgba(229,229,247,0.72);
       margin: -2px 0 18px; line-height: 1.5;
+      min-height: 42px;            /* aligns photo+steps Y across the 3 cards */
     }
 
     .step-list { list-style: none; counter-reset: step; padding: 0; margin: 0; }
     .step-list li {
       counter-increment: step;
-      display: grid; grid-template-columns: 30px 1fr; gap: 12px;
-      padding: 10px 0; align-items: start;
-      border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: 26px 1fr; gap: 12px;
+      padding: 11px 0; align-items: start;
+      border-top: 1px solid rgba(255,255,255,0.045);   /* softer than var(--border) */
     }
     .step-list li:first-child { border-top: none; padding-top: 4px; }
     .step-list li::before {
       content: counter(step);
-      font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px;
+      font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px;
       font-variant-numeric: tabular-nums;
-      width: 26px; height: 26px; border-radius: 50%;
+      width: 22px; height: 22px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
-      color: #fff; line-height: 1;
+      color: #fff;
+      padding-top: 1px;            /* better visual centering for tabular digits */
     }
-    .tone-pink   .step-list li::before { background: linear-gradient(135deg, #ff0080, #ff6a00); }
-    .tone-cyan   .step-list li::before { background: linear-gradient(135deg, #00d4ff, #2f8fff); }
-    .tone-purple .step-list li::before { background: linear-gradient(135deg, #b46cff, #7b2fff); }
-    .tone-orange .step-list li::before { background: linear-gradient(135deg, #ffb84d, #ff6a00); }
+    .tone-pink   .step-list li::before { background: linear-gradient(135deg, #ff0080, #ff6a00); box-shadow: 0 0 10px rgba(255,0,128,0.45); }
+    .tone-cyan   .step-list li::before { background: linear-gradient(135deg, #00d4ff, #2f8fff); box-shadow: 0 0 10px rgba(0,212,255,0.45); }
+    .tone-purple .step-list li::before { background: linear-gradient(135deg, #b46cff, #7b2fff); box-shadow: 0 0 10px rgba(123,47,255,0.45); }
+    .tone-orange .step-list li::before { background: linear-gradient(135deg, #ffb84d, #ff6a00); box-shadow: 0 0 10px rgba(255,106,0,0.45); }
     .step-list li > span {
-      font-size: 14.5px; line-height: 1.55; color: var(--text); padding-top: 3px;
+      font-size: 14.5px; line-height: 1.55;
+      color: rgba(255,255,255,0.92);   /* brighter than var(--text) default */
+      padding-top: 3px;
     }
     .step-list strong { font-weight: 700; color: #fff; }
 
+    /* Tip — pinned to bottom of card via auto-margin so step lists across
+       the 3 tiers align even when step counts differ. */
     .tip {
-      margin-top: 16px; padding: 12px 14px;
+      margin-top: auto; padding: 12px 14px;
       border-radius: var(--r-sm);
       background: rgba(255,255,255,0.025);
-      border: 1px solid var(--border);
-      font-size: 13.5px; line-height: 1.55; color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-size: 13.5px; line-height: 1.55; color: rgba(229,229,247,0.78);
       display: flex; gap: 10px; align-items: flex-start;
     }
+    .tier-card .step-list { margin-bottom: 16px; }      /* breathing room before the auto-anchored tip */
     .tip-icon {
       flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px;
     }
@@ -340,7 +440,7 @@
     }
   </style>
 </head>
-<body>
+<body class="page-shipping">
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
 
@@ -382,6 +482,7 @@
 
         <!-- Tier 1 -->
         <article class="tier-card tone-pink">
+          <span class="tier-label">PWE or Mailer</span>
           <h2 class="tier-head">1 Card</h2>
           <p class="tier-sub">Each card in its own top loader. <strong style="color:#ff7a96">PWE</strong> works for low-value singles &lt;$20.</p>
           <img class="tier-photo" src="assets/shipping/tier1.png" alt="Sleeved card → top loader → team bag → bubble mailer" loading="lazy" />
@@ -399,6 +500,7 @@
 
         <!-- Tier 2 -->
         <article class="tier-card tone-cyan">
+          <span class="tier-label">Team Bag Mailer</span>
           <h2 class="tier-head">Up to 10 Cards</h2>
           <p class="tier-sub">Up to 10 cards in one team bag.</p>
           <img class="tier-photo" src="assets/shipping/tier2.png" alt="Stack of sleeved cards → team bag → bubble mailer" loading="lazy" />
@@ -415,6 +517,7 @@
 
         <!-- Tier 3 -->
         <article class="tier-card tone-purple">
+          <span class="tier-label">Bubble Mailer</span>
           <h2 class="tier-head">10 – 19 Cards</h2>
           <p class="tier-sub">10 to 19 cards ship in a bubble mailer.</p>
           <img class="tier-photo" src="assets/shipping/tier3.png" alt="Stack of sleeved cards → two team bags → bubble mailer" loading="lazy" />
@@ -431,6 +534,7 @@
 
         <!-- Tier 4 (full width) -->
         <article class="tier-card tone-orange tier-bulk">
+          <span class="tier-label">Bulk · Box Shipping</span>
           <h2 class="tier-head">20+ Cards / Large Collections</h2>
           <p class="tier-sub">20+ cards up to 1,000+ cards.</p>
           <img class="tier-photo" src="assets/shipping/tier4.png" alt="Card storage box → storage box inside shipping box with peanuts → sealed shipping box" loading="lazy" />
