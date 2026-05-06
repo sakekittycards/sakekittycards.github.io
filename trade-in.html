@@ -1191,8 +1191,9 @@
                 <span class="rate-credit">100%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Singles ≥ $750</li>
-                <li>Graded ≥ $2,000</li>
+                <li>Singles ≥ $1,000</li>
+                <li>Sealed ≥ $1,000</li>
+                <li>Graded ≥ $1,000</li>
               </ul>
             </div>
 
@@ -1203,7 +1204,7 @@
                 <span class="rate-credit">97%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Graded $750–$1,999</li>
+                <li>Graded $500–$999</li>
               </ul>
             </div>
 
@@ -1214,8 +1215,8 @@
                 <span class="rate-credit">95%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Singles $300–$749</li>
-                <li>Sealed $300+</li>
+                <li>Singles $500–$999</li>
+                <li>Sealed $500–$999</li>
               </ul>
             </div>
 
@@ -1226,7 +1227,7 @@
                 <span class="rate-credit">92%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Graded $250–$749</li>
+                <li>Graded $100–$499</li>
               </ul>
             </div>
 
@@ -1237,7 +1238,8 @@
                 <span class="rate-credit">90%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Singles $100–$299</li>
+                <li>Singles $100–$499</li>
+                <li>Sealed $100–$499</li>
               </ul>
             </div>
 
@@ -1248,19 +1250,19 @@
                 <span class="rate-credit">85%</span>
               </div>
               <ul class="ti-rate-tier-items">
-                <li>Sealed under $300</li>
-                <li>Graded under $250</li>
+                <li>Graded $25–$99</li>
               </ul>
             </div>
 
             <div class="ti-rate-tier">
               <div class="ti-rate-tier-rate">
-                <span class="rate-cash">72%</span>
+                <span class="rate-cash">70%</span>
                 <span class="rate-sep">/</span>
-                <span class="rate-credit">82%</span>
+                <span class="rate-credit">80%</span>
               </div>
               <ul class="ti-rate-tier-items">
                 <li>Singles $25–$99</li>
+                <li>Sealed $25–$99</li>
               </ul>
             </div>
 
@@ -1467,45 +1469,44 @@
     ];
     const bulkQtys = new Array(BULK_RATES.length).fill(0);
 
-    // Trade-in rates (Option A — finer granularity, smoother $-cliffs).
-    //   Singles: <$25 60/70 · $25–$99 72/82 · $100–$299 80/90 · $300–$749 85/95 · $750+ 90/100
-    //   Sealed:  modern <$300 75/85 · premium $300+ 85/95
-    //   Graded:  <$250 75/85 · $250–$749 82/92 · $750–$1,999 87/97 · $2,000+ 92/100
-    // Updated 2026-05-05 evening: split the bottom singles band at $25 (penny
-    // rares vs $90 chase shouldn't pay the same), added singles $750+ and
-    // graded $2,000+ chase tiers, split sealed into modern vs premium. Trade
-    // credit follows cash + 10pts on every tier.
+    // Trade-in rates (Option B — unified breakpoints across all item types).
+    // Same dollar bands ($25 / $100 / $500 / $1,000) for singles, sealed,
+    // and graded — just different starting rates. Graded gets a +2-5pt
+    // bump in the mid bands for slab sale-certainty. All types cap at
+    // 90/100 at $1,000+. Trade credit follows cash + 10pts.
+    //
+    //   Singles: <$25 60/70 · $25–$99 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
+    //   Sealed:           — · $25–$99 70/80 · $100–$499 80/90 · $500–$999 85/95 · ≥$1k 90/100
+    //   Graded:           — · $25–$99 75/85 · $100–$499 82/92 · $500–$999 87/97 · ≥$1k 90/100
     const RATES = {
-      card_micro:  { cash: 0.60, credit: 0.70 },   // raw singles under $25
-      card_base:   { cash: 0.72, credit: 0.82 },   // raw singles $25–$99
-      card_100:    { cash: 0.80, credit: 0.90 },   // raw singles $100–$299
-      card_300:    { cash: 0.85, credit: 0.95 },   // raw singles $300–$749
-      card_750:    { cash: 0.90, credit: 1.00 },   // raw singles $750 and up
-      sealed_low:  { cash: 0.75, credit: 0.85 },   // modern sealed (<$300)
-      sealed_high: { cash: 0.85, credit: 0.95 },   // premium / vintage sealed ($300+)
-      graded_low:  { cash: 0.75, credit: 0.85 },   // graded cards under $250
-      graded_mid:  { cash: 0.82, credit: 0.92 },   // graded cards $250–$749
-      graded_high: { cash: 0.87, credit: 0.97 },   // graded cards $750–$1,999
-      graded_chase:{ cash: 0.90, credit: 1.00 },   // graded cards $2,000 and up — capped at 90% cash per Nick
+      card_micro:    { cash: 0.60, credit: 0.70 },   // singles only — under $25
+      base:          { cash: 0.70, credit: 0.80 },   // singles + sealed $25–$99
+      graded_base:   { cash: 0.75, credit: 0.85 },   // graded $25–$99
+      mid:           { cash: 0.80, credit: 0.90 },   // singles + sealed $100–$499
+      graded_mid:    { cash: 0.82, credit: 0.92 },   // graded $100–$499
+      high:          { cash: 0.85, credit: 0.95 },   // singles + sealed $500–$999
+      graded_high:   { cash: 0.87, credit: 0.97 },   // graded $500–$999
+      top:           { cash: 0.90, credit: 1.00 },   // all types ≥$1,000
     };
     function ratesFor(item) {
+      const m = item.market;
       if (item.type === 'sealed') {
-        const m = item.market;
-        if (m != null && m >= 300) return RATES.sealed_high;
-        return RATES.sealed_low;
+        if (m != null && m >= 1000) return RATES.top;
+        if (m != null && m >= 500)  return RATES.high;
+        if (m != null && m >= 100)  return RATES.mid;
+        return RATES.base;
       }
       if (item.type === 'graded') {
-        const m = item.market;
-        if (m != null && m >= 2000) return RATES.graded_chase;
-        if (m != null && m >= 750)  return RATES.graded_high;
-        if (m != null && m >= 250)  return RATES.graded_mid;
-        return RATES.graded_low;
+        if (m != null && m >= 1000) return RATES.top;
+        if (m != null && m >= 500)  return RATES.graded_high;
+        if (m != null && m >= 100)  return RATES.graded_mid;
+        return RATES.graded_base;
       }
-      // Raw singles — tier by market value.
-      if (item.market != null && item.market >= 750) return RATES.card_750;
-      if (item.market != null && item.market >= 300) return RATES.card_300;
-      if (item.market != null && item.market >= 100) return RATES.card_100;
-      if (item.market != null && item.market >= 25)  return RATES.card_base;
+      // Raw singles
+      if (m != null && m >= 1000) return RATES.top;
+      if (m != null && m >= 500)  return RATES.high;
+      if (m != null && m >= 100)  return RATES.mid;
+      if (m != null && m >= 25)   return RATES.base;
       return RATES.card_micro;
     }
     const COND_MULT = {
