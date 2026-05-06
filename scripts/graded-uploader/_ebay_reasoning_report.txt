@@ -1,101 +1,112 @@
 ==============================================================================================================
-eBay reasoning report — 2026-05-06T00:46:21.294080+00:00
+eBay reasoning report — 2026-05-06T01:03:20.158441+00:00
 ==============================================================================================================
 
 cert     72016903  PSA 9           2016 Charizard-Rev.foil              formula=$  195  ebay=  $205  trend=stable-norecent  -> $205   (ebay)
     n_graded=8 (outliers=0, recent=8, older=0) recent_med=$176.77  | stable (recent_med=177); target=median × 1.15
 cert     50358384  PSA 9           2000 Celebi-Holo                     formula=$  270  ebay=  $280  trend=stable-norecent  -> $280   (ebay)
     n_graded=7 (outliers=0, recent=7, older=0) recent_med=$244.67  | stable (recent_med=245); target=median × 1.15
-cert    147655076  PSA 10          2020 Fa / Pikachu Vmax               formula=$  445  ebay=  $390  trend=stable          -> $445   (formula)
-    n_graded=8 (outliers=0, recent=4, older=4) recent_med=$337.5  | stable (recent_med=338); target=median × 1.15
-cert    145316191  PSA 10          2025 Bulbasaur                       formula=$  670  ebay=  $890  trend=stable-norecent  -> $890   (ebay)
-    n_graded=8 (outliers=3, recent=5, older=0) recent_med=$772.96  | stable (recent_med=773); target=median × 1.15
-cert    114068076  PSA 10          2024 Milotic Ex                      formula=$  145  ebay=  $175  trend=stable-norecent  -> $175   (ebay)
-    n_graded=5 (outliers=0, recent=5, older=0) recent_med=$153.02  | stable (recent_med=153); target=median × 1.15
-cert    110772487  PSA 9           2022 Charizard V                     formula=$  380  ebay=  $410  trend=stable-norecent  -> $410   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$357.96  | stable (recent_med=358); target=median × 1.15
-cert    139206918  PSA 10          2025 Mega Venusaur Ex                formula=$  370  ebay=  $370  trend=stable-norecent  -> $370   (formula)
-    n_graded=7 (outliers=0, recent=7, older=0) recent_med=$322.51  | stable (recent_med=323); target=median × 1.15
+cert    147655076  PSA 10          2020 Fa / Pikachu Vmax               formula=$  445  ebay=    --  trend=stable-norecent  -> $445   (formula)
+    n_graded=4 (outliers=0, recent=4, older=0) recent_med=$1676.65  | REJECTED: ebay rec $1930 > 2x CL $395 -- likely matched wrong card variant. Original: stable (recent_med=1677); target=median × 1.15
+cert    145316191  PSA 10          2025 Bulbasaur                       formula=$  670  ebay=  $740  trend=stable-norecent  -> $740   (ebay)
+    n_graded=7 (outliers=1, recent=6, older=0) recent_med=$644.64  | stable (recent_med=645); target=median × 1.15
+cert    114068076  PSA 10          2024 Milotic Ex                      formula=$  145  ebay=  $135  trend=stable-norecent  -> $145   (formula)
+    n_graded=2 (outliers=0, recent=2, older=0) recent_med=$116.1  | stable (recent_med=116); target=median × 1.15
+cert    110772487  PSA 9           2022 Charizard V                     formula=$  380  ebay=  $395  trend=stable          -> $395   (ebay)
+    n_graded=7 (outliers=0, recent=6, older=1) recent_med=$344.36  | stable (recent_med=344); target=median × 1.15
+cert    139206918  PSA 10          2025 Mega Venusaur Ex                formula=$  370  ebay=    --  trend=stable-norecent  -> $370   (formula)
+    n_graded=5 (outliers=0, recent=5, older=0) recent_med=$50689.0  | REJECTED: ebay rec $58290 > 2x CL $327 -- likely matched wrong card variant. Original: stable (recent_med=50689); target=median × 1.15
 cert    106438552  PSA 10          2021 Fa / Dragonite V                formula=$ 1510  ebay= $1275  trend=up              -> $1510  (formula)
-    n_graded=7 (outliers=0, recent=4, older=3) recent_med=$1105.49  | trending up (recent=1105 vs older=1000); target=max recent × 1.10
-cert    102607615  PSA 10          2023 Pikachu with Grey Felt Hat      formula=$ 3145  ebay=    --  trend=stable-norecent  -> $3145  (formula)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$18941.25  | REJECTED: ebay rec $21780 > 2x CL $2912 -- likely matched wrong card variant. Original: stable (recent_med=18941); target=median × 1.15
-cert     94676138  PSA 10          2023 Pikachu with Grey Felt Hat      formula=$ 3145  ebay=    --  trend=stable-norecent  -> $3145  (formula)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$18941.25  | REJECTED: ebay rec $21780 > 2x CL $2912 -- likely matched wrong card variant. Original: stable (recent_med=18941); target=median × 1.15
-cert     75183695  PSA 10          2023 Orgn.frm.dialga Vstar           formula=$  370  ebay=  $390  trend=stable-norecent  -> $390   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$337.75  | stable (recent_med=338); target=median × 1.15
-cert     95199161  PSA 10          2023 Fa / Arceus Vstar               formula=$  495  ebay=  $500  trend=stable-norecent  -> $500   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$435.62  | stable (recent_med=436); target=median × 1.15
-cert    108973922  PSA 10          2023 Orgn.frm.palkia Vstar           formula=$  375  ebay=  $415  trend=up              -> $415   (ebay)
-    n_graded=8 (outliers=0, recent=4, older=4) recent_med=$370.99  | trending up (recent=371 vs older=299); target=max recent × 1.10
-cert   6136935033  CGC 10 Pristine  2021 Umbreon ☆                       formula=$  430  ebay=  $500  trend=up              -> $500   (ebay)
-    n_graded=3 (outliers=0, recent=2, older=1) recent_med=$452.91  | trending up (recent=453 vs older=312); target=max recent × 1.10
-cert     44690212  PSA 10          1999 Pikachu                         formula=$ 1200  ebay=  $155  trend=stable-norecent  -> $1200  (formula)
-    n_graded=1 (outliers=0, recent=1, older=0) recent_med=$135.02  | stable (recent_med=135); target=median × 1.15
-cert     99211118  PSA 10          2021 Espeon VMAX                     formula=$  910  ebay=  $950  trend=stable-norecent  -> $950   (ebay)
-    n_graded=6 (outliers=0, recent=6, older=0) recent_med=$827.99  | stable (recent_med=828); target=median × 1.15
-cert    146514325  PSA 10          2025 Eevee Ex                        formula=$  520  ebay=  $595  trend=stable-norecent  -> $595   (ebay)
-    n_graded=7 (outliers=0, recent=7, older=0) recent_med=$516.44  | stable (recent_med=516); target=median × 1.15
-cert    126435156  PSA 10          2025 Eevee Ex                        formula=$  520  ebay=  $595  trend=stable-norecent  -> $595   (ebay)
-    n_graded=7 (outliers=0, recent=7, older=0) recent_med=$516.44  | stable (recent_med=516); target=median × 1.15
-cert     99513425  PSA 10          2024 Latias Ex                       formula=$  240  ebay=  $305  trend=stable-norecent  -> $305   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$266.38  | stable (recent_med=266); target=median × 1.15
-cert    107496657  PSA 10          2021 Fa / Rayquaza Vmax              formula=$  495  ebay=  $665  trend=up              -> $665   (ebay)
-    n_graded=8 (outliers=0, recent=4, older=4) recent_med=$433.23  | trending up (recent=433 vs older=255); target=max recent × 1.10
-cert    138441842  PSA 9           2000 Umbreon-Holo                    formula=$  965  ebay= $1160  trend=stable-norecent  -> $1160  (ebay)
-    n_graded=7 (outliers=2, recent=5, older=0) recent_med=$1010.0  | stable (recent_med=1010); target=median × 1.15
-cert    143540438  PSA 10          2025 Roaring Moon Ex                 formula=$  835  ebay=  $905  trend=stable-norecent  -> $905   (ebay)
-    n_graded=7 (outliers=0, recent=7, older=0) recent_med=$787.05  | stable (recent_med=787); target=median × 1.15
-cert     63063677  PSA 10          2000 Charizard                       formula=$ 8225  ebay=  $200  trend=stable-norecent  -> $8225  (formula)
-    n_graded=8 (outliers=6, recent=2, older=0) recent_med=$174.45  | stable (recent_med=174); target=median × 1.15
-cert    119392108  PSA 10          2024 Pikachu ex                      formula=$ 1405  ebay= $1405  trend=stable-norecent  -> $1405  (formula)
-    n_graded=6 (outliers=0, recent=6, older=0) recent_med=$1221.0  | stable (recent_med=1221); target=median × 1.15
-cert     14250139  BGS 8.5         1999 Charizard                       formula=$ 1455  ebay= $1415  trend=stable-norecent  -> $1455  (formula)
-    n_graded=8 (outliers=3, recent=5, older=0) recent_med=$1230.0  | stable (recent_med=1230); target=median × 1.15
-cert    139036804  PSA 8           1999 Zapdos-Holo                     formula=$  115  ebay=  $160  trend=stable-norecent  -> $160   (ebay)
-    n_graded=7 (outliers=3, recent=4, older=0) recent_med=$137.0  | stable (recent_med=137); target=median × 1.15
-cert    131611480  PSA 8           2017 Mewtwo Gx                       formula=$ 1040  ebay= $1035  trend=stable-norecent  -> $1040  (formula)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$899.63  | stable (recent_med=900); target=median × 1.15
-cert    113910492  PSA 10          2022 Fa / Mewtwo V                   formula=$  425  ebay=  $340  trend=up              -> $425   (formula)
-    n_graded=8 (outliers=0, recent=5, older=3) recent_med=$282.7  | trending up (recent=283 vs older=230); target=max recent × 1.10
-cert   4321131035  CGC 10 Pristine  2023 Blastoise ex                    formula=$  250  ebay=  $400  trend=stable          -> $400   (ebay)
-    n_graded=8 (outliers=1, recent=3, older=4) recent_med=$346.41  | stable (recent_med=346); target=median × 1.15
-cert     84566703  PSA 10          1998 Moltres                         formula=$ 1555  ebay=    --  trend=down            -> $1555  (formula)
-    n_graded=8 (outliers=2, recent=5, older=1) recent_med=$23078.47  | REJECTED: ebay rec $25385 > 2x CL $940 -- likely matched wrong card variant. Original: trending down (recent=23078 vs older=35849); target=median × 1.10
-cert     51557052  PSA 9           2000 Rocket's Scyther                formula=$  780  ebay=  $725  trend=stable-norecent  -> $780   (formula)
-    n_graded=8 (outliers=2, recent=6, older=0) recent_med=$632.24  | stable (recent_med=632); target=median × 1.15
+    n_graded=8 (outliers=0, recent=4, older=4) recent_med=$1105.49  | trending up (recent=1105 vs older=978); target=max recent × 1.10
+cert    102607615  PSA 10          2023 Pikachu with Grey Felt Hat      formula=$ 3145  ebay= $3365  trend=up              -> $3365  (ebay)
+    n_graded=8 (outliers=0, recent=3, older=5) recent_med=$3006.24  | trending up (recent=3006 vs older=2126); target=max recent × 1.10
+cert     94676138  PSA 10          2023 Pikachu with Grey Felt Hat      formula=$ 3145  ebay= $3365  trend=up              -> $3365  (ebay)
+    n_graded=8 (outliers=0, recent=3, older=5) recent_med=$3006.24  | trending up (recent=3006 vs older=2126); target=max recent × 1.10
+cert     75183695  PSA 10          2023 Orgn.frm.dialga Vstar           formula=$  370  ebay=  $435  trend=up              -> $435   (ebay)
+    n_graded=6 (outliers=0, recent=3, older=3) recent_med=$384.48  | trending up (recent=384 vs older=337); target=max recent × 1.10
+cert     95199161  PSA 10          2023 Fa / Arceus Vstar               formula=$  495  ebay=  $555  trend=up              -> $555   (ebay)
+    n_graded=5 (outliers=0, recent=4, older=1) recent_med=$383.0  | trending up (recent=383 vs older=290); target=max recent × 1.10
+cert    108973922  PSA 10          2023 Orgn.frm.palkia Vstar           formula=$  375  ebay=  $380  trend=up              -> $380   (ebay)
+    n_graded=4 (outliers=0, recent=2, older=2) recent_med=$338.03  | trending up (recent=338 vs older=270); target=max recent × 1.10
+cert   6136935033  CGC 10 Pristine  2021 Umbreon ☆                       formula=$  430  ebay=  $495  trend=up              -> $495   (ebay)
+    n_graded=2 (outliers=0, recent=1, older=1) recent_med=$450.0  | trending up (recent=450 vs older=150); target=max recent × 1.10
+cert     44690212  PSA 10          1999 Pikachu                         formula=$ 1200  ebay= $1340  trend=stable-norecent  -> $1340  (ebay)
+    n_graded=5 (outliers=0, recent=5, older=0) recent_med=$1165.16  | stable (recent_med=1165); target=median × 1.15
+cert     99211118  PSA 10          2021 Espeon VMAX                     formula=$  910  ebay=  $970  trend=up              -> $970   (ebay)
+    n_graded=6 (outliers=0, recent=5, older=1) recent_med=$805.44  | trending up (recent=805 vs older=678); target=max recent × 1.10
+cert    146514325  PSA 10          2025 Eevee Ex                        formula=$  520  ebay=  $535  trend=up              -> $535   (ebay)
+    n_graded=5 (outliers=0, recent=3, older=2) recent_med=$459.95  | trending up (recent=460 vs older=290); target=max recent × 1.10
+cert    126435156  PSA 10          2025 Eevee Ex                        formula=$  520  ebay=  $535  trend=up              -> $535   (ebay)
+    n_graded=5 (outliers=0, recent=3, older=2) recent_med=$459.95  | trending up (recent=460 vs older=290); target=max recent × 1.10
+cert     99513425  PSA 10          2024 Latias Ex                       formula=$  240  ebay=  $230  trend=down            -> $240   (formula)
+    n_graded=8 (outliers=0, recent=7, older=1) recent_med=$210.95  | trending down (recent=211 vs older=236); target=median × 1.10
+cert    107496657  PSA 10          2021 Fa / Rayquaza Vmax              formula=$  495  ebay=  $535  trend=up              -> $535   (ebay)
+    n_graded=4 (outliers=1, recent=2, older=1) recent_med=$460.97  | trending up (recent=461 vs older=299); target=max recent × 1.10
+cert    138441842  PSA 9           2000 Umbreon-Holo                    formula=$  965  ebay= $1220  trend=stable-norecent  -> $1220  (ebay)
+    n_graded=8 (outliers=1, recent=7, older=0) recent_med=$1059.74  | stable (recent_med=1060); target=median × 1.15
+cert    143540438  PSA 10          2025 Roaring Moon Ex                 formula=$  835  ebay=  $940  trend=up              -> $940   (ebay)
+    n_graded=4 (outliers=0, recent=3, older=1) recent_med=$849.99  | trending up (recent=850 vs older=686); target=max recent × 1.10
+cert     63063677  PSA 10          2000 Charizard                       formula=$ 8225  ebay=    --  trend=no-ebay-data    -> $8225  (formula)
+cert    119392108  PSA 10          2024 Pikachu ex                      formula=$ 1405  ebay= $1435  trend=stable-norecent  -> $1435  (ebay)
+    n_graded=3 (outliers=0, recent=3, older=0) recent_med=$1245.99  | stable (recent_med=1246); target=median × 1.15
+cert     14250139  BGS 8.5         1999 Charizard                       formula=$ 1455  ebay= $1290  trend=down            -> $1455  (formula)
+    n_graded=4 (outliers=0, recent=3, older=1) recent_med=$1172.08  | trending down (recent=1172 vs older=1504); target=median × 1.10
+cert    139036804  PSA 8           1999 Zapdos-Holo                     formula=$  115  ebay=    --  trend=up              -> $115   (formula)
+    n_graded=7 (outliers=2, recent=4, older=1) recent_med=$131.84  | REJECTED: ebay rec $200 > 2x CL $98 -- likely matched wrong card variant. Original: trending up (recent=132 vs older=107); target=max recent × 1.10
+cert    131611480  PSA 8           2017 Mewtwo Gx                       formula=$ 1040  ebay=  $970  trend=stable-norecent  -> $1040  (formula)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$844.5  | stable (recent_med=844); target=median × 1.15
+cert    113910492  PSA 10          2022 Fa / Mewtwo V                   formula=$  425  ebay=  $375  trend=up              -> $425   (formula)
+    n_graded=8 (outliers=0, recent=4, older=4) recent_med=$314.23  | trending up (recent=314 vs older=252); target=max recent × 1.10
+cert   4321131035  CGC 10 Pristine  2023 Blastoise ex                    formula=$  250  ebay=  $210  trend=up              -> $250   (formula)
+    n_graded=4 (outliers=1, recent=1, older=2) recent_med=$192.0  | trending up (recent=192 vs older=143); target=max recent × 1.10
+cert     84566703  PSA 10          1998 Moltres                         formula=$ 1555  ebay= $1415  trend=stable          -> $1555  (formula)
+    n_graded=3 (outliers=0, recent=2, older=1) recent_med=$1228.95  | stable (recent_med=1229); target=median × 1.15
+cert     51557052  PSA 9           2000 Rocket's Scyther                formula=$  780  ebay=  $810  trend=stable          -> $810   (ebay)
+    n_graded=4 (outliers=0, recent=3, older=1) recent_med=$705.48  | stable (recent_med=705); target=median × 1.15
 cert     61407202  PSA 6           2002 Dark Gengar-Holo                formula=$ 1095  ebay=    --  trend=no-data         -> $1095  (formula)
     ! 8 items returned but none matched grade 'PSA 6' (8 rejected)
-cert    146746311  PSA 10          2025 Mega Latias Ex                  formula=$  335  ebay=  $385  trend=stable-norecent  -> $385   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$334.81  | stable (recent_med=335); target=median × 1.15
-cert    110420477  PSA 9           2021 Umbreon VMAX                    formula=$ 2350  ebay=    --  trend=no-ebay-data    -> $2350  (formula)
-cert     99746732  PSA 9           1999 Blastoise                       formula=$ 1205  ebay=   $90  trend=stable-norecent  -> $1205  (formula)
-    n_graded=8 (outliers=2, recent=6, older=0) recent_med=$76.87  | stable (recent_med=77); target=median × 1.15
+cert    146746311  PSA 10          2025 Mega Latias Ex                  formula=$  335  ebay=  $400  trend=stable-norecent  -> $400   (ebay)
+    n_graded=7 (outliers=0, recent=7, older=0) recent_med=$345.8  | stable (recent_med=346); target=median × 1.15
+cert    110420477  PSA 9           2021 Umbreon VMAX                    formula=$ 2350  ebay= $2580  trend=stable-norecent  -> $2580  (ebay)
+    n_graded=1 (outliers=0, recent=1, older=0) recent_med=$2242.91  | stable (recent_med=2243); target=median × 1.15
+cert     99746732  PSA 9           1999 Blastoise                       formula=$ 1205  ebay=  $210  trend=down            -> $1205  (formula)
+    n_graded=8 (outliers=2, recent=1, older=5) recent_med=$191.17  | trending down (recent=191 vs older=280); target=median × 1.10
 cert     98517579  PSA 8           2017 Fa / Shaymin Ex                 formula=$  435  ebay=  $575  trend=up              -> $575   (ebay)
-    n_graded=5 (outliers=0, recent=4, older=1) recent_med=$373.97  | trending up (recent=374 vs older=331); target=max recent × 1.10
-cert    135860324  PSA 10          2025 Rocket's Wobbuffet              formula=$ 1215  ebay=  $195  trend=stable-norecent  -> $1215  (formula)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$171.24  | stable (recent_med=171); target=median × 1.15
-cert    121116624  PSA 10          2023 Fa / Deoxys                     formula=$  340  ebay=  $270  trend=up              -> $340   (formula)
-    n_graded=7 (outliers=0, recent=2, older=5) recent_med=$233.8  | trending up (recent=234 vs older=165); target=max recent × 1.10
-cert     65570346  PSA 10          1999 Venusaur                        formula=$ 3510  ebay=    --  trend=no-ebay-data    -> $3510  (formula)
-cert    102369962  PSA 10          2023 Charizard Ex                    formula=$  230  ebay=    --  trend=no-ebay-data    -> $230   (formula)
-cert     65570347  PSA 7           1999 Venusaur-Holo                   formula=$  285  ebay=    --  trend=no-ebay-data    -> $285   (formula)
-cert     92889917  PSA 10          2023 Magikarp                        formula=$  385  ebay=    --  trend=no-ebay-data    -> $385   (formula)
-cert     95276041  PSA 10          2023 Charizard Ex                    formula=$  230  ebay=    --  trend=no-ebay-data    -> $230   (formula)
-cert     60607369  PSA 10          2020 Rayquaza                        formula=$  245  ebay=    --  trend=no-ebay-data    -> $245   (formula)
-cert    112214360  PSA 10          2023 Pidgeotto                       formula=$  235  ebay=  $295  trend=stable          -> $295   (ebay)
-    n_graded=8 (outliers=1, recent=5, older=2) recent_med=$256.24  | stable (recent_med=256); target=median × 1.15
-cert   4322429002  CGC 10 Pristine  2023 Eevee                           formula=$  275  ebay=    --  trend=no-ebay-data    -> $275   (formula)
-cert    115079776  PSA 10          2024 Gardevoir Ex                    formula=$  455  ebay=    --  trend=no-ebay-data    -> $455   (formula)
-cert   6130902118  CGC 10 Pristine  2025 Mega Charizard X ex             formula=$  335  ebay=  $385  trend=stable-norecent  -> $385   (ebay)
-    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$336.44  | stable (recent_med=336); target=median × 1.15
-cert    113090244  PSA 10          2019 Rowlet / Aln.exgtr.gx           formula=$  270  ebay=    --  trend=no-ebay-data    -> $270   (formula)
-cert    111350109  PSA 10          2020 Fa / Charizard Vmax             formula=$  405  ebay=    --  trend=no-ebay-data    -> $405   (formula)
-cert    134321907  PSA 9           2019 M.sbleye / Tyranitar Gx         formula=$  430  ebay=    --  trend=no-ebay-data    -> $430   (formula)
-cert    128159429  PSA 10          2025 Pikachu                         formula=$ 3185  ebay=    --  trend=no-ebay-data    -> $3185  (formula)
-cert   3914522049  CGC 8.5         2000 Feraligatr                      formula=$  155  ebay=  $235  trend=stable-norecent  -> $235   (ebay)
-    n_graded=4 (outliers=0, recent=4, older=0) recent_med=$202.5  | stable (recent_med=202); target=median × 1.15
+    n_graded=4 (outliers=0, recent=2, older=2) recent_med=$427.62  | trending up (recent=428 vs older=316); target=max recent × 1.10
+cert    135860324  PSA 10          2025 Rocket's Wobbuffet              formula=$ 1215  ebay=  $210  trend=up              -> $1215  (formula)
+    n_graded=5 (outliers=0, recent=3, older=2) recent_med=$187.0  | trending up (recent=187 vs older=170); target=max recent × 1.10
+cert    121116624  PSA 10          2023 Fa / Deoxys                     formula=$  340  ebay=  $240  trend=stable-norecent  -> $340   (formula)
+    n_graded=3 (outliers=0, recent=3, older=0) recent_med=$209.77  | stable (recent_med=210); target=median × 1.15
+cert     65570346  PSA 10          1999 Venusaur                        formula=$ 3510  ebay=    --  trend=no-data         -> $3510  (formula)
+    ! 8 items returned but none matched grade 'PSA 10' (8 rejected)
+cert    102369962  PSA 10          2023 Charizard Ex                    formula=$  230  ebay=  $265  trend=stable-norecent  -> $265   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$228.94  | stable (recent_med=229); target=median × 1.15
+cert     65570347  PSA 7           1999 Venusaur-Holo                   formula=$  285  ebay=  $305  trend=stable-norecent  -> $305   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$265.52  | stable (recent_med=266); target=median × 1.15
+cert     92889917  PSA 10          2023 Magikarp                        formula=$  385  ebay=  $390  trend=stable-norecent  -> $390   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$337.0  | stable (recent_med=337); target=median × 1.15
+cert     95276041  PSA 10          2023 Charizard Ex                    formula=$  230  ebay=  $265  trend=stable-norecent  -> $265   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$228.94  | stable (recent_med=229); target=median × 1.15
+cert     60607369  PSA 10          2020 Rayquaza                        formula=$  245  ebay=  $295  trend=stable-norecent  -> $295   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$257.62  | stable (recent_med=258); target=median × 1.15
+cert    112214360  PSA 10          2023 Pidgeotto                       formula=$  235  ebay=  $310  trend=up              -> $310   (ebay)
+    n_graded=8 (outliers=0, recent=2, older=6) recent_med=$253.03  | trending up (recent=253 vs older=182); target=max recent × 1.10
+cert   4322429002  CGC 10 Pristine  2023 Eevee                           formula=$  275  ebay=    --  trend=no-data         -> $275   (formula)
+    ! 8 items returned but none matched grade 'CGC 10 Pristine' (2 rejected)
+cert    115079776  PSA 10          2024 Gardevoir Ex                    formula=$  455  ebay=  $490  trend=stable-norecent  -> $490   (ebay)
+    n_graded=3 (outliers=0, recent=3, older=0) recent_med=$425.48  | stable (recent_med=425); target=median × 1.15
+cert   6130902118  CGC 10 Pristine  2025 Mega Charizard X ex             formula=$  335  ebay=  $380  trend=stable-norecent  -> $380   (ebay)
+    n_graded=8 (outliers=0, recent=8, older=0) recent_med=$331.28  | stable (recent_med=331); target=median × 1.15
+cert    113090244  PSA 10          2019 Rowlet / Aln.exgtr.gx           formula=$  270  ebay=    --  trend=no-data         -> $270   (formula)
+    ! 8 items returned but none matched grade 'PSA 10' (2 rejected)
+cert    111350109  PSA 10          2020 Fa / Charizard Vmax             formula=$  405  ebay=  $305  trend=up              -> $405   (formula)
+    n_graded=7 (outliers=0, recent=2, older=5) recent_med=$267.21  | trending up (recent=267 vs older=206); target=max recent × 1.10
+cert    134321907  PSA 9           2019 M.sbleye / Tyranitar Gx         formula=$  430  ebay=  $340  trend=down            -> $430   (formula)
+    n_graded=3 (outliers=0, recent=1, older=2) recent_med=$307.95  | trending down (recent=308 vs older=382); target=median × 1.10
+cert    128159429  PSA 10          2025 Pikachu                         formula=$ 3185  ebay= $3045  trend=stable-norecent  -> $3185  (formula)
+    n_graded=1 (outliers=0, recent=1, older=0) recent_med=$2649.98  | stable (recent_med=2650); target=median × 1.15
+cert   3914522049  CGC 8.5         2000 Feraligatr                      formula=$  155  ebay=    --  trend=no-ebay-data    -> $155   (formula)
 
 ==============================================================================================================
-SUMMARY: 23 cards bumped above formula, 13 held at formula, 17 had no eBay data
+SUMMARY: 30 cards bumped above formula, 14 held at formula, 9 had no eBay data
 ==============================================================================================================

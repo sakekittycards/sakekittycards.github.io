@@ -20,24 +20,68 @@ OUT_PATH = HERE / "_ebay_data_dump.json"
 
 
 def build_query(row: dict) -> str:
-    """Cleaner query — drop year + set (CL has weird artifacts there),
-    clean dashes/dots in player name, just card name + number + grade.
-    Keeps eBay's free-text matching focused on the most distinctive signals."""
-    name = (row.get("card_name") or "").strip()
-    number = (row.get("number") or "").strip()
+    """Build eBay query from CL data. Uses the full CL `card_full` string,
+    then surgically removes formatting artifacts that hurt eBay search:
+      - 'Pokemon' prefix (redundant)
+      - CL set abbreviation prefixes: 'Sv8-', 'Obf En-', 'Pre En-', 'Meg En-',
+        'Paf En-', 'Sve En-', 'Svp En-', 'M2-' (CL internal codes)
+      - ☆ character → 'Gold Star' (preserves meaning vs broken '?')
+      - Bstr → Booster (CL abbreviation)
+      - 'Alternate Full Art' / 'Alt Art' → 'FA' (eBay matches FA more)
+      - Redundant repeats like "151 C-Collection 151"
+      - Box-topper / variant verbose suffixes
+    Preserves dots in grades (CGC 8.5 stays 8.5, doesn't become 8 5)."""
+    full = (row.get("card_full") or "").strip()
     grade = (row.get("grade") or "").strip()
 
-    # Clean player name: dashes/dots → spaces, normalize whitespace
-    name = re.sub(r"[-./]", " ", name)
-    name = re.sub(r"\s+", " ", name).strip()
+    if full:
+        q = full
+        if grade and grade.upper() not in q.upper():
+            q = f"{q} {grade}"
+    else:
+        name = (row.get("card_name") or "").strip()
+        number = (row.get("number") or "").strip()
+        q = " ".join(p for p in (name, number, grade) if p)
 
-    parts = [name]
-    if number:
-        parts.append(number)
-    if grade:
-        parts.append(grade)
-
-    q = " ".join(p for p in parts if p)
+    # Strip redundant Pokemon prefix
+    q = re.sub(r"\bPokemon\s+", "", q, flags=re.I)
+    # Strip CL set abbreviation prefixes
+    q = re.sub(
+        r"\b(Sv\d+a?|Obf En|Paf En|Pre En|Sve En|Svp En|Mev En|Meg En|M2)\s*[-\s]\s*",
+        "", q, flags=re.I,
+    )
+    # Unicode artifacts
+    q = q.replace("☆", "Gold Star").replace("?", "")
+    # CL abbreviations
+    q = re.sub(r"\bBstr\b", "Booster", q, flags=re.I)
+    q = re.sub(r"\bAlternate Full Art\b|\bAlt Art\b", "FA", q, flags=re.I)
+    # Redundant repeats: "151 C-Collection 151" → "151 C-Collection"
+    q = re.sub(r"\b(\d+)\s+C[- ]?Collection\s+\1\b", r"\1 C-Collection", q, flags=re.I)
+    # Drop "Box Topper" / "Enhanced Booster Box Topper" — too specific, eBay sellers omit it
+    q = re.sub(r"\bEnhanced\s+Booster\s+Box\s+Topper\b", "Box Topper", q, flags=re.I)
+    # Strip "POP Series N" — confuses search (Celebrations reprint mentions POP 5)
+    q = re.sub(r"\bPOP Series \d+\b", "", q, flags=re.I)
+    # Strip dashes (but NOT dots — dots in grades like "8.5" must survive)
+    q = q.replace("-", " ")
+    # Strip "#" before card numbers (some eBay sellers don't use it)
+    q = q.replace("#", "")
+    # Strip "Secret" — usually redundant with FA/SAR variant tags
+    q = re.sub(r"\bSecret\b", "", q, flags=re.I)
+    # Dedupe tokens globally (case-insensitive) — CL repeats set name within
+    # card_full ("Vivid Voltage Fa / Pikachu Vmax Vivid Voltage"). Dedupe
+    # while preserving order — first occurrence wins.
+    tokens = q.split()
+    seen: set[str] = set()
+    deduped = []
+    for tok in tokens:
+        key = tok.lower().rstrip(",;:")
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(tok)
+    q = " ".join(deduped)
+    # Normalize whitespace
+    q = re.sub(r"\s+", " ", q).strip()
     return q
 
 
