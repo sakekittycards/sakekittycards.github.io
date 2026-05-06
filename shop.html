@@ -289,6 +289,18 @@
 
       let _eagerCount = 0;
       const EAGER_LIMIT = 8;  // first ~2 rows render with priority
+
+      // Route Square's full-resolution images (5+ MB JPEGs from /original.jpeg)
+      // through wsrv.nl to get a 400px WebP thumbnail (~15 KB). Square doesn't
+      // expose smaller variants on the S3 path, so this is the cheapest fix.
+      // PDP (product.html) keeps the original URL for full-detail viewing.
+      // Skip the proxy for assets we already control (logo, etc.) — only
+      // applies to remote images (Square + Printful).
+      const thumbProxy = (url) => {
+        if (!url || !/^https?:\/\//.test(url)) return url;
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
+      };
+
       const renderCard = (item) => {
         const oos = item.inStock === false;
         const isGraded = GRADER_RX.test(item.name || '');
@@ -302,8 +314,9 @@
         const loadAttrs = eager
           ? 'loading="eager" decoding="async" fetchpriority="high"'
           : 'loading="lazy" decoding="async" fetchpriority="low"';
+        const imgUrl = thumbProxy(item.imageUrl);
         const imgBlock = item.imageUrl
-          ? `<img src="${esc(item.imageUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} width="320" height="320" onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          ? `<img src="${esc(imgUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} width="320" height="320" onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
           : `<div class="product-img">📦</div>`;
         const desc = item.description
           ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
