@@ -122,7 +122,8 @@ def _start_run(keywords: list[str], token: str) -> dict | None:
         "sortOrder": "endedRecently",
         "itemLocation": "default",
         "itemCondition": "any",
-        "detailedSearch": False,
+        "detailedSearch": False,  # non-detailed = more results per query, faster.
+                                  # We rely on title + 2x CL sanity guard for verification.
     }).encode("utf-8")
     start_url = f"{API_BASE}/acts/{ACTOR_ID}/runs?token={token}"
     req = urllib.request.Request(

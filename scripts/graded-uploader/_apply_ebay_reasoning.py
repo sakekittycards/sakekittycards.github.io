@@ -66,30 +66,19 @@ def grade_matches_title(title: str, grade: str) -> bool:
     return False
 
 
-def title_matches_card(title: str, card_name: str, card_set: str,
-                        card_number: str, year: str) -> bool:
-    """Verify the eBay listing is the SAME card we're pricing.
-
-    Checks:
-      1. Card number (most discriminating) — must appear in title
-      2. At least one significant player-name token must appear in title
-      3. Either the year OR a set-name token must appear in title
-    Stop-words and very common terms are filtered out.
-    """
+def title_matches_card(title: str, card_name: str, card_number: str) -> bool:
+    """Loose card-identity check on the title — kept narrow so it doesn't
+    over-reject. Heavy lifting moved to item_matches_card_specifics()."""
     t = title.upper().replace(".", " ").replace("-", " ")
     t_compact = t.replace(" ", "")
 
-    # 1. Card number must be in the title (most discriminating signal).
-    #    Numbers can appear as "#11", "11/108", "No. 11", or just "11" near other tokens.
+    # Card number must be in the title (most discriminating signal)
     num = (card_number or "").strip().upper().lstrip("0")
     if num:
-        # Try exact match in compact title
-        if num not in t_compact:
-            # Also try with leading zeros (e.g., "085" vs "85")
-            if card_number.upper() not in t_compact:
-                return False
+        if num not in t_compact and card_number.upper() not in t_compact:
+            return False
 
-    # 2. Player-name token check — at least one significant token in title
+    # At least one significant player-name token must appear
     stop = {"FA", "HOLO", "FOIL", "EX", "GX", "V", "VMAX", "VSTAR", "AR",
             "SAR", "SIR", "IR", "UR", "PROMO", "FULL", "ART", "REVERSE",
             "REV", "RAINBOW", "GOLD", "SECRET", "SHINY"}
@@ -97,17 +86,71 @@ def title_matches_card(title: str, card_name: str, card_set: str,
                   if len(tok) >= 3 and tok not in stop}
     if name_toks and not any(tok in t for tok in name_toks):
         return False
+    return True
 
-    # 3. Year OR set keyword
-    if year and year in t:
-        return True
-    set_stop = {"POKEMON", "ENGLISH", "JAPANESE", "EN", "JP", "PSA",
-                "CGC", "BGS", "SGC", "CARD", "CARDS", "COLLECTION"}
-    set_toks = {tok for tok in re.split(r"[^A-Z0-9]+", card_set.upper())
-                 if len(tok) >= 4 and tok not in set_stop}
-    if not set_toks:
-        return True  # too few set tokens to gate on
-    return any(tok in t for tok in set_toks)
+
+def item_matches_card_specifics(it: dict, card_name: str, card_set: str,
+                                  card_number: str, year: str, grade: str) -> bool:
+    """Verify match using the actor's structured itemSpecifics + categoryPath
+    (when detailedSearch=true is on). This is a stricter, more reliable check
+    than title parsing because it's against the seller's declared fields.
+    """
+    specifics = it.get("itemSpecifics") or {}
+    cat_path = (it.get("categoryPath") or "").upper()
+
+    # 1. Category — must be a Pokemon single card listing (drop accessories,
+    #    sealed product, lots, etc.). EN: "Single Cards", DE: "Einzelne Karten"
+    if cat_path:
+        if not any(t in cat_path for t in ("SINGLE CARDS", "EINZELNE KARTEN",
+                                            "TRADING CARD GAMES",
+                                            "COLLECTIBLE CARD GAMES")):
+            return False
+
+    # 2. Game — must be Pokemon (covers all spellings: Pokémon, Pokemon)
+    game_keys = {"GAME", "SPIEL", "JEU", "JUEGO", "GIOCO"}
+    found_pokemon_game = False
+    has_game_field = False
+    for k, v in specifics.items():
+        if any(g in str(k).upper() for g in game_keys):
+            has_game_field = True
+            if "POK" in str(v).upper():  # Pokemon / Pokémon
+                found_pokemon_game = True
+                break
+    if has_game_field and not found_pokemon_game:
+        return False
+
+    # 3. Card name field — must include our player token if any
+    name_keys = {"CARD NAME", "KARTENNAME", "NOM DE LA CARTE",
+                 "POKEMON NAME", "CHARACTER"}
+    stop = {"FA", "HOLO", "FOIL", "EX", "GX", "V", "VMAX", "VSTAR",
+            "PROMO", "ART", "REVERSE", "REV", "RAINBOW", "GOLD",
+            "SECRET", "SHINY", "AR", "SAR", "SIR", "IR", "UR"}
+    name_toks = {tok for tok in re.split(r"[^A-Z0-9]+", card_name.upper())
+                  if len(tok) >= 3 and tok not in stop}
+    name_field_value = None
+    for k, v in specifics.items():
+        if any(n in str(k).upper() for n in name_keys):
+            name_field_value = str(v).upper()
+            break
+    if name_field_value and name_toks:
+        if not any(tok in name_field_value for tok in name_toks):
+            return False
+
+    # 4. Grade field — must contain our grader if listed
+    grade_keys = {"GRADE", "GRADING", "BEWERTUNG", "GRADO",
+                  "PROFESSIONAL GRADER", "GRADING SERVICE"}
+    g_norm = grade.upper().replace(".", "").replace(" ", "")
+    grader_letters = "".join(c for c in g_norm if c.isalpha())[:3]  # PSA/CGC/BGS
+    grade_field_value = None
+    for k, v in specifics.items():
+        if any(gk in str(k).upper() for gk in grade_keys) or "PSA" in str(k).upper():
+            grade_field_value = str(v).upper()
+            break
+    if grade_field_value and grader_letters:
+        if grader_letters not in grade_field_value.replace(" ", ""):
+            return False
+
+    return True
 
 
 def parse_price(it: dict) -> float | None:
@@ -148,18 +191,31 @@ def analyze_card(items: list[dict], grade: str, formula_price: int,
                  card_name: str = "", card_set: str = "",
                  card_number: str = "", year: str = "") -> dict:
     """Returns analysis dict with reasoning for one card."""
-    # Filter by grade AND card identity in title
+    # Multi-stage filter:
+    #  1. Title contains the grade (reject ungraded)
+    #  2. Title loose-matches our card (number + at least one name token)
+    #  3. itemSpecifics structured fields confirm the match
+    #     (game=Pokemon, category=Single Cards, name field contains our player,
+    #      grade field contains our grader). When the actor doesn't return
+    #      itemSpecifics for a row, we fall back to title-only.
     grade_items = []
     rejected_grade = 0
     rejected_identity = 0
+    rejected_specifics = 0
     for it in items:
         title = it.get("title", "")
         if not grade_matches_title(title, grade):
             rejected_grade += 1
             continue
-        if not title_matches_card(title, card_name, card_set, card_number, year):
+        if not title_matches_card(title, card_name, card_number):
             rejected_identity += 1
             continue
+        # Stricter structured-fields check (only if specifics are present)
+        if it.get("itemSpecifics") or it.get("categoryPath"):
+            if not item_matches_card_specifics(it, card_name, card_set,
+                                                  card_number, year, grade):
+                rejected_specifics += 1
+                continue
         p = parse_price(it)
         if p is None:
             continue
@@ -172,11 +228,12 @@ def analyze_card(items: list[dict], grade: str, formula_price: int,
             "n_items_graded": 0,
             "rejected_grade": rejected_grade,
             "rejected_identity": rejected_identity,
+            "rejected_specifics": rejected_specifics,
             "trend": "no-data",
             "recommendation": None,
-            "rationale": (f"no items matching grade '{grade}' AND card identity in "
-                          f"{len(items)} comps "
-                          f"(rejected: {rejected_grade} on grade, {rejected_identity} on identity)"),
+            "rationale": (f"no items survived all filters in {len(items)} comps "
+                          f"(rejected: {rejected_grade} grade, {rejected_identity} title-id, "
+                          f"{rejected_specifics} specifics)"),
         }
 
     # Drop outliers
