@@ -268,14 +268,16 @@
     /* ── Page-scoped polish — wider container, bigger calendar, CTA hierarchy,
        tighter section transitions. Matches the rhythm shipping/team set. ── */
     .page-events .page-hero,
-    .page-events .section { max-width: 1240px; }
+    .page-events .section { max-width: 1320px; }      /* widened — was 1240, page felt boxed-in */
     .page-events .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-events .page-hero { padding-bottom: 28px; }
+    .page-events .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
+    .page-events .page-hero > p { font-size: clamp(15px, 2vw, 18px); color: rgba(255,255,255,0.86); max-width: 580px; line-height: 1.55; }
 
     /* Calendar + event panel anchored, more breathing between them. */
-    .page-events .cal-layout { gap: 32px; }
-    .page-events .calendar { padding: 28px; }
-    .page-events .event-panel { padding: 26px 24px; }
+    .page-events .cal-layout { gap: 36px; }
+    .page-events .calendar { padding: 32px; }
+    .page-events .event-panel { padding: 28px 26px; }
 
     /* Calendar day cells — slightly larger numbers + brighter rest-state for sunlight. */
     .page-events .cal-day { font-size: 13.5px; color: rgba(255,255,255,0.65); }
