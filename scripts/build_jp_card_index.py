@@ -58,6 +58,8 @@ SEALED_KEYWORDS = [
     "gift set", "deluxe", "display case", "case file", "stadium",
     "v box", "vmax box", "vstar box", "v battle",
     "starter set", "starter collection",
+    # Jumbo / oversized cards (4x6"+) — not accepted at any tier.
+    "jumbo",
 ]
 
 
