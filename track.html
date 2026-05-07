@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=129" />
+  <link rel="stylesheet" href="style.css?v=130" />
   <style>
     .track-layout { max-width: 780px; margin: 0 auto; }
 
@@ -40,20 +40,20 @@
     .track-input {
       flex: 1; min-width: 220px;
       padding: 13px 18px;
-      background: rgba(255,255,255,.09);
-      border: 1.5px solid rgba(255,106,0,.40);
+      background: rgba(255,255,255,.06);
+      border: 1.5px solid rgba(255,106,0,.28);
       border-radius: var(--r-pill);
       color: var(--text);
       font-size: 15px;
       font-family: 'Inter',sans-serif;
       letter-spacing: 0.5px;
       outline: none;
-      box-shadow: 0 0 0 1px rgba(255,106,0,.10), 0 4px 18px rgba(255,106,0,.10);
+      box-shadow: 0 0 0 1px rgba(255,106,0,.04), 0 2px 10px rgba(255,106,0,.05);
       transition: border-color .2s, box-shadow .2s, background .2s;
       text-transform: uppercase;
     }
-    .track-input:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
-    .track-input:focus { background: rgba(255,255,255,.12); border-color: rgba(255,106,0,.75); box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 6px 22px rgba(255,106,0,.18); }
+    .track-input:hover { background: rgba(255,255,255,.09); border-color: rgba(255,106,0,.42); }
+    .track-input:focus { background: rgba(255,255,255,.10); border-color: rgba(255,106,0,.65); box-shadow: 0 0 0 3px rgba(255,106,0,.14), 0 3px 14px rgba(255,106,0,.12); }  /* harmonized w/ global form-input pattern */
     .track-input::placeholder { color: var(--muted); letter-spacing: 0.5px; }
 
     .track-card {
@@ -258,7 +258,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=53"></script>
+  <script src="main.js?v=54"></script>
   <script>
     (function () {
       const form   = document.getElementById('trackForm');
