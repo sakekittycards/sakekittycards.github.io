@@ -1075,6 +1075,23 @@
     }
     .bulk-qty::-webkit-outer-spin-button, .bulk-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .bulk-qty:focus { border-color: rgba(255,106,0,0.55); box-shadow: 0 0 0 3px rgba(255,106,0,0.08); }
+    /* Pre-table reassurance card — sits between the bulk-sub copy and the
+       table itself. Cyan tint so it reads as info, not warning. */
+    .bulk-floor-note {
+      margin: 18px 0 22px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.04));
+      border: 1px solid rgba(0,212,255,0.22);
+      border-radius: var(--r-sm);
+    }
+    .bulk-floor-note p {
+      font-size: 13.5px; line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      margin: 0 0 8px;
+    }
+    .bulk-floor-note p:last-child { margin-bottom: 0; }
+    .bulk-floor-note strong { color: rgba(255,255,255,0.96); font-weight: 700; }
+
     .bulk-table { width: 100%; border-collapse: collapse; }
     .bulk-table th, .bulk-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
     .bulk-table th {
@@ -1583,6 +1600,14 @@
       <div class="bulk-section" id="bulkSection">
         <h3>Add Any Bulk</h3>
         <p class="bulk-sub">Enter quantities below for any bulk you're including. Rates are per card for NM/LP bulk — heavily played or damaged cards may receive reduced rates or not be accepted altogether. <strong style="color:var(--orange)">English Pokémon only on bulk · no jumbo / oversized cards</strong> — Japanese / Chinese bulk isn't accepted. <strong style="color:var(--text)">Your bulk totals automatically get added to your estimate above and submit as one request.</strong></p>
+
+        <!-- Pre-table reassurance: clarifies that bulk = lower-value cards
+             within each rarity, and points customers back to the search if
+             they're unsure whether a specific card is too valuable for bulk. -->
+        <div class="bulk-floor-note">
+          <p>These bulk / vendor-bulk categories are intended for <strong>lower-value cards within each rarity type</strong>.</p>
+          <p><strong>Unsure if your card is too valuable for bulk pricing?</strong> Try searching for it above first. If it doesn't populate individually, it may be included in the categories below.</p>
+        </div>
 
         <div style="overflow-x:auto">
           <table class="bulk-table">

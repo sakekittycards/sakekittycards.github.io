@@ -37,6 +37,13 @@ BASE = "https://tcgcsv.com/tcgplayer/85"  # categoryId 85 = JP Pokemon
 USER_AGENT = "Mozilla/5.0 SakeKittyCards-JPIndex/1.0 (sakekittycards.com)"
 RATE_DELAY_SEC = 0.5
 
+# Drop JP cards with TCGplayer market < this floor — same convention used in
+# build_all_cards_index.py. Sub-bulk noise clutters search and these cards
+# don't justify grading prep / trade-in shipping anyway. Cards with no
+# tracked price (market is None) are KEPT — we don't want to miss obscure
+# stuff just because TCGplayer hasn't priced it yet.
+MARKET_FLOOR_USD = 3.00
+
 # Same list trade-in.html / grading-prep.html use to filter sealed products
 # out of card-grading flows. Sealed boxes/packs aren't gradeable.
 SEALED_KEYWORDS = [
@@ -100,6 +107,7 @@ def main() -> None:
                 price_by_pid[pid] = float(mp)
 
         kept = 0
+        skipped_floor = 0
         for p in products_data.get("results", []):
             pname = p.get("name") or ""
             if is_sealed(pname):
@@ -111,6 +119,12 @@ def main() -> None:
                     break
             pid = p.get("productId")
             market = price_by_pid.get(pid)
+            # $3 market floor — drop sub-bulk noise. Untracked cards (market
+            # None) are KEPT so obscure / new releases without prices yet
+            # still surface in search.
+            if market is not None and market < MARKET_FLOOR_USD:
+                skipped_floor += 1
+                continue
             # Round to 2 decimal places as a number (not a string) to keep the
             # JSON tight — JSON.stringify will drop trailing zeros.
             market_rounded = round(market, 2) if market else None
@@ -118,7 +132,8 @@ def main() -> None:
             kept += 1
 
         print(f"[build-jp] {i}/{len(groups)} {gname}: +{kept} cards "
-              f"({len(price_by_pid)} priced)  total {len(cards)}")
+              f"({len(price_by_pid)} priced, {skipped_floor} dropped < ${MARKET_FLOOR_USD:.2f})"
+              f"  total {len(cards)}")
         time.sleep(RATE_DELAY_SEC)
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)

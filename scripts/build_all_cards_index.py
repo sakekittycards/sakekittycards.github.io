@@ -1,17 +1,21 @@
 """
 Build assets/all-cards-fallback.json — every Pokemon card PriceCharting knows
-about that has a TCGplayer productId. Used by trade-in.html as a SEARCH-ONLY
-fallback when pokemontcg.io (English primary) and assets/jp-cards.json
-(Japanese primary) both return nothing for the customer's query.
+about that has a TCGplayer productId AND a loose-price >= MARKET_FLOOR.
+Used by trade-in.html + grading-prep.html as a SEARCH-ONLY fallback when
+pokemontcg.io (English primary) and assets/jp-cards.json (Japanese primary)
+both return nothing for the customer's query.
 
-Pricing is NEVER taken from PriceCharting per the project rule (PC's loose-price
-diverges from TCGplayer's published Market Price). The price flow is unchanged:
-once the customer picks a card from this fallback, the productId is used to
-hit /tcg/market on the worker, which returns TCGplayer's authoritative
-marketPrice.
+Pricing for QUOTES is NEVER taken from PriceCharting per the project rule
+(PC's loose-price diverges from TCGplayer's published Market Price). The
+PC price is used here ONLY as a floor filter — when the customer picks a
+card, /tcg/market on the worker still drives the actual quote.
 
-Index entries: [name, console, productId] — compact array form, no separate
-sealed flag (sealed products can be traded in too, so we keep them).
+The $3 floor was added 2026-05-07 per Nick: keeps the index clean of sub-bulk
+cards that would clutter search results (most cards <$3 aren't worth the
+grading-prep fee floor or the trade-in shipping anyway).
+
+Index entries: [name, console, productId] — same compact array shape the
+front-end search expects. Sealed products kept (sealed can be traded in too).
 """
 from __future__ import annotations
 
@@ -24,6 +28,22 @@ REPO_DIR = Path(__file__).resolve().parent.parent
 PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
 PC_DOWNLOAD_URL_FILE = Path.home() / ".claude" / "pricecharting_csv_url.txt"
 OUT_PATH = REPO_DIR / "assets" / "all-cards-fallback.json"
+
+# Drop cards with PriceCharting loose-price below this floor — sub-bulk noise
+# clutters the fallback search and these cards don't justify grading prep
+# (~$30 fee floor) or trade-in shipping anyway.
+MARKET_FLOOR_USD = 3.00
+
+
+def parse_pc_price(s: str) -> float | None:
+    """PC CSV prices look like '$34.98' or '$1,234.00' or empty. Returns float or None."""
+    s = (s or "").strip().lstrip("$").replace(",", "")
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        return None
 
 
 def fresh_pc_csv_path() -> Path:
@@ -67,6 +87,7 @@ def main() -> None:
     rows: list[list] = []
     seen: set[str] = set()  # de-dupe by productId
     skipped_no_id = 0
+    skipped_below_floor = 0
     with csv_path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         for r in reader:
@@ -91,6 +112,16 @@ def main() -> None:
                 continue
             if key in seen:
                 continue
+            # $3 market floor — drop sub-bulk entries that clutter search.
+            # Falls through to other price columns (cib, new) if loose is empty,
+            # so a card without a tracked loose-price still gets a fair shot.
+            loose = parse_pc_price(r.get("loose-price") or "")
+            cib   = parse_pc_price(r.get("cib-price") or "")
+            new_p = parse_pc_price(r.get("new-price") or "")
+            best_price = max(p for p in [loose, cib, new_p, 0] if p is not None)
+            if best_price < MARKET_FLOOR_USD:
+                skipped_below_floor += 1
+                continue
             seen.add(key)
             name = (r.get("product-name") or "").strip()
             rows.append([name, console, pid_str])
@@ -104,6 +135,7 @@ def main() -> None:
     print(f"[build-all] wrote {len(rows):,} unique-by-productId entries to {OUT_PATH}")
     print(f"[build-all] file size: {size_kb:,.1f} KB raw")
     print(f"[build-all] {skipped_no_id:,} PC rows skipped (no productId AND not Chinese)")
+    print(f"[build-all] {skipped_below_floor:,} skipped below ${MARKET_FLOOR_USD:.2f} market floor")
 
 
 if __name__ == "__main__":
