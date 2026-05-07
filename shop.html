@@ -25,8 +25,107 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=108" />
+  <style>
+    /* ── Shop page polish — scoped under .page-shop. Premium storefront
+       hierarchy: bigger Shop Direct heading, more deliberate section
+       spacing, calmer loading state, clearer category separation. ── */
+    .page-shop .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-shop .page-hero,
+    .page-shop .section { max-width: 1240px; }
+    .page-shop .page-hero { padding-bottom: 28px; }
+    .page-shop .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.5; color: rgba(255,255,255,0.85); max-width: 640px; }
+
+    /* Top-of-page rhythm */
+    .page-shop .section { padding-bottom: 28px; }
+    .page-shop #tcgplayerBanner { padding-bottom: 32px; }
+    .page-shop #shopDirect { padding-bottom: 56px; }
+
+    /* Shop Direct heading — bigger, primary commerce surface */
+    .page-shop #shopDirect .section-title { font-size: clamp(28px, 4vw, 40px); }
+    .page-shop #shopDirect .section-sub {
+      font-size: 14.5px; line-height: 1.65;
+      color: rgba(255,255,255,0.85);
+      max-width: 720px;
+    }
+
+    /* Calmer loading — hide per-card spinning ring (skeleton glow + image
+       blur-reveal already communicates loading; the ring per card was the
+       repetitive thing). */
+    .page-shop .product-card::after { display: none !important; }
+
+    /* Product grid — slightly more breathing */
+    .page-shop .product-grid { gap: 30px; }
+    .page-shop .product-card {
+      transition: border-color .25s, transform .25s ease, box-shadow .3s;
+    }
+    .page-shop .product-card:hover {
+      border-color: rgba(255,106,0,0.50);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 32px rgba(255,106,0,0.14);
+    }
+    .page-shop .product-info { padding: 16px 16px 18px; }
+    .page-shop .product-name {
+      font-size: 15px; font-weight: 700; line-height: 1.35;
+      color: rgba(255,255,255,0.96);
+      margin-bottom: 4px;
+    }
+    .page-shop .product-set { font-size: 13.5px; color: rgba(255,255,255,0.66); margin-bottom: 12px; }
+    .page-shop .product-price {
+      font-size: 20px; letter-spacing: -0.2px;
+      filter: drop-shadow(0 0 8px rgba(255,106,0,0.20));
+    }
+
+    /* Category separation */
+    .page-shop .shop-section { margin-top: 56px; }
+    .page-shop .shop-section:first-child { margin-top: 0; }
+    .page-shop .shop-section-title {
+      font-size: clamp(24px, 3.4vw, 32px);
+      margin-bottom: 18px;
+    }
+    .page-shop .shop-section-title::before {
+      width: 6px; height: 26px;
+      box-shadow: 0 0 12px rgba(255,106,0,0.40);
+    }
+
+    /* TCGPlayer banner — slightly tighter so it doesn't compete with Shop Direct */
+    .page-shop .tcg-banner { padding: 28px 32px; }
+    .page-shop .tcg-banner-text h2 { font-size: clamp(20px, 3vw, 26px); }
+    .page-shop .tcg-banner-text p { font-size: 14.5px; color: rgba(255,255,255,0.82); }
+
+    /* Closing brand strip — same pattern as shipping/team/events. */
+    .pack-brand-strip {
+      margin: 32px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
+  </style>
 </head>
-<body>
+<body class="page-shop">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -205,6 +304,17 @@
       <p id="shopFooterNote" style="margin-top:28px;font-size:14px;color:var(--dim);text-align:center">
         Looking for singles? Some live on <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" style="color:var(--orange)">TCGPlayer</a>, more get added here as we list them. Follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restock alerts.
       </p>
+    </div>
+
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
     </div>
   </main>
 
