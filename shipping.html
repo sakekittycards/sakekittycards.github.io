@@ -140,29 +140,7 @@
     .tone-purple .tier-label { color: #c69aff; border: 1px solid rgba(123,47,255,0.32); box-shadow: inset 0 0 14px rgba(123,47,255,0.06); }
     .tone-orange .tier-label { color: #ffc36e; border: 1px solid rgba(255,106,0,0.32); box-shadow: inset 0 0 14px rgba(255,106,0,0.06); }
 
-    .tier-photo {
-      width: 100%;
-      aspect-ratio: 5 / 1;        /* uniform horizontal strip — fits the source images cleanly */
-      object-fit: contain;
-      object-position: center;
-      display: block;
-      border-radius: var(--r-sm);
-      margin: 4px 0 18px;
-      padding: 8px 14px;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 70%),
-        linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.10));
-      border: 1px solid var(--border);
-    }
-    .tier-bulk .tier-photo {
-      aspect-ratio: 5 / 1.55;     /* tier4 — bigger progression-image strip */
-      margin-bottom: 26px;
-      padding: 12px 18px;
-    }
-    .tier-bulk { padding-bottom: 32px; }
-    @media (max-width: 540px) {
-      .tier-photo { padding: 6px 10px; }
-    }
+    .tier-bulk { padding-bottom: 26px; }
     .tier-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
     .tier-card.tone-pink   { border-color: rgba(255,0,128,0.30);   box-shadow: 0 0 0 1px rgba(255,0,128,0.10) inset, 0 0 28px rgba(255,0,128,0.06); }
     .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.30);   box-shadow: 0 0 0 1px rgba(0,212,255,0.10) inset, 0 0 28px rgba(0,212,255,0.06); }
@@ -190,8 +168,7 @@
 
     .tier-sub {
       font-size: 14.5px; font-weight: 500; color: rgba(229,229,247,0.85);
-      margin: 0 0 20px; line-height: 1.55;
-      min-height: 44px;            /* aligns photo+steps Y across the 3 cards */
+      margin: 0 0 18px; line-height: 1.55;
     }
 
     .step-list { list-style: none; counter-reset: step; padding: 0; margin: 0; }
@@ -319,13 +296,19 @@
         0 0 0 1px rgba(80,220,140,0.20) inset,
         0 0 40px rgba(80,220,140,0.14);
     }
+    /* Solid white titles with per-tone text-shadow glow — matches the
+       .tier-head pattern in the rest of the page so titles read as clean
+       labels instead of dominant gradient blocks. (Earlier gradient text-fill
+       version rendered too thick visually — the Bangers letterforms + full
+       gradient fill turned each word into a heavy color bar.) */
     .donot h3, .sleeves h3 {
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: clamp(26px, 3.4vw, 36px); line-height: 1.25; padding: 2px 0 10px;
-      margin-bottom: 14px; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-size: clamp(22px, 2.8vw, 30px); line-height: 1.25; padding: 2px 0 6px;
+      margin-bottom: 14px;
+      color: #fff;
     }
-    .donot h3   { background: linear-gradient(135deg, #ff375a, #ff0080); filter: drop-shadow(0 0 16px rgba(255,55,90,0.45)); }
-    .sleeves h3 { background: linear-gradient(135deg, #50dc8c, #00d4ff); filter: drop-shadow(0 0 14px rgba(80,220,140,0.30)); }
+    .donot h3   { text-shadow: 0 0 14px rgba(255,55,90,0.55), 0 0 4px rgba(255,55,90,0.85); }
+    .sleeves h3 { text-shadow: 0 0 14px rgba(80,220,140,0.50), 0 0 4px rgba(80,220,140,0.75); }
 
     .donot ul { list-style: none; padding: 0; margin: 0; }
     .donot li {
@@ -611,7 +594,6 @@
           <span class="tier-label">Plain White Envelope or Bubble Mailer</span>
           <h2 class="tier-head">1 Card</h2>
           <p class="tier-sub">Each card in its own top loader. <strong style="color:#ff7a96">PWE</strong> works for low-value singles &lt;$20.</p>
-          <img class="tier-photo" src="assets/shipping/tier1.png" alt="Sleeved card → top loader → team bag → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place the card in a clear plastic <strong>penny sleeve</strong>.</span></li>
             <li><span>Insert the sleeved card into a <strong>top loader</strong>.</span></li>
@@ -629,7 +611,6 @@
           <span class="tier-label">Plain White Envelope or Bubble Mailer</span>
           <h2 class="tier-head">Up to 10 Cards</h2>
           <p class="tier-sub">Up to 10 cards in one team bag.</p>
-          <img class="tier-photo" src="assets/shipping/tier2.png" alt="Stack of sleeved cards → team bag → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place each card in its own clear plastic <strong>sleeve</strong>.</span></li>
             <li><span>Place up to <strong>10 sleeved cards</strong> in a team bag and seal with tape.</span></li>
@@ -646,7 +627,6 @@
           <span class="tier-label">Bubble Mailer</span>
           <h2 class="tier-head">10 – 19 Cards</h2>
           <p class="tier-sub">10 to 19 cards ship in a bubble mailer.</p>
-          <img class="tier-photo" src="assets/shipping/tier3.png" alt="Stack of sleeved cards → two team bags → bubble mailer" loading="lazy" />
           <ol class="step-list">
             <li><span>Place each card in its own clear plastic <strong>sleeve</strong>.</span></li>
             <li><span>Place <strong>10 to 19 sleeved cards</strong> in one or two team bags (10 max per bag) and seal with tape.</span></li>
@@ -663,7 +643,6 @@
           <span class="tier-label">Bulk · Box Shipping</span>
           <h2 class="tier-head">20+ Cards / Large Collections</h2>
           <p class="tier-sub">20+ cards up to 1,000+ cards.</p>
-          <img class="tier-photo" src="assets/shipping/tier4.png" alt="Card storage box → storage box inside shipping box with peanuts → sealed shipping box" loading="lazy" />
           <div class="bulk-body">
             <ol class="step-list">
               <li><span>Sort and stack cards neatly in a <strong>card storage box</strong>, ETB, or similar sturdy container.</span></li>
