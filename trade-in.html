@@ -1955,9 +1955,15 @@
       }
     }
 
+    // Word-boundary regex. Plain substring matching had `'tin'` eating every
+    // Victini, `'etb'` matching inside random product slugs, etc. \b is needed
+    // because some sealed keywords are shorter than common card-name fragments.
+    const _SEALED_RE = new RegExp(
+      '\\b(?:' + SEALED_KEYWORDS.map(kw => kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b',
+      'i'
+    );
     function isSealedProduct(product) {
-      const name = (product.name || '').toLowerCase();
-      return SEALED_KEYWORDS.some(kw => name.includes(kw));
+      return _SEALED_RE.test(product.name || '');
     }
 
     function getSealedMarketPrice(product) {
@@ -2163,8 +2169,7 @@
     // Heuristic to tell if a fallback row is sealed (PriceCharting doesn't tag
     // it). Same keyword list as searchSealed uses for TCG CSV products.
     function _isFallbackSealed(name) {
-      const lower = (name || '').toLowerCase();
-      return SEALED_KEYWORDS.some(kw => lower.includes(kw));
+      return _SEALED_RE.test(name || '');
     }
     // Substring-search the fallback index. Returns rows shaped like the JP
     // / sealed search rows so they can flow through addTcgCsvItem unchanged.
