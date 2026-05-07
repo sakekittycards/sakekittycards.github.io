@@ -29,10 +29,11 @@ PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pri
 PC_DOWNLOAD_URL_FILE = Path.home() / ".claude" / "pricecharting_csv_url.txt"
 OUT_PATH = REPO_DIR / "assets" / "all-cards-fallback.json"
 
-# Drop cards with PriceCharting loose-price below this floor — sub-bulk noise
-# clutters the fallback search and these cards don't justify grading prep
-# (~$30 fee floor) or trade-in shipping anyway.
-MARKET_FLOOR_USD = 3.00
+# Drop cards with PriceCharting loose-price below this floor. Aligned with
+# the customer-facing guidance on trade-in.html: cards ~$5+ market typically
+# warrant individual review; sub-$5 flows into the Quick-Add Flat-Rate
+# Categories. Bumped 3 -> 5 on 2026-05-07 so the UX matches the helper text.
+MARKET_FLOOR_USD = 5.00
 
 
 def parse_pc_price(s: str) -> float | None:
