@@ -2173,15 +2173,16 @@
     }
     // Substring-search the fallback index. Returns rows shaped like the JP
     // / sealed search rows so they can flow through addTcgCsvItem unchanged.
-    async function searchAllCardsFallback(tokens, excludeProductIds) {
+    async function searchAllCardsFallback(tokens, excludeProductIds, excludeNameNum) {
       if (!tokens.length) return [];
       const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
       const idx = await loadAllCardsIndex();
       if (!idx.length) return [];
       const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
       const exclude = excludeProductIds instanceof Set ? excludeProductIds : new Set();
+      const excludeNN = excludeNameNum instanceof Set ? excludeNameNum : new Set();
       const out = [];
-      for (let i = 0; i < idx.length && out.length < 14; i++) {
+      for (let i = 0; i < idx.length && out.length < 30; i++) {
         const [name, console_, productId] = idx[i];
         if (exclude.has(productId)) continue;
         const hay = stripApos(`${name} ${console_}`.toLowerCase());
@@ -2200,6 +2201,11 @@
         const isSealed = _isFallbackSealed(name);
         const pidStr = String(productId);
         const isPcOnly = pidStr.startsWith('pc:');
+        // Cross-source dedup — skip rows that pokemontcg.io already returned
+        // (matched by lowercased name + raw card number from "Name #NN").
+        const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
+        const nnKey = m ? `${m[1].trim().toLowerCase()}|${m[2]}` : '';
+        if (nnKey && excludeNN.has(nnKey)) continue;
         out.push({
           productId,
           name,
@@ -2338,7 +2344,12 @@
       // the set hint can match the TCG CSV group while the number matches the
       // product name. Pure numeric slashes ("170/198") are left intact for
       // buildQuery to handle as English set-total format.
-      const q = query.trim().replace(/(\d+)\s*\/\s*([a-z][a-z0-9-]*)/gi, '$1 $2');
+      // Split slash formats: "242/SV-P" (JP promo) AND "4/102" (EN set/total).
+      // Both surface the LEFT number as the card-number token; the right side
+      // becomes a free token (set-code letter prefix, or set-total digit).
+      const q = query.trim()
+        .replace(/(\d+)\s*\/\s*([a-z][a-z0-9-]*)/gi, '$1 $2')
+        .replace(/(\d+)\s*\/\s*(\d+)/g, '$1 $2');
       if (q.length < 2) { resultsEl.classList.remove('open'); return; }
 
       // Tokenize + split search terms from variant intent.
@@ -2386,7 +2397,7 @@
       ]);
       const wantsVintage = variantFilter && [...variantFilter].some(v => VINTAGE_VARIANT_KEYS.has(v));
       const orderBy  = wantsVintage ? 'set.releaseDate' : '-set.releaseDate';
-      const pageSize = wantsVintage ? 40 : 12;
+      const pageSize = wantsVintage ? 40 : 25;   // bumped from 12 — show more variants
 
       try {
         const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
@@ -2419,32 +2430,38 @@
         // thereafter. Excludes productIds already in our results to avoid dupes.
         const seenSealedPids = new Set((csv.sealed || []).map(r => r.productId).filter(Boolean));
         const excludeFromFallback = new Set([...seenJpPids, ...seenSealedPids]);
-        const fallback = await searchAllCardsFallback(searchTokens, excludeFromFallback);
+        // Build name+number key set from pokemontcg.io results so the fallback
+        // skips duplicates without us flooding the dropdown.
+        const enNameNumKeys = new Set(
+          cards.map(c => `${(c.name || '').toLowerCase()}|${c.number || ''}`).filter(k => k !== '|')
+        );
+        const fallback = await searchAllCardsFallback(searchTokens, excludeFromFallback, enNameNumKeys);
         for (const r of fallback) {
           if (r.lang === 'jp' || r.lang === 'cn') {
             mergedJp.push(r);  // Chinese cards ride the same dropdown section as JP
           } else if (r.isSealed) {
             csv.sealed = (csv.sealed || []).concat(r);
-          }
-          // English non-sealed fallback rows: only add if pokemontcg.io
-          // returned nothing or very few — otherwise we'd flood the dropdown
-          // with PC-derived duplicates of cards pokemontcg.io already showed.
-          else if (cards.length < 5) {
-            // Tag with a synthetic shape so renderResults' "Singles" path can
-            // display it. Simulate the pokemontcg.io row shape minimally.
+          } else {
+            // English non-sealed fallback rows — surface ALL of them now that
+            // dedup is name+number based. Was previously gated by
+            // cards.length < 5 which silently hid tons of variants the
+            // pokemontcg.io API doesn't index (newer promos, oddballs).
+            const m = r.name.match(/^(.*?)\s*#(\S+)\s*$/);
+            const cleanName = m ? m[1].trim() : r.name;
+            const number    = m ? m[2] : '';
             cards.push({
               id: `pc_${r.productId}`,
-              name: r.name,
-              number: '',
+              name: cleanName,
+              number,
               images: { small: r.image },
               set: { name: r.set },
-              tcgplayer: { prices: {} },  // will get filled by lookupTcgCsvSinglePrice fallback
-              _fallbackProductId: r.productId,  // for dropdown enrichment
+              tcgplayer: { prices: {} },  // will get filled by /tcg/market lookup
+              _fallbackProductId: r.productId,
             });
           }
         }
-        csv.japanese = mergedJp.slice(0, 14);
-        csv.sealed   = (csv.sealed || []).slice(0, 12);
+        csv.japanese = mergedJp.slice(0, 30);     // bumped from 14
+        csv.sealed   = (csv.sealed || []).slice(0, 20);  // bumped from 12
 
         // For any card pokemontcg.io returned WITHOUT TCGplayer prices, look
         // it up on TCG CSV (TCGplayer Market Price) before rendering. This
