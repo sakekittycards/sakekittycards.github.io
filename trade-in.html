@@ -595,6 +595,12 @@
       line-height: 1;
       display: inline-flex; align-items: baseline;
     }
+    /* Cash → brand orange · Credit → brand cyan. Visual cue that the LEFT
+       number is what you'd take in cash and the RIGHT number is the trade-credit
+       sweetener. Mirrors the .ti-hr-cash-card / .ti-hr-credit-card colors in
+       the headline banner so customers learn the convention once. */
+    .trm-cash   { color: var(--orange); text-shadow: 0 0 8px rgba(255,106,0,0.30); }
+    .trm-credit { color: var(--cyan);   text-shadow: 0 0 8px rgba(0,212,255,0.30); }
     .trm-slash {
       color: var(--dim);
       font-weight: 600;
@@ -1448,24 +1454,24 @@
 
               <!-- Singles row -->
               <div class="trm-row-label trm-singles">Singles</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">70<span class="trm-slash">/</span>80</span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">80<span class="trm-slash">/</span>90</span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">85<span class="trm-slash">/</span>95</span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate">90<span class="trm-slash">/</span>100</span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">70</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">90</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
 
               <!-- Sealed row -->
               <div class="trm-row-label trm-sealed">Sealed</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">70<span class="trm-slash">/</span>80</span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">80<span class="trm-slash">/</span>90</span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">85<span class="trm-slash">/</span>95</span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate">90<span class="trm-slash">/</span>100</span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">70</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">90</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
 
               <!-- Graded row -->
               <div class="trm-row-label trm-graded">Graded</div>
               <div class="trm-cell trm-cell-na" aria-label="Graded under $100 not accepted">&times;</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">80<span class="trm-slash">/</span>90</span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate">85<span class="trm-slash">/</span>95</span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate">90<span class="trm-slash">/</span>100</span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">90</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
             </div>
             <ul class="trm-fineprint">
               <li><strong>Cash / Trade Credit</strong> per item.</li>
