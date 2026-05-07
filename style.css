@@ -18,6 +18,14 @@
   --r:            14px;
   --r-sm:         8px;
   --r-pill:       100px;
+
+  /* Spacing system (premium-pacing pass 2026-05-07) — section vertical
+     rhythm + footer transition. Per CD review: more breathing room,
+     stronger pacing, less "stacked dashboard energy". */
+  --section-py:   96px;            /* desktop default; mobile reduces via @media */
+  --section-py-tight: 72px;        /* second-section / chained sections */
+  --footer-gap:   120px;           /* margin above footer (was 72px) */
+  --hero-pb:      80px;            /* page-hero bottom padding */
 }
 
 /* ── Lucide icon system (clean SVG, subtle neon glow) ──
@@ -33,11 +41,11 @@
 .lc-sm { width: 16px; height: 16px; vertical-align: -3px; }
 .lc-lg { width: 32px; height: 32px; }
 .lc-xl { width: 44px; height: 44px; }
-.lc-orange { color: var(--orange); filter: drop-shadow(0 0 8px rgba(255,106,0,0.30)); }
-.lc-pink   { color: var(--pink);   filter: drop-shadow(0 0 8px rgba(255,0,128,0.30)); }
-.lc-cyan   { color: var(--cyan);   filter: drop-shadow(0 0 8px rgba(0,212,255,0.30)); }
-.lc-purple { color: var(--purple); filter: drop-shadow(0 0 8px rgba(123,47,255,0.30)); }
-.lc-gold   { color: #ffc800;       filter: drop-shadow(0 0 8px rgba(255,200,0,0.30)); }
+.lc-orange { color: var(--orange); filter: drop-shadow(0 0 6px rgba(255,106,0,0.20)); }
+.lc-pink   { color: var(--pink);   filter: drop-shadow(0 0 6px rgba(255,0,128,0.20)); }
+.lc-cyan   { color: var(--cyan);   filter: drop-shadow(0 0 6px rgba(0,212,255,0.20)); }
+.lc-purple { color: var(--purple); filter: drop-shadow(0 0 6px rgba(123,47,255,0.20)); }
+.lc-gold   { color: #ffc800;       filter: drop-shadow(0 0 6px rgba(255,200,0,0.20)); }
 .lc-muted  { color: rgba(255,255,255,0.70); }
 /* Star icon uses fill — keep its drop-shadow but override stroke style */
 .lc-star-filled { fill: currentColor; }
@@ -52,7 +60,7 @@
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 html, body { overflow-x: hidden; max-width: 100%; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; position: relative; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.65; min-height: 100vh; overflow-x: hidden; position: relative; }
 /* Belt-and-suspenders against any rogue child element forcing the viewport
    wider than the screen — prevents the horizontal-scroll-on-phone bug. */
 img, video { max-width: 100%; height: auto; }
@@ -667,26 +675,26 @@ button { font-family: inherit; }
 }
 .pay-modal-form input,
 .pay-modal-form textarea {
-  padding: 11px 13px;
-  background: rgba(255,255,255,0.09);
-  border: 1.5px solid rgba(255,106,0,0.40);
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,106,0,0.28);
   border-radius: 8px;
   color: var(--text);
   font-size: 14px; font-family: 'Inter',sans-serif; font-weight: 400;
   letter-spacing: normal; text-transform: none;
   outline: none;
-  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  box-shadow: 0 0 0 1px rgba(255,106,0,.04), 0 2px 10px rgba(255,106,0,.05);
   transition: border-color .15s, box-shadow .15s, background .15s;
 }
 .pay-modal-form input::placeholder,
 .pay-modal-form textarea::placeholder { color: var(--muted); }
 .pay-modal-form input:hover,
-.pay-modal-form textarea:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
+.pay-modal-form textarea:hover { background: rgba(255,255,255,.09); border-color: rgba(255,106,0,.42); }
 .pay-modal-form input:focus,
 .pay-modal-form textarea:focus {
-  background: rgba(255,255,255,.12);
-  border-color: rgba(255,106,0,.75);
-  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,106,0,.65);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.14), 0 3px 14px rgba(255,106,0,.12);
 }
 .pay-modal-form textarea { resize: vertical; min-height: 60px; }
 .pay-modal-totals {
@@ -751,7 +759,7 @@ body.cart-open { overflow: hidden; }
 
 /* ── Page hero ── */
 .page-hero {
-  padding: calc(var(--nav-h) + 60px) 24px 56px;
+  padding: calc(var(--nav-h) + 72px) 24px var(--hero-pb);
   text-align: center; max-width: var(--max-w); margin: 0 auto;
 }
 .page-hero h1 {
@@ -760,26 +768,31 @@ body.cart-open { overflow: hidden; }
   letter-spacing: 0.03em; line-height: 1.25; padding: 0 10px;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 0 14px rgba(255,106,0,0.18)); margin-bottom: 14px;
+  filter: drop-shadow(0 0 10px rgba(255,106,0,0.12)); margin-bottom: 18px;
 }
 .page-hero p {
   /* Bumped 15-17 -> 15.5-18 for desktop readability per audit. */
-  font-size: clamp(15.5px,2vw,18px); line-height: 1.65;
+  font-size: clamp(15.5px,2vw,18px); line-height: 1.7;
   color: var(--muted); max-width: 600px; margin: 0 auto;
 }
 
-/* ── Layout helpers ── */
-.section { padding: 72px 24px; max-width: var(--max-w); margin: 0 auto; }
-.section-header { margin-bottom: 44px; }
+/* ── Layout helpers ──
+   Section padding + spacing system (2026-05-07 premium-pacing pass).
+   Reviewers flagged "no breathing room" + "stacked dashboard energy"
+   across trade-in, grading-prep, shipping. Lift desktop padding from
+   72px to 96px so sections feel like distinct moments instead of
+   walls. Mobile breakpoints below stay tighter. */
+.section { padding: var(--section-py) 24px; max-width: var(--max-w); margin: 0 auto; }
+.section-header { margin-bottom: 56px; }
 .section-title {
   font-family: 'Bangers', cursive; font-size: clamp(28px,5vw,52px); letter-spacing: 0.04em;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(255,106,0,0.15));     /* 2nd glow pass — was 0.18 */
+  filter: drop-shadow(0 0 6px rgba(255,106,0,0.10));     /* 3rd glow pass — calmer hierarchy */
   padding-bottom: 8px;
   line-height: 1.25;
 }
-.section-sub { font-size: 15.5px; color: var(--muted); margin-top: 8px; max-width: 560px; line-height: 1.7; }
+.section-sub { font-size: 15.5px; color: var(--muted); margin-top: 10px; max-width: 580px; line-height: 1.75; }
 .divider { width: 56px; height: 3px; background: linear-gradient(90deg,var(--orange),var(--purple)); border-radius: 2px; margin-top: 10px; }
 
 /* ── Buttons ── */
@@ -791,33 +804,38 @@ body.cart-open { overflow: hidden; }
   transition: transform .18s, box-shadow .18s, opacity .18s;
 }
 .btn:hover { transform: translateY(-2px); }
-/* Glow reduction pass (2nd) — premium = controlled lighting. Reduced
-   another 15% per "reduce excessive glow/gradient effects 20-30%" audit. */
-.btn-primary { background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; box-shadow: 0 4px 16px rgba(255,106,0,0.24); }
-.btn-primary:hover { box-shadow: 0 6px 20px rgba(255,106,0,0.36); }
+/* Glow reduction pass 3 (2026-05-07) — CD review flagged "every box glows /
+   gaming UI energy". Calmed primary/secondary glows ~30%. Hover keeps a
+   slightly stronger lift so the interactive cue still reads. */
+.btn-primary { background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; box-shadow: 0 3px 12px rgba(255,106,0,0.18); }
+.btn-primary:hover { box-shadow: 0 5px 18px rgba(255,106,0,0.28); }
 .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); backdrop-filter: blur(8px); }
 .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
-.btn-venmo { background: #008cff; color: #fff; box-shadow: 0 4px 16px rgba(0,140,255,0.3); }
-.btn-venmo:hover { box-shadow: 0 6px 24px rgba(0,140,255,0.5); }
-.btn-tcg { background: linear-gradient(135deg,#1a60d8,#0d3fa8); color: #fff; box-shadow: 0 4px 16px rgba(26,96,216,0.35); }
-.btn-tcg:hover { box-shadow: 0 6px 24px rgba(26,96,216,0.55); }
-.btn-paypal { background: linear-gradient(135deg,#003087,#0070ba); color: #fff; box-shadow: 0 4px 14px rgba(0,112,186,0.3); }
-.btn-paypal:hover { box-shadow: 0 6px 22px rgba(0,112,186,0.55); }
-.btn-paylater { background: linear-gradient(135deg,#5b3ede,#8a5aff); color: #fff; box-shadow: 0 4px 14px rgba(91,62,222,0.35); }
-.btn-paylater:hover { box-shadow: 0 6px 22px rgba(91,62,222,0.55); }
+.btn-venmo { background: #008cff; color: #fff; box-shadow: 0 3px 12px rgba(0,140,255,0.22); }
+.btn-venmo:hover { box-shadow: 0 5px 18px rgba(0,140,255,0.36); }
+.btn-tcg { background: linear-gradient(135deg,#1a60d8,#0d3fa8); color: #fff; box-shadow: 0 3px 12px rgba(26,96,216,0.24); }
+.btn-tcg:hover { box-shadow: 0 5px 18px rgba(26,96,216,0.40); }
+.btn-paypal { background: linear-gradient(135deg,#003087,#0070ba); color: #fff; box-shadow: 0 3px 12px rgba(0,112,186,0.22); }
+.btn-paypal:hover { box-shadow: 0 5px 18px rgba(0,112,186,0.40); }
+.btn-paylater { background: linear-gradient(135deg,#5b3ede,#8a5aff); color: #fff; box-shadow: 0 3px 12px rgba(91,62,222,0.24); }
+.btn-paylater:hover { box-shadow: 0 5px 18px rgba(91,62,222,0.40); }
 .pay-buttons { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
 .pay-buttons .btn { width: 100%; justify-content: center; }
 .pay-note { font-size: 13px; color: var(--dim); text-align: center; margin-top: 10px; line-height: 1.5; }
 .btn-sm { padding: 8px 18px; font-size: 13px; }
-.btn-lg { padding: 15px 36px; font-size: 16px; }
+.btn-lg { padding: 17px 40px; font-size: 17px; letter-spacing: 0.2px; }
+/* Premium dominant CTA — used for "the commitment moment" buttons that
+   reviewers said currently feel buried. Larger tap target, slightly stronger
+   gradient anchor, calmer halo than old btn-lg. */
+.btn-xl { padding: 19px 44px; font-size: 18px; font-weight: 700; letter-spacing: 0.3px; min-height: 56px; }
 
 /* ── Cards ── */
 .card {
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r);
   transition: border-color .2s, transform .2s, background .2s;
 }
-/* Calmer card hover (2nd glow pass) — premium restraint. */
-.card:hover { border-color: rgba(255,106,0,0.24); background: var(--bg-card-hover); transform: translateY(-2px); }
+/* Calmer card hover (3rd glow pass) — premium restraint. */
+.card:hover { border-color: rgba(255,106,0,0.20); background: var(--bg-card-hover); transform: translateY(-2px); }
 
 /* ── Badges ── */
 .badge { display: inline-block; padding: 3px 10px; border-radius: var(--r-pill); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
@@ -845,15 +863,15 @@ body.cart-open { overflow: hidden; }
 .show-banner {
   display: flex; align-items: center; gap: 22px;
   padding: 22px 28px; margin: 18px 0 6px;
-  background: linear-gradient(135deg,rgba(255,106,0,.12),rgba(255,46,99,.10));
-  border: 1px solid rgba(255,106,0,.32);
+  background: linear-gradient(135deg,rgba(255,106,0,.10),rgba(255,46,99,.08));
+  border: 1px solid rgba(255,106,0,.25);
   border-radius: var(--r);
-  box-shadow: 0 8px 30px rgba(255,106,0,.10);
+  box-shadow: 0 6px 22px rgba(255,106,0,.06);
 }
 .show-banner-icon {
   font-size: 38px; line-height: 1;
   flex-shrink: 0;
-  filter: drop-shadow(0 4px 14px rgba(255,106,0,.5));
+  filter: drop-shadow(0 3px 10px rgba(255,106,0,.32));
 }
 .show-banner-body h3 {
   font-family: 'Bangers',cursive;
@@ -1442,25 +1460,25 @@ body.cart-open { overflow: hidden; }
 .event-card p { font-size: 15px; color: var(--muted); line-height: 1.65; }
 
 .notify-bar {
-  background: linear-gradient(135deg,rgba(255,106,0,.07),rgba(123,47,255,.07));
-  border: 1px solid rgba(255,106,0,.14); border-radius: var(--r);
-  padding: 30px 40px; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  background: linear-gradient(135deg,rgba(255,106,0,.06),rgba(123,47,255,.06));
+  border: 1px solid rgba(255,106,0,.12); border-radius: var(--r);
+  padding: 36px 44px; display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap;
 }
-.notify-bar h3 { font-size: 19px; font-weight: 700; margin-bottom: 3px; }
-.notify-bar p { font-size: 15px; color: var(--muted); }
+.notify-bar h3 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+.notify-bar p { font-size: 15px; color: var(--muted); line-height: 1.6; }
 .notify-bar-form { display: flex; gap: 10px; }
 .notify-bar-form input {
-  padding: 11px 18px; border-radius: var(--r-pill); border: 1.5px solid rgba(255,106,0,.40);
-  background: rgba(255,255,255,.09); color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif;
+  padding: 13px 20px; border-radius: var(--r-pill); border: 1.5px solid rgba(255,106,0,.28);
+  background: rgba(255,255,255,.06); color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif;
   outline: none; width: 220px;
-  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  box-shadow: 0 0 0 1px rgba(255,106,0,.04), 0 2px 10px rgba(255,106,0,.05);
   transition: border-color .2s, box-shadow .2s, background .2s;
 }
-.notify-bar-form input:hover { background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55); }
+.notify-bar-form input:hover { background: rgba(255,255,255,.09); border-color: rgba(255,106,0,.42); }
 .notify-bar-form input:focus {
-  background: rgba(255,255,255,.12);
-  border-color: rgba(255,106,0,.75);
-  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,106,0,.65);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.14), 0 3px 14px rgba(255,106,0,.12);
 }
 .notify-bar-form input::placeholder { color: var(--muted); }
 
@@ -1536,7 +1554,7 @@ body.cart-open { overflow: hidden; }
 
 /* ── About ── */
 .about-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 72px; align-items: center; }
-.about-img { width: 100%; max-width: 340px; border-radius: 20px; box-shadow: 0 0 60px rgba(255,106,0,.25),0 0 120px rgba(123,47,255,.15); animation: floatImg 5s ease-in-out infinite; }
+.about-img { width: 100%; max-width: 340px; border-radius: 20px; box-shadow: 0 0 44px rgba(255,106,0,.16),0 0 90px rgba(123,47,255,.10); animation: floatImg 5s ease-in-out infinite; }
 @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 .about-text h2 { font-family: 'Bangers',cursive; font-size: clamp(28px,5vw,46px); letter-spacing: 0.04em; background: linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom: 16px;
   padding-bottom: 8px;  /* Bangers descender clip fix */;
@@ -1570,27 +1588,50 @@ body.cart-open { overflow: hidden; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .form-group input, .form-group textarea, .form-group select {
-  width: 100%; padding: 12px 15px; background: rgba(255,255,255,.09);
-  border: 1.5px solid rgba(255,106,0,.40); border-radius: var(--r-sm);
-  color: var(--text); font-size: 14px; font-family: 'Inter',sans-serif; outline: none;
-  box-shadow: 0 0 0 1px rgba(255,106,0,.08), 0 3px 14px rgba(255,106,0,.08);
+  width: 100%; padding: 14px 16px; background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,106,0,.28); border-radius: var(--r-sm);
+  color: var(--text); font-size: 15px; font-family: 'Inter',sans-serif; outline: none;
+  box-shadow: 0 0 0 1px rgba(255,106,0,.04), 0 2px 10px rgba(255,106,0,.05);
   transition: border-color .2s, box-shadow .2s, background .2s;
 }
 .form-group input::placeholder, .form-group textarea::placeholder { color: var(--muted); }
 .form-group input:hover, .form-group textarea:hover, .form-group select:hover {
-  background: rgba(255,255,255,.11); border-color: rgba(255,106,0,.55);
+  background: rgba(255,255,255,.09); border-color: rgba(255,106,0,.42);
 }
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-  background: rgba(255,255,255,.12);
-  border-color: rgba(255,106,0,.75);
-  box-shadow: 0 0 0 3px rgba(255,106,0,.18), 0 4px 18px rgba(255,106,0,.18);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,106,0,.65);
+  box-shadow: 0 0 0 3px rgba(255,106,0,.14), 0 3px 14px rgba(255,106,0,.12);
 }
 .form-group textarea { resize: vertical; min-height: 110px; }
 .form-group select option { background: #1a1a2e; }
 
-/* ── Footer ── */
-.site-footer { border-top: 1px solid var(--border); padding: 52px 24px 28px; margin-top: 72px; }
-.footer-inner { max-width: var(--max-w); margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; margin-bottom: 36px; }
+/* ── Footer ──
+   Soft transition into footer (CD review: "abrupt jump from neon UI into
+   sparse footer"). Replaces the hard 1px top border with a gradient fade
+   handoff strip drawn via ::before, plus more vertical breathing room
+   above and inside. */
+.site-footer {
+  position: relative;
+  padding: 64px 24px 32px;
+  margin-top: var(--footer-gap);
+}
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 22%,
+    rgba(255,106,0,0.18) 50%,
+    rgba(255,255,255,0.08) 78%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+.footer-inner { max-width: var(--max-w); margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; margin-bottom: 40px; }
 .footer-brand { display: flex; flex-direction: row; align-items: center; gap: 18px; flex-wrap: wrap; }
 .footer-logo-img { width: 68px; height: 68px; border-radius: 14px; object-fit: cover; }
 .footer-ig, .footer-yt { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; transition: color .15s; }
@@ -1599,7 +1640,7 @@ body.cart-open { overflow: hidden; }
 .footer-nav { display: flex; flex-direction: column; gap: 10px; }
 .footer-nav a { font-size: 15px; color: var(--dim); text-decoration: none; transition: color .15s; }
 .footer-nav a:hover { color: var(--orange); }
-.footer-copy { max-width: var(--max-w); margin: 0 auto; font-size: 14px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 22px; }
+.footer-copy { max-width: var(--max-w); margin: 0 auto; font-size: 14px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 24px; }
 
 
 /* ── Hidden easter-egg: page-wide lava drip (unlocked by clicking a nav blob 5x) ──
@@ -1656,7 +1697,7 @@ body.drip-unlocked { position: relative; }
 .service-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; align-items: start; }
 .service-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px 28px; display: flex; flex-direction: column; transition: border-color .2s, transform .2s, background .2s; }
 .service-card:hover { transform: translateY(-4px); border-color: rgba(255,106,0,0.25); background: var(--bg-card-hover); }
-.service-card.featured { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 8px 32px rgba(255,106,0,.18); }
+.service-card.featured { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 6px 24px rgba(255,106,0,.12); }
 .service-card.featured:hover { border-color: var(--orange); }
 .service-badge { display: inline-block; background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: var(--r-pill); margin-bottom: 14px; align-self: flex-start; }
 .service-name { font-family: 'Bangers',cursive; font-size: 28px; letter-spacing: .04em; margin-bottom: 4px; }
@@ -1681,7 +1722,7 @@ body.drip-unlocked { position: relative; }
   bottom: 4px; position: relative;
   margin-left: 2px;
 }
-.service-card.featured .service-price { color: var(--orange); filter: drop-shadow(0 0 10px rgba(255,106,0,.4)); }
+.service-card.featured .service-price { color: var(--orange); filter: drop-shadow(0 0 8px rgba(255,106,0,.28)); }
 .service-unit { font-size: 14px; color: var(--dim); margin-bottom: 20px; }
 .service-divider { height: 1px; background: var(--border); margin: 20px 0; }
 .service-includes { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 24px; }
@@ -1730,11 +1771,12 @@ body.drip-unlocked { position: relative; }
   .values-grid { grid-template-columns: 1fr; }
   .contact-split { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr; gap: 28px; }
-  .notify-bar { flex-direction: column; padding: 24px; }
+  .notify-bar { flex-direction: column; padding: 26px; }
   .notify-bar-form { width: 100%; }
   .notify-bar-form input { flex: 1; width: auto; }
   .buylist-steps { grid-template-columns: 1fr 1fr; }
-  .section { padding: 56px 24px; }
+  .section { padding: 64px 24px; }
+  .section-header { margin-bottom: 40px; }
   .service-grid { grid-template-columns: 1fr; }
   .prep-steps { grid-template-columns: repeat(2,1fr); }
   .combine-box { flex-direction: column; text-align: center; padding: 28px 24px; }
@@ -1751,13 +1793,15 @@ body.drip-unlocked { position: relative; }
    feedback_sk_mobile_first_rules.md memory)
    ──────────────────────────────────────────────────────────────────────── */
 @media (max-width: 540px) {
-  /* Section padding tighter on phone — was 56px from the @768 rule above. */
-  .section { padding: 44px 18px; }
-  .page-hero { padding: calc(var(--nav-h) + 32px) 18px 24px; }
+  /* Section padding tighter on phone — was 44px, bumped to 52px in 2026-05-07
+     premium-pacing pass so mobile gets some of the same breathing room
+     reviewers asked for on desktop without feeling cramped. */
+  .section { padding: 52px 18px; }
+  .page-hero { padding: calc(var(--nav-h) + 36px) 18px 32px; }
 
   /* Body lines breathe a touch more on mobile (sunlight readability) +
      slight base-size bump so paragraphs read comfortably on small screens. */
-  body { line-height: 1.65; font-size: 16px; }
+  body { line-height: 1.7; font-size: 16px; }
   p { font-size: 15.5px; }
 
   /* Hero h1 size — clamp does most of this but cap so it doesn't overflow
@@ -1767,6 +1811,9 @@ body.drip-unlocked { position: relative; }
   /* Buttons get min-height 44px (Apple HIG tap-target floor). */
   .btn, .nav-cta, .nav-toggle { min-height: 44px; }
   .btn-sm { min-height: 40px; }
+  /* Premium dominant CTA stays larger on mobile too — this is the
+     "submit my trade-in / submit my grading prep" moment. */
+  .btn-xl { min-height: 56px; padding: 18px 28px; font-size: 17px; }
 
   /* Form inputs — 16px font prevents iOS auto-zoom on focus.
      Apply to ALL inputs/selects/textareas so customers don't get the
@@ -1784,12 +1831,16 @@ body.drip-unlocked { position: relative; }
   .card { padding: 22px; }
 
   /* Center-heading + section-header tighter */
-  .center-heading { margin-bottom: 24px; }
-  .section-header { margin-bottom: 30px; }
+  .center-heading { margin-bottom: 26px; }
+  .section-header { margin-bottom: 34px; }
+
+  /* Footer transition shorter on phone — full 120px gap is too much
+     dead space on a small screen. */
+  .site-footer { margin-top: 80px; padding: 48px 18px 28px; }
 }
 
 @media (max-width: 380px) {
-  .section { padding: 36px 14px; }
+  .section { padding: 44px 14px; }
   .page-hero { padding-left: 14px; padding-right: 14px; }
 }
 

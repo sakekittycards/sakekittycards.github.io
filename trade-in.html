@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=122" />
+  <link rel="stylesheet" href="style.css?v=125" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1696,7 +1696,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=47"></script>
+  <script src="main.js?v=49"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -3437,13 +3437,41 @@
         .trim();
     }
 
+    // Set-name fuzzy match. pokemontcg.io and PriceCharting use different
+    // naming conventions:
+    //   pokemontcg.io  "Expedition Base Set"   →   PC  "Pokemon Expedition"
+    //   pokemontcg.io  "Aquapolis"             →   PC  "Pokemon Aquapolis"
+    //   pokemontcg.io  "Hidden Fates"          →   PC  "Pokemon Hidden Fates"
+    // The old strict `pcConsole.includes(setLower)` worked for short names
+    // but missed every vintage e-Card era set because PC drops "Base Set"
+    // and pokemontcg.io adds it. Result: high-value cards like Expedition
+    // Charizard ($2.5K+ PSA 10) showed no profit-margin panel at all.
+    // Fix: strip "Pokemon " prefix from PC + " Base Set" suffix from
+    // pokemontcg.io and check both directions. Mirror of grading-prep.html.
+    function tiSetNameMatches(pcConsole, setLower) {
+      if (!setLower) return true;
+      const pcLower = (pcConsole || '').toLowerCase();
+      if (pcLower.includes(setLower)) return true;
+      const pcCore = pcLower
+        .replace(/^pokemon japanese\s+/, '')
+        .replace(/^pokemon\s+/, '')
+        .trim();
+      const setCore = setLower
+        .replace(/\s+base set$/, '')
+        .trim();
+      if (!setCore) return false;
+      if (pcCore === setCore) return true;
+      if (pcCore.includes(setCore)) return true;
+      if (setCore.includes(pcCore) && pcCore.length >= 4) return true;
+      return false;
+    }
     async function resolveEnProductIdForGraded(name, setName, number) {
       if (!name) return null;
       const idx = await loadAllCardsIndex();
       if (!idx.length) return null;
       const nameNorm = normalizeCardName(name);
       const setLower = (setName || '').toLowerCase();
-      const numStr   = number ? String(number).replace(/^0+/, '') : '';
+      const numStr   = number ? String(number).replace(/^0+/, '').replace(/\/.*$/, '') : '';  // strip leading zeros AND any "/total" suffix
       // Pass 1: name + set + number (best match)
       if (numStr) {
         for (const [pcName, pcConsole, pcPid] of idx) {
@@ -3453,15 +3481,14 @@
           const pcNum      = m[2].replace(/^0+/, '');
           if (pcBaseNorm !== nameNorm) continue;
           if (pcNum !== numStr) continue;
-          if (!setLower || pcConsole.toLowerCase().includes(setLower)) return pcPid;
+          if (tiSetNameMatches(pcConsole, setLower)) return pcPid;
         }
       }
       // Pass 2: name + set, no number — first match
       for (const [pcName, pcConsole, pcPid] of idx) {
         const baseNorm = normalizeCardName(pcName.replace(/\s*#\S+\s*$/, ''));
         if (baseNorm !== nameNorm) continue;
-        if (setLower && pcConsole.toLowerCase().includes(setLower)) return pcPid;
-        if (!setLower) return pcPid;
+        if (tiSetNameMatches(pcConsole, setLower)) return pcPid;
       }
       return null;
     }
