@@ -114,7 +114,7 @@
        so headshots center cleanly across all 4 cards. */
     .page-team .vendor-avatar {
       width: 120px; height: 120px;
-      margin: 0 auto 20px;
+      margin: 0 auto 18px;
       border-width: 3px;
       box-shadow: 0 6px 24px rgba(0,0,0,0.30);
       object-position: center 20%;
@@ -124,14 +124,14 @@
     .vendor-card.tone-cyan   .vendor-avatar { border-color: rgba(0,212,255,0.55); }
     .vendor-card.tone-purple .vendor-avatar { border-color: rgba(123,47,255,0.55); }
     /* Mustache easter-egg sits inside the avatar wrap — recenter for new size. */
-    .page-team .vendor-avatar-wrap { width: 120px; height: 120px; margin: 0 auto 20px; }
+    .page-team .vendor-avatar-wrap { width: 120px; height: 120px; margin: 0 auto 18px; }
     .page-team .vendor-avatar-wrap .vendor-avatar { margin: 0; }
     .page-team .mustache { width: 150px; }
 
     /* Type hierarchy — bigger name, refined specialty pill, brighter body. */
     .page-team .vendor-card h3 {
       font-size: 22px; font-weight: 800;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       letter-spacing: -0.2px;
     }
     .page-team .vendor-specialty {
@@ -142,22 +142,22 @@
       padding: 4px 10px;
       border: 1px solid rgba(255,106,0,0.30);
       border-radius: 100px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       background: rgba(255,106,0,0.05);
     }
     .vendor-card.tone-pink   .vendor-specialty { color: #ff66a0; border-color: rgba(255,0,128,0.30); background: rgba(255,0,128,0.05); }
     .vendor-card.tone-cyan   .vendor-specialty { color: #4ddfff; border-color: rgba(0,212,255,0.30); background: rgba(0,212,255,0.05); }
     .vendor-card.tone-purple .vendor-specialty { color: #c69aff; border-color: rgba(123,47,255,0.30); background: rgba(123,47,255,0.05); }
     .page-team .vendor-card p {
-      font-size: 14.5px; line-height: 1.7;
-      color: rgba(255,255,255,0.90);
+      font-size: 14.5px; line-height: 1.72;
+      color: rgba(255,255,255,0.92);
       margin: 0;            /* explicit — prevents inherited bottom margin */
     }
     /* Button row pinned to card bottom via auto-margin so cards-with-buttons
-       and cards-without both feel balanced. Consistent 20px gap above. */
+       and cards-without both feel balanced. Consistent 22px gap above. */
     .page-team .vendor-card > div[style*="display:flex"] {
       margin-top: auto !important;
-      padding-top: 20px;
+      padding-top: 22px;
     }
 
     /* "Interested in vending" CTA — confident closing card matching
@@ -214,7 +214,7 @@
     }
 
     /* Tighten brand-strip → footer transition for smoother handoff. */
-    .page-team .pack-brand-strip { margin-top: 28px; }
+    .page-team .pack-brand-strip { margin-top: 24px; padding-bottom: 10px; }
     .page-team .site-footer { margin-top: 0; }
     /* Closing brand strip — confident page-end before global footer.
        Same pattern as shipping.html's .pack-brand-strip. */
