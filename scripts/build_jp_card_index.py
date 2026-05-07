@@ -34,6 +34,7 @@ from pathlib import Path
 REPO_DIR = Path(__file__).resolve().parent.parent
 OUT_PATH = REPO_DIR / "assets" / "jp-cards.json"
 PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
+DOWNLOADS = Path.home() / "Downloads"
 
 BASE = "https://tcgcsv.com/tcgplayer/85"  # categoryId 85 = JP Pokemon
 USER_AGENT = "Mozilla/5.0 SakeKittyCards-JPIndex/1.0 (sakekittycards.com)"
@@ -76,6 +77,35 @@ def is_sealed(name: str) -> bool:
     return any(kw in lower for kw in SEALED_KEYWORDS)
 
 
+def load_jp_market_by_pid() -> dict[int, float]:
+    """Newest TCGplayer Custom Export from Downloads — JP market overlay."""
+    out: dict[int, float] = {}
+    candidates = sorted(DOWNLOADS.glob("TCGplayer__Pricing_Custom_Export_*.csv"),
+                        key=lambda p: p.stat().st_mtime, reverse=True)
+    if not candidates: return out
+    src = candidates[0]
+    rows = 0
+    with src.open("r", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            pid_str = (r.get("TCGplayer Id") or "").strip()
+            if not pid_str.isdigit(): continue
+            pid = int(pid_str)
+            cond = (r.get("Condition") or "").lower()
+            if "near mint" not in cond: continue
+            mp = (r.get("TCG Market Price") or "").strip()
+            if not mp: continue
+            try:
+                v = float(mp)
+                if v > 9000: continue
+                if pid not in out or v > out[pid]:
+                    out[pid] = v
+                rows += 1
+            except ValueError:
+                continue
+    print(f"[jp-export] loaded {rows:,} entries -> {len(out):,} unique pids from {src.name}")
+    return out
+
+
 def load_pc_loose_by_pid() -> dict[int, float]:
     """productId -> PC loose-price map. Used for max-overlay defense
     against TCG market suppression. See build_en_card_index.py for the
@@ -104,6 +134,7 @@ def load_pc_loose_by_pid() -> dict[int, float]:
 
 def main() -> None:
     pc_loose_by_pid = load_pc_loose_by_pid()
+    jp_market_by_pid = load_jp_market_by_pid()
 
     print(f"[build-jp] hitting {BASE}/groups")
     groups_data = fetch_json(f"{BASE}/groups")
@@ -153,17 +184,17 @@ def main() -> None:
                     break
             pid = p.get("productId")
             tcg_market = price_by_pid.get(pid)
-            # Multi-source max — defense against TCGplayer suppression.
-            # Same logic as build_en_card_index.py.
+            # Multi-source max — same logic as build_en_card_index.py.
+            # Sources: TCG CSV market, PC loose, JP TCG full export market.
             pc_loose = pc_loose_by_pid.get(pid)
-            if tcg_market is not None and pc_loose is not None:
-                if pc_loose > tcg_market * 1.10:
-                    market = pc_loose
+            jp_market = jp_market_by_pid.get(pid)
+            sources = [v for v in (tcg_market, pc_loose, jp_market) if v is not None]
+            if sources:
+                market = max(sources)
+                if tcg_market is None or market > (tcg_market * 1.10):
                     pc_overlays += 1
-                else:
-                    market = tcg_market
             else:
-                market = tcg_market if tcg_market is not None else pc_loose
+                market = None
             # $3 market floor — drop sub-bulk noise. Untracked cards (market
             # None) are KEPT so obscure / new releases without prices yet
             # still surface in search.
