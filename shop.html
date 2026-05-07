@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=114" />
+  <link rel="stylesheet" href="style.css?v=117" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -107,6 +107,273 @@
     .page-shop .tcg-banner-text p { font-size: 14.5px; color: rgba(255,255,255,0.82); }
 
     /* Closing brand strip — same pattern as shipping/team/events. */
+
+    /* ════════════════════════════════════════════════════════════════════
+       SHOP REDESIGN — split hero, trust strip, newsletter, premium footer.
+       Inspired by Nick's reference mockup. Brand-locked: Sake Kitty colors,
+       Bangers headline, neon dark palette preserved. Dynamic JS hooks
+       (#shopGridGraded, #shopGridSingles, #shopGridMerch) untouched.
+       ════════════════════════════════════════════════════════════════════ */
+
+    body.page-shop main { max-width: 1480px; margin: 0 auto; }
+    .page-shop .page-hero,
+    .page-shop .section { max-width: 1480px; padding-left: 40px; padding-right: 40px; }
+    @media (max-width: 540px) {
+      .page-shop .page-hero,
+      .page-shop .section { padding-left: 20px; padding-right: 20px; }
+    }
+
+    /* SPLIT HERO */
+    .shop-hero {
+      max-width: 1480px; margin: 0 auto;
+      padding: calc(var(--nav-h) + 80px) 40px 56px;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 72px;
+      align-items: start;
+      position: relative;
+      min-height: 640px;
+    }
+    .shop-hero::before {
+      content: ''; position: absolute;
+      left: 50%; top: 18%;
+      width: min(1300px, 120%); height: 75%;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse 50% 60% at 70% 50%, rgba(255,106,0,0.14), transparent 70%),
+        radial-gradient(ellipse 45% 50% at 30% 50%, rgba(255,0,128,0.08), transparent 70%);
+      filter: blur(80px);
+      pointer-events: none; z-index: 0;
+    }
+    .shop-hero-left, .shop-hero-right { position: relative; z-index: 1; }
+    .shop-hero-left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+    .shop-hero-eyebrow {
+      font-family: 'Inter', sans-serif; font-weight: 800;
+      font-size: 13px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--orange);
+      margin: 0;
+    }
+    .page-shop .shop-hero h1 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(48px, 8vw, 96px);
+      letter-spacing: 0.02em; line-height: 0.96;
+      margin: 0; padding-bottom: 6px;
+      color: #fff;
+      text-shadow: 0 2px 32px rgba(0,0,0,0.6);
+    }
+    .page-shop .shop-hero h1 .accent {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 24px rgba(255,0,128,0.28));
+    }
+    .shop-hero-body {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.65;
+      color: rgba(255,255,255,0.86);
+      max-width: 540px; margin: 0;
+    }
+    .shop-hero-trust {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      margin-top: 8px;
+    }
+    .sht-item {
+      display: flex; gap: 12px; align-items: center;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      transition: border-color .2s, background .2s;
+    }
+    .sht-item:hover { border-color: rgba(255,106,0,0.30); background: rgba(255,255,255,0.04); }
+    .sht-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; line-height: 1;
+    }
+    .sht-1 .sht-icon { color: var(--orange); }
+    .sht-2 .sht-icon { color: var(--cyan); }
+    .sht-3 .sht-icon { color: var(--pink); }
+    .sht-4 .sht-icon { color: var(--purple); }
+    .sht-text strong { display: block; font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,0.95); }
+    .sht-text span { display: block; font-size: 11.5px; color: rgba(255,255,255,0.62); }
+    .shop-hero-right {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 420px;
+    }
+    .shop-hero-mascot {
+      width: min(500px, 100%); height: auto;
+      filter:
+        drop-shadow(0 0 70px rgba(255,106,0,0.28))
+        drop-shadow(0 0 130px rgba(255,0,128,0.18));
+    }
+    @media (max-width: 1000px) {
+      .shop-hero { grid-template-columns: 1fr; gap: 28px; min-height: 0; padding-bottom: 32px; }
+      .shop-hero-right { order: -1; min-height: 240px; }
+      .shop-hero-mascot { width: 220px; }
+      .shop-hero-trust { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .shop-hero { padding-left: 20px; padding-right: 20px; }
+      .page-shop .shop-hero h1 { font-size: clamp(40px, 11vw, 56px); }
+      .shop-hero-trust { grid-template-columns: 1fr; }
+    }
+
+    /* PRODUCT CARDS — bigger, more premium per audit */
+    .page-shop .product-grid { gap: 22px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    @media (min-width: 1100px) {
+      .page-shop .product-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+    @media (min-width: 768px) and (max-width: 1099px) {
+      .page-shop .product-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 540px) {
+      .page-shop .product-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    }
+    .page-shop .product-info { padding: 18px 18px 20px; }
+    .page-shop .product-name { font-size: 15.5px; line-height: 1.35; }
+    .page-shop .product-set { font-size: 13px; }
+    .page-shop .product-price { font-size: 22px; }
+
+    /* SECTION TITLES */
+    .page-shop .shop-section-title {
+      font-size: clamp(26px, 3.6vw, 34px) !important;
+      letter-spacing: 0.03em;
+      margin-bottom: 24px;
+    }
+
+    /* TRUST STRIP after products */
+    .shop-trust-strip {
+      max-width: 1480px; margin: 40px auto 56px;
+      padding: 24px 32px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+    }
+    @media (max-width: 900px) { .shop-trust-strip { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .shop-trust-strip { grid-template-columns: 1fr; padding: 22px 18px; } }
+    .sts-item { display: flex; gap: 14px; align-items: center; }
+    .sts-icon {
+      width: 38px; height: 38px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; line-height: 1;
+    }
+    .sts-1 .sts-icon { color: #ffc800; filter: drop-shadow(0 0 14px rgba(255,200,0,0.5)); }
+    .sts-2 .sts-icon { color: var(--cyan); filter: drop-shadow(0 0 14px rgba(0,212,255,0.5)); }
+    .sts-3 .sts-icon { color: var(--pink); filter: drop-shadow(0 0 14px rgba(255,0,128,0.5)); }
+    .sts-4 .sts-icon { color: var(--purple); filter: drop-shadow(0 0 14px rgba(123,47,255,0.5)); }
+    .sts-text strong { display: block; font-size: 13px; color: rgba(255,255,255,0.95); letter-spacing: 0.04em; }
+    .sts-text span { display: block; font-size: 12px; color: rgba(255,255,255,0.66); margin-top: 2px; }
+
+    /* NEWSLETTER strip */
+    .shop-newsletter {
+      max-width: 1480px; margin: 0 auto 48px;
+      padding: 32px 40px;
+      background:
+        radial-gradient(ellipse 60% 100% at 0% 50%, rgba(255,0,128,0.10), transparent 65%),
+        radial-gradient(ellipse 50% 100% at 100% 50%, rgba(255,106,0,0.08), transparent 65%),
+        rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,106,0,0.22);
+      border-radius: 16px;
+      display: flex; gap: 28px; align-items: center; flex-wrap: wrap;
+    }
+    .shop-newsletter-icon { font-size: 40px; flex-shrink: 0; line-height: 1; filter: drop-shadow(0 0 18px rgba(255,0,128,0.5)); }
+    .shop-newsletter-text { flex: 1; min-width: 240px; }
+    .shop-newsletter-text h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(22px, 3vw, 28px); letter-spacing: 0.04em;
+      color: #fff; margin: 0 0 4px; padding-bottom: 4px; line-height: 1.25;
+    }
+    .shop-newsletter-text p { font-size: 14px; color: rgba(255,255,255,0.78); margin: 0; line-height: 1.5; }
+    .shop-newsletter form { display: flex; gap: 10px; min-width: 320px; flex: 0 0 auto; }
+    .shop-newsletter input {
+      flex: 1; min-width: 0;
+      padding: 14px 16px;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      font-size: 14px; color: #fff;
+    }
+    .shop-newsletter input:focus { outline: none; border-color: rgba(255,106,0,0.55); }
+    .shop-newsletter button {
+      padding: 14px 24px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff; border: none; border-radius: 10px;
+      font-weight: 700; font-size: 13.5px; letter-spacing: 0.14em;
+      text-transform: uppercase; cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 6px 18px rgba(255,106,0,0.28);
+    }
+    .shop-newsletter button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(255,106,0,0.42); }
+    @media (max-width: 540px) {
+      .shop-newsletter { padding: 24px 20px; gap: 18px; }
+      .shop-newsletter form { width: 100%; min-width: 0; }
+      .shop-newsletter button { padding: 14px 18px; }
+    }
+
+    /* PREMIUM FOOTER (mirrors homepage) */
+    .premium-footer {
+      max-width: 1480px; margin: 0 auto; padding: 64px 40px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .premium-footer::before {
+      content: ''; position: absolute;
+      left: 50%; top: 0;
+      width: min(900px, 80%); height: 200px;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at top, rgba(255,106,0,0.08), transparent 70%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    .pf-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 0.85fr 0.85fr 0.85fr 1.3fr;
+      gap: 48px 36px;
+      position: relative;
+    }
+    @media (max-width: 1000px) { .pf-grid { grid-template-columns: 1fr 1fr; gap: 36px; } }
+    @media (max-width: 540px)  { .pf-grid { grid-template-columns: 1fr; gap: 28px; } }
+    .pf-brand { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    .pf-brand-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .pf-brand-logo img { width: 44px; height: 44px; border-radius: 10px; }
+    .pf-brand-logo span { font-family: 'Bangers', cursive; font-size: 22px; letter-spacing: 0.06em; color: #fff; }
+    .pf-tag { font-size: 14px; color: rgba(255,255,255,0.74); line-height: 1.6; max-width: 320px; margin: 0; }
+    .pf-socials { display: flex; gap: 12px; flex-wrap: wrap; }
+    .pf-socials a {
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.80);
+      transition: border-color .15s, color .15s, background .15s, transform .15s;
+    }
+    .pf-socials a:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,106,0,0.10); transform: translateY(-2px); }
+    .pf-socials svg { width: 18px; height: 18px; fill: currentColor; }
+    .pf-col h4 {
+      font-size: 12.5px; font-weight: 800; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.95);
+      margin: 0 0 18px;
+    }
+    .pf-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+    .pf-col a {
+      font-size: 14px; color: rgba(255,255,255,0.74);
+      text-decoration: none;
+      transition: color .15s, padding-left .15s;
+    }
+    .pf-col a:hover { color: var(--orange); padding-left: 4px; }
+    .pf-col li { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.74); }
+    .pf-col li svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--orange); }
+    .pf-bottom {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; justify-content: space-between; gap: 18px;
+      flex-wrap: wrap;
+      font-size: 13px; color: rgba(255,255,255,0.58);
+    }
+    .pf-bottom a { color: rgba(255,255,255,0.58); text-decoration: none; margin-left: 22px; }
+    .pf-bottom a:hover { color: var(--orange); }
   </style>
 </head>
 <body class="page-shop">
@@ -139,30 +406,42 @@
   </nav>
 
   <main id="main" class="page-content">
-    <div id="shopHero" class="page-hero">
-      <h1>Shop</h1>
-      <p id="shopHeroSub">Apparel and merch direct from us — singles and sealed live on our TCGPlayer storefront.</p>
-    </div>
+    <!-- SPLIT HERO — replaces the small centered hero -->
+    <section id="shopHero" class="shop-hero">
+      <div class="shop-hero-left">
+        <p class="shop-hero-eyebrow">Shop</p>
+        <h1>Curated Cards.<br><span class="accent">Packed With Value.</span></h1>
+        <p class="shop-hero-body" id="shopHeroSub">Hand-picked singles, graded slabs, sealed product, and exclusive collectibles — all from trusted sources.</p>
+        <div class="shop-hero-trust">
+          <div class="sht-item sht-1">
+            <div class="sht-icon" aria-hidden="true">🚚</div>
+            <div class="sht-text"><strong>Fast Shipping</strong><span>Ships within 24h</span></div>
+          </div>
+          <div class="sht-item sht-2">
+            <div class="sht-icon" aria-hidden="true">🛡️</div>
+            <div class="sht-text"><strong>Secure Packaging</strong><span>Top loaders &amp; care</span></div>
+          </div>
+          <div class="sht-item sht-3">
+            <div class="sht-icon" aria-hidden="true">★</div>
+            <div class="sht-text"><strong>Collector Trusted</strong><span>Gold Star · 99%+ feedback</span></div>
+          </div>
+          <div class="sht-item sht-4">
+            <div class="sht-icon" aria-hidden="true">💬</div>
+            <div class="sht-text"><strong>Real Support</strong><span>We're here to help</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="shop-hero-right">
+        <img src="logo-transparent.png" alt="" class="shop-hero-mascot" loading="eager" />
+      </div>
+    </section>
 
     <!-- Local-vendor inventory notice — site lags real-time in-person sales
          occasionally; every order is reviewed before processing. -->
     <div class="section" style="padding-top:0;padding-bottom:16px">
-      <div style="max-width:920px;margin:0 auto;padding:14px 18px;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(123,47,255,0.05));border:1px solid rgba(0,212,255,0.28);border-radius:12px;display:flex;gap:12px;align-items:flex-start;font-size:13.5px;line-height:1.55;color:rgba(229,229,247,0.88)">
+      <div style="max-width:1100px;margin:0 auto;padding:14px 18px;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(123,47,255,0.05));border:1px solid rgba(0,212,255,0.28);border-radius:12px;display:flex;gap:12px;align-items:flex-start;font-size:13.5px;line-height:1.55;color:rgba(229,229,247,0.88)">
         <span style="font-size:20px;line-height:1;flex-shrink:0" aria-hidden="true">📍</span>
         <div><strong style="color:#fff">We're local vendors</strong> — site inventory can occasionally lag an in-person sale at a show. Every order is reviewed before we charge: <strong style="color:var(--cyan)">once your order is submitted, we'll confirm availability with you</strong>. If something just sold at the booth, you'll hear from us right away and we'll refund or swap.</div>
-      </div>
-    </div>
-
-    <!-- TCGPlayer Banner -->
-    <div id="tcgplayerBanner" class="section" style="padding-top:0">
-      <div class="tcg-banner">
-        <div class="tcg-banner-text">
-          <h2>Prefer TCGPlayer's buyer protection?</h2>
-          <p>A slice of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller with secure checkout.</p>
-        </div>
-        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">
-          Shop on TCGPlayer →
-        </a>
       </div>
     </div>
 
@@ -294,36 +573,124 @@
         Looking for singles? Some live on <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" style="color:var(--orange)">TCGPlayer</a>, more get added here as we list them. Follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restock alerts.
       </p>
     </div>
-</main>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
-        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
-          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-          @sakekittycards
-        </a>
-        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
-          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          @SakeKittyCards
+    <!-- TRUST STRIP — moved BELOW products (reinforces purchase confidence) -->
+    <div class="shop-trust-strip">
+      <div class="sts-item sts-1">
+        <div class="sts-icon" aria-hidden="true">★</div>
+        <div class="sts-text"><strong>100% AUTHENTIC</strong><span>All cards verified</span></div>
+      </div>
+      <div class="sts-item sts-2">
+        <div class="sts-icon" aria-hidden="true">🚚</div>
+        <div class="sts-text"><strong>SECURE SHIPPING</strong><span>Tracked &amp; insured</span></div>
+      </div>
+      <div class="sts-item sts-3">
+        <div class="sts-icon" aria-hidden="true">🛡️</div>
+        <div class="sts-text"><strong>TOP LOADER PROTECTION</strong><span>Always protected</span></div>
+      </div>
+      <div class="sts-item sts-4">
+        <div class="sts-icon" aria-hidden="true">♥</div>
+        <div class="sts-text"><strong>COLLECTOR APPROVED</strong><span>Real customers, real reviews</span></div>
+      </div>
+    </div>
+
+    <!-- TCGplayer banner — repositioned BELOW products since browse-first
+         is better conversion flow than redirect-first -->
+    <div id="tcgplayerBanner" class="section" style="padding-top:0;padding-bottom:32px">
+      <div class="tcg-banner">
+        <div class="tcg-banner-text">
+          <h2>Prefer TCGPlayer's buyer protection?</h2>
+          <p>A slice of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller with secure checkout.</p>
+        </div>
+        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">
+          Shop on TCGPlayer →
         </a>
       </div>
-      <nav class="footer-nav">
-        <a href="shop.html">Shop</a>
-        <a href="events.html">Events</a>
-        <a href="team.html">Our Team</a>
-        <a href="trade-in.html">Sell / Trade</a>
-        <a href="grading-prep.html">Grading Prep</a>
-        <a href="shipping.html">Shipping Guide</a>
-        <a href="faq.html">FAQ</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
-        <a href="track.html">Track Order</a>
-        <a href="gift-cards.html">Gift Cards</a>
-      </nav>
     </div>
-    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+
+    <!-- NEWSLETTER -->
+    <div class="shop-newsletter">
+      <span class="shop-newsletter-icon" aria-hidden="true">🛒</span>
+      <div class="shop-newsletter-text">
+        <h3>Join the Crew</h3>
+        <p>Get updates on new drops, shows, and exclusive deals.</p>
+      </div>
+      <form id="shopNewsletter" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+        <input type="hidden" name="subject" value="Newsletter signup — shop" />
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
+        <input type="email" name="email" placeholder="Enter your email" required aria-label="Email address" />
+        <button type="submit">Subscribe</button>
+      </form>
+    </div>
+</main>
+
+  <!-- PREMIUM FOOTER (matches homepage) -->
+  <footer class="premium-footer">
+    <div class="pf-grid">
+      <div class="pf-brand">
+        <a href="index.html" class="pf-brand-logo">
+          <img src="logo.png" alt="Sake Kitty Cards" />
+          <span>Sake Kitty Cards</span>
+        </a>
+        <p class="pf-tag">Real collectors. Real conversations. Trusted by collectors worldwide.</p>
+        <div class="pf-socials">
+          <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" aria-label="YouTube">
+            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </a>
+          <a href="mailto:nick@sakekittycards.com" aria-label="Email">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="pf-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="shop.html#graded">Graded Cards</a></li>
+          <li><a href="shop.html#sealed">Sealed Product</a></li>
+          <li><a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener">TCGplayer Store</a></li>
+        </ul>
+      </div>
+      <div class="pf-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="team.html">Our Team</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="pf-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="trade-in.html">Sell / Trade</a></li>
+          <li><a href="grading-prep.html">Grading Prep</a></li>
+          <li><a href="shipping.html">Shipping Guide</a></li>
+          <li><a href="track.html">Track Order</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="gift-cards.html">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div class="pf-col">
+        <h4>Why Shop With Us</h4>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v7c0 5 3.5 8.6 8 10 4.5-1.4 8-5 8-10V5l-8-3z"/></svg>Fast &amp; Secure Shipping</li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>100% Authentic</li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v7c0 5 3.5 8.6 8 10 4.5-1.4 8-5 8-10V5l-8-3z"/></svg>Top Loader Protection</li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>Collector Trusted</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pf-bottom">
+      <span>© 2026 Sake Kitty Cards. All rights reserved.</span>
+      <span>
+        <a href="grading-terms.html">Grading Prep Terms</a>
+      </span>
+    </div>
   </footer>
 
   <script src="main.js?v=45"></script>
