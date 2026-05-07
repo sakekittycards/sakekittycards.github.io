@@ -10,8 +10,8 @@
   --purple:       #7b2fff;
   --cyan:         #00d4ff;
   --text:         #ffffff;
-  --muted:        rgba(255,255,255,0.6);
-  --dim:          rgba(255,255,255,0.32);
+  --muted:        rgba(255,255,255,0.78);   /* was 0.60 — bumped 2026-05-06 for sunlight readability on phone */
+  --dim:          rgba(255,255,255,0.55);   /* was 0.32 — bumped 2026-05-06 for sunlight readability on phone */
   --border:       rgba(255,255,255,0.08);
   --nav-h:        84px;
   --max-w:        1160px;
@@ -24,7 +24,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+html, body { overflow-x: hidden; max-width: 100%; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; min-height: 100vh; overflow-x: hidden; position: relative; }
+/* Belt-and-suspenders against any rogue child element forcing the viewport
+   wider than the screen — prevents the horizontal-scroll-on-phone bug. */
+img, video { max-width: 100%; height: auto; }
 
 /* Skip-to-content link — visually hidden until keyboard focus, then
    pinned to the top so screen-reader / Tab users can jump past the nav
