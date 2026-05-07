@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="style.css?v=126" />
   <style>
     /* Easter egg: 69 clicks on Jonathan's avatar grows an animated mustache */
     .vendor-avatar-wrap {
@@ -82,8 +82,7 @@
     .page-team .page-hero { padding-bottom: 28px; }
     .page-team .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.5; color: rgba(229,229,247,0.85); max-width: 540px; }
     .page-team .bg-blob { opacity: 0.06; filter: blur(140px); }
-    .page-team .page-hero,
-    .page-team .section { max-width: 1320px; }
+    /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
 
     /* Wider grid + bigger gap so the cards feel anchored, not floating. */
     .page-team .vendors-grid {
@@ -127,9 +126,6 @@
     .page-team .vendor-avatar-wrap { width: 140px; height: 140px; margin: 0 auto 20px; }
     .page-team .vendor-avatar-wrap .vendor-avatar { margin: 0; }
     .page-team .mustache { width: 170px; }
-    /* Slightly wider container — was 1240, now 1320 for editorial scale. */
-    .page-team .page-hero,
-    .page-team .section { max-width: 1320px; }
 
     /* Type hierarchy — bigger name, refined specialty pill, brighter body. */
     .page-team .vendor-card h3 {
@@ -217,14 +213,13 @@
     }
 
     /* Tighten brand-strip → footer transition for smoother handoff. */
-    .page-team
     .page-team .site-footer { margin-top: 0; }
     /* Closing brand strip — confident page-end before global footer.
        Same pattern as shipping.html's */
 
     /* "On the Road" candid photo strip — humanizes the team beyond avatars. */
     .on-the-road {
-      max-width: 1320px; margin: 0 auto;
+      max-width: var(--max-w); margin: 0 auto;
       padding: 8px 0 48px;
     }
     .on-the-road-header { text-align: center; margin-bottom: 22px; }
@@ -414,7 +409,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=49"></script>
+  <script src="main.js?v=50"></script>
   <script>
     // Easter egg: 69 clicks on Jonathan's avatar grows him an animated mustache.
     // Mustache springs in, wiggles, then poofs away after ~5.5s — so the egg can be

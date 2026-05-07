@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="style.css?v=126" />
   <style>
     /* About-page eyebrow under H1 — matches the shipping page's tagline rhythm. */
     .about-tagline {
@@ -59,8 +59,7 @@
        wider container, story copy reads like a magazine column, values feel
        distinct + warmer, smoother footer transition. ── */
     .page-about .bg-blob { opacity: 0.06; filter: blur(140px); }
-    .page-about .page-hero,
-    .page-about .section { max-width: 1320px; }
+    /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
     .page-about .page-hero { padding-bottom: 28px; }
     .page-about .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
     .page-about .page-hero > p:not(.about-tagline) {
@@ -135,7 +134,7 @@
 
     /* "From Shows to Shipments" mini photo strip — editorial, quiet, not a feature. */
     .from-shows {
-      max-width: 1320px; margin: 0 auto;
+      max-width: var(--max-w); margin: 0 auto;
       padding: 8px 0 56px;
     }
     .from-shows-header {
@@ -313,6 +312,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=49"></script>
+  <script src="main.js?v=50"></script>
 </body>
 </html>
