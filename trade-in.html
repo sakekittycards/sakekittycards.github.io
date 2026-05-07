@@ -62,13 +62,19 @@
        table tightened, CTA elevated. ── */
     .page-tradein .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-tradein .page-hero,
-    .page-tradein .section { max-width: 1240px; }
+    .page-tradein .section { max-width: 1360px; }   /* widened — was 1240, felt boxed */
     .page-tradein .page-hero { padding-bottom: 24px; }
+    .page-tradein .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
     .page-tradein .page-hero > p {
       font-size: clamp(15px, 2vw, 17px); line-height: 1.55;
-      color: rgba(255,255,255,0.85);
+      color: rgba(255,255,255,0.86);
       max-width: 720px;
     }
+    /* Bigger search field — primary action on the page should feel dominant. */
+    .page-tradein .ti-search {
+      font-size: 16px; padding: 18px 18px 18px 52px; min-height: 56px;
+    }
+    .page-tradein .ti-search-icon { top: 18px; }
 
     .ti-headline-rates {
       display: grid;
