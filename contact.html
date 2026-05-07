@@ -438,10 +438,11 @@
       display: grid;
       grid-template-columns: 1.1fr 1fr;
       gap: 64px;
-      align-items: center;
+      align-items: start;            /* was center — fixes the mascot-taller-than-text imbalance */
       text-align: left;
       position: relative; z-index: 1;
     }
+    .contact-hero-right { padding-top: 8px; }
     .contact-hero-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
     .contact-hero-eyebrow {
       font-family: 'Inter', sans-serif; font-weight: 700;
