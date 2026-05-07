@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=127" />
+  <link rel="stylesheet" href="style.css?v=128" />
   <style>
     /* ── Calendar layout ── */
     .cal-layout {
@@ -281,8 +281,16 @@
     .page-events .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
     .page-events .page-hero > p { font-size: clamp(15px, 2vw, 18px); color: rgba(255,255,255,0.86); max-width: 580px; line-height: 1.55; }
 
-    /* Calendar + event panel anchored, more breathing between them. */
+    /* Calendar + event panel anchored, more breathing between them.
+       2026-05-07 events-pacing: bumped panel contrast (the section was
+       blending into the black background per CD review). */
     .page-events .cal-layout { gap: 36px; }
+    .page-events .calendar,
+    .page-events .event-panel {
+      background: rgba(255,255,255,0.045);
+      border-color: rgba(255,255,255,0.11);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 6px 24px rgba(0,0,0,0.18);
+    }
     .page-events .calendar { padding: 32px; }
     .page-events .event-panel { padding: 28px 26px; }
 
@@ -290,16 +298,46 @@
     .page-events .cal-day { font-size: 13.5px; color: rgba(255,255,255,0.65); }
     .page-events .cal-weekdays { font-size: 10.5px; color: rgba(255,255,255,0.62); }
 
-    /* Event-list items — tighter readability bump. */
-    .page-events .event-item { padding: 15px 14px; gap: 14px; }
+    /* Event-list items — tighter readability bump + more breathing.
+       2026-05-07 events-pacing pass: padding 15→18px and gap 14→16px so
+       each card feels distinct instead of stacked admin rows. */
+    .page-events .event-item { padding: 18px 16px; gap: 16px; }
     .page-events .event-item-info h4 { font-size: 14.5px; line-height: 1.35; color: rgba(255,255,255,0.96); }
-    .page-events .event-item-info .loc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.78); }
+    .page-events .event-item-info .loc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.82); }
     .page-events .event-item-info .range { font-size: 13px; }
-    .page-events .panel-sub { color: rgba(255,255,255,0.78); font-size: 13.5px; line-height: 1.55; }
+    .page-events .panel-sub { color: rgba(255,255,255,0.82); font-size: 13.5px; line-height: 1.55; }
+    .page-events .event-list { gap: 14px; }
+
+    /* "Up next" anchor card — visually dominant so the panel has a focal
+       point instead of an evenly-weighted stack. Pinned cyan glow + slight
+       elevation. Only ever applied to ONE card (the closest non-past). */
+    .page-events .event-item.is-next {
+      background: linear-gradient(135deg, rgba(0,212,255,0.07), rgba(255,106,0,0.04));
+      border-color: rgba(0,212,255,0.42);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.12) inset, 0 6px 22px rgba(0,212,255,0.10);
+    }
+    .page-events .event-item.is-next:hover {
+      border-color: rgba(0,212,255,0.65);
+      background: linear-gradient(135deg, rgba(0,212,255,0.10), rgba(255,106,0,0.06));
+    }
+    .next-ribbon {
+      display: inline-block;
+      font-size: 10px; font-weight: 800;
+      letter-spacing: 1.4px; text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 100px;
+      background: rgba(0,212,255,0.16);
+      color: var(--cyan);
+      border: 1px solid rgba(0,212,255,0.40);
+      margin-bottom: 6px;
+    }
 
     /* CTA hierarchy — primary (Whatnot, purple) is largest, secondary
-       (Hosting, orange) is medium, tertiary (Instagram strip) is compact. */
-    .page-events .coordinator-cta { margin-top: 24px; transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s; }
+       (Hosting, orange) is medium, tertiary (Instagram strip) is compact.
+       Pulled CTA stack closer to the calendar (was 24px) so the page
+       doesn't fall asleep between sections per CD review. */
+    .page-events .coordinator-cta { margin-top: 16px; transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s; }
+    .page-events .cal-layout + .coordinator-cta { margin-top: 36px; }
 
     /* Primary: Whatnot — slightly larger pad + bigger title + stronger hover */
     .events-cta-primary { padding: 48px 32px 40px !important; }
@@ -352,26 +390,54 @@
       font-size: 13px; color: rgba(255,255,255,0.65);
       letter-spacing: 0.04em; margin: 0;
     }
+    /* Asymmetric editorial layout — first tile is a tall hero
+       (spans both rows on the right column behavior reversed: we let
+       column 1 be a single tall tile and column 2 stacks two smaller).
+       Reads as "documentary feature + supporting moments" instead of
+       a generic equal-weight gallery row. */
     .recent-shows-grid {
-      display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 14px;
+      min-height: 480px;
     }
-    @media (max-width: 760px) { .recent-shows-grid { grid-template-columns: 1fr; } }
+    .recent-shows-grid .rs-tile:first-child {
+      grid-row: 1 / span 2;
+      aspect-ratio: auto;
+    }
+    @media (max-width: 760px) {
+      .recent-shows-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        min-height: 0;
+      }
+      .recent-shows-grid .rs-tile:first-child {
+        grid-row: auto;
+        aspect-ratio: 4/3;
+      }
+    }
     .rs-tile {
       position: relative; overflow: hidden;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
       aspect-ratio: 4/3;
-      transition: transform .35s ease, box-shadow .35s;
+      transition: transform .35s ease, box-shadow .35s, border-color .25s;
     }
-    .rs-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.32); }
+    .rs-tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0,0,0,0.36);
+      border-color: rgba(255,106,0,0.28);
+    }
     .rs-tile img {
       width: 100%; height: 100%; object-fit: cover; display: block;
+      object-position: center 22%;     /* bias up so heads stay framed */
       transition: transform .8s ease;
     }
     .rs-tile:hover img { transform: scale(1.04); }
     .rs-tile::after {
       content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.30) 100%);
+      background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.36) 100%);
       pointer-events: none;
     }
   </style>
@@ -519,7 +585,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=51"></script>
+  <script src="main.js?v=52"></script>
   <script>
     const EVENTS = [
       { start: '2026-04-25', end: '2026-04-26', name: 'Bradenton TCG',              loc: 'Manatee County Fairgrounds — Veterans Expo Hall · 1402 14th Ave W, Palmetto, FL 34221', hours: 'Sat 10am–6pm · Sun 10am–5pm' },
@@ -660,17 +726,25 @@
 
       if (monthFiltered.length > 0) {
         sub.textContent = `${monthFiltered.length} event${monthFiltered.length > 1 ? 's' : ''} this month`;
-        list.innerHTML = monthFiltered.map(ev => eventCardHTML(ev)).join('');
+        // Mark the first upcoming (non-past) event in the visible list with
+        // .is-next so it visually anchors the panel — the "you are here" cue
+        // collectors scan for first.
+        const nextStart = monthFiltered.find(ev => {
+          const lastDay = ev.end ? new Date(ev.end + 'T00:00:00') : new Date(ev.start + 'T00:00:00');
+          return lastDay >= TODAY;
+        })?.start;
+        list.innerHTML = monthFiltered.map(ev => eventCardHTML(ev, ev.start === nextStart)).join('');
       } else if (upcoming.length > 0) {
         sub.textContent = 'No events this month — here are the next ones:';
-        list.innerHTML = upcoming.slice(0, 4).map(ev => eventCardHTML(ev)).join('');
+        const nextStart = upcoming[0]?.start;
+        list.innerHTML = upcoming.slice(0, 4).map(ev => eventCardHTML(ev, ev.start === nextStart)).join('');
       } else {
         sub.textContent = '';
         list.innerHTML = '<div class="panel-empty"><div class="icon"><svg class="lc lc-purple"><use href="#lc-calendar"/></svg></div>No upcoming events. Check back soon.</div>';
       }
     }
 
-    function eventCardHTML(ev) {
+    function eventCardHTML(ev, isNext) {
       const s = new Date(ev.start + 'T00:00:00');
       // Past = the LAST day of the event has passed. Multi-day events stay
       // "current" through their final day.
@@ -683,14 +757,18 @@
         ? `<a href="/whatnot" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="event-type-badge whatnot" style="text-decoration:none">📺 Watch on Whatnot →</a>`
         : '';
       const datePillClass = ev.type === 'whatnot' ? 'event-date whatnot-pill' : 'event-date';
+      const cls = ['event-item'];
+      if (isPast) cls.push('is-past');
+      if (isNext && !isPast) cls.push('is-next');
+      const nextRibbon = (isNext && !isPast) ? '<span class="next-ribbon">Up next</span>' : '';
       return `
-        <div class="event-item${isPast ? ' is-past' : ''}" onclick="jumpTo('${ev.start}')">
+        <div class="${cls.join(' ')}" onclick="jumpTo('${ev.start}')">
           <div class="${datePillClass}">
             <span class="mo">${MONTH_SHORT[s.getMonth()]}</span>
             ${dayLabel}
           </div>
           <div class="event-item-info">
-            <h4>${ev.name}${typeBadge}</h4>
+            ${nextRibbon}<h4>${ev.name}${typeBadge}</h4>
             <div class="loc">${ev.loc}</div>
             <div class="range">${formatDateRange(ev)}${ev.hours ? ` · ${ev.hours}` : ''}</div>
           </div>
