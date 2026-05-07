@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=118" />
+  <link rel="stylesheet" href="style.css?v=119" />
 
   <style>
     /* Hero-specific styles */
@@ -716,6 +716,62 @@
     @media (max-width: 900px) { .stats-bar-inner { grid-template-columns: repeat(2, 1fr); padding: 24px 20px; gap: 20px; } }
     @media (max-width: 480px) { .stats-bar-inner { grid-template-columns: 1fr; gap: 18px; } .stat-item { justify-content: flex-start; } }
 
+    /* ── IN THE WILD — curated photo strip from real shows ── */
+    .home-redesign .in-the-wild {
+      max-width: 1600px; margin: 0 auto; padding: 16px 48px 64px;
+    }
+    .itw-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 14px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .itw-header h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(28px, 3.6vw, 38px); letter-spacing: 0.04em;
+      margin: 0; padding-bottom: 4px; line-height: 1.25;
+      color: #fff;
+    }
+    .itw-header h2 .accent {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .itw-sub {
+      font-size: 13.5px; color: rgba(255,255,255,0.66); margin: 0;
+      letter-spacing: 0.04em;
+    }
+    .itw-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr 0.9fr 0.9fr 1.1fr;
+      grid-template-rows: 320px;
+      gap: 14px;
+    }
+    @media (max-width: 1100px) {
+      .itw-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: 240px 240px; }
+      .itw-tile:nth-child(n+4) { display: none; }
+    }
+    @media (max-width: 600px)  {
+      .itw-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: 200px 200px; gap: 10px; }
+      .itw-tile:nth-child(n+5) { display: none; }
+    }
+    .itw-tile {
+      position: relative; overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      transition: transform .35s ease, box-shadow .35s;
+    }
+    .itw-tile:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(0,0,0,0.4); }
+    .itw-tile img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center;
+      transition: transform .8s ease;
+      display: block;
+    }
+    .itw-tile:hover img { transform: scale(1.04); }
+    .itw-tile::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.35) 100%);
+      pointer-events: none;
+    }
+
     /* ── EVENTS + TEAM 2-col split ── */
     .home-redesign .events-team-split {
       max-width: 1600px; margin: 0 auto; padding: 0 40px 64px;
@@ -1112,6 +1168,31 @@
           <div class="stat-icon" aria-hidden="true">♥</div>
           <div><div class="stat-num">Honest</div><div class="stat-label">Conservative grading</div></div>
         </div>
+      </div>
+    </section>
+
+    <!-- IN THE WILD — curated photo strip from real card shows -->
+    <section class="in-the-wild">
+      <div class="itw-header">
+        <h2>From the <span class="accent">Show Floor</span></h2>
+        <p class="itw-sub">Real shows · Real inventory · Real people.</p>
+      </div>
+      <div class="itw-grid">
+        <a href="events.html" class="itw-tile" aria-label="Sake Kitty booth setup at a card show">
+          <img src="assets/wild/team-booth.jpg" alt="Two of the Sake Kitty crew behind the booth at a Florida card show" loading="lazy" />
+        </a>
+        <a href="shop.html#graded" class="itw-tile" aria-label="Slab wall close-up of graded Pokemon cards">
+          <img src="assets/wild/slab-wall.jpg" alt="Wall of PSA-graded Pokemon slabs at a Sake Kitty booth" loading="lazy" />
+        </a>
+        <a href="shop.html#graded" class="itw-tile" aria-label="Display case of vintage graded Pokemon cards">
+          <img src="assets/wild/display-case.jpg" alt="Display tray of vintage graded Pokemon slabs" loading="lazy" />
+        </a>
+        <a href="events.html" class="itw-tile" aria-label="Sake Kitty booth on the show floor">
+          <img src="assets/wild/show-floor.jpg" alt="Sake Kitty Cards booth full of slabs and packs at a card show" loading="lazy" />
+        </a>
+        <a href="grading-prep.html" class="itw-tile" aria-label="Holding a CGC graded Pokemon card">
+          <img src="assets/wild/graded-handshot.jpg" alt="Holding a CGC-graded Houndoom Pokemon card in front of a slab wall" loading="lazy" />
+        </a>
       </div>
     </section>
 
