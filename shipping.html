@@ -90,13 +90,13 @@
        label, not as a colored block. Body content has more breathing room. */
     .tier-card {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 36px 32px 28px;
+      border-radius: var(--r); padding: 36px 32px 30px;
       position: relative; overflow: hidden;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
       display: flex; flex-direction: column;
     }
     @media (max-width: 540px) {
-      .tier-card { padding: 30px 22px 22px; }
+      .tier-card { padding: 30px 22px 24px; }
     }
     /* Top accent bar — same neon-strip pattern as .tipbox so the whole page
        speaks one visual language. */
@@ -318,17 +318,17 @@
 
     .donot ul { list-style: none; padding: 0; margin: 0; }
     .donot li {
-      font-size: 14.5px; line-height: 1.7;
-      color: rgba(255,255,255,0.96);
+      font-size: 14.5px; line-height: 1.72;
+      color: rgba(255,255,255,0.97);
       padding: 14px 0 14px 30px;
-      position: relative; border-top: 1px solid rgba(255,55,90,0.16);
+      position: relative; border-top: 1px solid rgba(255,55,90,0.18);
     }
     .donot li:first-child { border-top: none; padding-top: 6px; }
     .donot li::before {
       content: ""; position: absolute; left: 4px; top: 16px;
       width: 16px; height: 16px; border-radius: 50%;
-      background: rgba(255,55,90,0.26); border: 1.5px solid rgba(255,55,90,0.75);
-      box-shadow: 0 0 12px rgba(255,55,90,0.48);
+      background: rgba(255,55,90,0.28); border: 1.5px solid rgba(255,55,90,0.80);
+      box-shadow: 0 0 14px rgba(255,55,90,0.52);
     }
     .donot li:first-child::before { top: 8px; }
     .donot li::after {
@@ -526,7 +526,7 @@
        fade into empty black before hitting the site footer. Sits between
        the slogan and the global <footer>. ── */
     .pack-brand-strip {
-      margin: 18px auto 0;
+      margin: 14px auto 0;
       max-width: 760px;
       padding: 14px 18px;
       display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
