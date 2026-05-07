@@ -30,6 +30,7 @@ from pathlib import Path
 REPO_DIR = Path(__file__).resolve().parent.parent
 OUT_PATH = REPO_DIR / "assets" / "en-cards.json"
 PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
+DOWNLOADS = Path.home() / "Downloads"
 
 BASE = "https://tcgcsv.com/tcgplayer/3"  # categoryId 3 = English Pokemon
 USER_AGENT = "Mozilla/5.0 SakeKittyCards-ENIndex/1.0 (sakekittycards.com)"
@@ -66,6 +67,79 @@ def fetch_json(url: str) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def load_user_tcg_listings_by_pid() -> dict[int, float]:
+    """Load Nick's TCGplayer MyPricing CSV (newest in Downloads). Returns
+    productId -> NM Marketplace Price. These are his ACTUAL listings on
+    TCGplayer — the most accurate "market" for cards he sells, since they
+    bake in his pricing strategy. Used as the primary overlay source on
+    top of TCG CSV market data.
+    """
+    out: dict[int, float] = {}
+    candidates = sorted(DOWNLOADS.glob("TCGplayer__MyPricing_*.csv"),
+                        key=lambda p: p.stat().st_mtime, reverse=True)
+    if not candidates:
+        print("[user-tcg] no MyPricing CSV in Downloads — skipping")
+        return out
+    src = candidates[0]
+    with src.open("r", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            pid_str = (r.get("TCGplayer Id") or "").strip()
+            if not pid_str.isdigit():
+                continue
+            pid = int(pid_str)
+            cond = (r.get("Condition") or "").lower()
+            # Only Near Mint listings — they reflect the actual sticker price
+            if "near mint" not in cond:
+                continue
+            mp = (r.get("TCG Marketplace Price") or "").strip()
+            try:
+                v = float(mp)
+                if v > 9000:  # placeholder for "unlisted"
+                    continue
+                # Keep highest if multiple printings (holo vs reverse holo)
+                if pid not in out or v > out[pid]:
+                    out[pid] = v
+            except ValueError:
+                continue
+    print(f"[user-tcg] loaded {len(out):,} listings from {src.name}")
+    return out
+
+
+def load_jp_market_by_pid() -> dict[int, float]:
+    """Load TCGplayer Custom Export for Japanese cards (newest in Downloads
+    matching pattern). Returns productId -> NM Market Price. Provides
+    accurate JP Market data for cards in jp-cards.json that may have
+    suppressed or stale prices."""
+    out: dict[int, float] = {}
+    candidates = sorted(DOWNLOADS.glob("TCGplayer__Pricing_Custom_Export_*.csv"),
+                        key=lambda p: p.stat().st_mtime, reverse=True)
+    if not candidates:
+        return out
+    src = candidates[0]
+    rows = 0
+    with src.open("r", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            pid_str = (r.get("TCGplayer Id") or "").strip()
+            if not pid_str.isdigit():
+                continue
+            pid = int(pid_str)
+            cond = (r.get("Condition") or "").lower()
+            if "near mint" not in cond:
+                continue
+            mp = (r.get("TCG Market Price") or "").strip()
+            if not mp: continue
+            try:
+                v = float(mp)
+                if v > 9000: continue
+                if pid not in out or v > out[pid]:
+                    out[pid] = v
+                rows += 1
+            except ValueError:
+                continue
+    print(f"[jp-export] loaded {rows:,} entries -> {len(out):,} unique pids from {src.name}")
+    return out
 
 
 def load_pc_loose_by_pid() -> dict[int, float]:
@@ -116,6 +190,8 @@ def is_sealed(name: str) -> bool:
 
 def main() -> None:
     pc_loose_by_pid = load_pc_loose_by_pid()
+    user_tcg_by_pid = load_user_tcg_listings_by_pid()
+    jp_market_by_pid = load_jp_market_by_pid()
 
     print(f"[build-en] hitting {BASE}/groups")
     groups_data = fetch_json(f"{BASE}/groups")
@@ -163,19 +239,22 @@ def main() -> None:
             pid = p.get("productId")
             tcg_market = price_by_pid.get(pid)
             # Multi-source max — defense against TCGplayer Market Price
-            # suppression. PC loose-price uses different methodology, so
-            # taking max() catches cards visibly suppressed on TCG (e.g.
-            # Mega Charizard X 125/094 sat at $852 TCG market vs $1k+
-            # actual value).
+            # suppression. Take MAX of:
+            #  1. TCG CSV market (current TCGplayer Market Price)
+            #  2. PriceCharting loose (eBay-anchored, harder to coordinate)
+            #  3. User's actual TCGplayer listing (his pricing strategy)
+            #  4. JP custom-export market (where it overlaps EN)
             pc_loose = pc_loose_by_pid.get(pid)
-            if tcg_market is not None and pc_loose is not None:
-                if pc_loose > tcg_market * 1.10:    # PC at least 10% higher = suppression suspected
-                    market = pc_loose
+            user_tcg = user_tcg_by_pid.get(pid)
+            jp_market = jp_market_by_pid.get(pid)
+            sources = [v for v in (tcg_market, pc_loose, user_tcg, jp_market) if v is not None]
+            if sources:
+                market = max(sources)
+                # Track overlay if non-TCG source won
+                if tcg_market is None or market > (tcg_market * 1.10):
                     pc_overlays += 1
-                else:
-                    market = tcg_market
             else:
-                market = tcg_market if tcg_market is not None else pc_loose
+                market = None
             if market is not None and market < MARKET_FLOOR_USD:
                 skipped_floor += 1
                 continue
