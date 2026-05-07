@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=112" />
+  <link rel="stylesheet" href="style.css?v=113" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -2116,6 +2116,44 @@
         .catch(() => { _jpIndex = []; return _jpIndex; });
       return _jpIndexLoading;
     }
+    // English Pokemon static index — built from TCG CSV (categoryId 3) by
+    // scripts/build_en_card_index.py. Mirrors the JP index. Used as a parallel
+    // EN search source alongside pokemontcg.io. pokemontcg.io still wins for
+    // shared cards (nicer images + variant-key pricing), but this index fills
+    // the gaps it misses — newer promos like Victini #208, oddballs, special
+    // collabs. 12k+ entries, ~830 KB raw.
+    let _enIndex = null;
+    let _enIndexLoading = null;
+    const _EN_INDEX_URL = 'assets/en-cards.json?v=1';
+    function loadEnIndex() {
+      if (_enIndex) return Promise.resolve(_enIndex);
+      if (_enIndexLoading) return _enIndexLoading;
+      _enIndexLoading = fetch(_EN_INDEX_URL)
+        .then(r => r.ok ? r.json() : [])
+        .then(arr => { _enIndex = Array.isArray(arr) ? arr : []; return _enIndex; })
+        .catch(() => { _enIndex = []; return _enIndex; });
+      return _enIndexLoading;
+    }
+    async function searchEnByName(tokens) {
+      if (!tokens.length) return [];
+      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+      const idx = await loadEnIndex();
+      if (!idx.length) return [];
+      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const out = [];
+      for (let i = 0; i < idx.length && out.length < 30; i++) {
+        const [name, setName, number, productId, market] = idx[i];
+        const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+        let allMatch = true;
+        for (const t of cleaned) {
+          if (!hay.includes(t)) { allMatch = false; break; }
+        }
+        if (!allMatch) continue;
+        out.push({ name, setName, number, productId, market });
+      }
+      return out;
+    }
+
     // Substring-match every JP card by tokens against name + setName + number.
     // Index entries: [name, setName, number, productId, marketPrice].
     async function searchJpByName(tokens) {
@@ -2401,14 +2439,41 @@
 
       try {
         const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
-        const [cardRes, sealedRes, jpNameRes] = await Promise.allSettled([
+        const [cardRes, sealedRes, jpNameRes, enNameRes] = await Promise.allSettled([
           fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
           searchSealed(searchTokens.join(' ')),
-          searchJpByName(searchTokens),  // character-name JP search via static index
+          searchJpByName(searchTokens),   // character-name JP search via static index
+          searchEnByName(searchTokens),   // character-name EN search via static index (TCG CSV)
         ]);
-        const cards  = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
-        const csv    = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
-        const jpName = jpNameRes.status === 'fulfilled' ? (jpNameRes.value || [])    : [];
+        const cards   = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
+        const csv     = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
+        const jpName  = jpNameRes.status === 'fulfilled' ? (jpNameRes.value || [])    : [];
+        const enStatic= enNameRes.status === 'fulfilled' ? (enNameRes.value || [])    : [];
+
+        // Merge en-static into the EN cards array. Dedupe by name+number —
+        // when pokemontcg.io and en-static have the same card, pokemontcg.io
+        // wins (nicer images + variant-key pricing for vintage). en-static
+        // fills the gaps pokemontcg.io misses (newer promos, oddballs).
+        const enKeysSeen = new Set(
+          cards.map(c => `${(c.name||'').toLowerCase()}|${c.number||''}`)
+        );
+        for (const e of enStatic) {
+          // TCG CSV names carry suffixes like " - 4/102" or "(Holofoil)".
+          // Strip the slash-number suffix for cleaner display + dedup.
+          const nameClean = (e.name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || e.name;
+          const nnKey = `${nameClean.toLowerCase()}|${e.number||''}`;
+          if (enKeysSeen.has(nnKey)) continue;
+          cards.push({
+            id: `en_${e.productId}`,
+            name: nameClean,
+            number: e.number || '',
+            images: { small: `https://tcgplayer-cdn.tcgplayer.com/product/${e.productId}_200w.jpg` },
+            set: { name: e.setName },
+            tcgplayer: { prices: e.market != null ? { normal: { market: e.market } } : {} },
+            _enStaticProductId: e.productId,
+          });
+          enKeysSeen.add(nnKey);
+        }
 
         // Merge JP results: existing set-name-based hits (csv.japanese) PLUS
         // character-name-based hits (jpName), deduped by productId.
@@ -2471,8 +2536,11 @@
         await Promise.all(cards.map(async c => {
           const has = c.tcgplayer?.prices && Object.keys(c.tcgplayer.prices).length > 0;
           if (has) return;
-          if (c._fallbackProductId) {
-            const m = await resolveMarketForProduct(c._fallbackProductId);
+          // Both en-static (_enStaticProductId) and PC fallback (_fallbackProductId)
+          // resolve via productId-keyed /tcg/market — same path, same shape.
+          const directPid = c._enStaticProductId || c._fallbackProductId;
+          if (directPid) {
+            const m = await resolveMarketForProduct(directPid);
             if (m != null) {
               c.tcgplayer = c.tcgplayer || {};
               c.tcgplayer.prices = { normal: { market: m } };
@@ -2728,7 +2796,7 @@
         market: price,
         variant: variantKey || null,
         condition: 'NM',
-        productId: card._fallbackProductId || null,
+        productId: card._enStaticProductId || card._fallbackProductId || null,
       };
       cards.push(cardEntry);
       searchInput.value = '';

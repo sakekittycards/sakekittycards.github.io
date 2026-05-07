@@ -44,8 +44,8 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 
 | Language | Search source(s) | Notes |
 |---|---|---|
-| English | pokemontcg.io API + PriceCharting `assets/all-cards-fallback.json` (only kicks in when pokemontcg.io returned <5 results) | pokemontcg.io is the primary; PC fills modern set + vintage gaps |
-| Japanese | pre-built `assets/jp-cards.json` (29k entries from `tcgcsv.com/tcgplayer/85`) + TCG CSV groups via the `tcgcsv-proxy` worker for set-name search | Static index is character-name searchable; worker path handles set-hint searches |
+| English | pokemontcg.io API (live) + `assets/en-cards.json` (TCG CSV cat 3, ~12k entries) + `assets/all-cards-fallback.json` (PC, tertiary safety net) | All three fire in parallel; deduped by lowercased name+number. pokemontcg.io wins for shared cards (nicer images + variant-key pricing); en-static fills gaps pokemontcg.io misses (newer promos like Victini #208, oddballs); PC catches what neither has. |
+| Japanese | pre-built `assets/jp-cards.json` (~15k entries from `tcgcsv.com/tcgplayer/85`) + TCG CSV groups via the `tcgcsv-proxy` worker for set-name search | Static index is character-name searchable; worker path handles set-hint searches |
 | English sealed | TCG CSV groups via `tcgcsv-proxy` | — |
 | Chinese | **EXCLUDED from raw search and Grading Prep entirely.** Allowed ONLY in the Sell/Trade graded card form (autocomplete pulls from PC fallback with CN badge, `[CN]` prefix on add). | Per user policy 2026-05-04 |
 
@@ -106,8 +106,9 @@ Edge-cached 6h via `caches.default`. Deploy: `cd workers/prices && wrangler depl
 
 ### Static indexes (built locally, checked into git, lazy-loaded by both forms)
 
-- `assets/jp-cards.json` (~1.9 MB) — 29,278 JP non-sealed cards from TCG CSV. Build: `python scripts/build_jp_card_index.py` (~8 min).
-- `assets/all-cards-fallback.json` (~2.7 MB) — 48,461 unique-by-productId Pokemon entries from PriceCharting (English + Japanese + Chinese). Used as the search-only fallback for cards pokemontcg.io / TCG CSV miss. Build: `python scripts/build_all_cards_index.py`.
+- `assets/en-cards.json` (~830 KB) — 12,818 EN non-sealed cards from TCG CSV (categoryId 3) at $3 floor. Built 2026-05-07. Build: `python scripts/build_en_card_index.py` (~10 min).
+- `assets/jp-cards.json` (~1.0 MB) — 15,567 JP non-sealed cards from TCG CSV (categoryId 85) at $3 floor. Build: `python scripts/build_jp_card_index.py` (~8 min).
+- `assets/all-cards-fallback.json` (~1.5 MB) — 27,262 unique-by-productId Pokemon entries from PriceCharting (English + Japanese + Chinese) at $3 floor. Tertiary safety net — fires when neither pokemontcg.io nor en-static had the card. Build: `python scripts/build_all_cards_index.py`.
 - `assets/pc-graded.json` (~2.0 MB) — 47,020 entries with per-grade values keyed by productId (or `pc:<id>` for Chinese). Build: `python scripts/build_pc_graded_index.py`.
 
 All three build scripts auto-download a fresh PriceCharting CSV from the user's saved subscription URL at `~/.claude/pricecharting_csv_url.txt`. Re-run scripts after PC publishes a new CSV; commit the regenerated JSONs.
