@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=106" />
+  <link rel="stylesheet" href="style.css?v=107" />
   <style>
     /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
@@ -90,13 +90,13 @@
        label, not as a colored block. Body content has more breathing room. */
     .tier-card {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 34px 30px 26px;
+      border-radius: var(--r); padding: 36px 32px 28px;
       position: relative; overflow: hidden;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
       display: flex; flex-direction: column;
     }
     @media (max-width: 540px) {
-      .tier-card { padding: 28px 22px 22px; }
+      .tier-card { padding: 30px 22px 22px; }
     }
     /* Top accent bar — same neon-strip pattern as .tipbox so the whole page
        speaks one visual language. */
@@ -140,7 +140,14 @@
     .tone-purple .tier-label { color: #c69aff; border: 1px solid rgba(123,47,255,0.32); box-shadow: inset 0 0 14px rgba(123,47,255,0.06); }
     .tone-orange .tier-label { color: #ffc36e; border: 1px solid rgba(255,106,0,0.32); box-shadow: inset 0 0 14px rgba(255,106,0,0.06); }
 
-    .tier-bulk { padding-bottom: 26px; }
+    /* Tier 4 (OUTER BOX / SHIPPING) — slight extra breathing room since
+       it's a wider full-width row with two adjacent columns (steps + checklist). */
+    .tier-bulk { padding: 38px 34px 30px; }
+    .tier-bulk .bulk-body { gap: 32px; }
+    .tier-bulk .checklist { padding: 18px 20px; }
+    @media (max-width: 540px) {
+      .tier-bulk { padding: 30px 22px 24px; }
+    }
     .tier-card:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
     .tier-card.tone-pink   { border-color: rgba(255,0,128,0.30);   box-shadow: 0 0 0 1px rgba(255,0,128,0.10) inset, 0 0 28px rgba(255,0,128,0.06); }
     .tier-card.tone-cyan   { border-color: rgba(0,212,255,0.30);   box-shadow: 0 0 0 1px rgba(0,212,255,0.10) inset, 0 0 28px rgba(0,212,255,0.06); }
@@ -157,14 +164,14 @@
        softer-glowing on large screens. */
     .tier-head {
       font-family: 'Bangers', cursive; letter-spacing: 0.04em;
-      font-size: clamp(24px, 2.8vw, 30px); line-height: 1.2;
-      padding: 2px 0 4px; margin: 0 0 4px;
+      font-size: clamp(25px, 3vw, 32px); line-height: 1.2;
+      padding: 2px 0 4px; margin: 0 0 6px;
       color: #fff;
     }
-    .tone-pink   .tier-head { text-shadow: 0 0 16px rgba(255,0,128,0.55); }
-    .tone-cyan   .tier-head { text-shadow: 0 0 16px rgba(0,212,255,0.55); }
-    .tone-purple .tier-head { text-shadow: 0 0 16px rgba(123,47,255,0.60); }
-    .tone-orange .tier-head { text-shadow: 0 0 16px rgba(255,106,0,0.55); }
+    .tone-pink   .tier-head { text-shadow: 0 0 18px rgba(255,0,128,0.60), 0 0 4px rgba(255,0,128,0.45); }
+    .tone-cyan   .tier-head { text-shadow: 0 0 18px rgba(0,212,255,0.60), 0 0 4px rgba(0,212,255,0.45); }
+    .tone-purple .tier-head { text-shadow: 0 0 18px rgba(123,47,255,0.65), 0 0 4px rgba(123,47,255,0.50); }
+    .tone-orange .tier-head { text-shadow: 0 0 18px rgba(255,106,0,0.60), 0 0 4px rgba(255,106,0,0.45); }
 
     .tier-sub {
       font-size: 14.5px; font-weight: 500; color: rgba(229,229,247,0.85);
@@ -175,8 +182,8 @@
     .step-list li {
       counter-increment: step;
       display: grid; grid-template-columns: 26px 1fr; gap: 14px;
-      padding: 14px 0; align-items: start;
-      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 15px 0; align-items: start;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
     .step-list li:first-child { border-top: none; padding-top: 6px; }
     .step-list li::before {
@@ -193,8 +200,8 @@
     .tone-purple .step-list li::before { background: linear-gradient(135deg, #b46cff, #7b2fff); box-shadow: 0 0 10px rgba(123,47,255,0.45); }
     .tone-orange .step-list li::before { background: linear-gradient(135deg, #ffb84d, #ff6a00); box-shadow: 0 0 10px rgba(255,106,0,0.45); }
     .step-list li > span {
-      font-size: 15px; line-height: 1.65;
-      color: rgba(255,255,255,0.94);
+      font-size: 15px; line-height: 1.7;
+      color: rgba(255,255,255,0.95);
       padding-top: 3px;
     }
     .step-list strong { font-weight: 700; color: #fff; }
@@ -265,16 +272,16 @@
 
     .donot, .sleeves {
       background: var(--bg-card); border-radius: var(--r);
-      padding: 28px 26px 24px;
+      padding: 30px 28px 26px;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
       position: relative;
     }
     /* DO NOT — louder framing: thicker border, brighter inset, outer glow */
     .donot {
-      border: 1.5px solid rgba(255,55,90,0.45);
+      border: 1.5px solid rgba(255,55,90,0.50);
       box-shadow:
-        0 0 0 1px rgba(255,55,90,0.15) inset,
-        0 0 32px rgba(255,55,90,0.08);
+        0 0 0 1px rgba(255,55,90,0.18) inset,
+        0 0 36px rgba(255,55,90,0.10);
     }
     .donot:hover {
       transform: translateY(-2px);
@@ -298,26 +305,24 @@
     }
     /* Solid white titles with per-tone text-shadow glow — matches the
        .tier-head pattern in the rest of the page so titles read as clean
-       labels instead of dominant gradient blocks. (Earlier gradient text-fill
-       version rendered too thick visually — the Bangers letterforms + full
-       gradient fill turned each word into a heavy color bar.) */
+       labels instead of dominant gradient blocks. */
     .donot h3, .sleeves h3 {
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: clamp(22px, 2.8vw, 30px); line-height: 1.25; padding: 2px 0 6px;
-      margin-bottom: 14px;
+      font-size: clamp(24px, 3vw, 32px); line-height: 1.25; padding: 2px 0 6px;
+      margin-bottom: 16px;
       color: #fff;
     }
-    .donot h3   { text-shadow: 0 0 14px rgba(255,55,90,0.55), 0 0 4px rgba(255,55,90,0.85); }
-    .sleeves h3 { text-shadow: 0 0 14px rgba(80,220,140,0.50), 0 0 4px rgba(80,220,140,0.75); }
+    .donot h3   { text-shadow: 0 0 16px rgba(255,55,90,0.65), 0 0 4px rgba(255,55,90,0.90); }
+    .sleeves h3 { text-shadow: 0 0 16px rgba(80,220,140,0.55), 0 0 4px rgba(80,220,140,0.80); }
 
     .donot ul { list-style: none; padding: 0; margin: 0; }
     .donot li {
-      font-size: 14.5px; line-height: 1.6;
-      color: rgba(255,255,255,0.94);
-      padding: 12px 0 12px 30px;
-      position: relative; border-top: 1px solid rgba(255,55,90,0.12);
+      font-size: 14.5px; line-height: 1.65;
+      color: rgba(255,255,255,0.95);
+      padding: 14px 0 14px 30px;
+      position: relative; border-top: 1px solid rgba(255,55,90,0.14);
     }
-    .donot li:first-child { border-top: none; padding-top: 4px; }
+    .donot li:first-child { border-top: none; padding-top: 6px; }
     .donot li::before {
       content: ""; position: absolute; left: 4px; top: 16px;
       width: 16px; height: 16px; border-radius: 50%;
@@ -335,7 +340,7 @@
     .donot strong { color: #ff96ad; font-weight: 700; }
 
     .sleeves p {
-      font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.94); margin-bottom: 12px;
+      font-size: 14.5px; line-height: 1.7; color: rgba(255,255,255,0.95); margin-bottom: 14px;
     }
     .sleeves p strong { color: #fff; font-weight: 700; }
     .sleeves .nope {
@@ -378,19 +383,19 @@
     .tipbox h4 {
       display: flex; align-items: center; gap: 12px;
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: 24px; line-height: 1.2; padding: 4px 0 4px;
-      margin: 4px 0 14px;
+      font-size: 25px; line-height: 1.2; padding: 4px 0 4px;
+      margin: 4px 0 16px;
       color: #fff;
     }
-    .tipbox.tone-blue  h4 { text-shadow: 0 0 14px rgba(0,212,255,0.45); }
-    .tipbox.tone-amber h4 { text-shadow: 0 0 14px rgba(255,157,0,0.45); }
+    .tipbox.tone-blue  h4 { text-shadow: 0 0 16px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.40); }
+    .tipbox.tone-amber h4 { text-shadow: 0 0 16px rgba(255,157,0,0.55), 0 0 4px rgba(255,157,0,0.40); }
     .tipbox h4 svg { width: 22px; height: 22px; flex: 0 0 22px; }
     .tipbox.tone-blue  h4 svg path { stroke: #00d4ff; fill: none; }
     .tipbox.tone-amber h4 svg path { stroke: #ffd24d; fill: none; }
     .tipbox ul { list-style: none; padding: 0; margin: 0; }
     .tipbox li {
-      font-size: 15px; line-height: 1.65; padding: 8px 0 8px 24px; position: relative;
-      color: rgba(255,255,255,0.94);
+      font-size: 15px; line-height: 1.7; padding: 9px 0 9px 24px; position: relative;
+      color: rgba(255,255,255,0.95);
     }
     .tipbox.tone-blue li::before,
     .tipbox.tone-amber li::before {
