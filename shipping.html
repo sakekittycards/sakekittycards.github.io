@@ -211,9 +211,9 @@
     .tip {
       margin-top: auto; padding: 13px 15px;
       border-radius: var(--r-sm);
-      background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(255,255,255,0.07);
-      font-size: 13.5px; line-height: 1.6; color: rgba(229,229,247,0.85);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 13.5px; line-height: 1.65; color: rgba(229,229,247,0.90);
       display: flex; gap: 10px; align-items: flex-start;
     }
     .tier-card .step-list { margin-bottom: 16px; }      /* breathing room before the auto-anchored tip */
@@ -327,8 +327,8 @@
     .donot li::before {
       content: ""; position: absolute; left: 4px; top: 16px;
       width: 16px; height: 16px; border-radius: 50%;
-      background: rgba(255,55,90,0.24); border: 1.5px solid rgba(255,55,90,0.70);
-      box-shadow: 0 0 10px rgba(255,55,90,0.42);
+      background: rgba(255,55,90,0.26); border: 1.5px solid rgba(255,55,90,0.75);
+      box-shadow: 0 0 12px rgba(255,55,90,0.48);
     }
     .donot li:first-child::before { top: 8px; }
     .donot li::after {
@@ -412,7 +412,7 @@
        welcome handoff, not as a hard-sell button bar. ── */
     .pack-questions {
       position: relative; overflow: hidden;
-      max-width: 760px; margin: 40px auto 24px;
+      max-width: 760px; margin: 40px auto 20px;
       padding: 36px 32px 30px;
       background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(123,47,255,0.05));
       border: 1px solid rgba(0,212,255,0.30);
@@ -479,7 +479,7 @@
     /* ── Closing thank you — neon-bordered, with the heart vertically
        centered, and the body copy bumped slightly for readability. ── */
     .pack-thanks {
-      max-width: 760px; margin: 4px auto 0;     /* matches .pack-questions width — no off-center empty rectangle */
+      max-width: 760px; margin: 0 auto;         /* matches .pack-questions width — no off-center empty rectangle */
       background: var(--bg-card);
       border: 1px solid rgba(255,0,128,0.30);
       box-shadow:
@@ -515,10 +515,10 @@
     .pack-thanks p { font-size: 15px; line-height: 1.6; color: rgba(229,229,247,0.86); margin: 0; }
 
     .pack-footline {
-      text-align: center; margin: 14px 0 0;
+      text-align: center; margin: 12px 0 0;
       font-family: 'Bangers', cursive; letter-spacing: 0.06em;
       font-size: clamp(16px, 2.2vw, 20px); line-height: 1.25; padding: 2px 0 4px;
-      color: rgba(229,229,247,0.62);
+      color: rgba(229,229,247,0.65);
     }
     .pack-footline .star { color: #ff0080; padding: 0 12px; }
 
@@ -526,7 +526,7 @@
        fade into empty black before hitting the site footer. Sits between
        the slogan and the global <footer>. ── */
     .pack-brand-strip {
-      margin: 22px auto 0;
+      margin: 18px auto 0;
       max-width: 760px;
       padding: 14px 18px;
       display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
