@@ -58,9 +58,90 @@
     @media (max-width: 520px) {
       .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
     }
+
+    /* ── FAQ page polish — scoped under .page-faq. Slightly wider list,
+       better accordion readability, stronger section divider, smoother CTA
+       integration, tighter footer transition. ── */
+    .page-faq .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-faq .page-hero,
+    .page-faq .section { max-width: 1240px; }
+    .page-faq .page-hero { padding-bottom: 24px; }
+    .page-faq .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.55; color: rgba(255,255,255,0.85); max-width: 560px; }
+
+    /* Slightly widen the list — was 740px, now 880px. Still narrow enough
+       for comfortable reading; less floating-in-empty-space. */
+    .page-faq .faq-list { max-width: 880px; }
+
+    /* Section divider (.faq-section-heading) — slightly stronger so the
+       Grading & Card Prep cluster reads as a distinct group. */
+    .page-faq .faq-section-heading {
+      font-size: 24px;
+      margin: 48px 0 8px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Accordion rows — slightly more breathing + brighter expanded answer */
+    .page-faq .faq-item { transition: background .18s; }
+    .page-faq .faq-item:hover { background: rgba(255,106,0,0.025); }
+    .page-faq .faq-q {
+      padding: 24px 0;
+      font-size: 16px;
+      transition: color .15s, padding .18s;
+    }
+    .page-faq .faq-item.open .faq-q { padding-bottom: 18px; color: var(--orange); }
+    .page-faq .faq-icon {
+      width: 24px; height: 24px;
+      transition: all .25s ease;
+    }
+    .page-faq .faq-item.open .faq-icon {
+      box-shadow: 0 0 12px rgba(255,106,0,0.35);
+    }
+    .page-faq .faq-a {
+      font-size: 15px;
+      line-height: 1.75;
+      color: rgba(255,255,255,0.88);
+    }
+    .page-faq .faq-item.open .faq-a {
+      max-height: 1000px; padding-bottom: 24px;
+    }
+    .page-faq .faq-a a { color: var(--orange); font-weight: 600; }
+    .page-faq .faq-a strong { color: rgba(255,255,255,0.96); }
+
+    /* CTA at the end — make the "Still have a question?" feel intentionally
+       connected to the FAQ stack. */
+    .faq-cta {
+      max-width: 880px; margin: 32px auto 0;
+      padding: 28px 32px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.06), rgba(255,0,128,0.05));
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: var(--r);
+      text-align: center;
+    }
+    .faq-cta h3 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(20px, 3vw, 26px); line-height: 1.25;
+      padding: 2px 0 4px;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.25));
+    }
+    .faq-cta p {
+      font-size: 14.5px; line-height: 1.65;
+      color: rgba(255,255,255,0.88);
+      margin: 0 auto 18px; max-width: 480px;
+    }
+    .faq-cta .faq-cta-actions {
+      display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+    }
+    .faq-cta .btn { padding: 11px 22px; font-size: 14px; }
+
+    /* Tighten the brand-strip → footer handoff. */
+    .page-faq .pack-brand-strip { margin-top: 28px; }
   </style>
 </head>
-<body>
+<body class="page-faq">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -253,9 +334,13 @@
 
       </div>
 
-      <div style="margin-top:56px;text-align:center">
-        <p style="font-size:15px;color:var(--muted);margin-bottom:20px">Still have a question?</p>
-        <a href="contact.html" class="btn btn-primary">Contact Us</a>
+      <div class="faq-cta">
+        <h3>Still have a question?</h3>
+        <p>Reach out anytime — we're happy to walk through trades, grading, shipping, or anything else before you commit.</p>
+        <div class="faq-cta-actions">
+          <a href="contact.html" class="btn btn-primary">Contact Us</a>
+          <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-outline">DM on Instagram</a>
+        </div>
       </div>
     </div>
     <!-- Compact branded close strip — confident page-end before global footer. -->
