@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=113" />
+  <link rel="stylesheet" href="style.css?v=114" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1905,6 +1905,8 @@
       'build & battle','build and battle','trainer kit','theme deck','battle deck','league battle',
       'gift set','deluxe','display case','case file','stadium',
       'v box','vmax box','vstar box','v battle','starter set','starter collection',
+      // Jumbo / oversized cards (4x6"+) — not accepted at any tier (CLAUDE.md).
+      'jumbo',
     ];
     let groupsCache = null;
     const productsCache = {}; // keyed by `${lang}_${groupId}`
@@ -2065,6 +2067,8 @@
       productArrays.forEach((products, idx) => {
         const group = matchingGroups[idx];
         for (const p of products) {
+          // Jumbos aren't accepted at any tier — drop entirely.
+          if (/\bjumbo\b/i.test(p.name || '')) continue;
           const haystack = stripApos(`${p.name} ${group.name || ''} ${group.abbreviation || ''}`.toLowerCase());
           if (!tokens.every(t => includesLoose(haystack, t))) continue;
 
@@ -2223,6 +2227,8 @@
       for (let i = 0; i < idx.length && out.length < 30; i++) {
         const [name, console_, productId] = idx[i];
         if (exclude.has(productId)) continue;
+        // Drop jumbos entirely — Sake Kitty doesn't accept them at any tier.
+        if (/\bjumbo\b/i.test(name)) continue;
         const hay = stripApos(`${name} ${console_}`.toLowerCase());
         let allMatch = true;
         for (const t of cleaned) {
@@ -2239,10 +2245,15 @@
         const isSealed = _isFallbackSealed(name);
         const pidStr = String(productId);
         const isPcOnly = pidStr.startsWith('pc:');
-        // Cross-source dedup — skip rows that pokemontcg.io already returned
-        // (matched by lowercased name + raw card number from "Name #NN").
+        // Cross-source dedup — strip variant suffixes (" [Holo]", " (Reverse Holo)")
+        // before keying so the same card from different sources collapses.
         const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
-        const nnKey = m ? `${m[1].trim().toLowerCase()}|${m[2]}` : '';
+        const rawName = m ? m[1].trim() : '';
+        const stripped = rawName
+          .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+          .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+          .trim();
+        const nnKey = m ? `${stripped.toLowerCase()}|${m[2]}` : '';
         if (nnKey && excludeNN.has(nnKey)) continue;
         out.push({
           productId,
@@ -2445,23 +2456,32 @@
           searchJpByName(searchTokens),   // character-name JP search via static index
           searchEnByName(searchTokens),   // character-name EN search via static index (TCG CSV)
         ]);
-        const cards   = cardRes.status   === 'fulfilled' ? (cardRes.value.data || []) : [];
+        // pokemontcg.io occasionally indexes jumbo cards (e.g. "Pikachu (Jumbo)").
+        // Filter them out — Sake Kitty does not accept jumbo cards at any tier.
+        const _JUMBO_RE = /\bjumbo\b/i;
+        const cards   = cardRes.status   === 'fulfilled'
+          ? (cardRes.value.data || []).filter(c => !_JUMBO_RE.test(c.name || ''))
+          : [];
         const csv     = sealedRes.status === 'fulfilled' ? sealedRes.value            : { sealed: [], japanese: [] };
         const jpName  = jpNameRes.status === 'fulfilled' ? (jpNameRes.value || [])    : [];
         const enStatic= enNameRes.status === 'fulfilled' ? (enNameRes.value || [])    : [];
 
-        // Merge en-static into the EN cards array. Dedupe by name+number —
-        // when pokemontcg.io and en-static have the same card, pokemontcg.io
-        // wins (nicer images + variant-key pricing for vintage). en-static
-        // fills the gaps pokemontcg.io misses (newer promos, oddballs).
-        const enKeysSeen = new Set(
-          cards.map(c => `${(c.name||'').toLowerCase()}|${c.number||''}`)
-        );
+        // Cross-source dedup. Strip TCG CSV suffixes ("-208", "(Holofoil)",
+        // "[Jumbo]", " - 4/102") so the same card from different sources
+        // collapses to one row. Display name keeps the suffix off too —
+        // the card number is shown separately so the "-208" is redundant.
+        const _stripVariantSuffix = (s) => (s || '')
+          .replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '')
+          .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+          .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+          .trim();
+        const _dedupKey = (name, number) =>
+          `${_stripVariantSuffix(name).toLowerCase()}|${number || ''}`;
+
+        const enKeysSeen = new Set(cards.map(c => _dedupKey(c.name, c.number)));
         for (const e of enStatic) {
-          // TCG CSV names carry suffixes like " - 4/102" or "(Holofoil)".
-          // Strip the slash-number suffix for cleaner display + dedup.
-          const nameClean = (e.name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || e.name;
-          const nnKey = `${nameClean.toLowerCase()}|${e.number||''}`;
+          const nameClean = _stripVariantSuffix(e.name) || e.name;
+          const nnKey = _dedupKey(e.name, e.number);
           if (enKeysSeen.has(nnKey)) continue;
           cards.push({
             id: `en_${e.productId}`,
@@ -2495,10 +2515,11 @@
         // thereafter. Excludes productIds already in our results to avoid dupes.
         const seenSealedPids = new Set((csv.sealed || []).map(r => r.productId).filter(Boolean));
         const excludeFromFallback = new Set([...seenJpPids, ...seenSealedPids]);
-        // Build name+number key set from pokemontcg.io results so the fallback
-        // skips duplicates without us flooding the dropdown.
+        // Build name+number key set using the variant-stripped dedup key so
+        // PC fallback rows don't double-up cards en-static or pokemontcg.io
+        // already returned (the screenshot bug: "Victini - 208" + "Victini").
         const enNameNumKeys = new Set(
-          cards.map(c => `${(c.name || '').toLowerCase()}|${c.number || ''}`).filter(k => k !== '|')
+          cards.map(c => _dedupKey(c.name, c.number)).filter(k => k !== '|')
         );
         const fallback = await searchAllCardsFallback(searchTokens, excludeFromFallback, enNameNumKeys);
         for (const r of fallback) {

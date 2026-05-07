@@ -53,6 +53,10 @@ SEALED_KEYWORDS = [
     "gift set", "deluxe", "display case", "case file", "stadium",
     "v box", "vmax box", "vstar box", "v battle",
     "starter set", "starter collection",
+    # Jumbo / oversized cards (4x6"+) — not accepted at any tier per Sake Kitty
+    # business rules (CLAUDE.md). Excluded from search so they don't surface
+    # in the dropdown on either intake form.
+    "jumbo",
 ]
 
 

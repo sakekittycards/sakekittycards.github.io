@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=113" />
+  <link rel="stylesheet" href="style.css?v=114" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -892,6 +892,8 @@
         'build & battle','build and battle','trainer kit','theme deck','battle deck','league battle',
         'gift set','deluxe','display case','case file','stadium',
         'v box','vmax box','vstar box','v battle','starter set','starter collection',
+        // Jumbo / oversized cards (4x6"+) — not accepted at any tier (CLAUDE.md).
+        'jumbo',
       ];
       // Pre-built JP card-name index (29k cards, ~1.8MB raw / ~500KB gzipped).
       // Built by scripts/build_jp_card_index.py from tcgcsv.com/tcgplayer/85.
@@ -1482,22 +1484,34 @@
             searchAllCardsFallbackForGrading(tokens, new Set()),
           ]);
 
-          const enCards     = enRes.status        === 'fulfilled' ? (enRes.value.data || []) : [];
+          // Filter jumbos from pokemontcg.io results — not accepted at any tier.
+          const _JUMBO_RE = /\bjumbo\b/i;
+          const enCards     = enRes.status        === 'fulfilled'
+            ? (enRes.value.data || []).filter(c => !_JUMBO_RE.test(c.name || ''))
+            : [];
           const enStaticArr = enStaticRes.status  === 'fulfilled' ? (enStaticRes.value || []) : [];
           const jpCards     = jpRes.status        === 'fulfilled' ? (jpRes.value || [])      : [];
           const fbCards     = fbRes.status        === 'fulfilled' ? (fbRes.value || [])      : [];
 
-          // Dedupe across sources by lowercased name+number (productId for JP).
+          // Strip TCG CSV suffixes ("(Holofoil)", "[Jumbo]", " - 4/102", " - 208")
+          // so the same card from different sources collapses to one row.
+          const _stripVariantSuffix = (s) => (s || '')
+            .replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '')
+            .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+            .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
+            .trim();
+          const _ddKey = (name, number) =>
+            `${_stripVariantSuffix(name).toLowerCase()}|${number || ''}`;
+
+          // Dedupe across sources. JP uses productId; EN-side uses stripped name+number.
           const seenJpPids = new Set(jpCards.map(c => c.productId).filter(Boolean));
-          const seenEnNN   = new Set(enCards.map(c => `${(c.name || '').toLowerCase()}|${c.number || ''}`));
-          // en-static rows have already-cleaned name (suffix stripped).
-          // Add their keys to the dedup set so PC fallback doesn't double-add.
+          const seenEnNN   = new Set(enCards.map(c => _ddKey(c.name, c.number)));
           for (const e of enStaticArr) {
-            if (e.number) seenEnNN.add(`${(e.name || '').toLowerCase()}|${e.number}`);
+            if (e.number) seenEnNN.add(_ddKey(e.name, e.number));
           }
           const fbCleaned  = fbCards.filter(c =>
             !seenJpPids.has(c.productId) &&
-            !(c.number && seenEnNN.has(`${(c.name || '').toLowerCase()}|${c.number}`))
+            !(c.number && seenEnNN.has(_ddKey(c.name, c.number)))
           );
 
           // Unified results array. Order: pokemontcg.io EN (nicest images),
@@ -1514,15 +1528,10 @@
             });
           }
           for (const e of enStaticArr) {
-            // Skip if pokemontcg.io already has this name+number.
-            const k = `${(e.name || '').toLowerCase()}|${e.number || ''}`;
-            if (seenEnNN.has(k) && !enStaticArr.includes(e)) continue;
-            // Avoid double-pushing when both have it — pokemontcg.io ran first
-            // so check existing gpSearchResults rows directly.
+            const k = _ddKey(e.name, e.number);
+            // Skip if pokemontcg.io already covered it (under stripped key).
             const dup = gpSearchResults.some(r =>
-              r.lang === 'en' &&
-              (r.name || '').toLowerCase() === (e.name || '').toLowerCase() &&
-              (r.number || '') === (e.number || '')
+              r.lang === 'en' && _ddKey(r.name, r.number) === k
             );
             if (dup) continue;
             gpSearchResults.push({
