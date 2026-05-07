@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=120" />
+  <link rel="stylesheet" href="style.css?v=121" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1394,7 +1394,7 @@
 
       <!-- Jump to flat-rate quick-add categories — makes the section impossible to miss -->
       <a href="#bulkSection" class="bulk-jump-banner">
-        <span class="bjb-icon">📦</span>
+        <span class="bjb-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></span>
         <div class="bjb-text">
           <strong>Adding low-end binder hits or convention inventory?</strong>
           <span>Singles, sealed, graded, and the quick-add flat-rate categories all submit as one request. Jump to the flat-rate rates below.</span>
@@ -1415,7 +1415,7 @@
       <!-- Shipping Guide callout — links to the packing-tiers page so customers
            know how to ship cards safely once we accept the offer. -->
       <a href="shipping.html" class="shipping-guide-btn">
-        <span class="sgb-icon">📦</span>
+        <span class="sgb-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></span>
         <div class="sgb-text">
           <strong>How to Pack Your Cards</strong>
           <span>Step-by-step shipping guide — penny sleeves, top loaders, team bags, bubble mailers, bulk.</span>
@@ -1696,7 +1696,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=45"></script>
+  <script src="main.js?v=46"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -2920,7 +2920,7 @@
         }
 
         const thumb = isSealed
-          ? `<div class="ti-sealed-icon">📦</div>`
+          ? `<div class="ti-sealed-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></div>`
           : isGraded
           ? `<div class="ti-sealed-icon" style="background:linear-gradient(135deg,#3a2a1a,#5a3a1a);border-color:rgba(255,106,0,0.35)">🏆</div>`
           : `<img src="${c.image}" alt="" onerror="this.style.visibility='hidden'" />`;
