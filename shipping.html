@@ -174,8 +174,8 @@
     .tone-orange .tier-head { text-shadow: 0 0 18px rgba(255,106,0,0.60), 0 0 4px rgba(255,106,0,0.45); }
 
     .tier-sub {
-      font-size: 14.5px; font-weight: 500; color: rgba(229,229,247,0.85);
-      margin: 0 0 18px; line-height: 1.55;
+      font-size: 14.5px; font-weight: 500; color: rgba(229,229,247,0.90);
+      margin: 0 0 18px; line-height: 1.6;
     }
 
     .step-list { list-style: none; counter-reset: step; padding: 0; margin: 0; }
@@ -209,11 +209,11 @@
     /* Tip — pinned to bottom of card via auto-margin so step lists across
        the 3 tiers align even when step counts differ. */
     .tip {
-      margin-top: auto; padding: 12px 14px;
+      margin-top: auto; padding: 13px 15px;
       border-radius: var(--r-sm);
       background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(255,255,255,0.06);
-      font-size: 13.5px; line-height: 1.55; color: rgba(229,229,247,0.78);
+      border: 1px solid rgba(255,255,255,0.07);
+      font-size: 13.5px; line-height: 1.6; color: rgba(229,229,247,0.85);
       display: flex; gap: 10px; align-items: flex-start;
     }
     .tier-card .step-list { margin-bottom: 16px; }      /* breathing room before the auto-anchored tip */
@@ -278,10 +278,10 @@
     }
     /* DO NOT — louder framing: thicker border, brighter inset, outer glow */
     .donot {
-      border: 1.5px solid rgba(255,55,90,0.50);
+      border: 1.5px solid rgba(255,55,90,0.55);
       box-shadow:
-        0 0 0 1px rgba(255,55,90,0.18) inset,
-        0 0 36px rgba(255,55,90,0.10);
+        0 0 0 1px rgba(255,55,90,0.20) inset,
+        0 0 40px rgba(255,55,90,0.12);
     }
     .donot:hover {
       transform: translateY(-2px);
@@ -317,10 +317,10 @@
 
     .donot ul { list-style: none; padding: 0; margin: 0; }
     .donot li {
-      font-size: 14.5px; line-height: 1.65;
-      color: rgba(255,255,255,0.95);
+      font-size: 14.5px; line-height: 1.7;
+      color: rgba(255,255,255,0.96);
       padding: 14px 0 14px 30px;
-      position: relative; border-top: 1px solid rgba(255,55,90,0.14);
+      position: relative; border-top: 1px solid rgba(255,55,90,0.16);
     }
     .donot li:first-child { border-top: none; padding-top: 6px; }
     .donot li::before {
@@ -344,8 +344,8 @@
     }
     .sleeves p strong { color: #fff; font-weight: 700; }
     .sleeves .nope {
-      font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.72);
-      padding-top: 14px; border-top: 1px solid rgba(80,220,140,0.15); margin-top: 8px;
+      font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.80);
+      padding-top: 14px; border-top: 1px solid rgba(80,220,140,0.16); margin-top: 8px;
     }
 
     /* ── Tip rows at bottom (shipping + extra) ── */
@@ -361,7 +361,7 @@
     .tipbox {
       position: relative;
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 28px 26px 22px;
+      border-radius: var(--r); padding: 30px 28px 26px;
       display: flex; flex-direction: column;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
     }
@@ -411,8 +411,8 @@
        welcome handoff, not as a hard-sell button bar. ── */
     .pack-questions {
       position: relative; overflow: hidden;
-      max-width: 760px; margin: 40px auto 32px;
-      padding: 36px 32px 32px;
+      max-width: 760px; margin: 40px auto 24px;
+      padding: 36px 32px 30px;
       background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(123,47,255,0.05));
       border: 1px solid rgba(0,212,255,0.30);
       border-radius: var(--r);
@@ -511,10 +511,10 @@
     .pack-thanks p { font-size: 15px; line-height: 1.6; color: rgba(229,229,247,0.86); margin: 0; }
 
     .pack-footline {
-      text-align: center; margin: 18px 0 0;
+      text-align: center; margin: 14px 0 0;
       font-family: 'Bangers', cursive; letter-spacing: 0.06em;
       font-size: clamp(16px, 2.2vw, 20px); line-height: 1.25; padding: 2px 0 4px;
-      color: rgba(229,229,247,0.55);
+      color: rgba(229,229,247,0.62);
     }
     .pack-footline .star { color: #ff0080; padding: 0 12px; }
 
@@ -522,7 +522,7 @@
        fade into empty black before hitting the site footer. Sits between
        the slogan and the global <footer>. ── */
     .pack-brand-strip {
-      margin: 26px auto 0;
+      margin: 22px auto 0;
       max-width: 760px;
       padding: 14px 18px;
       display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
