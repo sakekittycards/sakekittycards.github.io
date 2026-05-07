@@ -383,8 +383,29 @@
           return;
         }
 
+        // Sold-at-show hide list — items physically sold at a booth before
+        // the Square catalog gets updated. Match against the item NAME
+        // (which on Square typically includes the cert # for graded slabs)
+        // OR the variation SKU (where SK-XX-G-NNNN lives). Removes the item
+        // from the on-site shop until Nick toggles it inactive in Square.
+        // Update list as cards sell; clear once Square mirrors reality.
+        const SOLD_HIDE = {
+          certs: ['44690212', '63063677', '99746732', '65570346'],
+          skus:  ['SK-26-G-0040', 'SK-26-G-0016', 'SK-26-G-0008', 'SK-26-G-0002'],
+        };
+        const isHiddenSold = (item) => {
+          const blob = ((item.name || '') + ' ' + (item.description || '') + ' ' +
+                        (item.variations || []).map(v => (v.sku || '') + ' ' + (v.name || '')).join(' ')).toUpperCase();
+          for (const c of SOLD_HIDE.certs) if (blob.includes(c)) return true;
+          for (const s of SOLD_HIDE.skus)  if (blob.includes(s.toUpperCase())) return true;
+          return false;
+        };
+
         const buckets = { graded: [], singles: [], merch: [] };
-        for (const item of items) buckets[categorize(item)].push(item);
+        for (const item of items) {
+          if (isHiddenSold(item)) continue;
+          buckets[categorize(item)].push(item);
+        }
 
         // Graded-at-show: drop graded items from the page (data stays in
         // Square; we just don't render anything for them) and show the
