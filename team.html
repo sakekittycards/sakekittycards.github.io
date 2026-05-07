@@ -92,12 +92,13 @@
       max-width: 980px;
     }
 
-    /* Vendor cards — bigger padding, neon top accent via inset shadow
-       (preserves the mustache easter-egg's overflow). */
+    /* Vendor cards — uniform padding all sides (no asymmetric bottom that
+       made cards-with-button-row look heavier than cards-without). */
     .vendor-card {
       position: relative;
-      padding: 36px 32px 32px;
+      padding: 34px 30px 30px;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
+      display: flex; flex-direction: column;
     }
     .vendor-card.tone-orange { box-shadow: inset 0 5px 0 0 #ff6a00, 0 0 16px rgba(255,157,0,0.22); }
     .vendor-card.tone-pink   { box-shadow: inset 0 5px 0 0 #ff0080, 0 0 16px rgba(255,0,128,0.22); }
@@ -109,12 +110,14 @@
     .vendor-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: inset 0 5px 0 0 #00d4ff, 0 10px 32px rgba(0,212,255,0.22); }
     .vendor-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: inset 0 5px 0 0 #7b2fff, 0 10px 32px rgba(123,47,255,0.22); }
 
-    /* Bigger avatar with per-tone border so each card has a subtle identity ring. */
+    /* Bigger avatar with per-tone border + slight upward bias on the crop
+       so headshots center cleanly across all 4 cards. */
     .page-team .vendor-avatar {
       width: 120px; height: 120px;
       margin: 0 auto 20px;
       border-width: 3px;
       box-shadow: 0 6px 24px rgba(0,0,0,0.30);
+      object-position: center 20%;
     }
     .vendor-card.tone-orange .vendor-avatar { border-color: rgba(255,106,0,0.55); }
     .vendor-card.tone-pink   .vendor-avatar { border-color: rgba(255,0,128,0.55); }
@@ -146,21 +149,23 @@
     .vendor-card.tone-cyan   .vendor-specialty { color: #4ddfff; border-color: rgba(0,212,255,0.30); background: rgba(0,212,255,0.05); }
     .vendor-card.tone-purple .vendor-specialty { color: #c69aff; border-color: rgba(123,47,255,0.30); background: rgba(123,47,255,0.05); }
     .page-team .vendor-card p {
-      font-size: 14.5px; line-height: 1.65;
-      color: rgba(255,255,255,0.88);
+      font-size: 14.5px; line-height: 1.7;
+      color: rgba(255,255,255,0.90);
+      margin: 0;            /* explicit — prevents inherited bottom margin */
     }
-    /* Button row: consistent margin + alignment across all cards. */
+    /* Button row pinned to card bottom via auto-margin so cards-with-buttons
+       and cards-without both feel balanced. Consistent 20px gap above. */
     .page-team .vendor-card > div[style*="display:flex"] {
-      margin-top: 22px !important;
+      margin-top: auto !important;
+      padding-top: 20px;
     }
 
-    /* "Interested in vending" CTA — converted from dashed-border placeholder
-       to a confident closing card matching shipping.html's .pack-questions
-       pattern (purple radial backdrop, Bangers gradient h3, pill CTA). */
+    /* "Interested in vending" CTA — confident closing card matching
+       shipping.html's .pack-questions pattern. */
     .vending-cta {
       position: relative; overflow: hidden;
-      max-width: 760px; margin: 44px auto 0;
-      padding: 36px 32px 32px;
+      max-width: 760px; margin: 36px auto 0;
+      padding: 38px 34px 34px;
       background: linear-gradient(135deg, rgba(123,47,255,0.06), rgba(255,0,128,0.05));
       border: 1px solid rgba(123,47,255,0.30);
       border-radius: var(--r);
@@ -188,28 +193,29 @@
       filter: drop-shadow(0 0 10px rgba(123,47,255,0.30));
     }
     .vending-cta p {
-      font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.92);
-      max-width: 480px; margin: 0 auto 22px;
+      font-size: 14.5px; line-height: 1.7; color: rgba(255,255,255,0.92);
+      max-width: 500px; margin: 0 auto 24px;
     }
     .vending-cta .vc-btn {
       display: inline-flex; align-items: center; justify-content: center;
-      padding: 11px 24px;
+      padding: 13px 28px;
       border-radius: 100px;
-      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px;
-      letter-spacing: 0.3px;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14.5px;
+      letter-spacing: 0.4px;
       text-decoration: none;
       background: linear-gradient(135deg, #b46cff, #7b2fff);
       color: #fff;
-      box-shadow: 0 4px 18px rgba(123,47,255,0.35);
+      box-shadow: 0 4px 20px rgba(123,47,255,0.38);
       transition: transform .15s, box-shadow .2s;
     }
-    .vending-cta .vc-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(123,47,255,0.50); }
+    .vending-cta .vc-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 26px rgba(123,47,255,0.52); }
     @media (max-width: 540px) {
-      .vending-cta { padding: 28px 22px 26px; margin-top: 32px; }
+      .vending-cta { padding: 30px 22px 28px; margin-top: 28px; }
     }
 
-    /* Tighten the brand close strip so the page doesn't fall into a void. */
-    .page-team .pack-brand-strip { margin-top: 32px; }
+    /* Tighten brand-strip → footer transition for smoother handoff. */
+    .page-team .pack-brand-strip { margin-top: 28px; }
+    .page-team .site-footer { margin-top: 0; }
     /* Closing brand strip — confident page-end before global footer.
        Same pattern as shipping.html's .pack-brand-strip. */
     .pack-brand-strip {
