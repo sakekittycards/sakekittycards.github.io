@@ -60,13 +60,20 @@
        distinct + warmer, smoother footer transition. ── */
     .page-about .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-about .page-hero,
-    .page-about .section { max-width: 1240px; }
+    .page-about .section { max-width: 1320px; }
     .page-about .page-hero { padding-bottom: 28px; }
+    .page-about .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
     .page-about .page-hero > p:not(.about-tagline) {
       font-size: clamp(15px, 2vw, 17px);
-      line-height: 1.55;
-      color: rgba(229,229,247,0.86);
-      max-width: 540px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.88);
+      max-width: 600px;
+    }
+    /* Tighter logo glow — was unbounded, now sharper bloom for premium feel */
+    .page-about .about-img {
+      filter:
+        drop-shadow(0 0 24px rgba(255,106,0,0.28))
+        drop-shadow(0 0 8px rgba(255,0,128,0.22));
     }
 
     /* Our Story section — slightly tighter pacing + better typography */
@@ -126,8 +133,6 @@
       padding-top: 56px !important;
     }
 
-    /* Tighter footer transition */
-    .page-about
   </style>
 </head>
 <body class="page-about">
@@ -161,8 +166,8 @@
 
   <main id="main" class="page-content">
     <div class="page-hero">
-      <h1>About Us</h1>
-      <p>A crew of collectors with a big love for Pokémon cards.</p>
+      <h1>Built by Collectors</h1>
+      <p>Florida-based card vendors handling every order ourselves — honest grading, fair pricing, and the kind of care we'd want as customers.</p>
       <p class="about-tagline">Honest <span class="ok">Condition</span> · Fair <span class="pop">Prices</span></p>
     </div>
 
@@ -174,53 +179,42 @@
         </div>
         <div class="about-text">
           <h2>Our Story</h2>
-          <p>Sake Kitty Cards started the way most card businesses do — with a passion for collecting that grew into something more. What began as one collector hunting that one chase card has grown into a crew of vendors, all chasing the same thing: great cards at honest prices, handled by people who actually care.</p>
-          <p>We believe the Pokémon card market should feel welcoming and trustworthy, not intimidating. Whether you're chasing a specific alt art, building a budget deck, or just cracking packs for fun — you deserve a vendor who treats every order with care.</p>
-          <p>Every card we sell is personally inspected, honestly described, and packed to make the trip safely. That's our promise.</p>
+          <p>Sake Kitty started as one collector chasing one card. It grew into a crew of vendors with the same belief: the Pokémon market should feel honest and welcoming, not intimidating.</p>
+          <p>Every card is personally inspected, conservatively described, and packed to make the trip safely. Whether you're hunting an alt art, building a budget deck, or just cracking packs — you get the same care.</p>
           <div style="margin-top:24px;display:flex;gap:14px;flex-wrap:wrap">
-            <a href="shop.html" class="btn btn-primary">Shop Now</a>
-            <a href="contact.html" class="btn btn-outline">Get in Touch</a>
+            <a href="shop.html" class="btn btn-primary">Browse the Collection</a>
+            <a href="trade-in.html" class="btn btn-outline">Start a Trade</a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Values -->
+    <!-- Values — 4 differentiated pillars (was 6, several overlapped) -->
     <div class="section" style="border-top:1px solid var(--border)">
       <div class="section-header" style="text-align:center">
-        <h2 class="section-title" style="display:inline-block">Our Values</h2>
+        <h2 class="section-title" style="display:inline-block">What We Stand For</h2>
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
       <div class="values-grid">
         <div class="card value-card">
-          <div class="value-icon">🛡️</div>
-          <h4>Buyer Protection</h4>
-          <p>We personally inspect every card. If anything ever slips through, we'll make it right.</p>
-        </div>
-        <div class="card value-card">
           <div class="value-icon">🔍</div>
           <h4>Honest Condition</h4>
-          <p>Every card gets a close look. When in doubt, we describe down — never up.</p>
+          <p>Every card inspected by hand. When in doubt, we describe down — never up.</p>
         </div>
         <div class="card value-card">
           <div class="value-icon">📦</div>
           <h4>Safe Shipping</h4>
-          <p>Sleeves, top loaders, bubble mailers. Packed with care so your cards arrive ready for your collection.</p>
-        </div>
-        <div class="card value-card">
-          <div class="value-icon">💬</div>
-          <h4>Real Support</h4>
-          <p>Got a problem? Reach out. We'll work with you to make it right — no runaround, no fine print.</p>
+          <p>Penny sleeves, top loaders, bubble mailers. Packed for the trip, not the photo.</p>
         </div>
         <div class="card value-card">
           <div class="value-icon">💰</div>
           <h4>Fair Prices</h4>
-          <p>Market-based pricing on singles and sealed, for buyers and sellers alike.</p>
+          <p>Market-based on both sides — buying and selling. No padding, no lowball.</p>
         </div>
         <div class="card value-card">
-          <div class="value-icon">🎴</div>
-          <h4>Love of the Game</h4>
-          <p>We're collectors first. We get it — because we've been there too.</p>
+          <div class="value-icon">🛡️</div>
+          <h4>Always Made Right</h4>
+          <p>If anything's off, reach out. We work with you to fix it — no runaround.</p>
         </div>
       </div>
     </div>
