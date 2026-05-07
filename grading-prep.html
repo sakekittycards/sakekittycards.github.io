@@ -1020,7 +1020,13 @@
       // matches (Japanese + Chinese) that the JP static index didn't already
       // surface. Identity only — pricing comes from /tcg/market or PC graded
       // index downstream depending on whether the productId is TCGplayer-tracked.
-      const _isFallbackSealed = (name) => SEALED_KEYWORDS.some(kw => (name || '').toLowerCase().includes(kw));
+      // Word-boundary regex. Plain substring matching had 'tin' eating every
+      // Victini, 'etb' matching inside random product slugs, etc.
+      const _SEALED_RE = new RegExp(
+        '\\b(?:' + SEALED_KEYWORDS.map(kw => kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\b',
+        'i'
+      );
+      const _isFallbackSealed = (name) => _SEALED_RE.test(name || '');
       async function searchAllCardsFallbackForGrading(tokens, excludePids) {
         if (!tokens.length) return [];
         const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
