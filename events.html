@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=121" />
+  <link rel="stylesheet" href="style.css?v=122" />
   <style>
     /* ── Calendar layout ── */
     .cal-layout {
@@ -325,6 +325,48 @@
     .page-events .notify-bar .btn { padding: 10px 18px; font-size: 13px; flex-shrink: 0; }
 
     /* Closing brand strip — shipping/team rhythm so the page closes intentionally. */
+    /* "Recent Show Moments" mini photo strip — proves the calendar isn't theoretical. */
+    .recent-shows {
+      max-width: 1320px; margin: 0 auto;
+      padding: 8px 0 32px;
+    }
+    .recent-shows-header {
+      text-align: center; margin-bottom: 20px;
+    }
+    .recent-shows-header h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(20px, 2.6vw, 26px); letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding-bottom: 4px; line-height: 1.25;
+      margin: 0 0 4px;
+    }
+    .recent-shows-header p {
+      font-size: 13px; color: rgba(255,255,255,0.65);
+      letter-spacing: 0.04em; margin: 0;
+    }
+    .recent-shows-grid {
+      display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 12px;
+    }
+    @media (max-width: 760px) { .recent-shows-grid { grid-template-columns: 1fr; } }
+    .rs-tile {
+      position: relative; overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.07);
+      aspect-ratio: 4/3;
+      transition: transform .35s ease, box-shadow .35s;
+    }
+    .rs-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.32); }
+    .rs-tile img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .8s ease;
+    }
+    .rs-tile:hover img { transform: scale(1.04); }
+    .rs-tile::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.30) 100%);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body class="page-events">
@@ -359,7 +401,22 @@
   <main id="main" class="page-content">
     <div class="page-hero">
       <h1>Upcoming Events</h1>
-      <p>Tap a glowing date for show details.</p>
+      <p>Find us at Florida card shows most weekends. Tap any glowing date for details.</p>
+    </div>
+
+    <!-- Recent Show Moments — proves the calendar isn't theoretical. -->
+    <div class="section" style="padding-top:0;padding-bottom:0">
+      <div class="recent-shows">
+        <div class="recent-shows-header">
+          <h3>Recent Show Moments</h3>
+          <p>Real booths · Real collectors · Real energy.</p>
+        </div>
+        <div class="recent-shows-grid">
+          <div class="rs-tile"><img src="assets/wild/team-booth.jpg" alt="Sake Kitty crew at a Florida card show booth" loading="lazy" /></div>
+          <div class="rs-tile"><img src="assets/wild/show-floor.jpg" alt="Sake Kitty Cards booth on the show floor" loading="lazy" /></div>
+          <div class="rs-tile"><img src="assets/wild/slab-wall.jpg" alt="Wall of graded Pokemon slabs at the booth" loading="lazy" /></div>
+        </div>
+      </div>
     </div>
 
     <div class="section" style="padding-top:0">
@@ -455,7 +512,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=46"></script>
+  <script src="main.js?v=47"></script>
   <script>
     const EVENTS = [
       { start: '2026-04-25', end: '2026-04-26', name: 'Bradenton TCG',              loc: 'Manatee County Fairgrounds — Veterans Expo Hall · 1402 14th Ave W, Palmetto, FL 34221', hours: 'Sat 10am–6pm · Sun 10am–5pm' },

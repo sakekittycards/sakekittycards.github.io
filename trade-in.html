@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=121" />
+  <link rel="stylesheet" href="style.css?v=122" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1696,7 +1696,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=46"></script>
+  <script src="main.js?v=47"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -2253,7 +2253,10 @@
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .trim();
-        const nnKey = m ? `${stripped.toLowerCase()}|${m[2]}` : '';
+        // Normalize the number on the fallback side too: "6" should match
+        // "006/165" passed in from the en-static enKeysSeen set.
+        const fbNum = m ? String(m[2]).split('/')[0].replace(/^0+/, '') || '0' : '';
+        const nnKey = m ? `${stripped.toLowerCase()}|${fbNum}` : '';
         if (nnKey && excludeNN.has(nnKey)) continue;
         out.push({
           productId,
@@ -2475,8 +2478,13 @@
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .trim();
+        // Normalize numbers: "006/165" -> "6", "46/165" -> "46", "046" -> "46"
+        const _normNum = (n) => {
+          const v = String(n || '').split('/')[0].replace(/^0+/, '');
+          return v || '0';
+        };
         const _dedupKey = (name, number) =>
-          `${_stripVariantSuffix(name).toLowerCase()}|${number || ''}`;
+          `${_stripVariantSuffix(name).toLowerCase()}|${_normNum(number)}`;
 
         const enKeysSeen = new Set(cards.map(c => _dedupKey(c.name, c.number)));
         for (const e of enStatic) {
