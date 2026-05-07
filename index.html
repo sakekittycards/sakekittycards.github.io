@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=114" />
+  <link rel="stylesheet" href="style.css?v=115" />
 
   <style>
     /* Hero-specific styles */
@@ -489,9 +489,425 @@
     @media (max-width: 480px) {
       .event-preview { flex-direction: column; text-align: center; }
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+       HOMEPAGE REDESIGN — split hero, shop categories, stats strip,
+       events+team 2-col, side-by-side bottom CTAs, premium footer.
+       Inspired by Nick's reference mockup (May 2026); brand-locked colors,
+       Bangers headline, neon dark palette preserved.
+       ════════════════════════════════════════════════════════════════════ */
+
+    .home-redesign main { max-width: 1440px; margin: 0 auto; }
+    .home-redesign .section { max-width: 1440px; padding: 56px 32px; }
+    @media (max-width: 540px) { .home-redesign .section { padding: 36px 18px; } }
+
+    /* ── HERO — split: text left, mascot right ── */
+    .hero-split {
+      max-width: 1440px; margin: 0 auto;
+      padding: calc(var(--nav-h) + 56px) 32px 32px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 56px;
+      align-items: start;
+      position: relative;
+    }
+    .hero-split::before {
+      content: ''; position: absolute;
+      left: 50%; top: 22%;
+      width: min(1100px, 110%); height: 70%;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse 50% 60% at 70% 50%, rgba(255,106,0,0.18), transparent 65%),
+        radial-gradient(ellipse 45% 50% at 30% 50%, rgba(255,0,128,0.10), transparent 65%);
+      filter: blur(60px);
+      pointer-events: none; z-index: 0;
+    }
+    .hero-split-left, .hero-split-right { position: relative; z-index: 1; }
+    .hero-split-left { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+    .hero-eyebrow {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(12px, 1.5vw, 14px); letter-spacing: 0.16em;
+      text-transform: uppercase; color: rgba(255,255,255,0.62);
+      margin: 0;
+    }
+    .hero-eyebrow .ok  { color: var(--cyan); }
+    .hero-eyebrow .pop { color: var(--pink); }
+    .home-redesign .hero-split h1 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(54px, 9vw, 110px);
+      letter-spacing: 0.02em; line-height: 0.96;
+      margin: 0; padding-bottom: 6px;
+      color: #fff;
+      text-shadow: 0 2px 32px rgba(0,0,0,0.6);
+    }
+    .home-redesign .hero-split h1 .accent {
+      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 50%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 24px rgba(255,106,0,0.30));
+    }
+    .home-redesign .hero-split-body {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      max-width: 520px; margin: 0;
+    }
+    .hero-split-ctas { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 18px; }
+    .hero-split-ctas .btn { padding: 16px 28px; font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .hero-split-ctas .btn-primary {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      box-shadow: 0 10px 32px rgba(255,106,0,0.32);
+    }
+    .hero-split-trust {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+      margin-top: 4px;
+    }
+    .hst-item { display: flex; gap: 10px; align-items: center; }
+    .hst-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .hst-icon svg { width: 18px; height: 18px; }
+    .hst-1 .hst-icon { color: var(--cyan); }
+    .hst-2 .hst-icon { color: var(--orange); }
+    .hst-3 .hst-icon { color: var(--purple); }
+    .hst-4 .hst-icon { color: var(--pink); }
+    .hst-text strong { display: block; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.95); }
+    .hst-text span { display: block; font-size: 11px; color: rgba(255,255,255,0.62); }
+    .hero-split-right {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 440px; position: relative;
+    }
+    .hero-mascot {
+      width: min(540px, 100%); height: auto;
+      filter:
+        drop-shadow(0 0 60px rgba(255,106,0,0.32))
+        drop-shadow(0 0 110px rgba(255,0,128,0.20));
+    }
+    @media (max-width: 1000px) {
+      .hero-split { grid-template-columns: 1fr; gap: 28px; padding-bottom: 24px; }
+      .hero-split-right { order: -1; min-height: 240px; }
+      .hero-mascot { width: 240px; }
+      .hero-split-trust { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    }
+    @media (max-width: 540px) {
+      .hero-split { padding-left: 18px; padding-right: 18px; }
+      .home-redesign .hero-split h1 { font-size: clamp(42px, 12vw, 60px); }
+      .hero-split-trust { grid-template-columns: 1fr; }
+      .hero-split-ctas .btn { width: 100%; justify-content: center; }
+    }
+
+    /* ── SHOP BY CATEGORY ── */
+    .home-redesign .shop-by-cat {
+      max-width: 1440px; margin: 0 auto; padding: 24px 32px 48px;
+    }
+    .shop-by-cat-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 28px 28px 24px;
+    }
+    .shop-by-cat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px; flex-wrap: wrap; gap: 10px;
+    }
+    .shop-by-cat-header h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(26px, 3.4vw, 34px); letter-spacing: 0.04em;
+      margin: 0; padding-bottom: 4px; line-height: 1.25;
+      color: #fff;
+    }
+    .shop-by-cat-header h2 .accent {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .shop-by-cat-header a {
+      font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--orange); text-decoration: none;
+      transition: color .15s, transform .15s;
+    }
+    .shop-by-cat-header a:hover { color: var(--pink); transform: translateX(2px); }
+    .cat-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px;
+    }
+    @media (max-width: 1100px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px)  { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+    .cat-card {
+      display: flex; flex-direction: column;
+      padding: 18px 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      text-decoration: none; color: var(--text);
+      transition: transform .2s, border-color .2s, box-shadow .2s, background .2s;
+      position: relative; overflow: hidden;
+    }
+    .cat-card:hover { transform: translateY(-3px); border-color: rgba(255,106,0,0.40); background: rgba(255,255,255,0.04); }
+    .cat-card-img {
+      aspect-ratio: 1; margin-bottom: 12px; border-radius: 8px;
+      background: rgba(0,0,0,0.30);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px; line-height: 1;
+      box-shadow: inset 0 0 40px rgba(255,255,255,0.03);
+    }
+    .cat-1 .cat-card-img { background: linear-gradient(135deg, rgba(255,106,0,0.20), rgba(255,0,128,0.10)); color: #ff9a4d; }
+    .cat-2 .cat-card-img { background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(255,180,0,0.10)); color: #ffb84d; }
+    .cat-3 .cat-card-img { background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(80,220,140,0.10)); color: #4ddfff; }
+    .cat-4 .cat-card-img { background: linear-gradient(135deg, rgba(123,47,255,0.20), rgba(255,0,128,0.10)); color: #c69aff; }
+    .cat-5 .cat-card-img { background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(123,47,255,0.10)); color: #6cb8ff; }
+    .cat-6 .cat-card-img { background: linear-gradient(135deg, rgba(255,0,128,0.20), rgba(123,47,255,0.10)); color: #ff66a0; }
+    .cat-card-icon {
+      display: inline-block; font-size: 14px; line-height: 1; margin-right: 6px;
+      vertical-align: -2px;
+    }
+    .cat-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 14px; letter-spacing: 0.08em;
+      color: #fff; margin: 0 0 4px;
+    }
+    .cat-card p { font-size: 11.5px; color: rgba(255,255,255,0.65); line-height: 1.4; margin: 0; }
+
+    /* ── STATS / TRUST METRICS BAR ── */
+    .home-redesign .stats-bar {
+      max-width: 1440px; margin: 0 auto; padding: 0 32px 56px;
+    }
+    .stats-bar-inner {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+      padding: 26px 32px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+    }
+    .stat-item {
+      display: flex; gap: 14px; align-items: center; justify-content: center;
+    }
+    .stat-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; line-height: 1;
+    }
+    .stat-1 .stat-icon { color: #ffc800; filter: drop-shadow(0 0 14px rgba(255,200,0,0.5)); }
+    .stat-2 .stat-icon { color: var(--cyan); filter: drop-shadow(0 0 14px rgba(0,212,255,0.5)); }
+    .stat-3 .stat-icon { color: var(--pink); filter: drop-shadow(0 0 14px rgba(255,0,128,0.5)); }
+    .stat-4 .stat-icon { color: var(--orange); filter: drop-shadow(0 0 14px rgba(255,106,0,0.5)); }
+    .stat-num {
+      font-family: 'Bangers', cursive;
+      font-size: 28px; letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 1; padding-bottom: 2px;
+    }
+    .stat-label { font-size: 12.5px; color: rgba(255,255,255,0.78); margin-top: 2px; }
+    @media (max-width: 900px) { .stats-bar-inner { grid-template-columns: repeat(2, 1fr); padding: 20px 18px; gap: 18px; } }
+    @media (max-width: 480px) { .stats-bar-inner { grid-template-columns: 1fr; gap: 14px; } .stat-item { justify-content: flex-start; } }
+
+    /* ── EVENTS + TEAM 2-col split ── */
+    .home-redesign .events-team-split {
+      max-width: 1440px; margin: 0 auto; padding: 0 32px 48px;
+    }
+    .events-team-grid {
+      display: grid; grid-template-columns: 1fr 1.4fr; gap: 18px;
+    }
+    @media (max-width: 1100px) { .events-team-grid { grid-template-columns: 1fr; } }
+    .et-panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 28px 28px 24px;
+      display: flex; flex-direction: column;
+    }
+    .et-panel h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(24px, 3.2vw, 30px); letter-spacing: 0.04em;
+      margin: 0 0 6px; line-height: 1.2; padding-bottom: 4px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .et-panel > p { font-size: 13.5px; color: rgba(255,255,255,0.72); line-height: 1.55; margin: 0 0 18px; }
+    /* event list */
+    .et-events { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .et-events li {
+      display: flex; gap: 14px; align-items: stretch;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .et-event-date {
+      flex-shrink: 0; min-width: 70px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 10px 8px;
+      background: rgba(255,106,0,0.08);
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .et-event-date .mo { font-family: 'Bangers', cursive; font-size: 13px; color: var(--orange); letter-spacing: 0.06em; }
+    .et-event-date .dy { font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.95); margin-top: 2px; }
+    .et-event-info { padding: 12px 14px; flex: 1; min-width: 0; }
+    .et-event-info h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 2px; color: #fff; }
+    .et-event-info p { font-size: 12.5px; color: rgba(255,255,255,0.65); margin: 0; }
+    .et-cta {
+      display: block; text-align: center;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: rgba(255,255,255,0.92);
+      text-decoration: none;
+      transition: background .15s, border-color .15s;
+    }
+    .et-cta:hover { background: rgba(255,106,0,0.10); border-color: rgba(255,106,0,0.40); color: var(--orange); }
+    /* team grid inside panel */
+    .et-team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 6px 0 16px; flex: 1; }
+    @media (max-width: 700px) { .et-team-grid { grid-template-columns: repeat(2, 1fr); } }
+    .et-team-item { text-align: center; text-decoration: none; color: inherit; }
+    .et-team-avatar {
+      width: 92px; height: 92px; border-radius: 50%;
+      object-fit: cover; object-position: center 20%;
+      margin: 0 auto 10px; display: block;
+      border: 2px solid rgba(255,106,0,0.40);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.30);
+    }
+    .et-team-item h4 { font-size: 13.5px; font-weight: 700; margin: 0 0 2px; color: #fff; line-height: 1.3; }
+    .et-team-item p { font-size: 10.5px; color: var(--orange); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin: 0; line-height: 1.3; }
+
+    /* ── 2-col bottom CTAs ── */
+    .home-redesign .ctas-2col {
+      max-width: 1440px; margin: 0 auto; padding: 0 32px 56px;
+    }
+    .ctas-2col-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    }
+    @media (max-width: 900px) { .ctas-2col-grid { grid-template-columns: 1fr; } }
+    .cta2-card {
+      display: flex; gap: 18px; align-items: center;
+      padding: 28px 28px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.05), rgba(255,0,128,0.04));
+      border: 1px solid rgba(255,106,0,0.20);
+      border-radius: 14px;
+    }
+    .cta2-card.cta2-tcg {
+      background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.05));
+      border-color: rgba(0,212,255,0.20);
+    }
+    .cta2-icon {
+      width: 56px; height: 56px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: var(--orange);
+    }
+    .cta2-card.cta2-tcg .cta2-icon { color: var(--cyan); }
+    .cta2-text { flex: 1; min-width: 0; }
+    .cta2-text h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(20px, 2.4vw, 24px); letter-spacing: 0.04em;
+      margin: 0 0 4px; line-height: 1.25; padding-bottom: 2px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .cta2-card.cta2-tcg .cta2-text h3 {
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .cta2-text p { font-size: 13px; color: rgba(255,255,255,0.78); line-height: 1.5; margin: 0 0 12px; }
+    .cta2-text .btn { padding: 11px 22px; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; }
+    @media (max-width: 540px) {
+      .cta2-card { flex-direction: column; align-items: flex-start; padding: 22px 20px; }
+    }
+
+    /* ── PREMIUM FOOTER (homepage only — sitewide rollout pending) ── */
+    .premium-footer {
+      max-width: 1440px; margin: 0 auto; padding: 56px 32px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .pf-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 0.8fr 0.8fr 0.8fr 1.2fr;
+      gap: 36px 28px;
+    }
+    @media (max-width: 1000px) { .pf-grid { grid-template-columns: 1fr 1fr; gap: 28px; } }
+    @media (max-width: 540px)  { .pf-grid { grid-template-columns: 1fr; gap: 22px; } }
+    .pf-brand { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .pf-brand-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .pf-brand-logo img { width: 36px; height: 36px; border-radius: 8px; }
+    .pf-brand-logo span {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.06em;
+      color: #fff;
+    }
+    .pf-tag { font-size: 13px; color: rgba(255,255,255,0.70); line-height: 1.55; max-width: 280px; margin: 0; }
+    .pf-socials { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pf-socials a {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 50%;
+      color: rgba(255,255,255,0.78);
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .pf-socials a:hover { border-color: var(--orange); color: var(--orange); background: rgba(255,106,0,0.08); }
+    .pf-socials svg { width: 16px; height: 16px; fill: currentColor; }
+    .pf-col h4 {
+      font-size: 11.5px; font-weight: 800; letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.95);
+      margin: 0 0 14px;
+    }
+    .pf-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .pf-col a {
+      font-size: 13px; color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .pf-col a:hover { color: var(--orange); }
+    .pf-newsletter h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 16px; letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-transform: none;
+      margin-bottom: 8px;
+    }
+    .pf-newsletter > p { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.5; margin: 0 0 14px; max-width: 280px; }
+    .pf-newsletter form { display: flex; gap: 8px; max-width: 320px; }
+    .pf-newsletter input {
+      flex: 1; min-width: 0;
+      padding: 11px 14px;
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      font-size: 13.5px; color: #fff;
+    }
+    .pf-newsletter input:focus { outline: none; border-color: rgba(255,106,0,0.55); }
+    .pf-newsletter button {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      border: none; border-radius: 10px;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .pf-newsletter button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255,106,0,0.32); }
+    .pf-newsletter button svg { width: 16px; height: 16px; fill: #fff; }
+    .pf-bottom {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex; justify-content: space-between; gap: 18px;
+      flex-wrap: wrap;
+      font-size: 12px; color: rgba(255,255,255,0.55);
+    }
+    .pf-bottom a { color: rgba(255,255,255,0.55); text-decoration: none; margin-left: 18px; }
+    .pf-bottom a:hover { color: var(--orange); }
   </style>
 </head>
-<body>
+<body class="home-redesign">
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <nav class="site-nav" id="siteNav">
@@ -524,109 +940,158 @@
 
   <main id="main" class="page-content">
 
-    <!-- Hero -->
-    <section class="hero">
-      <div class="wip-badge" id="wipBadge">
+    <!-- HERO — split layout: text left, mascot right -->
+    <section class="hero-split">
+      <div class="wip-badge" id="wipBadge" style="grid-column:1/-1">
         <span class="wip-dot"></span>
         <span><strong>Work in progress</strong> — the site is under active construction. Play with the tools while we work out the kinks!</span>
         <button type="button" class="wip-close" id="wipClose" aria-label="Dismiss">×</button>
       </div>
-      <div class="hero-logo-outer">
-        <div class="hero-logo-wrap" id="heroLogoWrap">
-          <div class="hero-logo-mask">
-            <img src="logo.png" alt="Sake Kitty Cards" />
+      <div class="hero-split-left">
+        <p class="hero-eyebrow">Real <span class="ok">Collectors.</span> Real <span class="pop">Conversations.</span></p>
+        <h1>Collecting,<br><span class="accent">Done Right.</span></h1>
+        <p class="hero-split-body">Trusted sealed product, graded slabs, and more — from collectors who love the hobby as much as you do.</p>
+        <div class="hero-split-ctas">
+          <a href="shop.html" class="btn btn-primary">Shop Cards</a>
+          <a href="events.html" class="btn btn-outline">Upcoming Events →</a>
+        </div>
+        <div class="hero-split-trust">
+          <div class="hst-item hst-1">
+            <div class="hst-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 5v7c0 5 3.5 8.6 8 10 4.5-1.4 8-5 8-10V5l-8-3z"/></svg></div>
+            <div class="hst-text"><strong>Buyer Protection</strong><span>Every order, every time</span></div>
           </div>
-          <div class="paint-drips" aria-hidden="true">
-            <span class="paint-drip"></span>
-            <span class="paint-drip"></span>
-            <span class="paint-drip"></span>
-            <span class="paint-drip"></span>
+          <div class="hst-item hst-2">
+            <div class="hst-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg></div>
+            <div class="hst-text"><strong>Honest Condition</strong><span>Graded. Described. Always.</span></div>
+          </div>
+          <div class="hst-item hst-3">
+            <div class="hst-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3v13h2c0 1.7 1.3 3 3 3s3-1.3 3-3h6c0 1.7 1.3 3 3 3s3-1.3 3-3h2v-5l-5-4zM8 19c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1zm12 0c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1zm-3-9V9.5h2.5l1.5 1.5V13h-4v-3z"/></svg></div>
+            <div class="hst-text"><strong>Safe Shipping</strong><span>Secure · Top loaders · Tracked</span></div>
+          </div>
+          <div class="hst-item hst-4">
+            <div class="hst-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1c-5 0-9 4-9 9v7c0 1.7 1.3 3 3 3h3v-8H5v-2c0-3.9 3.1-7 7-7s7 3.1 7 7v2h-4v8h3c1.7 0 3-1.3 3-3v-7c0-5-4-9-9-9z"/></svg></div>
+            <div class="hst-text"><strong>Fast Support</strong><span>Real people. Replies within 24h.</span></div>
           </div>
         </div>
       </div>
-      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <defs>
-          <filter id="logo-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-            <feColorMatrix in="blur" mode="matrix"
-              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 14 -5"
-              result="goo" />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-      <h1 class="hero-title">Collecting, Done Right.</h1>
-      <p class="hero-tagline">Trusted sealed product, graded slabs, and more from collectors who love the hobby as much as you do.</p>
-      <div class="hero-ctas">
-        <a href="shop.html" class="btn btn-primary btn-lg">Shop Cards</a>
-        <a href="events.html" class="btn btn-outline btn-lg">Upcoming Events →</a>
+      <div class="hero-split-right">
+        <img src="logo-transparent.png" alt="" class="hero-mascot" loading="eager" />
       </div>
     </section>
 
-    <!-- Features strip -->
-    <section class="features">
-      <div class="features-grid">
-        <div class="feature-item"><div class="feature-icon">🛡️</div><h3>Buyer Protection</h3><p>Every order made right.</p></div>
-        <div class="feature-item"><div class="feature-icon">🔍</div><h3>Honest Condition</h3><p>Graded conservatively.</p></div>
-        <div class="feature-item"><div class="feature-icon">📦</div><h3>Safe Shipping</h3><p>Sleeved · top-loaded · insured.</p></div>
-        <div class="feature-item"><div class="feature-icon">💬</div><h3>Fast Support</h3><p>DMs open. Replies under 24h.</p></div>
+    <!-- SHOP BY CATEGORY -->
+    <section class="shop-by-cat">
+      <div class="shop-by-cat-card">
+        <div class="shop-by-cat-header">
+          <h2>Shop by <span class="accent">Category</span></h2>
+          <a href="shop.html">View All Products →</a>
+        </div>
+        <div class="cat-grid">
+          <a href="shop.html#singles" class="cat-card cat-1">
+            <div class="cat-card-img">🎴</div>
+            <h3>Singles</h3>
+            <p>Hand-picked collector cards.</p>
+          </a>
+          <a href="shop.html#sealed" class="cat-card cat-2">
+            <div class="cat-card-img">📦</div>
+            <h3>Sealed Product</h3>
+            <p>Booster boxes, ETBs, tins, and more.</p>
+          </a>
+          <a href="shop.html#graded" class="cat-card cat-3">
+            <div class="cat-card-img">🏆</div>
+            <h3>Graded Cards</h3>
+            <p>PSA, BGS, CGC &amp; more.</p>
+          </a>
+          <a href="trade-in.html" class="cat-card cat-4">
+            <div class="cat-card-img">↻</div>
+            <h3>Sell / Trade</h3>
+            <p>Cash or store credit.</p>
+          </a>
+          <a href="grading-prep.html" class="cat-card cat-5">
+            <div class="cat-card-img">★</div>
+            <h3>Grading Prep</h3>
+            <p>Screening &amp; submission.</p>
+          </a>
+          <a href="events.html" class="cat-card cat-6">
+            <div class="cat-card-img">📍</div>
+            <h3>Events</h3>
+            <p>Catch us at FL card shows.</p>
+          </a>
+        </div>
       </div>
     </section>
 
-    <!-- Upcoming events preview -->
-    <section class="section">
-      <div class="center-heading">
-        <h2 class="section-title">Catch Us Live</h2>
-        <div class="divider"></div>
-        <p class="section-sub">We're on the road — come find our table at these upcoming shows.</p>
-      </div>
-      <!-- Next 3 upcoming events. Manually updated as shows pass — keep in
-           sync with events.html EVENTS array. (Refactor to shared data file
-           if this gets out of date often.) -->
-      <div class="events-preview-grid">
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy" style="font-size:14px">9–10</span></div>
-          <div class="event-preview-info"><h4>Collect-A-Con</h4><p>Cleveland, OH</p></div>
+    <!-- STATS BAR — verifiable trust signals (no made-up numbers per memory) -->
+    <section class="stats-bar">
+      <div class="stats-bar-inner">
+        <div class="stat-item stat-1">
+          <div class="stat-icon" aria-hidden="true">★</div>
+          <div><div class="stat-num">Gold</div><div class="stat-label">Star Seller on TCGplayer</div></div>
         </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">10</span></div>
-          <div class="event-preview-info"><h4>Naples Card Show</h4><p>Naples, FL</p></div>
+        <div class="stat-item stat-2">
+          <div class="stat-icon" aria-hidden="true">✓</div>
+          <div><div class="stat-num">99%+</div><div class="stat-label">Positive Feedback</div></div>
         </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">16</span></div>
-          <div class="event-preview-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
+        <div class="stat-item stat-3">
+          <div class="stat-icon" aria-hidden="true">📍</div>
+          <div><div class="stat-num">FL</div><div class="stat-label">Vendor · Nationwide</div></div>
+        </div>
+        <div class="stat-item stat-4">
+          <div class="stat-icon" aria-hidden="true">♥</div>
+          <div><div class="stat-num">Honest</div><div class="stat-label">Conservative grading</div></div>
         </div>
       </div>
-      <div class="see-all-wrap"><a href="events.html" class="see-all">View all events →</a></div>
     </section>
 
-    <!-- Vendors preview -->
-    <section class="section" style="padding-top:0">
-      <div class="center-heading">
-        <h2 class="section-title">Meet the Team</h2>
-        <div class="divider"></div>
-      </div>
-      <div class="vendors-preview">
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img src="nick.jpg" alt="Nick Williams" class="vendor-mini-avatar" />
-          <h4>Nick Williams</h4>
-          <p>Founder & Owner</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img src="jonathan.jpg" alt="Jonathan Delia" class="vendor-mini-avatar" />
-          <h4>Jonathan Delia</h4>
-          <p>Vendor</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img src="joshua.jpg" alt="Joshua Noplis" class="vendor-mini-avatar" />
-          <h4>Joshua Noplis</h4>
-          <p>Vendor</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img src="andrew-grace.jpg" alt="Andrew &amp; Grace Williams" class="vendor-mini-avatar" />
-          <h4>Andrew &amp; Grace Williams</h4>
-          <p>Vendors · Whatnot Streams</p>
-        </a>
+    <!-- EVENTS + TEAM 2-col split -->
+    <section class="events-team-split">
+      <div class="events-team-grid">
+        <div class="et-panel">
+          <h2>Catch Us Live</h2>
+          <p>We're on the road — come find us at these upcoming shows.</p>
+          <ul class="et-events">
+            <li>
+              <div class="et-event-date"><span class="mo">May</span><span class="dy">9–10</span></div>
+              <div class="et-event-info"><h4>Collect-A-Con</h4><p>Cleveland, OH</p></div>
+            </li>
+            <li>
+              <div class="et-event-date"><span class="mo">May</span><span class="dy">10</span></div>
+              <div class="et-event-info"><h4>Naples Card Show</h4><p>Naples, FL</p></div>
+            </li>
+            <li>
+              <div class="et-event-date"><span class="mo">May</span><span class="dy">16</span></div>
+              <div class="et-event-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
+            </li>
+          </ul>
+          <a href="events.html" class="et-cta">View All Events →</a>
+        </div>
+        <div class="et-panel">
+          <h2>Meet the Team</h2>
+          <p>Collectors. Sellers. Hobbyists. Friends. We're just like you.</p>
+          <div class="et-team-grid">
+            <a href="team.html" class="et-team-item">
+              <img src="nick.jpg" alt="Nick Williams" class="et-team-avatar" />
+              <h4>Nick Williams</h4>
+              <p>Founder &amp; Owner</p>
+            </a>
+            <a href="team.html" class="et-team-item">
+              <img src="jonathan.jpg" alt="Jonathan Delia" class="et-team-avatar" />
+              <h4>Jonathan Delia</h4>
+              <p>Vendor</p>
+            </a>
+            <a href="team.html" class="et-team-item">
+              <img src="joshua.jpg" alt="Joshua Noplis" class="et-team-avatar" />
+              <h4>Joshua Noplis</h4>
+              <p>Vendor</p>
+            </a>
+            <a href="team.html" class="et-team-item">
+              <img src="andrew-grace.jpg" alt="Andrew &amp; Grace Williams" class="et-team-avatar" />
+              <h4>Andrew &amp; Grace</h4>
+              <p>Vendors</p>
+            </a>
+          </div>
+          <a href="team.html" class="et-cta">Our Team →</a>
+        </div>
       </div>
     </section>
 
@@ -684,54 +1149,100 @@
       </p>
     </section>
 
-    <!-- Sell / Trade CTA — paired with the buy CTA below so the bottom of the page reads bidirectional -->
-    <section class="section" style="padding-top:0">
-      <div class="cta-banner cta-sell">
-        <h2>Got Cards to Trade?</h2>
-        <p>Singles, sealed, graded, or bulk — build a list and get an instant rough estimate. Cash or store credit, your call.</p>
-        <a href="trade-in.html" class="btn btn-primary btn-lg">Sell or Trade In →</a>
-      </div>
-    </section>
-
-    <!-- CTA banner -->
-    <section class="section" style="padding-top:0">
-      <div class="cta-banner">
-        <h2>Prefer TCGPlayer?</h2>
-        <p>A selection of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller, secure checkout, buyer protection.</p>
-        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">Shop on TCGPlayer →</a>
+    <!-- 2-col bottom CTAs (was stacked) -->
+    <section class="ctas-2col">
+      <div class="ctas-2col-grid">
+        <div class="cta2-card">
+          <div class="cta2-icon" aria-hidden="true">💬</div>
+          <div class="cta2-text">
+            <h3>Got Cards to Trade?</h3>
+            <p>Singles, sealed, graded, or bulk — build a list and get an instant quote.</p>
+            <a href="trade-in.html" class="btn btn-primary">Sell / Trade →</a>
+          </div>
+        </div>
+        <div class="cta2-card cta2-tcg">
+          <div class="cta2-icon" aria-hidden="true">🏷️</div>
+          <div class="cta2-text">
+            <h3>Prefer TCGPlayer?</h3>
+            <p>A curated selection of our inventory available on TCGplayer.</p>
+            <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">Shop on TCGPlayer →</a>
+          </div>
+        </div>
       </div>
     </section>
 
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
-        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
-          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-          @sakekittycards
+  <!-- PREMIUM FOOTER — 4-col + newsletter -->
+  <footer class="premium-footer">
+    <div class="pf-grid">
+      <div class="pf-brand">
+        <a href="index.html" class="pf-brand-logo">
+          <img src="logo.png" alt="Sake Kitty Cards" />
+          <span>Sake Kitty Cards</span>
         </a>
-        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
-          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-          @SakeKittyCards
-        </a>
+        <p class="pf-tag">Real collectors. Real conversations. Trusted by collectors worldwide.</p>
+        <div class="pf-socials">
+          <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" aria-label="YouTube">
+            <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </a>
+          <a href="mailto:nick@sakekittycards.com" aria-label="Email">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </a>
+        </div>
       </div>
-      <nav class="footer-nav">
-        <a href="shop.html">Shop</a>
-        <a href="events.html">Events</a>
-        <a href="team.html">Our Team</a>
-        <a href="trade-in.html">Sell / Trade</a>
-        <a href="grading-prep.html">Grading Prep</a>
-        <a href="shipping.html">Shipping Guide</a>
-        <a href="faq.html">FAQ</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
-        <a href="track.html">Track Order</a>
-        <a href="gift-cards.html">Gift Cards</a>
-      </nav>
+      <div class="pf-col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="shop.html">All Products</a></li>
+          <li><a href="shop.html#sealed">Sealed Product</a></li>
+          <li><a href="shop.html#graded">Graded Cards</a></li>
+          <li><a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener">TCGplayer Store</a></li>
+        </ul>
+      </div>
+      <div class="pf-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="team.html">Our Team</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="pf-col">
+        <h4>Help</h4>
+        <ul>
+          <li><a href="trade-in.html">Sell / Trade</a></li>
+          <li><a href="grading-prep.html">Grading Prep</a></li>
+          <li><a href="shipping.html">Shipping Guide</a></li>
+          <li><a href="track.html">Track Order</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="gift-cards.html">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div class="pf-newsletter">
+        <h4>Join the Crew</h4>
+        <p>Get updates on drops, shows, and exclusive deals.</p>
+        <form action="https://api.web3forms.com/submit" method="POST" id="pfNewsletter">
+          <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+          <input type="hidden" name="subject" value="Newsletter signup — homepage" />
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
+          <input type="email" name="email" placeholder="Enter your email" required aria-label="Email address" />
+          <button type="submit" aria-label="Subscribe">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </form>
+      </div>
     </div>
-    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+    <div class="pf-bottom">
+      <span>© 2026 Sake Kitty Cards. All rights reserved.</span>
+      <span>
+        <a href="grading-terms.html">Grading Prep Terms</a>
+      </span>
+    </div>
   </footer>
 
   <script src="main.js?v=45"></script>
