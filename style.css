@@ -20,6 +20,33 @@
   --r-pill:       100px;
 }
 
+/* ── Lucide icon system (clean SVG, subtle neon glow) ──
+   Sprite is injected once by main.js. Use:
+     <svg class="lc"><use href="#lc-shield-check"/></svg>
+   Modifiers: .lc-lg / .lc-sm for size variants. Tone via .lc-orange /
+   .lc-pink / .lc-cyan / .lc-purple / .lc-gold which set color (=stroke). */
+.lc {
+  width: 22px; height: 22px;
+  flex-shrink: 0; vertical-align: -4px;
+  stroke: currentColor; fill: none;
+}
+.lc-sm { width: 16px; height: 16px; vertical-align: -3px; }
+.lc-lg { width: 32px; height: 32px; }
+.lc-xl { width: 44px; height: 44px; }
+.lc-orange { color: var(--orange); filter: drop-shadow(0 0 8px rgba(255,106,0,0.30)); }
+.lc-pink   { color: var(--pink);   filter: drop-shadow(0 0 8px rgba(255,0,128,0.30)); }
+.lc-cyan   { color: var(--cyan);   filter: drop-shadow(0 0 8px rgba(0,212,255,0.30)); }
+.lc-purple { color: var(--purple); filter: drop-shadow(0 0 8px rgba(123,47,255,0.30)); }
+.lc-gold   { color: #ffc800;       filter: drop-shadow(0 0 8px rgba(255,200,0,0.30)); }
+.lc-muted  { color: rgba(255,255,255,0.70); }
+/* Star icon uses fill — keep its drop-shadow but override stroke style */
+.lc-star-filled { fill: currentColor; }
+/* Common icon wrapper sizing — SVG ignores parent font-size, so we
+   explicitly set sizes here to match the previous emoji visual weight. */
+.value-icon svg.lc, .feature-icon svg.lc { width: 32px; height: 32px; }
+.cec-icon svg.lc { width: 28px; height: 28px; }
+.cm-pill-icon svg.lc { width: 22px; height: 22px; }
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 [hidden] { display: none !important; }

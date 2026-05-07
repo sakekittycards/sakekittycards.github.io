@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=120" />
+  <link rel="stylesheet" href="style.css?v=121" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -326,7 +326,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=45"></script>
+  <script src="main.js?v=46"></script>
   <script>
     (async function loadShop() {
       // === FEATURE FLAG: card inventory paused (restocking) ===
@@ -464,7 +464,7 @@
         if (items.length === 0) {
           status.innerHTML = `
             <div class="shop-empty">
-              <div class="shop-empty-icon">📦</div>
+              <div class="shop-empty-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></div>
               <h3>Nothing listed yet</h3>
               <p>Check back soon or follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restocks.</p>
             </div>`;
