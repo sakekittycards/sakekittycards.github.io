@@ -14,7 +14,7 @@
   --dim:          rgba(255,255,255,0.65);   /* was 0.32 → 0.55 → 0.65 — Nick wanted more readable in sunlight */
   --border:       rgba(255,255,255,0.08);
   --nav-h:        84px;
-  --max-w:        1160px;
+  --max-w:        1320px;          /* sitewide default — was 1160; per-page 1360 overrides on shop/grading-prep/trade-in still apply */
   --r:            14px;
   --r-sm:         8px;
   --r-pill:       100px;
@@ -728,20 +728,17 @@ body.cart-open { overflow: hidden; }
   text-align: center; max-width: var(--max-w); margin: 0 auto;
 }
 .page-hero h1 {
-  /* Sitewide hero scale unified at clamp(40, 7vw, 64). Was clamp(38, 8vw, 76)
-     which over-shouted on desktop; multiple per-page overrides had already
-     converged on this same scale. Now everything uses one rhythm. */
+  /* Sitewide hero scale unified at clamp(40, 7vw, 64). */
   font-family: 'Bangers', cursive; font-size: clamp(40px,7vw,64px);
   letter-spacing: 0.03em; line-height: 1.25; padding: 0 10px;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  filter: drop-shadow(0 0 16px rgba(255,106,0,0.22)); margin-bottom: 14px;
+  filter: drop-shadow(0 0 14px rgba(255,106,0,0.18)); margin-bottom: 14px;
 }
 .page-hero p {
-  /* Standardized — was clamp(14,2.5vw,17), tightened minimum to 15 so the
-     subhead reads body-size on mobile instead of caption-size. */
-  font-size: clamp(15px,2vw,17px); line-height: 1.6;
-  color: var(--muted); max-width: 580px; margin: 0 auto;
+  /* Bumped 15-17 -> 15.5-18 for desktop readability per audit. */
+  font-size: clamp(15.5px,2vw,18px); line-height: 1.65;
+  color: var(--muted); max-width: 600px; margin: 0 auto;
 }
 
 /* ── Layout helpers ── */
@@ -751,11 +748,11 @@ body.cart-open { overflow: hidden; }
   font-family: 'Bangers', cursive; font-size: clamp(28px,5vw,52px); letter-spacing: 0.04em;
   background: linear-gradient(135deg,var(--orange),var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  /* Reduced from 0.25 → 0.18 — sitewide glow restraint pass. */
-  filter: drop-shadow(0 0 10px rgba(255,106,0,0.18));
-  padding-bottom: 8px;  /* Bangers descender clip fix */;
-  line-height: 1.25;  /* Bangers descender clip fix */}
-.section-sub { font-size: 15px; color: var(--muted); margin-top: 8px; max-width: 520px; line-height: 1.7; }
+  filter: drop-shadow(0 0 8px rgba(255,106,0,0.15));     /* 2nd glow pass — was 0.18 */
+  padding-bottom: 8px;
+  line-height: 1.25;
+}
+.section-sub { font-size: 15.5px; color: var(--muted); margin-top: 8px; max-width: 560px; line-height: 1.7; }
 .divider { width: 56px; height: 3px; background: linear-gradient(90deg,var(--orange),var(--purple)); border-radius: 2px; margin-top: 10px; }
 
 /* ── Buttons ── */
@@ -767,11 +764,10 @@ body.cart-open { overflow: hidden; }
   transition: transform .18s, box-shadow .18s, opacity .18s;
 }
 .btn:hover { transform: translateY(-2px); }
-/* Glow reduction pass — primary CTA was 0.4/0.6 default+hover, dropped to
-   0.28/0.42 so the rest of the UI doesn't drown out the dominant button on
-   each page. Restraint = premium read. */
-.btn-primary { background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; box-shadow: 0 4px 18px rgba(255,106,0,0.28); }
-.btn-primary:hover { box-shadow: 0 6px 24px rgba(255,106,0,0.42); }
+/* Glow reduction pass (2nd) — premium = controlled lighting. Reduced
+   another 15% per "reduce excessive glow/gradient effects 20-30%" audit. */
+.btn-primary { background: linear-gradient(135deg,var(--orange),var(--pink)); color: #fff; box-shadow: 0 4px 16px rgba(255,106,0,0.24); }
+.btn-primary:hover { box-shadow: 0 6px 20px rgba(255,106,0,0.36); }
 .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); backdrop-filter: blur(8px); }
 .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
 .btn-venmo { background: #008cff; color: #fff; box-shadow: 0 4px 16px rgba(0,140,255,0.3); }
@@ -793,9 +789,8 @@ body.cart-open { overflow: hidden; }
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r);
   transition: border-color .2s, transform .2s, background .2s;
 }
-/* Calmer card hover — was border-color 0.35 + translateY -4px. Reduced lift
-   so cards on values/connect/feature grids feel less "every-tile-glows" UI. */
-.card:hover { border-color: rgba(255,106,0,0.28); background: var(--bg-card-hover); transform: translateY(-2px); }
+/* Calmer card hover (2nd glow pass) — premium restraint. */
+.card:hover { border-color: rgba(255,106,0,0.24); background: var(--bg-card-hover); transform: translateY(-2px); }
 
 /* ── Badges ── */
 .badge { display: inline-block; padding: 3px 10px; border-radius: var(--r-pill); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; }
