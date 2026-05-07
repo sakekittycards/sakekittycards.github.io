@@ -111,7 +111,7 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 18px;
-      max-width: 1180px;
+      max-width: 1380px;
       margin: 0 auto;
     }
     @media (max-width: 1100px) { .connect-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -188,19 +188,18 @@
     /* ── Events CTA ── */
     .contact-events-cta {
       display: flex; align-items: center; gap: 16px;
-      max-width: 920px; margin: 0 auto;
-      padding: 18px 24px;
-      background: linear-gradient(135deg, rgba(123,47,255,0.08), rgba(255,0,128,0.06));
-      border: 1px solid rgba(123,47,255,0.30);
+      max-width: 1100px; margin: 0 auto;
+      padding: 22px 28px;
+      background: linear-gradient(135deg, rgba(123,47,255,0.05), rgba(255,0,128,0.03));
+      border: 1px solid rgba(123,47,255,0.18);  /* softened — was 0.30 */
       border-radius: var(--r);
       color: var(--text); text-decoration: none;
       transition: transform .15s, border-color .15s, box-shadow .2s;
-      box-shadow: 0 4px 18px rgba(123,47,255,0.06);
     }
     .contact-events-cta:hover {
       transform: translateY(-1px);
-      border-color: rgba(123,47,255,0.55);
-      box-shadow: 0 8px 28px rgba(123,47,255,0.18);
+      border-color: rgba(123,47,255,0.40);
+      box-shadow: 0 6px 22px rgba(123,47,255,0.12);
     }
     .cec-icon { font-size: 28px; flex-shrink: 0; line-height: 1; }
     .cec-text { flex: 1; min-width: 0; line-height: 1.45; }
@@ -374,13 +373,41 @@
     /* ── Closing brand strip ── */
 
     /* Calmer blobs on this page so connect cards stay focal */
-    .page-contact .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-contact .bg-blob { opacity: 0.07; filter: blur(160px); }
     .page-contact .page-hero,
-    .page-contact .section { max-width: 1320px; }   /* widened — was 1240 */
-    /* Tighten the connect-card glow so the grid feels less repetitive UI-fatigue.
-       Reduce hover-glow strength + soften default border to one calm tone. */
-    .page-contact .connect-card { border-width: 1px; }
-    .page-contact .connect-card:hover { box-shadow: 0 6px 20px rgba(255,255,255,0.04); }
+    .page-contact .section { max-width: 1440px; padding-left: 32px; padding-right: 32px; }
+    @media (max-width: 540px) {
+      .page-contact .page-hero,
+      .page-contact .section { padding-left: 18px; padding-right: 18px; }
+    }
+    /* Lighter connect cards — strip the heavy tone box-shadow, calmer hover.
+       The grid was reading as 5 stamped tiles; now reads as 5 entry points. */
+    .page-contact .connect-card {
+      border-width: 1px; padding: 26px 22px 22px;
+      background: rgba(255,255,255,0.025);
+    }
+    .page-contact .connect-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,255,255,0.04); }
+    .page-contact .connect-card.tone-orange,
+    .page-contact .connect-card.tone-pink,
+    .page-contact .connect-card.tone-cyan,
+    .page-contact .connect-card.tone-purple,
+    .page-contact .connect-card.tone-red {
+      box-shadow: inset 0 3px 0 0 currentColor;
+    }
+    .page-contact .connect-card.tone-orange { color: #ff6a00; }
+    .page-contact .connect-card.tone-pink   { color: #ff0080; }
+    .page-contact .connect-card.tone-cyan   { color: #00d4ff; }
+    .page-contact .connect-card.tone-purple { color: #7b2fff; }
+    .page-contact .connect-card.tone-red    { color: #ff3b30; }
+    .page-contact .connect-card.tone-orange:hover,
+    .page-contact .connect-card.tone-pink:hover,
+    .page-contact .connect-card.tone-cyan:hover,
+    .page-contact .connect-card.tone-purple:hover,
+    .page-contact .connect-card.tone-red:hover {
+      box-shadow: inset 0 3px 0 0 currentColor, 0 6px 22px rgba(0,0,0,0.30);
+    }
+    .page-contact .connect-card h3 { font-size: 16px; line-height: 1.3; }
+    .page-contact .connect-card p { font-size: 13px; line-height: 1.55; color: rgba(255,255,255,0.70); }
 
     /* ──────────────────────────────────────────────────────────────────
        Contact-page redesign — 2-col hero, 3-col form. Inspired by user's
@@ -389,14 +416,31 @@
        within Sake Kitty's neon dark palette — no gamer-UI escalation.
        ────────────────────────────────────────────────────────────────── */
 
-    /* HERO — 2-column desktop, mascot stacks on top on mobile */
-    .page-contact .page-hero { padding-top: calc(var(--nav-h) + 56px); padding-bottom: 28px; }
+    /* HERO — 2-column desktop, mascot stacks on top on mobile.
+       Wraps a unified ambient glow under both halves so logo + text feel
+       like ONE composition, not two stacked elements. */
+    .page-contact .page-hero {
+      padding-top: calc(var(--nav-h) + 64px); padding-bottom: 36px;
+      position: relative;
+    }
+    .page-contact .page-hero::before {
+      content: ''; position: absolute;
+      left: 50%; top: 30%;
+      width: min(1100px, 110%); height: 80%;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse 50% 60% at 70% 50%, rgba(255,106,0,0.16), transparent 65%),
+        radial-gradient(ellipse 45% 50% at 30% 50%, rgba(255,0,128,0.10), transparent 65%);
+      filter: blur(60px);
+      pointer-events: none; z-index: 0;
+    }
     .contact-hero-2col {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 56px;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 64px;
       align-items: center;
       text-align: left;
+      position: relative; z-index: 1;
     }
     .contact-hero-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
     .contact-hero-eyebrow {
@@ -423,24 +467,19 @@
     .contact-hero-body strong { color: var(--text); font-weight: 700; }
     .contact-hero-right {
       display: flex; align-items: center; justify-content: center;
-      position: relative; min-height: 320px;
-    }
-    .contact-hero-right::before {
-      content: ''; position: absolute; inset: 8% 12%; z-index: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(255,106,0,0.18), transparent 65%);
-      filter: blur(40px); pointer-events: none;
+      position: relative; min-height: 380px;
     }
     .contact-mascot {
       position: relative; z-index: 1;
-      width: min(420px, 100%); height: auto;
+      width: min(520px, 100%); height: auto;
       filter:
-        drop-shadow(0 0 50px rgba(255,106,0,0.30))
-        drop-shadow(0 0 90px rgba(255,0,128,0.18));
+        drop-shadow(0 0 60px rgba(255,106,0,0.32))
+        drop-shadow(0 0 110px rgba(255,0,128,0.22));
     }
     @media (max-width: 900px) {
       .contact-hero-2col { grid-template-columns: 1fr; gap: 28px; }
-      .contact-hero-right { order: -1; min-height: 220px; }
-      .contact-mascot { width: 220px; }
+      .contact-hero-right { order: -1; min-height: 200px; }
+      .contact-mascot { width: 200px; }
       .contact-hero-2col h1 { font-size: clamp(40px, 11vw, 56px); }
       .contact-hero-body { max-width: 100%; }
     }
@@ -458,117 +497,134 @@
       .contact-hero-left .contact-meta { grid-template-columns: 1fr; }
     }
 
-    /* FORM — 3-column premium card */
+    /* FORM — premium two-column card. Trust strip moved ABOVE the form
+       (was a floating right column that read as detached aside). Form now
+       has more breathing room and a dominant gradient CTA. */
     .contact-form-card {
-      max-width: 1180px; margin: 0 auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+      max-width: 1280px; margin: 0 auto;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,106,0,0.06), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
       border: 1px solid rgba(255,255,255,0.07);
       border-radius: var(--r);
-      padding: 40px 36px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+      padding: 56px 48px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
     }
-    @media (max-width: 600px) { .contact-form-card { padding: 26px 20px; } }
+    @media (max-width: 900px) { .contact-form-card { padding: 36px 24px; } }
+    @media (max-width: 540px) { .contact-form-card { padding: 28px 20px; } }
+
+    /* Top trust strip — was a right-floating panel; now a horizontal row
+       above the form so it reinforces the form instead of competing. */
+    .contact-form-trust-strip {
+      display: flex; flex-wrap: wrap; gap: 32px 48px;
+      justify-content: center;
+      padding: 0 0 32px;
+      margin-bottom: 36px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .cfs-row { display: flex; flex-direction: column; line-height: 1.4; min-width: 120px; }
+    .cfs-row strong {
+      display: block; color: var(--pink); font-weight: 700;
+      font-size: 13px; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .cfs-row span { display: block; color: rgba(255,255,255,0.78); font-size: 13.5px; }
+    @media (max-width: 540px) {
+      .contact-form-trust-strip { gap: 18px 28px; padding-bottom: 20px; margin-bottom: 24px; }
+      .cfs-row { min-width: 100px; }
+      .cfs-row strong { font-size: 11px; letter-spacing: 1.2px; }
+      .cfs-row span { font-size: 12.5px; }
+    }
+
+    /* Form layout — 2 column (intro left, form right) on desktop */
     .contact-form-grid {
       display: grid;
-      grid-template-columns: 1fr 1.5fr 0.85fr;
-      gap: 36px; align-items: start;
+      grid-template-columns: 0.85fr 1.4fr;
+      gap: 56px; align-items: start;
     }
     .contact-form-grid .contact-form-section {
       background: transparent; border: none; padding: 0; box-shadow: none; margin: 0;
     }
     .contact-form-grid .contact-form-intro { padding: 0; }
-    .contact-form-grid .contact-form-intro h2 { font-size: clamp(26px, 3.6vw, 36px); margin-bottom: 14px; }
+    .contact-form-grid .contact-form-intro h2 {
+      font-size: clamp(30px, 4vw, 42px); margin-bottom: 18px;
+    }
     .contact-form-grid .contact-form-intro p {
-      font-size: 14.5px; line-height: 1.65; color: rgba(229,229,247,0.80);
+      font-size: 15px; line-height: 1.7; color: rgba(229,229,247,0.82);
     }
     .contact-form-grid .contact-form { padding: 0; background: transparent; border: none; }
-    .contact-form-side {
-      display: flex; flex-direction: column; gap: 18px;
-      align-items: center; text-align: center;
-      padding: 28px 18px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: var(--r-sm);
+    /* Bigger form fields — was 13px/16px pad, now 15px/18px for premium feel */
+    .contact-form-grid .contact-form .form-group { margin-bottom: 22px; }
+    .contact-form-grid .contact-form input,
+    .contact-form-grid .contact-form select,
+    .contact-form-grid .contact-form textarea {
+      padding: 16px 18px; font-size: 15px;
     }
-    .cfs-icon {
-      width: 52px; height: 52px;
-      display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 22px rgba(255,106,0,0.30);
-      margin-bottom: 4px;
+    .contact-form-grid .contact-form textarea { min-height: 160px; }
+    /* CTA dominance — bigger, taller, stronger gradient */
+    .contact-form-grid .contact-form-cta {
+      padding: 22px 16px 16px; font-size: 17px;
+      letter-spacing: 0.18em;
+      box-shadow: 0 10px 32px rgba(255,106,0,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
     }
-    .cfs-icon svg { width: 22px; height: 22px; fill: #fff; }
-    .cfs-row { line-height: 1.4; }
-    .cfs-row strong {
-      display: block; color: var(--pink); font-weight: 700;
-      font-size: 14px; letter-spacing: 0.2px; margin-bottom: 2px;
+    .contact-form-grid .contact-form-cta:hover:not(:disabled) {
+      box-shadow: 0 14px 38px rgba(255,106,0,0.42), inset 0 1px 0 rgba(255,255,255,0.22);
     }
-    .cfs-row span { display: block; color: rgba(255,255,255,0.70); font-size: 12.5px; }
-    @media (max-width: 1100px) {
-      .contact-form-grid { grid-template-columns: 1fr; gap: 24px; }
-      .contact-form-side {
-        flex-direction: row; flex-wrap: wrap; justify-content: center;
-        gap: 22px 28px; padding: 18px 16px; text-align: left;
-      }
-      .cfs-icon { width: 40px; height: 40px; margin: 0; }
-      .cfs-icon svg { width: 18px; height: 18px; }
-    }
-    @media (max-width: 540px) {
-      .contact-form-side .cfs-icon { display: none; }
-      .contact-form-side { gap: 12px 18px; }
-      .cfs-row strong { font-size: 12.5px; }
-      .cfs-row span { font-size: 11.5px; }
+    @media (max-width: 1000px) {
+      .contact-form-grid { grid-template-columns: 1fr; gap: 28px; }
     }
 
-    /* TRUST BADGES BOTTOM STRIP — 4-up with icons */
+    /* TRUST BADGES — single quiet row, no individual borders. Was 4 boxed
+       cards inside a containing card (4 boxes inside 1 box) — refactored
+       to one container with 4 inline icon+text pairs. Less "another card
+       grid", more "footer-style endorsement bar." */
     .contact-trust-row {
-      max-width: 1180px; margin: 0 auto;
-      background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: var(--r);
-      padding: 28px 32px;
+      max-width: 1280px; margin: 0 auto;
+      text-align: center;
+      padding: 36px 24px 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
     }
     .contact-trust-row h3 {
       font-family: 'Bangers', cursive;
-      font-size: clamp(20px, 2.6vw, 26px); letter-spacing: 0.04em;
+      font-size: clamp(22px, 2.8vw, 30px); letter-spacing: 0.04em;
       background: linear-gradient(135deg, var(--orange), var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       filter: drop-shadow(0 0 10px rgba(255,106,0,0.18));
-      padding-bottom: 6px; line-height: 1.25;
-      margin: 0 0 6px;
+      padding-bottom: 8px; line-height: 1.25;
+      margin: 0 auto 8px;
     }
     .contact-trust-row > p {
-      font-size: 13.5px; color: rgba(229,229,247,0.78); line-height: 1.6;
-      max-width: 700px; margin: 0 0 18px;
+      font-size: 14px; color: rgba(229,229,247,0.78); line-height: 1.6;
+      max-width: 720px; margin: 0 auto 26px;
     }
     .ctr-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 18px 44px;
     }
     .ctr-badge {
       display: flex; gap: 12px; align-items: center;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: var(--r-sm);
+      padding: 0; background: transparent; border: none;
     }
     .ctr-badge-icon {
-      width: 32px; height: 32px; flex-shrink: 0;
+      width: 36px; height: 36px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; line-height: 1;
+      font-size: 22px; line-height: 1;
+      filter: drop-shadow(0 0 12px currentColor);
     }
+    .ctr-badge-text { text-align: left; }
     .ctr-badge-text strong {
-      display: block; font-size: 11.5px; font-weight: 800;
-      letter-spacing: 0.08em; text-transform: uppercase;
+      display: block; font-size: 12px; font-weight: 800;
+      letter-spacing: 0.10em; text-transform: uppercase;
       color: rgba(255,255,255,0.95);
     }
-    .ctr-badge-text span { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .ctr-badge-text span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
     .ctr-1 .ctr-badge-icon { color: #ffc800; }
     .ctr-2 .ctr-badge-icon { color: var(--cyan); }
     .ctr-3 .ctr-badge-icon { color: var(--pink); }
     .ctr-4 .ctr-badge-icon { color: var(--orange); }
-    @media (max-width: 900px) { .ctr-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .ctr-grid { grid-template-columns: 1fr; } .contact-trust-row { padding: 22px 18px; } }
+    @media (max-width: 540px) {
+      .ctr-grid { gap: 14px 24px; }
+      .contact-trust-row { padding: 28px 16px 4px; }
+    }
   </style>
 </head>
 <body class="page-contact">
@@ -651,7 +707,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
           </div>
           <h3>Email</h3>
-          <p>Best for trade quotes, collection deals, vendor inquiries, and anything detailed.</p>
+          <p>Trade quotes, collection deals, vendor inquiries.</p>
           <div class="connect-handle">nick@sakekittycards.com</div>
         </a>
 
@@ -660,7 +716,7 @@
             <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
           </div>
           <h3>Instagram</h3>
-          <p>Fastest way to reach us — daily updates, inventory drops, and event announcements.</p>
+          <p>Daily updates, inventory drops, event announcements.</p>
           <div class="connect-handle">@sakekittycards</div>
         </a>
 
@@ -669,7 +725,7 @@
             <img src="tcgplayer-logo.jpg" alt="TCGplayer" />
           </div>
           <h3>TCGPlayer Store <span class="gold-star">★ Gold Star</span></h3>
-          <p>Browse our singles inventory — Gold Star Seller with 99%+ feedback rating.</p>
+          <p>Browse our singles inventory — 99%+ feedback.</p>
           <div class="connect-handle">Shop on TCGPlayer →</div>
         </a>
 
@@ -678,7 +734,7 @@
             <img src="whatnot-logo.webp" alt="Whatnot" />
           </div>
           <h3>Whatnot Live</h3>
-          <p>Live card breaks and showcases — catch us streaming throughout the week.</p>
+          <p>Live breaks and showcases throughout the week.</p>
           <div class="connect-handle">@sakekittycards</div>
         </a>
 
@@ -687,7 +743,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
           </div>
           <h3>YouTube</h3>
-          <p>Episodes from shows, breaks, and behind-the-table content.</p>
+          <p>Show recaps, breaks, behind-the-table content.</p>
           <div class="connect-handle">@SakeKittyCards</div>
         </a>
       </div>
@@ -705,9 +761,14 @@
       </a>
     </div>
 
-    <!-- Form — 3-column premium card -->
+    <!-- Form — 2-column premium card with trust strip across the top -->
     <div class="section" style="padding-top:36px">
       <div class="contact-form-card">
+        <div class="contact-form-trust-strip" aria-label="What to expect">
+          <div class="cfs-row"><strong>Real people</strong><span>Collectors like you</span></div>
+          <div class="cfs-row"><strong>Fast responses</strong><span>Usually within 24 hours</span></div>
+          <div class="cfs-row"><strong>Confidential</strong><span>Your info stays private</span></div>
+        </div>
         <div class="contact-form-grid">
           <div class="contact-form-section">
             <div class="contact-form-intro">
@@ -747,14 +808,6 @@
             <button type="submit" class="contact-form-cta" id="contactSubmit">Send Message</button>
             <p id="contactStatus" class="contact-form-status" role="status" aria-live="polite"></p>
           </form>
-          <aside class="contact-form-side" aria-label="What to expect">
-            <div class="cfs-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </div>
-            <div class="cfs-row"><strong>Real people</strong><span>Collectors like you.</span></div>
-            <div class="cfs-row"><strong>Fast responses</strong><span>Usually within 24 hours.</span></div>
-            <div class="cfs-row"><strong>Confidential</strong><span>Your info stays private.</span></div>
-          </aside>
         </div>
       </div>
     </div>
