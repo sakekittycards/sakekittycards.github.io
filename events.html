@@ -264,9 +264,98 @@
       .event-panel { position: static; }
       .cal-day { font-size: 12px; }
     }
+
+    /* ── Page-scoped polish — wider container, bigger calendar, CTA hierarchy,
+       tighter section transitions. Matches the rhythm shipping/team set. ── */
+    .page-events .page-hero,
+    .page-events .section { max-width: 1240px; }
+    .page-events .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-events .page-hero { padding-bottom: 28px; }
+
+    /* Calendar + event panel anchored, more breathing between them. */
+    .page-events .cal-layout { gap: 32px; }
+    .page-events .calendar { padding: 28px; }
+    .page-events .event-panel { padding: 26px 24px; }
+
+    /* Calendar day cells — slightly larger numbers + brighter rest-state for sunlight. */
+    .page-events .cal-day { font-size: 13.5px; color: rgba(255,255,255,0.65); }
+    .page-events .cal-weekdays { font-size: 10.5px; color: rgba(255,255,255,0.62); }
+
+    /* Event-list items — tighter readability bump. */
+    .page-events .event-item { padding: 15px 14px; gap: 14px; }
+    .page-events .event-item-info h4 { font-size: 14.5px; line-height: 1.35; color: rgba(255,255,255,0.96); }
+    .page-events .event-item-info .loc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.78); }
+    .page-events .event-item-info .range { font-size: 13px; }
+    .page-events .panel-sub { color: rgba(255,255,255,0.78); font-size: 13.5px; line-height: 1.55; }
+
+    /* CTA hierarchy — primary (Whatnot, purple) is largest, secondary
+       (Hosting, orange) is medium, tertiary (Instagram strip) is compact. */
+    .page-events .coordinator-cta { margin-top: 24px; transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s; }
+
+    /* Primary: Whatnot — slightly larger pad + bigger title + stronger hover */
+    .events-cta-primary { padding: 48px 32px 40px !important; }
+    .events-cta-primary h3 { font-size: clamp(26px, 4.4vw, 34px) !important; }
+    .events-cta-primary p { max-width: 480px !important; font-size: 14.5px !important; line-height: 1.7 !important; color: rgba(255,255,255,0.92) !important; }
+    .events-cta-primary .coordinator-icon { font-size: 44px; }
+    .events-cta-primary .btn { padding: 13px 28px; font-size: 14.5px; box-shadow: 0 4px 20px rgba(123,47,255,0.30); }
+    .events-cta-primary:hover { box-shadow: 0 12px 40px rgba(123,47,255,0.22) !important; }
+
+    /* Secondary: Hosting — default coordinator-cta size */
+    .page-events .coordinator-cta:not(.events-cta-primary) p {
+      color: rgba(255,255,255,0.88); font-size: 14px; line-height: 1.7;
+    }
+
+    /* Tertiary: Instagram strip — compact utility row */
+    .page-events .notify-bar {
+      padding: 18px 24px;
+      gap: 16px;
+      margin-top: 24px;
+      background: linear-gradient(135deg, rgba(255,0,128,0.06), rgba(255,106,0,0.04));
+      border: 1px solid rgba(255,0,128,0.18);
+    }
+    .page-events .notify-bar h3 {
+      font-size: 15px; font-weight: 700; margin-bottom: 2px;
+      color: rgba(255,255,255,0.96);
+    }
+    .page-events .notify-bar p {
+      font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.72); margin: 0;
+    }
+    .page-events .notify-bar .btn { padding: 10px 18px; font-size: 13px; flex-shrink: 0; }
+
+    /* Closing brand strip — shipping/team rhythm so the page closes intentionally. */
+    .pack-brand-strip {
+      margin: 28px auto 0;
+      max-width: 760px;
+      padding: 14px 18px;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 10px 14px;
+      border-top: 1px solid transparent;
+      border-image: linear-gradient(90deg,
+        transparent 0%, rgba(255,0,128,0.45) 28%, rgba(0,212,255,0.45) 72%, transparent 100%) 1;
+      font-family: 'Bangers', cursive; letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+    .pack-brand-strip .pbs-name {
+      background: linear-gradient(135deg, #ff0080, #ff6a00);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding: 2px 0 4px;
+    }
+    .pack-brand-strip .pbs-tag { color: rgba(229,229,247,0.78); }
+    .pack-brand-strip .pbs-dot {
+      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+      background: rgba(255,0,128,0.55);
+      box-shadow: 0 0 8px rgba(255,0,128,0.55);
+    }
+    .pack-brand-strip a { color: #00d4ff; text-decoration: none; }
+    .pack-brand-strip a:hover { color: #fff; text-shadow: 0 0 8px rgba(0,212,255,0.6); }
+    .pack-brand-strip a.pbs-ig { color: #ff66b3; }
+    .pack-brand-strip a.pbs-ig:hover { text-shadow: 0 0 8px rgba(255,102,179,0.6); }
+    @media (max-width: 520px) {
+      .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
+    }
   </style>
 </head>
-<body>
+<body class="page-events">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -331,26 +420,17 @@
 
       </div>
 
-      <!-- Whatnot streams callout -->
-      <div class="coordinator-cta tone-purple" style="background:linear-gradient(135deg,rgba(123,47,255,.07),rgba(255,0,128,.05));border-color:rgba(123,47,255,.3);margin-top:32px">
+      <!-- PRIMARY CTA: Whatnot — biggest, purple-toned, sits closest to the
+           calendar since it's the next-best way to "attend" if you can't be
+           at a physical show. -->
+      <div class="coordinator-cta tone-purple events-cta-primary" style="background:linear-gradient(135deg,rgba(123,47,255,.08),rgba(255,0,128,.05));border-color:rgba(123,47,255,.3)">
         <div class="coordinator-icon" style="filter:drop-shadow(0 0 14px rgba(123,47,255,0.5))">📺</div>
         <h3 style="background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Catch us on Whatnot</h3>
-        <p>Can't make it in person? Andrew hosts live Sake Kitty card breaks and showcases on Whatnot. Upcoming streams show on the calendar above — follow us to get notified when each one goes live.</p>
-        <a href="/whatnot" target="_blank" rel="noopener" class="btn btn-outline">Follow on Whatnot →</a>
+        <p>Can't make it in person? Andrew hosts live Sake Kitty card breaks and showcases on Whatnot. Upcoming streams show on the calendar above — follow to get notified when each one goes live.</p>
+        <a href="/whatnot" target="_blank" rel="noopener" class="btn btn-primary">Follow on Whatnot →</a>
       </div>
 
-      <div class="notify-bar" style="margin-top:32px">
-        <div>
-          <h3>Never miss an event</h3>
-          <p>Follow us on Instagram for event announcements, card drops, and live updates from the shows.</p>
-        </div>
-        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="flex-shrink:0">
-          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-          Follow @sakekittycards
-        </a>
-      </div>
-
-      <!-- Event coordinator CTA -->
+      <!-- SECONDARY CTA: Hosting a card show — orange tone, default size. -->
       <div class="coordinator-cta">
         <div class="coordinator-icon">🎪</div>
         <h3>Hosting a Card Show?</h3>
@@ -358,7 +438,31 @@
         <a href="contact.html" class="btn btn-outline">Get in Touch</a>
       </div>
 
+      <!-- TERTIARY: Instagram strip — compact utility row. -->
+      <div class="notify-bar">
+        <div>
+          <h3>Never miss an event</h3>
+          <p>Follow us on Instagram for announcements, card drops, and live updates from the shows.</p>
+        </div>
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="btn btn-primary btn-sm" style="flex-shrink:0">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          Follow @sakekittycards
+        </a>
+      </div>
+
     </div>
+
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards">
+      <span class="pbs-name">SAKE KITTY CARDS</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <span class="pbs-tag">BUY · SELL · TRADE · GRADING</span>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com">sakekittycards.com</a>
+      <span class="pbs-dot" aria-hidden="true"></span>
+      <a class="pbs-ig" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">@sakekittycards</a>
+    </div>
+
   </main>
 
   <footer class="site-footer">
