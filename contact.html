@@ -381,6 +381,194 @@
        Reduce hover-glow strength + soften default border to one calm tone. */
     .page-contact .connect-card { border-width: 1px; }
     .page-contact .connect-card:hover { box-shadow: 0 6px 20px rgba(255,255,255,0.04); }
+
+    /* ──────────────────────────────────────────────────────────────────
+       Contact-page redesign — 2-col hero, 3-col form. Inspired by user's
+       mockup: editorial left/right balance, dominant headline, character
+       art on the right, premium form card with side trust strip. Stays
+       within Sake Kitty's neon dark palette — no gamer-UI escalation.
+       ────────────────────────────────────────────────────────────────── */
+
+    /* HERO — 2-column desktop, mascot stacks on top on mobile */
+    .page-contact .page-hero { padding-top: calc(var(--nav-h) + 56px); padding-bottom: 28px; }
+    .contact-hero-2col {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 56px;
+      align-items: center;
+      text-align: left;
+    }
+    .contact-hero-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    .contact-hero-eyebrow {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(12px, 1.6vw, 14px); letter-spacing: 0.16em;
+      text-transform: uppercase; color: rgba(255,255,255,0.55);
+      margin: 0;
+    }
+    .contact-hero-eyebrow .ok  { color: var(--cyan); }
+    .contact-hero-eyebrow .pop { color: var(--pink); }
+    .contact-hero-2col h1 {
+      text-align: left; padding: 0; margin: 0;
+      font-size: clamp(48px, 7.5vw, 84px); line-height: 1.05;
+    }
+    .contact-hero-2col h1 .accent {
+      background: linear-gradient(135deg, var(--pink) 0%, var(--purple) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .contact-hero-body {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      max-width: 540px; text-align: left; margin: 0;
+    }
+    .contact-hero-body strong { color: var(--text); font-weight: 700; }
+    .contact-hero-right {
+      display: flex; align-items: center; justify-content: center;
+      position: relative; min-height: 320px;
+    }
+    .contact-hero-right::before {
+      content: ''; position: absolute; inset: 8% 12%; z-index: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255,106,0,0.18), transparent 65%);
+      filter: blur(40px); pointer-events: none;
+    }
+    .contact-mascot {
+      position: relative; z-index: 1;
+      width: min(420px, 100%); height: auto;
+      filter:
+        drop-shadow(0 0 50px rgba(255,106,0,0.30))
+        drop-shadow(0 0 90px rgba(255,0,128,0.18));
+    }
+    @media (max-width: 900px) {
+      .contact-hero-2col { grid-template-columns: 1fr; gap: 28px; }
+      .contact-hero-right { order: -1; min-height: 220px; }
+      .contact-mascot { width: 220px; }
+      .contact-hero-2col h1 { font-size: clamp(40px, 11vw, 56px); }
+      .contact-hero-body { max-width: 100%; }
+    }
+
+    /* HERO PILLS — moved from section into hero left column */
+    .contact-hero-left .contact-meta {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin: 8px 0 0;
+    }
+    .contact-hero-left .cm-pill { padding: 12px 14px; gap: 12px; }
+    .contact-hero-left .cm-pill .cm-pill-icon { font-size: 18px; }
+    .contact-hero-left .cm-pill strong { font-size: 12.5px; }
+    .contact-hero-left .cm-pill .cm-pill-sub { font-size: 11.5px; }
+    @media (max-width: 700px) {
+      .contact-hero-left .contact-meta { grid-template-columns: 1fr; }
+    }
+
+    /* FORM — 3-column premium card */
+    .contact-form-card {
+      max-width: 1180px; margin: 0 auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--r);
+      padding: 40px 36px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    }
+    @media (max-width: 600px) { .contact-form-card { padding: 26px 20px; } }
+    .contact-form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 0.85fr;
+      gap: 36px; align-items: start;
+    }
+    .contact-form-grid .contact-form-section {
+      background: transparent; border: none; padding: 0; box-shadow: none; margin: 0;
+    }
+    .contact-form-grid .contact-form-intro { padding: 0; }
+    .contact-form-grid .contact-form-intro h2 { font-size: clamp(26px, 3.6vw, 36px); margin-bottom: 14px; }
+    .contact-form-grid .contact-form-intro p {
+      font-size: 14.5px; line-height: 1.65; color: rgba(229,229,247,0.80);
+    }
+    .contact-form-grid .contact-form { padding: 0; background: transparent; border: none; }
+    .contact-form-side {
+      display: flex; flex-direction: column; gap: 18px;
+      align-items: center; text-align: center;
+      padding: 28px 18px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--r-sm);
+    }
+    .cfs-icon {
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 22px rgba(255,106,0,0.30);
+      margin-bottom: 4px;
+    }
+    .cfs-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .cfs-row { line-height: 1.4; }
+    .cfs-row strong {
+      display: block; color: var(--pink); font-weight: 700;
+      font-size: 14px; letter-spacing: 0.2px; margin-bottom: 2px;
+    }
+    .cfs-row span { display: block; color: rgba(255,255,255,0.70); font-size: 12.5px; }
+    @media (max-width: 1100px) {
+      .contact-form-grid { grid-template-columns: 1fr; gap: 24px; }
+      .contact-form-side {
+        flex-direction: row; flex-wrap: wrap; justify-content: center;
+        gap: 22px 28px; padding: 18px 16px; text-align: left;
+      }
+      .cfs-icon { width: 40px; height: 40px; margin: 0; }
+      .cfs-icon svg { width: 18px; height: 18px; }
+    }
+    @media (max-width: 540px) {
+      .contact-form-side .cfs-icon { display: none; }
+      .contact-form-side { gap: 12px 18px; }
+      .cfs-row strong { font-size: 12.5px; }
+      .cfs-row span { font-size: 11.5px; }
+    }
+
+    /* TRUST BADGES BOTTOM STRIP — 4-up with icons */
+    .contact-trust-row {
+      max-width: 1180px; margin: 0 auto;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--r);
+      padding: 28px 32px;
+    }
+    .contact-trust-row h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(20px, 2.6vw, 26px); letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.18));
+      padding-bottom: 6px; line-height: 1.25;
+      margin: 0 0 6px;
+    }
+    .contact-trust-row > p {
+      font-size: 13.5px; color: rgba(229,229,247,0.78); line-height: 1.6;
+      max-width: 700px; margin: 0 0 18px;
+    }
+    .ctr-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+    }
+    .ctr-badge {
+      display: flex; gap: 12px; align-items: center;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: var(--r-sm);
+    }
+    .ctr-badge-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; line-height: 1;
+    }
+    .ctr-badge-text strong {
+      display: block; font-size: 11.5px; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.95);
+    }
+    .ctr-badge-text span { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .ctr-1 .ctr-badge-icon { color: #ffc800; }
+    .ctr-2 .ctr-badge-icon { color: var(--cyan); }
+    .ctr-3 .ctr-badge-icon { color: var(--pink); }
+    .ctr-4 .ctr-badge-icon { color: var(--orange); }
+    @media (max-width: 900px) { .ctr-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .ctr-grid { grid-template-columns: 1fr; } .contact-trust-row { padding: 22px 18px; } }
   </style>
 </head>
 <body class="page-contact">
@@ -413,36 +601,39 @@
   </nav>
 
   <main id="main" class="page-content">
-    <!-- Hero -->
+    <!-- Hero — 2-column editorial layout -->
     <div class="page-hero">
-      <h1>Let's Talk Cards</h1>
-      <p class="contact-tagline">Real <span class="ok">Collectors</span> · Real <span class="pop">Conversations</span></p>
-      <p>Trades, grading, collection deals, or anything else — reach out and you'll hear back from someone who actually collects. Typical reply within 24 hours.</p>
-    </div>
-
-    <!-- Response time / hours -->
-    <div class="section section-glow" style="padding-top:0;padding-bottom:18px">
-      <div class="contact-meta">
-        <div class="cm-pill cm-pill-cyan">
-          <span class="cm-pill-icon" aria-hidden="true">⚡</span>
-          <div class="cm-pill-text">
-            <strong>Typical response</strong>
-            <span class="cm-pill-sub">Within 24 hours</span>
+      <div class="contact-hero-2col">
+        <div class="contact-hero-left">
+          <p class="contact-hero-eyebrow">Real <span class="ok">Collectors.</span> Real <span class="pop">Conversations.</span></p>
+          <h1>Let's <span class="accent">Talk Cards</span></h1>
+          <p class="contact-hero-body">Trades, grading, collection deals, or anything else — reach out and you'll hear back from someone who actually collects. Typical reply <strong>within 24 hours.</strong></p>
+          <div class="contact-meta">
+            <div class="cm-pill cm-pill-cyan">
+              <span class="cm-pill-icon" aria-hidden="true">⚡</span>
+              <div class="cm-pill-text">
+                <strong>Typical response</strong>
+                <span class="cm-pill-sub">Within 24 hours</span>
+              </div>
+            </div>
+            <div class="cm-pill cm-pill-orange">
+              <span class="cm-pill-icon" aria-hidden="true">🎴</span>
+              <div class="cm-pill-text">
+                <strong>Show weekends</strong>
+                <span class="cm-pill-sub">Replies may run a bit slower</span>
+              </div>
+            </div>
+            <div class="cm-pill cm-pill-pink">
+              <span class="cm-pill-icon" aria-hidden="true">📍</span>
+              <div class="cm-pill-text">
+                <strong>Based in Florida</strong>
+                <span class="cm-pill-sub">Serving nationwide</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="cm-pill cm-pill-orange">
-          <span class="cm-pill-icon" aria-hidden="true">🎴</span>
-          <div class="cm-pill-text">
-            <strong>Show weekends</strong>
-            <span class="cm-pill-sub">Replies may run a bit slower</span>
-          </div>
-        </div>
-        <div class="cm-pill cm-pill-pink">
-          <span class="cm-pill-icon" aria-hidden="true">📍</span>
-          <div class="cm-pill-text">
-            <strong>Based in</strong>
-            <span class="cm-pill-sub">Florida · vending nationwide</span>
-          </div>
+        <div class="contact-hero-right">
+          <img src="logo-transparent.png" alt="" class="contact-mascot" loading="eager" />
         </div>
       </div>
     </div>
@@ -514,58 +705,82 @@
       </a>
     </div>
 
-    <!-- Form -->
+    <!-- Form — 3-column premium card -->
     <div class="section" style="padding-top:36px">
-      <div class="contact-form-section">
-        <div class="contact-form-intro">
-          <h2 class="section-title" style="display:inline-block">Send a Message</h2>
-          <p>Drop a note and we'll get back within 24 hours. For trade quotes, the <a href="trade-in.html">Sell / Trade form</a> moves fastest. For grading questions, the <a href="grading-prep.html">Grading Prep page</a> has the full breakdown.</p>
+      <div class="contact-form-card">
+        <div class="contact-form-grid">
+          <div class="contact-form-section">
+            <div class="contact-form-intro">
+              <h2 class="section-title" style="display:inline-block">Send a Message</h2>
+              <p>Drop a note and we'll get back within 24 hours. For trade quotes, the <a href="trade-in.html">Sell / Trade form</a> moves fastest. For grading questions, the <a href="grading-prep.html">Grading Prep page</a> has the full breakdown.</p>
+            </div>
+          </div>
+          <form id="contactForm" class="contact-form">
+            <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+            <input type="hidden" name="subject" value="Sake Kitty Contact Form" />
+            <input type="hidden" name="from_name" value="Sake Kitty Cards Contact" />
+            <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
+            <div class="form-group">
+              <label for="name">Your Name</label>
+              <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
+            </div>
+            <div class="form-group">
+              <label for="topic">Subject</label>
+              <select id="topic" name="topic">
+                <option value="General Question">General Question</option>
+                <option value="Order Inquiry">Order Inquiry</option>
+                <option value="Selling Cards to You">Selling Cards to You</option>
+                <option value="Trade Inquiry">Trade Inquiry</option>
+                <option value="Grading Prep">Grading Prep</option>
+                <option value="Vendor / Event Collab">Vendor / Event Collab</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" placeholder="What's on your mind?" required></textarea>
+            </div>
+            <button type="submit" class="contact-form-cta" id="contactSubmit">Send Message</button>
+            <p id="contactStatus" class="contact-form-status" role="status" aria-live="polite"></p>
+          </form>
+          <aside class="contact-form-side" aria-label="What to expect">
+            <div class="cfs-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </div>
+            <div class="cfs-row"><strong>Real people</strong><span>Collectors like you.</span></div>
+            <div class="cfs-row"><strong>Fast responses</strong><span>Usually within 24 hours.</span></div>
+            <div class="cfs-row"><strong>Confidential</strong><span>Your info stays private.</span></div>
+          </aside>
         </div>
-        <form id="contactForm" class="contact-form">
-          <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
-          <input type="hidden" name="subject" value="Sake Kitty Contact Form" />
-          <input type="hidden" name="from_name" value="Sake Kitty Cards Contact" />
-          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
-          <div class="form-group">
-            <label for="name">Your Name</label>
-            <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
-          </div>
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
-          </div>
-          <div class="form-group">
-            <label for="topic">Subject</label>
-            <select id="topic" name="topic">
-              <option value="General Question">General Question</option>
-              <option value="Order Inquiry">Order Inquiry</option>
-              <option value="Selling Cards to You">Selling Cards to You</option>
-              <option value="Trade Inquiry">Trade Inquiry</option>
-              <option value="Grading Prep">Grading Prep</option>
-              <option value="Vendor / Event Collab">Vendor / Event Collab</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" placeholder="What's on your mind?" required></textarea>
-          </div>
-          <button type="submit" class="contact-form-cta" id="contactSubmit">Send Message</button>
-          <p id="contactStatus" class="contact-form-status" role="status" aria-live="polite"></p>
-        </form>
       </div>
     </div>
 
-    <!-- Trust / community -->
-    <div class="section" style="padding-top:36px">
-      <div class="contact-trust">
-        <h3>Built by collectors, for collectors</h3>
+    <!-- Trust badges row -->
+    <div class="section" style="padding-top:32px;padding-bottom:32px">
+      <div class="contact-trust-row">
+        <h3>Built by Collectors, For Collectors</h3>
         <p>Sake Kitty Cards works with collectors, vendors, and players across the Pokémon TCG community — through shows, online sales, grading prep, and live events.</p>
-        <div class="contact-trust-pills">
-          <span>★ Gold Star Seller</span>
-          <span class="pill-cyan">99%+ Feedback</span>
-          <span class="pill-pink">FL · Vending Nationwide</span>
-          <span class="pill-purple">Honest Condition</span>
+        <div class="ctr-grid">
+          <div class="ctr-badge ctr-1">
+            <div class="ctr-badge-icon" aria-hidden="true">★</div>
+            <div class="ctr-badge-text"><strong>Gold Star Seller</strong><span>on TCGplayer</span></div>
+          </div>
+          <div class="ctr-badge ctr-2">
+            <div class="ctr-badge-icon" aria-hidden="true">✓</div>
+            <div class="ctr-badge-text"><strong>99%+ Positive</strong><span>feedback</span></div>
+          </div>
+          <div class="ctr-badge ctr-3">
+            <div class="ctr-badge-icon" aria-hidden="true">📍</div>
+            <div class="ctr-badge-text"><strong>FL Vendor</strong><span>nationwide</span></div>
+          </div>
+          <div class="ctr-badge ctr-4">
+            <div class="ctr-badge-icon" aria-hidden="true">♥</div>
+            <div class="ctr-badge-text"><strong>Honest Condition</strong><span>always</span></div>
+          </div>
         </div>
       </div>
     </div>
