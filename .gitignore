@@ -19,3 +19,8 @@ scripts/graded-uploader/pricing-edit.csv
 
 # Real-ESRGAN binary + models (~50MB) — install with setup-upscaler.ps1
 scripts/graded-uploader/upscaler/
+
+# Raw gallery-dl Instagram dump (~38MB) — only the curated assets/wild/*.jpg
+# files ship to the site. Re-download with `gallery-dl https://instagram.com/sakekittycards`
+# into assets/instagram/ if you need to recurate.
+assets/instagram/
