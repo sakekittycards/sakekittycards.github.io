@@ -376,7 +376,11 @@
     /* Calmer blobs on this page so connect cards stay focal */
     .page-contact .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-contact .page-hero,
-    .page-contact .section { max-width: 1240px; }
+    .page-contact .section { max-width: 1320px; }   /* widened — was 1240 */
+    /* Tighten the connect-card glow so the grid feels less repetitive UI-fatigue.
+       Reduce hover-glow strength + soften default border to one calm tone. */
+    .page-contact .connect-card { border-width: 1px; }
+    .page-contact .connect-card:hover { box-shadow: 0 6px 20px rgba(255,255,255,0.04); }
   </style>
 </head>
 <body class="page-contact">
@@ -411,9 +415,9 @@
   <main id="main" class="page-content">
     <!-- Hero -->
     <div class="page-hero">
-      <h1>Contact Sake Kitty Cards</h1>
+      <h1>Let's Talk Cards</h1>
       <p class="contact-tagline">Real <span class="ok">Collectors</span> · Real <span class="pop">Conversations</span></p>
-      <p>Questions, trade inquiries, grading prep, vendor opportunities, or collection deals — reach out anytime. Typical response within 24 hours.</p>
+      <p>Trades, grading, collection deals, or anything else — reach out and you'll hear back from someone who actually collects. Typical reply within 24 hours.</p>
     </div>
 
     <!-- Response time / hours -->
