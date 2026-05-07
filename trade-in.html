@@ -505,6 +505,13 @@
       padding-top: 14px;
       border-top: 1px solid var(--border);
     }
+    /* Title row: Bangers heading on the left, color-key legend on the right
+       so customers immediately know orange digits = cash, cyan digits = credit. */
+    .trm-title-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      margin-bottom: 2px;
+    }
     .trm-title {
       font-family: 'Bangers', cursive;
       font-size: 18px; letter-spacing: 0.04em;
@@ -512,7 +519,26 @@
       padding: 2px 0 6px;
       background: linear-gradient(135deg, var(--orange), var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 2px;
+      margin: 0;
+    }
+    .trm-key {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .trm-key-item { display: inline-flex; align-items: center; gap: 5px; }
+    .trm-key-dot {
+      display: inline-block;
+      width: 9px; height: 9px; border-radius: 50%;
+    }
+    .trm-key-cash   { color: var(--orange); }
+    .trm-key-credit { color: var(--cyan); }
+    .trm-key-cash   .trm-key-dot { background: var(--orange); box-shadow: 0 0 8px rgba(255,106,0,0.55); }
+    .trm-key-credit .trm-key-dot { background: var(--cyan);   box-shadow: 0 0 8px rgba(0,212,255,0.55); }
+    .trm-key-sep { color: var(--dim); font-weight: 500; }
+    @media (max-width: 480px) {
+      .trm-key { font-size: 9.5px; gap: 8px; letter-spacing: 0.8px; }
     }
     .trm-sub {
       font-size: 11px; color: var(--dim); line-height: 1.5;
@@ -1441,7 +1467,14 @@
                liquidity, condition, desirability. Top column (≥$1k) gets
                a brand-orange highlight so the headline rate is glanceable. -->
           <div class="ti-rate-matrix">
-            <div class="trm-title">Payout Tiers</div>
+            <div class="trm-title-row">
+              <div class="trm-title">Payout Tiers</div>
+              <div class="trm-key" aria-label="Color key: orange numbers are cash, cyan numbers are trade credit">
+                <span class="trm-key-item trm-key-cash"><span class="trm-key-dot" aria-hidden="true"></span>Cash</span>
+                <span class="trm-key-sep">·</span>
+                <span class="trm-key-item trm-key-credit"><span class="trm-key-dot" aria-hidden="true"></span>Trade Credit</span>
+              </div>
+            </div>
             <p class="trm-sub">Up to these rates per item, by type and market value. Cash / Trade Credit.</p>
 
             <div class="trm-grid">
