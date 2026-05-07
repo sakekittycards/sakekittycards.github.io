@@ -1125,7 +1125,10 @@ body.cart-open { overflow: hidden; }
       smoothly sharpens and settles into place over ~640ms once the JPG
       decodes. Combined with the skeleton glow, this fakes a "low-res →
       high-res" reveal without needing a low-res placeholder file. */
-.product-card { isolation: isolate; }
+/* .product-card base styles live below at line ~1372 (background/border/
+   transition); the isolation/skeleton-glow trick is part of the same
+   component — kept inline alongside the ::before pseudo so the stacking
+   context stays local. */
 .product-card::before {
   content: '';
   position: absolute;
@@ -1369,7 +1372,12 @@ body.cart-open { overflow: hidden; }
   font-size: 12px; font-weight: 500;
   color: var(--dim); letter-spacing: 1px; text-transform: uppercase;
 }
-.product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; transition: border-color .2s, transform .2s; }
+.product-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r);
+  overflow: hidden;
+  isolation: isolate;     /* contain the skeleton-glow ::before stacking context */
+  transition: border-color .2s, transform .2s;
+}
 .product-card:hover { border-color: rgba(255,106,0,.4); transform: translateY(-5px); }
 .product-img {
   aspect-ratio: 5/7; display: flex; align-items: center; justify-content: center;

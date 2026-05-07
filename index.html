@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=128" />
+  <link rel="stylesheet" href="style.css?v=129" />
 
   <style>
     /* Hero-specific styles */
@@ -48,9 +48,8 @@
       top: -100px; right: -200px;
       animation: blobDrift 11s ease-in-out infinite alternate-reverse;
     }
-    /* Hero-blobs have negative left/right offsets; without overflow-x:hidden they cause horizontal
-       page overflow on mobile, which pushes the hamburger menu off-screen. */
-    html, body { position: relative; overflow-x: hidden; }
+    /* Hero-blob overflow safety: html/body { overflow-x:hidden; max-width:100% } is
+       already globally set in style.css (locked rule per CLAUDE.md), no need to redeclare. */
     @keyframes blobDrift {
       from { transform: translate(0,0) scale(1); }
       to   { transform: translate(40px,30px) scale(1.08); }
@@ -791,7 +790,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=52"></script>
+  <script src="main.js?v=53"></script>
   <script>
     // Testimonials — show 3 more on click. Premium curation: don't dump
     // every review at once; reveal additional only if the user asks.

@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=128" />
+  <link rel="stylesheet" href="style.css?v=129" />
   <style>
     .gc-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
@@ -223,6 +223,7 @@
         <!-- Buy -->
         <div class="gc-card">
           <img src="assets/icons/gift-card-buy-banner.png?v=2" alt="Buy a Sake Kitty Cards Gift Card" class="gc-card-banner" />
+          <h2 class="visually-hidden">Buy a gift card</h2>
           <p class="gc-card-sub">Pick an amount. Code emails instantly. Spend at the booth or online.</p>
 
           <div class="gc-amount-grid" id="gcAmountGrid">
@@ -248,6 +249,7 @@
         <!-- Check Balance -->
         <div class="gc-card balance">
           <img src="assets/icons/gift-card-balance-banner.png?v=2" alt="Check your Sake Kitty Cards Gift Card Balance" class="gc-card-banner" />
+          <h2 class="visually-hidden">Check gift card balance</h2>
           <p class="gc-card-sub">Type the code from your gift card email — we'll show you what's left.</p>
 
           <form id="gcBalanceForm">
@@ -299,7 +301,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=52"></script>
+  <script src="main.js?v=53"></script>
   <script>
     // Buy flow — pick amount, then redirect to Square's gift-card order
     // page (PCI compliance forces the actual checkout to land on Square).
