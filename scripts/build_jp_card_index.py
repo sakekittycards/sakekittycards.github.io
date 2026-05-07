@@ -24,6 +24,7 @@ Usage:
 """
 from __future__ import annotations
 
+import csv
 import json
 import time
 import urllib.error
@@ -32,6 +33,7 @@ from pathlib import Path
 
 REPO_DIR = Path(__file__).resolve().parent.parent
 OUT_PATH = REPO_DIR / "assets" / "jp-cards.json"
+PRICECHARTING_CSV = Path(r"C:\Users\lunar\OneDrive\Desktop\vending_inventory\pricecharting_pokemon.csv")
 
 BASE = "https://tcgcsv.com/tcgplayer/85"  # categoryId 85 = JP Pokemon
 USER_AGENT = "Mozilla/5.0 SakeKittyCards-JPIndex/1.0 (sakekittycards.com)"
@@ -74,13 +76,42 @@ def is_sealed(name: str) -> bool:
     return any(kw in lower for kw in SEALED_KEYWORDS)
 
 
+def load_pc_loose_by_pid() -> dict[int, float]:
+    """productId -> PC loose-price map. Used for max-overlay defense
+    against TCG market suppression. See build_en_card_index.py for the
+    full rationale (Mega Charizard X 125/094 $852 vs $1k+ true value)."""
+    out: dict[int, float] = {}
+    if not PRICECHARTING_CSV.exists():
+        print(f"[pc] {PRICECHARTING_CSV} not found — skipping PC overlay")
+        return out
+    with PRICECHARTING_CSV.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for r in reader:
+            tcg_id = (r.get("tcg-id") or "").strip()
+            if not tcg_id.isdigit():
+                continue
+            raw = (r.get("loose-price") or "").strip().lstrip("$").replace(",", "")
+            if not raw:
+                continue
+            try:
+                v = float(raw)
+            except ValueError:
+                continue
+            out[int(tcg_id)] = v
+    print(f"[pc] loaded {len(out):,} PC loose-prices for max-overlay")
+    return out
+
+
 def main() -> None:
+    pc_loose_by_pid = load_pc_loose_by_pid()
+
     print(f"[build-jp] hitting {BASE}/groups")
     groups_data = fetch_json(f"{BASE}/groups")
     groups = groups_data.get("results", [])
     print(f"[build-jp] {len(groups)} groups")
 
     cards: list[list] = []
+    pc_overlays = 0
     for i, g in enumerate(groups, 1):
         gid = g.get("groupId")
         gname = g.get("name") or ""
@@ -121,7 +152,18 @@ def main() -> None:
                     number = str(d.get("value") or "")
                     break
             pid = p.get("productId")
-            market = price_by_pid.get(pid)
+            tcg_market = price_by_pid.get(pid)
+            # Multi-source max — defense against TCGplayer suppression.
+            # Same logic as build_en_card_index.py.
+            pc_loose = pc_loose_by_pid.get(pid)
+            if tcg_market is not None and pc_loose is not None:
+                if pc_loose > tcg_market * 1.10:
+                    market = pc_loose
+                    pc_overlays += 1
+                else:
+                    market = tcg_market
+            else:
+                market = tcg_market if tcg_market is not None else pc_loose
             # $3 market floor — drop sub-bulk noise. Untracked cards (market
             # None) are KEPT so obscure / new releases without prices yet
             # still surface in search.
@@ -143,6 +185,7 @@ def main() -> None:
     OUT_PATH.write_text(json.dumps(cards, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     size_kb = OUT_PATH.stat().st_size / 1024
     print(f"[build-jp] wrote {len(cards)} cards to {OUT_PATH}  ({size_kb:.1f} KB)")
+    print(f"[build-jp] PC-overlay applied to {pc_overlays:,} cards")
 
 
 if __name__ == "__main__":
