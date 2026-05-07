@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=109" />
+  <link rel="stylesheet" href="style.css?v=110" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -391,8 +391,35 @@
       .ti-cond-opt { padding: 13px 18px; font-size: 15px; }
     }
     .ti-item-info .market { color: var(--muted); }
-    .ti-item-info .offer { color: var(--orange); font-weight: 700; }
-    .ti-item-info .offer.credit { color: var(--cyan); }
+    .ti-item-info .offer {
+      color: var(--orange); font-weight: 700;
+      text-shadow: 0 0 6px rgba(255,106,0,0.30);
+    }
+    .ti-item-info .offer.credit {
+      color: var(--cyan);
+      text-shadow: 0 0 6px rgba(0,212,255,0.30);
+    }
+    /* Mobile: make the cart-item row stack cleanly so cash/credit don't
+       awkwardly wrap to two lines. Each chip becomes its own row. */
+    @media (max-width: 540px) {
+      .ti-item-info .row {
+        gap: 6px 12px;
+        font-size: 13.5px;
+      }
+      .ti-item-info .offer {
+        display: inline-block;
+        padding: 3px 9px;
+        background: rgba(255,106,0,0.08);
+        border: 1px solid rgba(255,106,0,0.30);
+        border-radius: 6px;
+        text-shadow: none;
+      }
+      .ti-item-info .offer.credit {
+        background: rgba(0,212,255,0.08);
+        border-color: rgba(0,212,255,0.30);
+        text-shadow: none;
+      }
+    }
     .ti-remove {
       background: none; border: none; color: var(--dim);
       cursor: pointer; font-size: 20px; padding: 4px 8px;
@@ -695,17 +722,17 @@
     /* Mobile: matrix columns get tight. Drop a couple px from each cell. */
     @media (max-width: 540px) {
       .trm-grid {
-        grid-template-columns: 58px repeat(4, 1fr);
-        gap: 4px;
-        padding: 7px;
+        grid-template-columns: 60px repeat(4, 1fr);
+        gap: 5px;
+        padding: 8px;
       }
-      .trm-th { font-size: 9px; padding: 3px 1px 6px; }
-      .trm-cell { padding: 8px 2px 9px; }
-      .trm-rate { font-size: 13px; }
-      .trm-slash { font-size: 11px; }
-      .trm-upto { font-size: 9px; letter-spacing: 0.8px; }
-      .trm-row-label { font-size: 10px; padding-left: 8px; padding-right: 4px; }
-      .trm-fineprint { font-size: 10px; }
+      .trm-th { font-size: 10px; padding: 3px 1px 7px; }
+      .trm-cell { padding: 9px 2px 10px; }
+      .trm-rate { font-size: 15px; }
+      .trm-slash { font-size: 12px; }
+      .trm-upto { font-size: 9.5px; letter-spacing: 0.6px; }
+      .trm-row-label { font-size: 11px; padding-left: 8px; padding-right: 4px; }
+      .trm-fineprint { font-size: 11px; }
     }
 
     /* "Heads up" disclosure — collapsed by default + visually muted so the
