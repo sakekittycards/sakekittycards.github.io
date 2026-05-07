@@ -1052,15 +1052,16 @@
         'i'
       );
       const _isFallbackSealed = (name) => _SEALED_RE.test(name || '');
-      async function searchAllCardsFallbackForGrading(tokens, excludePids) {
+      async function searchAllCardsFallbackForGrading(tokens, excludePids, excludeNameNum) {
         if (!tokens.length) return [];
         const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
         const idx = await loadAllCardsIndex();
         if (!idx.length) return [];
         const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
         const exclude = excludePids instanceof Set ? excludePids : new Set();
+        const excludeNN = excludeNameNum instanceof Set ? excludeNameNum : new Set();
         const out = [];
-        for (let i = 0; i < idx.length && out.length < 14; i++) {
+        for (let i = 0; i < idx.length && out.length < 30; i++) {
           const [name, console_, productId] = idx[i];
           if (exclude.has(productId)) continue;
           // Grading prep handles only single cards (sealed boosters aren't gradeable).
@@ -1084,6 +1085,10 @@
           const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
           const cleanName = m ? m[1].trim() : name;
           const number    = m ? m[2] : '';
+          // Cross-source dedup with pokemontcg.io results, by lowercased
+          // name + raw number. Skip rows the EN API already returned.
+          const nnKey = `${cleanName.toLowerCase()}|${number}`;
+          if (number && excludeNN.has(nnKey)) continue;
           out.push({
             lang: isJp ? 'jp' : 'en',
             name: cleanName,
@@ -1408,11 +1413,10 @@
         gpResultsEl.innerHTML = '<div class="gp-status">Searching…</div>';
         gpResultsEl.classList.add('open');
         try {
-          // Strip Japanese-promo slash codes ("242/SV-P", "001/S-P") into two
-          // tokens so the set hint can match the JP TCG CSV group while the
-          // number matches the product. Pure numeric slashes ("170/198") are
-          // left intact for buildQuery to handle as English set-total format.
-          const qq = q.replace(/(\d+)\s*\/\s*([a-z][a-z0-9-]*)/gi, '$1 $2');
+          // Split slash formats: "242/SV-P" (JP promo) AND "4/102" (EN set/total).
+          const qq = q
+            .replace(/(\d+)\s*\/\s*([a-z][a-z0-9-]*)/gi, '$1 $2')
+            .replace(/(\d+)\s*\/\s*(\d+)/g, '$1 $2');
           // Keep single-digit tokens too — "4" can be a real card number (Base Set Charizard).
           const tokens = qq.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
           const lucene = buildQuery(tokens);
@@ -1420,9 +1424,8 @@
 
           // Fire English (pokemontcg.io), Japanese (static JP index), and the
           // PriceCharting fallback (Japanese gaps + all Chinese cards) in
-          // parallel. EN fallback (cards pokemontcg.io misses) also flows
-          // through but only matters if pokemontcg.io returned few results.
-          const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=12&orderBy=-set.releaseDate`;
+          // parallel. pageSize bumped 12 -> 25 so more variants surface.
+          const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=25&orderBy=-set.releaseDate`;
           const [enRes, jpRes, fbRes] = await Promise.allSettled([
             fetch(enUrl).then(r => r.ok ? r.json() : Promise.reject('en error')),
             searchJapanese(tokens),
@@ -1433,9 +1436,15 @@
           const jpCards = jpRes.status === 'fulfilled' ? (jpRes.value || [])      : [];
           const fbCards = fbRes.status === 'fulfilled' ? (fbRes.value || [])      : [];
 
-          // Dedupe fallback rows whose productId is already in the JP results.
+          // Dedupe fallback rows that pokemontcg.io already returned. Two
+          // dedup keys: productId (vs JP results) and lowercased name+number
+          // (vs EN results, since pokemontcg.io doesn't expose productId).
           const seenJpPids = new Set(jpCards.map(c => c.productId).filter(Boolean));
-          const fbCleaned  = fbCards.filter(c => !seenJpPids.has(c.productId));
+          const seenEnNN   = new Set(enCards.map(c => `${(c.name || '').toLowerCase()}|${c.number || ''}`));
+          const fbCleaned  = fbCards.filter(c =>
+            !seenJpPids.has(c.productId) &&
+            !(c.number && seenEnNN.has(`${(c.name || '').toLowerCase()}|${c.number}`))
+          );
 
           // Unified results array: each entry has the shape used by the click
           // handler. EN entries keep the pokemontcg.io card on .raw for image
