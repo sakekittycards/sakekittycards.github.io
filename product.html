@@ -409,22 +409,6 @@
       const item = items.find(i => i.id === id);
       if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
 
-      // Sold-at-show hide list — kept in sync with shop.html. If a deep-link
-      // lands on a card we sold in person before Square caught up, show a
-      // friendly sold-out state instead of letting the customer add to cart.
-      const SOLD_HIDE = {
-        certs: ['44690212', '63063677', '99746732', '65570346'],
-        skus:  ['SK-26-G-0040', 'SK-26-G-0016', 'SK-26-G-0008', 'SK-26-G-0002'],
-      };
-      const itemBlob = ((item.name || '') + ' ' + (item.description || '') + ' ' +
-                       (item.variations || []).map(v => (v.sku || '') + ' ' + (v.name || '')).join(' ')).toUpperCase();
-      const isSoldHidden = SOLD_HIDE.certs.some(c => itemBlob.includes(c)) ||
-                           SOLD_HIDE.skus.some(s => itemBlob.includes(s.toUpperCase()));
-      if (isSoldHidden) {
-        renderError('Recently sold', 'This card sold at a recent show. Browse the rest of the inventory or follow @sakekittycards for restock alerts.');
-        return;
-      }
-
       const vars = Array.isArray(item.variations) ? item.variations : [];
       const oos  = item.inStock === false;
 
