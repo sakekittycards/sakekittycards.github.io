@@ -474,9 +474,24 @@ window.SK = {
           <h4>Cart's quiet for now</h4>
           <p>Browse graded slabs, sealed, and merch — or send your cards in for a quote.</p>
           <div class="cart-empty-ctas">
-            <a href="shop.html" class="btn btn-primary btn-sm">Shop the Catalog</a>
+            <a href="shop.html" class="btn btn-primary">Shop the Catalog</a>
             <a href="trade-in.html" class="btn btn-outline btn-sm">Sell / Trade →</a>
           </div>
+
+          <!-- Quick-link rail — gives the empty drawer some utility instead of pure void. -->
+          <div class="cart-empty-quick">
+            <a href="events.html"><span aria-hidden="true">📅</span><span>Upcoming events</span></a>
+            <a href="grading-prep.html"><span aria-hidden="true">🏆</span><span>Grading prep</span></a>
+            <a href="track.html"><span aria-hidden="true">🔍</span><span>Track an order</span></a>
+            <a href="shipping.html"><span aria-hidden="true">📦</span><span>Shipping guide</span></a>
+          </div>
+
+          <!-- Utility / trust chips. -->
+          <ul class="cart-empty-trust">
+            <li><strong>Flat $5 shipping</strong> · cards & sealed ship insured at $1 per $100</li>
+            <li><strong>★ Gold Star Seller</strong> on TCGPlayer · 99%+ feedback</li>
+            <li>Local-vendor heads up — every order reviewed before we charge</li>
+          </ul>
         </div>
       `;
       footer.innerHTML = '';

@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=108" />
+  <link rel="stylesheet" href="style.css?v=109" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -57,16 +57,29 @@
        per type. Each card stacks: tiny "UP TO" eyebrow → huge gradient
        number → small label. Stacks vertically on mobile.
        The detail-tier table further down has the actual breakdown. */
+    /* ── Trade-in page polish — scoped under .page-tradein. Top hierarchy
+       refined, estimator breathing room, accordion deprioritized, bulk
+       table tightened, CTA elevated. ── */
+    .page-tradein .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-tradein .page-hero,
+    .page-tradein .section { max-width: 1240px; }
+    .page-tradein .page-hero { padding-bottom: 24px; }
+    .page-tradein .page-hero > p {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.55;
+      color: rgba(255,255,255,0.85);
+      max-width: 720px;
+    }
+
     .ti-headline-rates {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      max-width: 720px;
-      margin: 0 auto 12px;
+      gap: 18px;
+      max-width: 760px;
+      margin: 0 auto 14px;
     }
     .ti-hr-card {
       position: relative;
-      padding: 22px 18px 18px;
+      padding: 26px 20px 22px;
       border-radius: 16px;
       text-align: center;
       border: 1.5px solid;
@@ -89,18 +102,18 @@
       100%    { transform: translateX(100%); }
     }
     .ti-hr-cash-card {
-      border-color: rgba(255,106,0,0.45);
+      border-color: rgba(255,106,0,0.55);
       background:
-        radial-gradient(circle at 50% 0%, rgba(255,106,0,0.20), transparent 70%),
+        radial-gradient(circle at 50% 0%, rgba(255,106,0,0.22), transparent 70%),
         linear-gradient(160deg, rgba(35,18,8,0.55) 0%, rgba(20,20,38,0.85) 100%);
-      box-shadow: 0 0 32px rgba(255,106,0,0.15), 0 4px 18px rgba(0,0,0,0.35);
+      box-shadow: 0 0 36px rgba(255,106,0,0.20), 0 0 0 1px rgba(255,106,0,0.18) inset, 0 4px 18px rgba(0,0,0,0.35);
     }
     .ti-hr-credit-card {
-      border-color: rgba(0,212,255,0.45);
+      border-color: rgba(0,212,255,0.55);
       background:
-        radial-gradient(circle at 50% 0%, rgba(0,212,255,0.20), transparent 70%),
+        radial-gradient(circle at 50% 0%, rgba(0,212,255,0.22), transparent 70%),
         linear-gradient(160deg, rgba(8,28,40,0.55) 0%, rgba(20,20,38,0.85) 100%);
-      box-shadow: 0 0 32px rgba(0,212,255,0.15), 0 4px 18px rgba(0,0,0,0.35);
+      box-shadow: 0 0 36px rgba(0,212,255,0.20), 0 0 0 1px rgba(0,212,255,0.18) inset, 0 4px 18px rgba(0,0,0,0.35);
     }
     .ti-hr-card:hover { transform: translateY(-2px); }
     .ti-hr-cash-card:hover   { box-shadow: 0 0 40px rgba(255,106,0,0.28), 0 6px 22px rgba(0,0,0,0.4); }
@@ -695,13 +708,12 @@
       .trm-fineprint { font-size: 10px; }
     }
 
-    /* "Heads up" disclosure — collapsed by default to keep the search
-       area calm. Cyan/purple gradient hint matches the original notice
-       styling so the brand cue persists at a glance even when collapsed. */
+    /* "Heads up" disclosure — collapsed by default + visually muted so the
+       primary tool (search + list + payouts) stays focal. */
     .ti-heads-up {
       margin-top: 14px;
-      background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.05));
-      border: 1px solid rgba(0,212,255,0.20);
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 10px;
       overflow: hidden;
       transition: border-color .18s, background .18s;
@@ -1263,7 +1275,7 @@
     }
   </style>
 </head>
-<body>
+<body class="page-tradein">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -1529,8 +1541,8 @@
             <textarea id="custNotes" class="ti-textarea" placeholder="Additional notes (optional)"></textarea>
           </div>
 
-          <div class="ti-actions">
-            <button id="sendListBtn" class="btn btn-primary" disabled>Send to Sake Kitty</button>
+          <div class="ti-actions" style="padding-top:8px">
+            <button id="sendListBtn" class="btn btn-primary" disabled style="width:100%;justify-content:center;font-size:16px;letter-spacing:0.4px;padding:16px 24px;box-shadow:0 6px 22px rgba(255,106,0,0.30)">Send to Sake Kitty</button>
           </div>
 
           <p class="ti-disclaimer">
@@ -1569,6 +1581,17 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Compact branded close strip — confident page-end before global footer. -->
+    <div class="pack-brand-strip" aria-label="Sake Kitty Cards" style="margin:32px auto 0;max-width:760px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;border-top:1px solid transparent;border-image:linear-gradient(90deg,transparent 0%,rgba(255,0,128,0.45) 28%,rgba(0,212,255,0.45) 72%,transparent 100%) 1;font-family:'Bangers',cursive;letter-spacing:0.08em;font-size:13px">
+      <span style="background:linear-gradient(135deg,#ff0080,#ff6a00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;padding:2px 0 4px">SAKE KITTY CARDS</span>
+      <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:rgba(255,0,128,0.55);box-shadow:0 0 8px rgba(255,0,128,0.55)" aria-hidden="true"></span>
+      <span style="color:rgba(229,229,247,0.78)">BUY · SELL · TRADE · GRADING</span>
+      <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:rgba(255,0,128,0.55);box-shadow:0 0 8px rgba(255,0,128,0.55)" aria-hidden="true"></span>
+      <a href="https://sakekittycards.com" style="color:#00d4ff;text-decoration:none">sakekittycards.com</a>
+      <span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:rgba(255,0,128,0.55);box-shadow:0 0 8px rgba(255,0,128,0.55)" aria-hidden="true"></span>
+      <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" style="color:#ff66b3;text-decoration:none">@sakekittycards</a>
     </div>
   </main>
 
@@ -1625,7 +1648,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=44"></script>
+  <script src="main.js?v=45"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {

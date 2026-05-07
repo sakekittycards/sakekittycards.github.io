@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=108" />
+  <link rel="stylesheet" href="style.css?v=109" />
   <style>
     /* About-page eyebrow under H1 — matches the shipping page's tagline rhythm. */
     .about-tagline {
@@ -84,9 +84,83 @@
     @media (max-width: 520px) {
       .pack-brand-strip { font-size: 12px; gap: 8px 10px; }
     }
+
+    /* ── About-page polish — scoped under .page-about. Tighter hero pacing,
+       wider container, story copy reads like a magazine column, values feel
+       distinct + warmer, smoother footer transition. ── */
+    .page-about .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-about .page-hero,
+    .page-about .section { max-width: 1240px; }
+    .page-about .page-hero { padding-bottom: 28px; }
+    .page-about .page-hero > p:not(.about-tagline) {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.55;
+      color: rgba(229,229,247,0.86);
+      max-width: 540px;
+    }
+
+    /* Our Story section — slightly tighter pacing + better typography */
+    .page-about .about-split { gap: 48px; align-items: center; }
+    .page-about .about-text h2 {
+      font-size: clamp(26px, 3.6vw, 36px);
+      letter-spacing: 0.04em;
+      margin-bottom: 18px;
+      padding-bottom: 6px;
+    }
+    .page-about .about-text p {
+      font-size: 15.5px; line-height: 1.78;
+      color: rgba(255,255,255,0.92);
+      max-width: 580px;
+      margin-bottom: 18px;
+    }
+    .page-about .about-text p:last-of-type { margin-bottom: 24px; }
+
+    /* Values — more emotional weight: larger headings, brighter copy, bigger
+       icons, slightly stronger glow on hover so they don't feel like a
+       generic feature grid. */
+    .page-about .values-grid { gap: 22px; }
+    .page-about .value-card { padding: 32px 26px 28px; }
+    .page-about .value-icon {
+      font-size: 36px; margin-bottom: 14px;
+      filter: drop-shadow(0 0 14px rgba(255,106,0,0.40));
+    }
+    .page-about .value-card:nth-child(2) .value-icon { filter: drop-shadow(0 0 14px rgba(0,212,255,0.40)); }
+    .page-about .value-card:nth-child(3) .value-icon { filter: drop-shadow(0 0 14px rgba(123,47,255,0.40)); }
+    .page-about .value-card:nth-child(4) .value-icon { filter: drop-shadow(0 0 14px rgba(255,0,128,0.40)); }
+    .page-about .value-card:nth-child(5) .value-icon { filter: drop-shadow(0 0 14px rgba(80,220,140,0.36)); }
+    .page-about .value-card:nth-child(6) .value-icon { filter: drop-shadow(0 0 14px rgba(255,184,77,0.40)); }
+    .page-about .value-card h4 {
+      font-size: 17px; font-weight: 800; letter-spacing: -0.2px;
+      margin-bottom: 8px;
+      color: rgba(255,255,255,0.96);
+    }
+    .page-about .value-card p {
+      font-size: 14.5px; line-height: 1.7;
+      color: rgba(255,255,255,0.86);
+      margin: 0;
+    }
+    /* Stronger hover — per-card tone glow */
+    .page-about .value-card:hover { box-shadow: 0 8px 28px rgba(255,106,0,0.14); border-color: rgba(255,106,0,0.40); }
+    .page-about .value-card:nth-child(2):hover { box-shadow: 0 8px 28px rgba(0,212,255,0.14); border-color: rgba(0,212,255,0.40); }
+    .page-about .value-card:nth-child(3):hover { box-shadow: 0 8px 28px rgba(123,47,255,0.16); border-color: rgba(123,47,255,0.40); }
+    .page-about .value-card:nth-child(4):hover { box-shadow: 0 8px 28px rgba(255,0,128,0.14); border-color: rgba(255,0,128,0.40); }
+    .page-about .value-card:nth-child(5):hover { box-shadow: 0 8px 28px rgba(80,220,140,0.14); border-color: rgba(80,220,140,0.40); }
+    .page-about .value-card:nth-child(6):hover { box-shadow: 0 8px 28px rgba(255,184,77,0.14); border-color: rgba(255,184,77,0.40); }
+
+    /* Values section — title bigger, divider stronger */
+    .page-about .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+    }
+    .page-about .section[style*="border-top"] {
+      border-top-color: rgba(255,255,255,0.06) !important;
+      padding-top: 56px !important;
+    }
+
+    /* Tighter footer transition */
+    .page-about .pack-brand-strip { margin-top: 28px; padding-bottom: 6px; }
   </style>
 </head>
-<body>
+<body class="page-about">
   <a class="skip-link" href="#main">Skip to main content</a>
   <div class="bg-blob bg-blob-1"></div>
   <div class="bg-blob bg-blob-2"></div>
@@ -224,6 +298,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=44"></script>
+  <script src="main.js?v=45"></script>
 </body>
 </html>
