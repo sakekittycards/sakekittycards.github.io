@@ -24,14 +24,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=110" />
+  <link rel="stylesheet" href="style.css?v=111" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
        spacing, calmer loading state, clearer category separation. ── */
     .page-shop .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-shop .page-hero,
-    .page-shop .section { max-width: 1240px; }
+    .page-shop .section { max-width: 1360px; }   /* wider for product browsing */
+
+    /* Compact trust bullets under Shop Direct headline (replaces the dense
+       paragraph that used to live in .section-sub). */
+    .shop-trust-bullets {
+      list-style: none; padding: 0; margin: 14px 0 0;
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+      font-size: 13px; color: rgba(255,255,255,0.78);
+    }
+    .shop-trust-bullets li { position: relative; padding-left: 14px; }
+    .shop-trust-bullets li::before {
+      content: '✓'; position: absolute; left: 0; top: 0;
+      color: var(--orange); font-weight: 800;
+    }
+    .shop-trust-bullets strong { color: rgba(255,255,255,0.95); font-weight: 700; }
     .page-shop .page-hero { padding-bottom: 28px; }
     .page-shop .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.5; color: rgba(255,255,255,0.85); max-width: 640px; }
 
@@ -143,11 +157,11 @@
     <div id="tcgplayerBanner" class="section" style="padding-top:0">
       <div class="tcg-banner">
         <div class="tcg-banner-text">
-          <h2>Also on TCGPlayer</h2>
-          <p>A slice of our singles and sealed lives on TCGPlayer — secure checkout and buyer protection. The rest gets uploaded straight here.</p>
+          <h2>Prefer TCGPlayer's buyer protection?</h2>
+          <p>A slice of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller with secure checkout.</p>
         </div>
-        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg btn-lg">
-          Shop singles on TCGPlayer →
+        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">
+          Shop on TCGPlayer →
         </a>
       </div>
     </div>
@@ -156,7 +170,12 @@
     <div id="shopDirect" class="section" style="padding-top:0">
       <div class="section-header">
         <h2 class="section-title">Shop Direct</h2>
-        <p class="section-sub">Apparel and merch — add to cart and check out with Apple Pay, Google Pay, card, Venmo, or PayPal. <strong style="color:var(--muted)">Flat $5 shipping</strong>. <strong style="color:var(--orange)">Cards &amp; sealed ship insured</strong> at $1 per $100 of value, added at checkout once the insurable subtotal hits $100. Apparel and merch are not insured.</p>
+        <p class="section-sub">Curated slabs, sealed product, and collector inventory.</p>
+        <ul class="shop-trust-bullets">
+          <li><strong>Flat $5 shipping</strong></li>
+          <li><strong>Cards &amp; sealed ship insured</strong> ($1 per $100 of value, kicks in at $100+)</li>
+          <li>Secure checkout · Apple Pay · Google Pay · Venmo · PayPal</li>
+        </ul>
         <div class="divider"></div>
       </div>
 

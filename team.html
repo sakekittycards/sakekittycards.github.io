@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=110" />
+  <link rel="stylesheet" href="style.css?v=111" />
   <style>
     /* Easter egg: 69 clicks on Jonathan's avatar grows an animated mustache */
     .vendor-avatar-wrap {
@@ -110,13 +110,13 @@
     .vendor-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: inset 0 5px 0 0 #00d4ff, 0 10px 32px rgba(0,212,255,0.22); }
     .vendor-card.tone-purple:hover { border-color: rgba(123,47,255,0.55); box-shadow: inset 0 5px 0 0 #7b2fff, 0 10px 32px rgba(123,47,255,0.22); }
 
-    /* Bigger avatar with per-tone border + slight upward bias on the crop
-       so headshots center cleanly across all 4 cards. */
+    /* Bigger avatar with per-tone border ring. Bumped 120 -> 140px on
+       2026-05-07 — the previous downsize weakened the face-trust signal. */
     .page-team .vendor-avatar {
-      width: 120px; height: 120px;
-      margin: 0 auto 18px;
+      width: 140px; height: 140px;
+      margin: 0 auto 20px;
       border-width: 3px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.30);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
       object-position: center 20%;
     }
     .vendor-card.tone-orange .vendor-avatar { border-color: rgba(255,106,0,0.55); }
@@ -124,9 +124,12 @@
     .vendor-card.tone-cyan   .vendor-avatar { border-color: rgba(0,212,255,0.55); }
     .vendor-card.tone-purple .vendor-avatar { border-color: rgba(123,47,255,0.55); }
     /* Mustache easter-egg sits inside the avatar wrap — recenter for new size. */
-    .page-team .vendor-avatar-wrap { width: 120px; height: 120px; margin: 0 auto 18px; }
+    .page-team .vendor-avatar-wrap { width: 140px; height: 140px; margin: 0 auto 20px; }
     .page-team .vendor-avatar-wrap .vendor-avatar { margin: 0; }
-    .page-team .mustache { width: 150px; }
+    .page-team .mustache { width: 170px; }
+    /* Slightly wider container — was 1240, now 1320 for editorial scale. */
+    .page-team .page-hero,
+    .page-team .section { max-width: 1320px; }
 
     /* Type hierarchy — bigger name, refined specialty pill, brighter body. */
     .page-team .vendor-card h3 {

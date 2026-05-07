@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=110" />
+  <link rel="stylesheet" href="style.css?v=111" />
 
   <style>
     /* Hero-specific styles */
@@ -60,10 +60,12 @@
       position: relative; z-index: 1;
       min-height: calc(100vh - var(--nav-h));
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: calc(var(--nav-h) + 30px) 24px 48px;
+      padding: calc(var(--nav-h) + 60px) 24px 80px;
       text-align: center;
-      gap: 20px;
+      gap: 32px;       /* was 20 — cinematic breathing room between hero elements */
     }
+    .hero .wip-badge { margin-bottom: 0; }
+    .hero-logo-outer { margin-bottom: 4px; }
 
     /* Work-in-progress badge */
     .wip-badge {
@@ -281,24 +283,25 @@
       animation: fadeUp 0.6s ease both 0.75s;
     }
 
-    /* Features strip — trust row. Pulled tighter to the hero, slightly bigger
-       icons + brighter labels so the row feels integrated, not floating. */
+    /* Trust row — premium scanning. Bigger icons, stronger headings,
+       intentionally short supporting copy so the row reads as quick trust
+       signals instead of a feature dump. */
     .features {
       position: relative; z-index: 1;
-      max-width: var(--max-w); margin: 0 auto; padding: 24px 24px 56px;
+      max-width: var(--max-w); margin: 0 auto; padding: 32px 24px 72px;
     }
     .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 22px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px;
     }
     .feature-item {
-      text-align: center; padding: 22px 22px;
+      text-align: center; padding: 24px 22px;
     }
     .feature-icon {
-      font-size: 38px; margin-bottom: 12px;
-      filter: drop-shadow(0 0 16px rgba(255,106,0,0.45));
+      font-size: 48px; margin-bottom: 16px;     /* +25% size per direction */
+      filter: drop-shadow(0 0 18px rgba(255,106,0,0.45));
     }
-    .feature-item h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: rgba(255,255,255,0.95); }
-    .feature-item p { font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.65; }
+    .feature-item h3 { font-size: 17px; font-weight: 800; margin-bottom: 4px; color: rgba(255,255,255,0.96); letter-spacing: -0.2px; }
+    .feature-item p { font-size: 13.5px; color: rgba(255,255,255,0.72); line-height: 1.6; max-width: 240px; margin: 0 auto; }
 
     /* Section title center variant */
     .center-heading { text-align: center; margin-bottom: 30px; }
@@ -310,32 +313,35 @@
        so this tightens the bottom side. */
     .page-content > section.section { padding-bottom: 56px; }
 
-    /* Events preview */
+    /* Events preview — taller cards, more breathing inside, less dashboard-y */
     .events-preview-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px;
     }
     .event-preview {
-      display: flex; gap: 16px; align-items: center;
-      padding: 20px;
+      display: flex; gap: 18px; align-items: center;
+      padding: 26px 24px;
     }
     .event-preview .event-date { margin-bottom: 0; flex-shrink: 0; }
-    .event-preview-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-    .event-preview-info p { font-size: 14px; color: var(--dim); }
+    .event-preview-info h4 { font-size: 16px; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+    .event-preview-info p { font-size: 14px; color: rgba(255,255,255,0.72); }
 
-    /* Vendors preview */
+    /* Team preview — bigger photos restore emotional connection. Faces were
+       too small after the previous downsize. */
     .vendors-preview {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px;
     }
     .vendor-mini {
-      padding: 26px 20px; text-align: center;
+      padding: 32px 22px 28px; text-align: center;
     }
     .vendor-mini-avatar {
-      width: 78px; height: 78px; border-radius: 50%;
-      border: 3px solid rgba(255,106,0,0.35);
-      object-fit: cover; margin: 0 auto 12px;
+      width: 110px; height: 110px; border-radius: 50%;
+      border: 3px solid rgba(255,106,0,0.40);
+      object-fit: cover; object-position: center 20%;
+      margin: 0 auto 14px;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.30);
     }
-    .vendor-mini h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-    .vendor-mini p { font-size: 12px; color: var(--orange); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .vendor-mini h4 { font-size: 17px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.2px; }
+    .vendor-mini p { font-size: 11.5px; color: var(--orange); font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
 
     /* Gold Star Seller badge */
     .gold-star-badge {
@@ -371,12 +377,26 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 26px;
+      padding: 30px 28px 28px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      transition: border-color 0.2s, transform 0.2s;
+      gap: 16px;
+      transition: border-color 0.2s, transform 0.2s, opacity 0.3s;
     }
+    /* Curated default — only the first 3 cards visible; .t-more reveals on click. */
+    .testimonial-card.t-more { display: none; }
+    .testimonials-grid.expanded .testimonial-card.t-more { display: flex; animation: tFadeIn 0.4s ease; }
+    @keyframes tFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .more-reviews-wrap { text-align: center; margin-top: 28px; }
+    .more-reviews-toggle {
+      background: none; border: 1px solid rgba(255,106,0,0.30);
+      color: var(--orange);
+      padding: 11px 22px; border-radius: 100px;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13.5px;
+      letter-spacing: 0.4px; cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+    .more-reviews-toggle:hover { border-color: rgba(255,106,0,0.60); background: rgba(255,106,0,0.06); transform: translateY(-1px); }
     .testimonial-card:hover {
       border-color: rgba(255, 106, 0, 0.4);
       transform: translateY(-3px);
@@ -413,43 +433,58 @@
       font-size: 10px;
     }
 
-    /* CTA section — sell/trade is PRIMARY (it's the unique-on-site conversion path).
-       TCGPlayer banner is SECONDARY (off-site referral). Hierarchy via padding +
-       title size + glow intensity, not via tone change. */
+    /* CTA section — sell/trade is PRIMARY (unique-on-site conversion).
+       TCGPlayer banner is SECONDARY (off-site referral, smaller). */
     .cta-banner {
       max-width: var(--max-w); margin: 0 auto;
-      padding: 40px 36px;
-      background: linear-gradient(135deg, rgba(255,106,0,0.10), rgba(123,47,255,0.10));
-      border: 1px solid rgba(255,106,0,0.22); border-radius: var(--r);
+      padding: 36px 36px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.08), rgba(123,47,255,0.08));
+      border: 1px solid rgba(255,106,0,0.18); border-radius: var(--r);
       text-align: center;
     }
-    /* Sell/trade — PRIMARY: bigger pad, bigger title, cyan/pink palette + outer glow */
+    /* Sell/trade — PRIMARY: bigger pad, bigger title, brighter inset, larger CTA */
     .cta-banner.cta-sell {
-      padding: 56px 40px;
+      padding: 64px 44px;
       background: linear-gradient(135deg, rgba(0,212,255,0.14), rgba(255,0,128,0.12));
-      border: 1.5px solid rgba(0,212,255,0.40);
-      box-shadow: 0 0 0 1px rgba(0,212,255,0.15) inset, 0 0 36px rgba(0,212,255,0.10);
+      border: 1.5px solid rgba(0,212,255,0.42);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.16) inset, 0 0 44px rgba(0,212,255,0.12);
     }
+    .cta-banner.cta-sell .btn { padding: 16px 32px; font-size: 16px; letter-spacing: 0.4px; }
     .cta-banner h2 {
-      font-family: 'Bangers', cursive; font-size: clamp(24px, 4.5vw, 38px);
+      font-family: 'Bangers', cursive; font-size: clamp(22px, 4vw, 32px);
       letter-spacing: 0.03em; margin-bottom: 10px;
       padding-bottom: 4px; line-height: 1.25;
     }
     .cta-banner.cta-sell h2 {
-      font-size: clamp(28px, 5vw, 44px);
+      font-size: clamp(30px, 5.4vw, 48px);
       background: linear-gradient(135deg, #00d4ff, #ff0080);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 16px rgba(0,212,255,0.30));
+      filter: drop-shadow(0 0 18px rgba(0,212,255,0.35));
     }
-    .cta-banner p { color: rgba(255,255,255,0.88); font-size: 15px; line-height: 1.65; margin-bottom: 24px; max-width: 560px; margin-left: auto; margin-right: auto; }
-    .cta-banner.cta-sell p { font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
+    .cta-banner p { color: rgba(255,255,255,0.82); font-size: 14.5px; line-height: 1.65; margin-bottom: 22px; max-width: 540px; margin-left: auto; margin-right: auto; }
+    .cta-banner.cta-sell p { font-size: 16px; line-height: 1.6; margin-bottom: 30px; max-width: 560px; }
 
     .see-all {
-      display: block; text-align: center; margin-top: 28px;
-      color: var(--orange); text-decoration: none; font-weight: 600; font-size: 14px;
-      letter-spacing: 0.5px; transition: opacity 0.15s;
+      display: inline-flex; align-items: center; gap: 8px;
+      margin: 32px auto 0;
+      padding: 12px 28px;
+      border: 1.5px solid rgba(255,106,0,0.35);
+      border-radius: 100px;
+      color: var(--orange); text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700; font-size: 14.5px;
+      letter-spacing: 0.4px;
+      background: rgba(255,106,0,0.04);
+      transition: transform .15s, border-color .15s, background .15s, box-shadow .2s;
     }
-    .see-all:hover { opacity: 0.75; }
+    .see-all:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,106,0,0.65);
+      background: rgba(255,106,0,0.08);
+      box-shadow: 0 4px 18px rgba(255,106,0,0.18);
+    }
+    /* Wrap the see-all link in a flex container so it stays centered. */
+    .see-all-wrap { display: flex; justify-content: center; }
 
     @media (max-width: 480px) {
       .event-preview { flex-direction: column; text-align: center; }
@@ -531,10 +566,10 @@
     <!-- Features strip -->
     <section class="features">
       <div class="features-grid">
-        <div class="feature-item"><div class="feature-icon">🛡️</div><h3>Buyer Protection</h3><p>If anything ever slips through, we make it right.</p></div>
-        <div class="feature-item"><div class="feature-icon">🔍</div><h3>Honest Condition</h3><p>Every card gets a close look.</p></div>
-        <div class="feature-item"><div class="feature-icon">📦</div><h3>Safe Shipping</h3><p>Sleeves, top loaders, bubble mailers.</p></div>
-        <div class="feature-item"><div class="feature-icon">💬</div><h3>Real Support</h3><p>Questions? DMs open. Problems fixed fast.</p></div>
+        <div class="feature-item"><div class="feature-icon">🛡️</div><h3>Buyer Protection</h3><p>Every order made right.</p></div>
+        <div class="feature-item"><div class="feature-icon">🔍</div><h3>Honest Condition</h3><p>Graded conservatively.</p></div>
+        <div class="feature-item"><div class="feature-icon">📦</div><h3>Safe Shipping</h3><p>Sleeved · top-loaded · insured.</p></div>
+        <div class="feature-item"><div class="feature-icon">💬</div><h3>Fast Support</h3><p>DMs open. Replies under 24h.</p></div>
       </div>
     </section>
 
@@ -562,7 +597,7 @@
           <div class="event-preview-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
         </div>
       </div>
-      <a href="events.html" class="see-all">View all events →</a>
+      <div class="see-all-wrap"><a href="events.html" class="see-all">View all events →</a></div>
     </section>
 
     <!-- Vendors preview -->
@@ -606,7 +641,15 @@
         </div>
         <p class="section-sub" style="margin-top:6px">Recent 5-star feedback from verified TCGPlayer buyers.</p>
       </div>
+      <!-- Curated testimonials — 3 strongest visible by default; the rest
+           reveal on click via the .more-reviews-toggle below. Premium brands
+           don't dump every review at once. -->
       <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"Great transaction. Item's appearance was just as described. Fast shipping, well packaged and protected. Would purchase from seller again. A++ seller."</p>
+          <div class="testimonial-attr"><span>j****1 · Apr 3, 2026</span><span class="tcg-src">TCGPlayer</span></div>
+        </div>
         <div class="testimonial-card">
           <div class="testimonial-stars">★★★★★</div>
           <p class="testimonial-text">"I'm so glad to have the Dark Dragonair and Lugia EX in my collection, thank you!"</p>
@@ -614,29 +657,27 @@
         </div>
         <div class="testimonial-card">
           <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Great transaction. Item's appearance was just as described. Fast shipping and item was in good condition and quality, well packaged and protected. Would purchase from seller again. The deal was a great value. A++ seller."</p>
-          <div class="testimonial-attr"><span>j****1 · Apr 3, 2026</span><span class="tcg-src">TCGPlayer</span></div>
+          <p class="testimonial-text">"Condition was spot on!!! Highly recommend!"</p>
+          <div class="testimonial-attr"><span>d****6 · Dec 8, 2025</span><span class="tcg-src">TCGPlayer</span></div>
         </div>
-        <div class="testimonial-card">
+        <div class="testimonial-card t-more">
           <div class="testimonial-stars">★★★★★</div>
           <p class="testimonial-text">"Awesome! Great transaction!"</p>
           <div class="testimonial-attr"><span>c****D · Apr 2, 2026</span><span class="tcg-src">TCGPlayer</span></div>
         </div>
-        <div class="testimonial-card">
+        <div class="testimonial-card t-more">
           <div class="testimonial-stars">★★★★★</div>
           <p class="testimonial-text">"Fast shipping and great packaging!"</p>
           <div class="testimonial-attr"><span>a****p · Apr 1, 2026</span><span class="tcg-src">TCGPlayer</span></div>
         </div>
-        <div class="testimonial-card">
+        <div class="testimonial-card t-more">
           <div class="testimonial-stars">★★★★★</div>
           <p class="testimonial-text">"Great seller, will buy again. A+++"</p>
           <div class="testimonial-attr"><span>c****5 · Mar 27, 2026</span><span class="tcg-src">TCGPlayer</span></div>
         </div>
-        <div class="testimonial-card">
-          <div class="testimonial-stars">★★★★★</div>
-          <p class="testimonial-text">"Condition was spot on!!! Highly recommend!"</p>
-          <div class="testimonial-attr"><span>d****6 · Dec 8, 2025</span><span class="tcg-src">TCGPlayer</span></div>
-        </div>
+      </div>
+      <div class="more-reviews-wrap">
+        <button type="button" class="more-reviews-toggle" id="moreReviewsBtn" aria-expanded="false">Show 3 more reviews ↓</button>
       </div>
       <p style="text-align:center;margin-top:24px;font-size:13px;color:var(--dim)">
         See more on our <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211/feedback" target="_blank" rel="noopener" style="color:var(--orange)">TCGPlayer feedback page →</a>
@@ -655,9 +696,9 @@
     <!-- CTA banner -->
     <section class="section" style="padding-top:0">
       <div class="cta-banner">
-        <h2>Also on TCGPlayer</h2>
-        <p>A selection of our singles and sealed live on TCGPlayer — secure checkout and buyer protection.</p>
-        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg btn-lg">Shop singles on TCGPlayer →</a>
+        <h2>Prefer TCGPlayer?</h2>
+        <p>A selection of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller, secure checkout, buyer protection.</p>
+        <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">Shop on TCGPlayer →</a>
       </div>
     </section>
 
@@ -695,6 +736,20 @@
 
   <script src="main.js?v=45"></script>
   <script>
+    // Testimonials — show 3 more on click. Premium curation: don't dump
+    // every review at once; reveal additional only if the user asks.
+    (function () {
+      const btn = document.getElementById('moreReviewsBtn');
+      if (!btn) return;
+      const grid = btn.closest('.section')?.querySelector('.testimonials-grid');
+      if (!grid) return;
+      btn.addEventListener('click', () => {
+        const expanded = grid.classList.toggle('expanded');
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        btn.textContent = expanded ? 'Show fewer reviews ↑' : 'Show 3 more reviews ↓';
+      });
+    })();
+
     // WIP badge — dismissible, persisted via localStorage so returning
     // visitors don't see it on every load. Forgets dismissal if Nick removes
     // the localStorage key (e.g. via console) when the WIP phase ends.
@@ -730,7 +785,9 @@
         maxLife: rand(140, 260), twinkle: rand(0, Math.PI * 2),
       };
     }
-    for (let i = 0; i < 60; i++) particles.push(mkParticle(true));
+    // Particle count reduced 60 -> 42 (~30%) per direction — more empty
+    // negative-space zones, calmer cinematic feel.
+    for (let i = 0; i < 42; i++) particles.push(mkParticle(true));
 
     // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle,
     // and fires a one-shot aura burst that expands from center and recedes.
