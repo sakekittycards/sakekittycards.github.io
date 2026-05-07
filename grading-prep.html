@@ -436,6 +436,31 @@
       .shipping-guide-btn .sgb-text strong { font-size: 14px; }
       .shipping-guide-btn .sgb-text span { font-size: 12px; }
     }
+
+    /* ── Page-scoped polish for grading-prep — widen container, hero
+       hierarchy, dominant search, calmer info bars. Highest-leverage items
+       from the creative-direction audit; not a full redesign. ── */
+    .page-grading .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-grading .page-hero,
+    .page-grading .section { max-width: 1360px; }    /* widened — was 1240, page felt boxed */
+    .page-grading .page-hero { padding-bottom: 28px; }
+    .page-grading .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
+    .page-grading .page-hero > p {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.6;
+      color: rgba(255,255,255,0.86);
+      max-width: 720px; margin-left: auto; margin-right: auto;
+    }
+    /* Promote search to the dominant action on the form — was 13px/15px on a
+       44px field, now 16px/56px with bigger left-icon footprint. */
+    .page-grading .gp-search {
+      font-size: 16px; padding: 18px 18px 18px 52px; min-height: 56px;
+    }
+    .page-grading .gp-search-icon { left: 18px; width: 19px; height: 19px; }
+    /* Calmer service cards — pad up a touch so they read less "dashboard". */
+    .page-grading .service-card { padding: 26px 24px; }
+    /* Tighter pacing between major sections so the page doesn't read like
+       a stack of equal-weight panels. */
+    .page-grading .section + .section { margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -467,10 +492,10 @@
     </div>
   </nav>
 
-  <main id="main" class="page-content">
+  <main id="main" class="page-content page-grading">
     <div class="page-hero">
       <h1>Grading Prep</h1>
-      <p>Don't waste money submitting cards that won't make the cut. We'll tell you exactly which ones are worth it — and handle everything from there. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only.</strong></p>
+      <p>Submit only the cards worth grading. We screen, prep, and handle the submission so your fees go toward winners — not wasted slabs.<br><strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only.</strong></p>
     </div>
 
     <!-- Service tiers -->
