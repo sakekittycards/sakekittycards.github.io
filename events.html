@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=122" />
+  <link rel="stylesheet" href="style.css?v=124" />
   <style>
     /* ── Calendar layout ── */
     .cal-layout {
@@ -86,6 +86,10 @@
       transition: all .18s ease;
     }
     .cal-day.empty { visibility: hidden; }
+    /* Past dates — muted so customers see at a glance which dates have
+       already passed. Keeps event-style coloring but at lower opacity. */
+    .cal-day.past:not(.has-event) { opacity: 0.35; color: rgba(255,255,255,0.35); }
+    .cal-day.past.has-event { opacity: 0.45; }
     .cal-day.today {
       border: 1.5px solid rgba(255,106,0,.5);
       color: var(--orange);
@@ -168,6 +172,10 @@
       background: rgba(255,106,0,.05);
       transform: translateX(3px);
     }
+    /* Past events — muted so customers see at a glance which have already
+       happened. Still clickable (jumps to that date on the calendar). */
+    .event-item.is-past { opacity: 0.45; }
+    .event-item.is-past:hover { opacity: 0.85; transform: translateX(3px); }
     .event-item .event-date { margin-bottom: 0; flex-shrink: 0; }
     /* Whatnot streams get a purple-pink gradient on the date pill so the
        row visually matches the Whatnot badge + the calendar dot. */
@@ -413,8 +421,8 @@
         </div>
         <div class="recent-shows-grid">
           <div class="rs-tile"><img src="assets/wild/team-booth.jpg" alt="Sake Kitty crew at a Florida card show booth" loading="lazy" /></div>
-          <div class="rs-tile"><img src="assets/wild/show-floor.jpg" alt="Sake Kitty Cards booth on the show floor" loading="lazy" /></div>
-          <div class="rs-tile"><img src="assets/wild/slab-wall.jpg" alt="Wall of graded Pokemon slabs at the booth" loading="lazy" /></div>
+          <div class="rs-tile"><img src="assets/wild/customer-handshake.jpg" alt="Customer thumbs-up moment at the Sake Kitty booth" loading="lazy" /></div>
+          <div class="rs-tile"><img src="assets/wild/signed-card.jpg" alt="Lillie's Determination — autographed slab pulled at a show" loading="lazy" /></div>
         </div>
       </div>
     </div>
@@ -610,6 +618,9 @@
         const div = document.createElement('div');
         div.className = 'cal-day';
         if (dateStr === TODAY_STR) div.classList.add('today');
+        // Past dates muted so customers see at a glance which dates have
+        // already passed (audit feedback). Today is NOT past.
+        if (dateStr < TODAY_STR) div.classList.add('past');
         if (evs.length > 0) {
           div.classList.add('has-event');
           // Mark whatnot-only days with a different color treatment
@@ -662,6 +673,10 @@
 
     function eventCardHTML(ev) {
       const s = new Date(ev.start + 'T00:00:00');
+      // Past = the LAST day of the event has passed. Multi-day events stay
+      // "current" through their final day.
+      const lastDay = ev.end ? new Date(ev.end + 'T00:00:00') : s;
+      const isPast = lastDay < TODAY;
       const dayLabel = ev.end
         ? `<span class="dy" style="font-size:12px">${s.getDate()}–${new Date(ev.end + 'T00:00:00').getDate()}</span>`
         : `<span class="dy">${s.getDate()}</span>`;
@@ -670,7 +685,7 @@
         : '';
       const datePillClass = ev.type === 'whatnot' ? 'event-date whatnot-pill' : 'event-date';
       return `
-        <div class="event-item" onclick="jumpTo('${ev.start}')">
+        <div class="event-item${isPast ? ' is-past' : ''}" onclick="jumpTo('${ev.start}')">
           <div class="${datePillClass}">
             <span class="mo">${MONTH_SHORT[s.getMonth()]}</span>
             ${dayLabel}
