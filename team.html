@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=121" />
+  <link rel="stylesheet" href="style.css?v=122" />
   <style>
     /* Easter egg: 69 clicks on Jonathan's avatar grows an animated mustache */
     .vendor-avatar-wrap {
@@ -220,8 +220,48 @@
     .page-team
     .page-team .site-footer { margin-top: 0; }
     /* Closing brand strip — confident page-end before global footer.
-       Same pattern as shipping.html's
+       Same pattern as shipping.html's */
 
+    /* "On the Road" candid photo strip — humanizes the team beyond avatars. */
+    .on-the-road {
+      max-width: 1320px; margin: 0 auto;
+      padding: 8px 0 48px;
+    }
+    .on-the-road-header { text-align: center; margin-bottom: 22px; }
+    .on-the-road-header h3 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(22px, 3vw, 28px); letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      padding-bottom: 4px; line-height: 1.25;
+      margin: 0 0 6px;
+    }
+    .on-the-road-header p {
+      font-size: 13.5px; color: rgba(255,255,255,0.66);
+      letter-spacing: 0.04em; margin: 0;
+    }
+    .on-the-road-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    @media (max-width: 760px) { .on-the-road-grid { grid-template-columns: 1fr; } }
+    .otr-tile {
+      position: relative; overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.07);
+      aspect-ratio: 4/3;
+      transition: transform .35s ease, box-shadow .35s;
+    }
+    .otr-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+    .otr-tile img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .8s ease;
+    }
+    .otr-tile:hover img { transform: scale(1.04); }
+    .otr-tile::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.30) 100%);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body class="page-team">
@@ -328,6 +368,20 @@
         <a href="contact.html" class="vc-btn">Get in Touch</a>
       </div>
     </div>
+
+    <!-- On the Road — candid show-floor photos to humanize the team. -->
+    <div class="section" style="padding-top:0">
+      <div class="on-the-road">
+        <div class="on-the-road-header">
+          <h3>On the Road</h3>
+          <p>You'll find us at Florida card shows most weekends.</p>
+        </div>
+        <div class="on-the-road-grid">
+          <div class="otr-tile"><img src="assets/wild/team-booth.jpg" alt="Sake Kitty crew at a card show booth" loading="lazy" /></div>
+          <div class="otr-tile"><img src="assets/wild/show-floor.jpg" alt="Sake Kitty Cards on the show floor" loading="lazy" /></div>
+        </div>
+      </div>
+    </div>
 </main>
 
   <footer class="site-footer">
@@ -360,7 +414,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=46"></script>
+  <script src="main.js?v=47"></script>
   <script>
     // Easter egg: 69 clicks on Jonathan's avatar grows him an animated mustache.
     // Mustache springs in, wiggles, then poofs away after ~5.5s — so the egg can be
