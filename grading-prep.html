@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=109" />
+  <link rel="stylesheet" href="style.css?v=110" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -1034,11 +1034,13 @@
           if (exclude.has(productId)) continue;
           // Grading prep handles only single cards (sealed boosters aren't gradeable).
           if (_isFallbackSealed(name)) continue;
-          // Only Japanese here. Chinese is excluded from grading prep entirely
-          // per user policy 2026-05-04 — Chinese cards are only allowed in the
-          // Sell/Trade graded form, never in raw lookups or grading screening.
+          // Chinese is excluded from grading prep entirely per user policy 2026-05-04
+          // (Chinese only allowed in the Sell/Trade graded form). English + Japanese
+          // both surface here so the fallback covers older promos / oddballs that
+          // pokemontcg.io doesn't index — paired with trade-in.html behavior.
           const isJp = console_.includes('Japanese');
-          if (!isJp) continue;
+          const isCn = console_.includes('Chinese');
+          if (isCn) continue;
           const hay = stripApos(`${name} ${console_}`.toLowerCase());
           let allMatch = true;
           for (const t of cleaned) {
@@ -1052,7 +1054,7 @@
           const cleanName = m ? m[1].trim() : name;
           const number    = m ? m[2] : '';
           out.push({
-            lang: 'jp',
+            lang: isJp ? 'jp' : 'en',
             name: cleanName,
             setName: console_.replace(/^Pokemon\s+/, ''),
             number,
