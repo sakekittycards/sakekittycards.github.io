@@ -1691,3 +1691,60 @@ body.drip-unlocked { position: relative; }
   .vendors-grid { grid-template-columns: 1fr; }
   .prep-steps { grid-template-columns: 1fr; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   MOBILE-FIRST POLISH (locked sitewide rules — see
+   feedback_sk_mobile_first_rules.md memory)
+   ──────────────────────────────────────────────────────────────────────── */
+@media (max-width: 540px) {
+  /* Section padding tighter on phone — was 56px from the @768 rule above. */
+  .section { padding: 44px 18px; }
+  .page-hero { padding: calc(var(--nav-h) + 32px) 18px 24px; }
+
+  /* Body lines breathe a touch more on mobile (sunlight readability). */
+  body { line-height: 1.65; }
+
+  /* Hero h1 size — clamp does most of this but cap so it doesn't overflow
+     the viewport on tiny screens. */
+  .page-hero h1 { font-size: clamp(36px, 9vw, 56px); }
+
+  /* Buttons get min-height 44px (Apple HIG tap-target floor). */
+  .btn, .nav-cta, .nav-toggle { min-height: 44px; }
+  .btn-sm { min-height: 40px; }
+
+  /* Form inputs — 16px font prevents iOS auto-zoom on focus.
+     Apply to ALL inputs/selects/textareas so customers don't get the
+     forced viewport zoom every time they tap a field. */
+  input, select, textarea, button {
+    font-size: max(16px, 1em);
+  }
+
+  /* Section titles slightly smaller on mobile so they don't blow up. */
+  .section-title { font-size: clamp(24px, 6vw, 32px); }
+
+  /* Card padding sitewide — most cards use var(--r) borders w/ 24-30px
+     padding. On phones, drop to 20-22px. Component-level padding overrides
+     win where a page sets explicit values. */
+  .card { padding: 22px; }
+
+  /* Center-heading + section-header tighter */
+  .center-heading { margin-bottom: 24px; }
+  .section-header { margin-bottom: 30px; }
+}
+
+@media (max-width: 380px) {
+  .section { padding: 36px 14px; }
+  .page-hero { padding-left: 14px; padding-right: 14px; }
+}
+
+/* Smooth scroll on touch devices for sections + jump links. */
+@media (hover: none) {
+  html { scroll-behavior: smooth; }
+  /* Disable hover transforms on touch — they get stuck after tap. */
+  .product-card:hover,
+  .vendor-card:hover,
+  .tier-card:hover,
+  .service-card:hover,
+  .testimonial-card:hover,
+  .connect-card:hover { transform: none; }
+}
