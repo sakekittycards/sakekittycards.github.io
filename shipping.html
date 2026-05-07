@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=105" />
+  <link rel="stylesheet" href="style.css?v=106" />
   <style>
     /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
@@ -79,9 +79,9 @@
     .pack-tagline .pop { color: var(--pink); }
 
     .pack-grid {
-      display: grid; gap: 24px;
+      display: grid; gap: 26px;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      margin-bottom: 28px;
+      margin-bottom: 36px;          /* uniform 36px between major sections */
       align-items: stretch;
     }
 
@@ -90,10 +90,13 @@
        label, not as a colored block. Body content has more breathing room. */
     .tier-card {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 32px 28px 24px;
+      border-radius: var(--r); padding: 34px 30px 26px;
       position: relative; overflow: hidden;
-      transition: transform .25s ease, border-color .2s, box-shadow .25s, background .2s;
+      transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
       display: flex; flex-direction: column;
+    }
+    @media (max-width: 540px) {
+      .tier-card { padding: 28px 22px 22px; }
     }
     /* Top accent bar — same neon-strip pattern as .tipbox so the whole page
        speaks one visual language. */
@@ -152,9 +155,11 @@
       border: 1px solid var(--border);
     }
     .tier-bulk .tier-photo {
-      aspect-ratio: 5 / 1.4;     /* tier4 is slightly taller */
-      margin-bottom: 22px;
+      aspect-ratio: 5 / 1.55;     /* tier4 — bigger progression-image strip */
+      margin-bottom: 26px;
+      padding: 12px 18px;
     }
+    .tier-bulk { padding-bottom: 32px; }
     @media (max-width: 540px) {
       .tier-photo { padding: 6px 10px; }
     }
@@ -170,32 +175,33 @@
     .tier-card.tone-orange:hover { border-color: rgba(255,106,0,0.60);   box-shadow: 0 0 0 1px rgba(255,106,0,0.26) inset, 0 0 44px rgba(255,106,0,0.22); }
 
     /* Title — white with per-tone text-shadow glow, reads as a clean label
-       above the photo instead of a giant gradient block. */
+       above the photo instead of a giant gradient block. Slightly bigger +
+       softer-glowing on large screens. */
     .tier-head {
       font-family: 'Bangers', cursive; letter-spacing: 0.04em;
-      font-size: clamp(22px, 2.6vw, 28px); line-height: 1.2;
+      font-size: clamp(24px, 2.8vw, 30px); line-height: 1.2;
       padding: 2px 0 4px; margin: 0 0 4px;
       color: #fff;
     }
-    .tone-pink   .tier-head { text-shadow: 0 0 14px rgba(255,0,128,0.50); }
-    .tone-cyan   .tier-head { text-shadow: 0 0 14px rgba(0,212,255,0.50); }
-    .tone-purple .tier-head { text-shadow: 0 0 14px rgba(123,47,255,0.55); }
-    .tone-orange .tier-head { text-shadow: 0 0 14px rgba(255,106,0,0.50); }
+    .tone-pink   .tier-head { text-shadow: 0 0 16px rgba(255,0,128,0.55); }
+    .tone-cyan   .tier-head { text-shadow: 0 0 16px rgba(0,212,255,0.55); }
+    .tone-purple .tier-head { text-shadow: 0 0 16px rgba(123,47,255,0.60); }
+    .tone-orange .tier-head { text-shadow: 0 0 16px rgba(255,106,0,0.55); }
 
     .tier-sub {
-      font-size: 14px; font-weight: 500; color: rgba(229,229,247,0.72);
-      margin: -2px 0 18px; line-height: 1.5;
-      min-height: 42px;            /* aligns photo+steps Y across the 3 cards */
+      font-size: 14.5px; font-weight: 500; color: rgba(229,229,247,0.85);
+      margin: 0 0 20px; line-height: 1.55;
+      min-height: 44px;            /* aligns photo+steps Y across the 3 cards */
     }
 
     .step-list { list-style: none; counter-reset: step; padding: 0; margin: 0; }
     .step-list li {
       counter-increment: step;
-      display: grid; grid-template-columns: 26px 1fr; gap: 12px;
-      padding: 11px 0; align-items: start;
-      border-top: 1px solid rgba(255,255,255,0.045);   /* softer than var(--border) */
+      display: grid; grid-template-columns: 26px 1fr; gap: 14px;
+      padding: 14px 0; align-items: start;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
-    .step-list li:first-child { border-top: none; padding-top: 4px; }
+    .step-list li:first-child { border-top: none; padding-top: 6px; }
     .step-list li::before {
       content: counter(step);
       font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px;
@@ -210,8 +216,8 @@
     .tone-purple .step-list li::before { background: linear-gradient(135deg, #b46cff, #7b2fff); box-shadow: 0 0 10px rgba(123,47,255,0.45); }
     .tone-orange .step-list li::before { background: linear-gradient(135deg, #ffb84d, #ff6a00); box-shadow: 0 0 10px rgba(255,106,0,0.45); }
     .step-list li > span {
-      font-size: 14.5px; line-height: 1.55;
-      color: rgba(255,255,255,0.92);   /* brighter than var(--text) default */
+      font-size: 15px; line-height: 1.65;
+      color: rgba(255,255,255,0.94);
       padding-top: 3px;
     }
     .step-list strong { font-weight: 700; color: #fff; }
@@ -269,67 +275,96 @@
       transform: rotate(-45deg); border-radius: 1px;
     }
 
-    /* ── DO NOT / Sleeves panels ── */
+    /* ── DO NOT / Sleeves panels — standardized cohesive sizing + hover lift
+       to match the .tier-card and .tipbox rhythm. DO NOT is intentionally
+       louder (red glow, beefier border) since these rules prevent damaged
+       shipments. ── */
     .pack-rules {
-      display: grid; gap: 22px;
+      display: grid; gap: 24px;
       grid-template-columns: 1.5fr 1fr;
-      margin-bottom: 28px;
+      margin-bottom: 32px;
     }
-    @media (max-width: 820px) { .pack-rules { grid-template-columns: 1fr; } }
+    @media (max-width: 820px) { .pack-rules { grid-template-columns: 1fr; gap: 22px; } }
 
     .donot, .sleeves {
       background: var(--bg-card); border-radius: var(--r);
-      padding: 24px 22px 22px;
+      padding: 28px 26px 24px;
+      transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
+      position: relative;
     }
+    /* DO NOT — louder framing: thicker border, brighter inset, outer glow */
     .donot {
-      border: 1px solid rgba(255,55,90,0.30);
-      box-shadow: 0 0 0 1px rgba(255,55,90,0.10) inset;
+      border: 1.5px solid rgba(255,55,90,0.45);
+      box-shadow:
+        0 0 0 1px rgba(255,55,90,0.15) inset,
+        0 0 32px rgba(255,55,90,0.08);
+    }
+    .donot:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,55,90,0.65);
+      box-shadow:
+        0 0 0 1px rgba(255,55,90,0.25) inset,
+        0 0 48px rgba(255,55,90,0.18);
     }
     .sleeves {
-      border: 1px solid rgba(80,220,140,0.28);
-      box-shadow: 0 0 0 1px rgba(80,220,140,0.08) inset;
+      border: 1px solid rgba(80,220,140,0.30);
+      box-shadow:
+        0 0 0 1px rgba(80,220,140,0.10) inset,
+        0 0 28px rgba(80,220,140,0.05);
+    }
+    .sleeves:hover {
+      transform: translateY(-2px);
+      border-color: rgba(80,220,140,0.55);
+      box-shadow:
+        0 0 0 1px rgba(80,220,140,0.20) inset,
+        0 0 40px rgba(80,220,140,0.14);
     }
     .donot h3, .sleeves h3 {
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: clamp(24px, 3vw, 32px); line-height: 1.25; padding: 2px 0 8px;
-      margin-bottom: 10px; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      font-size: clamp(26px, 3.4vw, 36px); line-height: 1.25; padding: 2px 0 10px;
+      margin-bottom: 14px; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .donot h3   { background: linear-gradient(135deg, #ff375a, #ff0080); filter: drop-shadow(0 0 12px rgba(255,55,90,0.30)); }
-    .sleeves h3 { background: linear-gradient(135deg, #50dc8c, #00d4ff); filter: drop-shadow(0 0 12px rgba(80,220,140,0.28)); }
+    .donot h3   { background: linear-gradient(135deg, #ff375a, #ff0080); filter: drop-shadow(0 0 16px rgba(255,55,90,0.45)); }
+    .sleeves h3 { background: linear-gradient(135deg, #50dc8c, #00d4ff); filter: drop-shadow(0 0 14px rgba(80,220,140,0.30)); }
 
     .donot ul { list-style: none; padding: 0; margin: 0; }
     .donot li {
-      font-size: 14px; line-height: 1.55; padding: 9px 0 9px 28px;
-      position: relative; border-top: 1px solid var(--border);
+      font-size: 14.5px; line-height: 1.6;
+      color: rgba(255,255,255,0.94);
+      padding: 12px 0 12px 30px;
+      position: relative; border-top: 1px solid rgba(255,55,90,0.12);
     }
-    .donot li:first-child { border-top: none; }
+    .donot li:first-child { border-top: none; padding-top: 4px; }
     .donot li::before {
-      content: ""; position: absolute; left: 4px; top: 13px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: rgba(255,55,90,0.18); border: 1px solid rgba(255,55,90,0.50);
+      content: ""; position: absolute; left: 4px; top: 16px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: rgba(255,55,90,0.22); border: 1.5px solid rgba(255,55,90,0.65);
+      box-shadow: 0 0 8px rgba(255,55,90,0.35);
     }
+    .donot li:first-child::before { top: 8px; }
     .donot li::after {
-      content: ""; position: absolute; left: 7px; top: 16px;
+      content: ""; position: absolute; left: 8px; top: 20px;
       width: 8px; height: 8px;
       background: linear-gradient(45deg, transparent 42%, #ff375a 42% 58%, transparent 58%),
                   linear-gradient(-45deg, transparent 42%, #ff375a 42% 58%, transparent 58%);
     }
-    .donot strong { color: #ff7a96; font-weight: 700; }
+    .donot li:first-child::after { top: 12px; }
+    .donot strong { color: #ff96ad; font-weight: 700; }
 
     .sleeves p {
-      font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 10px;
+      font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.94); margin-bottom: 12px;
     }
     .sleeves p strong { color: #fff; font-weight: 700; }
     .sleeves .nope {
-      font-size: 13px; line-height: 1.55; color: var(--muted);
-      padding-top: 12px; border-top: 1px solid var(--border); margin-top: 4px;
+      font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.72);
+      padding-top: 14px; border-top: 1px solid rgba(80,220,140,0.15); margin-top: 8px;
     }
 
     /* ── Tip rows at bottom (shipping + extra) ── */
     .pack-tips {
-      display: grid; gap: 22px;
+      display: grid; gap: 24px;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      margin-bottom: 28px;
+      margin-bottom: 32px;
       align-items: stretch;
     }
     /* Thin neon accent bar at the top of each card via ::before, not a full
@@ -338,9 +373,12 @@
     .tipbox {
       position: relative;
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 26px 22px 20px;
+      border-radius: var(--r); padding: 28px 26px 22px;
       display: flex; flex-direction: column;
+      transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
     }
+    .tipbox.tone-blue:hover  { transform: translateY(-2px); border-color: rgba(0,212,255,0.45); box-shadow: 0 0 0 1px rgba(0,212,255,0.18) inset, 0 0 36px rgba(0,212,255,0.14); }
+    .tipbox.tone-amber:hover { transform: translateY(-2px); border-color: rgba(255,157,0,0.45); box-shadow: 0 0 0 1px rgba(255,157,0,0.18) inset, 0 0 36px rgba(255,157,0,0.14); }
     .tipbox::before {
       content: ""; position: absolute; top: 0; left: 0; right: 0;
       height: 6px;
@@ -368,8 +406,8 @@
     .tipbox.tone-amber h4 svg path { stroke: #ffd24d; fill: none; }
     .tipbox ul { list-style: none; padding: 0; margin: 0; }
     .tipbox li {
-      font-size: 15px; line-height: 1.6; padding: 6px 0 6px 24px; position: relative;
-      color: var(--text);
+      font-size: 15px; line-height: 1.65; padding: 8px 0 8px 24px; position: relative;
+      color: rgba(255,255,255,0.94);
     }
     .tipbox.tone-blue li::before,
     .tipbox.tone-amber li::before {
@@ -379,6 +417,75 @@
     }
     .tipbox.tone-blue  li::before { border-color: #00d4ff; }
     .tipbox.tone-amber li::before { border-color: #ffd24d; }
+
+    /* ── Questions CTA — friendly bridge above the thank-you. Cyan / purple
+       gradient backdrop with subtle radial-glow accent so it reads as a
+       welcome handoff, not as a hard-sell button bar. ── */
+    .pack-questions {
+      position: relative; overflow: hidden;
+      max-width: 760px; margin: 40px auto 32px;
+      padding: 36px 32px 32px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(123,47,255,0.05));
+      border: 1px solid rgba(0,212,255,0.30);
+      border-radius: var(--r);
+      text-align: center;
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.10) inset, 0 0 36px rgba(0,212,255,0.10);
+    }
+    .pack-questions .pq-glow {
+      position: absolute; inset: -40% -10% auto -10%;
+      height: 220px;
+      background: radial-gradient(ellipse 50% 60% at 50% 30%, rgba(0,212,255,0.18), transparent 70%);
+      filter: blur(20px);
+      pointer-events: none;
+    }
+    .pack-questions > * { position: relative; z-index: 1; }
+    .pack-questions .pq-icon {
+      font-size: 32px; line-height: 1; margin-bottom: 10px;
+      filter: drop-shadow(0 0 12px rgba(0,212,255,0.45));
+    }
+    .pack-questions h3 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(22px, 3vw, 30px); line-height: 1.2;
+      margin: 0 0 8px; padding: 2px 0 6px;
+      background: linear-gradient(135deg, #00d4ff, #b46cff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(0,212,255,0.30));
+    }
+    .pack-questions p {
+      font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.92);
+      max-width: 540px; margin: 0 auto 20px;
+    }
+    .pack-questions p a { color: #4ddfff; font-weight: 600; text-decoration: none; }
+    .pack-questions p a.pq-ig { color: #ff66b3; }
+    .pack-questions p a:hover { text-decoration: underline; }
+    .pack-questions .pq-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    }
+    .pack-questions .pq-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 11px 22px;
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px;
+      letter-spacing: 0.3px;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .2s, border-color .15s, background .15s;
+    }
+    .pack-questions .pq-btn-primary {
+      background: linear-gradient(135deg, #00d4ff, #2f8fff);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(0,212,255,0.30);
+    }
+    .pack-questions .pq-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,212,255,0.45); }
+    .pack-questions .pq-btn-outline {
+      background: transparent;
+      color: #ff66b3;
+      border: 1.5px solid rgba(255,102,179,0.50);
+    }
+    .pack-questions .pq-btn-outline:hover { transform: translateY(-1px); border-color: #ff66b3; background: rgba(255,102,179,0.08); }
+    @media (max-width: 540px) {
+      .pack-questions { padding: 28px 22px 24px; margin: 32px auto 24px; }
+      .pack-questions .pq-btn { padding: 10px 18px; font-size: 13px; }
+    }
 
     /* ── Closing thank you — neon-bordered, with the heart vertically
        centered, and the body copy bumped slightly for readability. ── */
@@ -491,7 +598,7 @@
     <div class="page-hero">
       <h1>How to Pack Your Cards</h1>
       <p class="pack-tagline">Packed Right = <span class="ok">Safe Delivery</span> + <span class="pop">Happy Customers</span></p>
-      <p>Proper packing protects your cards and helps us process your order quickly.</p>
+      <p>Following these packaging guidelines helps prevent transit damage and speeds up processing for trades, grading prep, and submissions.</p>
     </div>
 
     <div class="section" style="padding-top:0">
@@ -629,6 +736,18 @@
           </ul>
         </section>
 
+      </div>
+
+      <!-- Questions CTA — friendly bridge before the thank-you / brand close. -->
+      <div class="pack-questions">
+        <div class="pq-glow" aria-hidden="true"></div>
+        <div class="pq-icon" aria-hidden="true">💬</div>
+        <h3>Questions before shipping?</h3>
+        <p>Reach out anytime through the <a href="contact.html">contact page</a> or DM us on Instagram <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="pq-ig">@sakekittycards</a>. We're happy to walk through any submission before you drop it in the mail.</p>
+        <div class="pq-actions">
+          <a href="contact.html" class="pq-btn pq-btn-primary">Contact Us</a>
+          <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="pq-btn pq-btn-outline">DM on Instagram</a>
+        </div>
       </div>
 
       <!-- Thank you -->
