@@ -246,12 +246,13 @@
     .checklist h4 {
       font-family: 'Bangers', cursive; letter-spacing: 0.04em;
       font-size: 22px; line-height: 1.25; padding: 2px 0 6px;
-      background: linear-gradient(135deg, #ffb84d, #ff6a00);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 8px;
+      color: #fff;
+      text-shadow: 0 0 14px rgba(255,184,77,0.50), 0 0 4px rgba(255,184,77,0.70);
+      margin-bottom: 10px;
     }
     .checklist li {
-      font-size: 14px; line-height: 1.55; padding: 6px 0 6px 24px; position: relative;
+      font-size: 14px; line-height: 1.65; padding: 7px 0 7px 24px; position: relative;
+      color: rgba(255,255,255,0.92);
     }
     .checklist li::before {
       content: ""; position: absolute; left: 0; top: 11px;
@@ -285,10 +286,10 @@
     }
     .donot:hover {
       transform: translateY(-2px);
-      border-color: rgba(255,55,90,0.65);
+      border-color: rgba(255,55,90,0.70);
       box-shadow:
-        0 0 0 1px rgba(255,55,90,0.25) inset,
-        0 0 48px rgba(255,55,90,0.18);
+        0 0 0 1px rgba(255,55,90,0.28) inset,
+        0 0 44px rgba(255,55,90,0.20);
     }
     .sleeves {
       border: 1px solid rgba(80,220,140,0.30);
@@ -301,7 +302,7 @@
       border-color: rgba(80,220,140,0.55);
       box-shadow:
         0 0 0 1px rgba(80,220,140,0.20) inset,
-        0 0 40px rgba(80,220,140,0.14);
+        0 0 42px rgba(80,220,140,0.16);
     }
     /* Solid white titles with per-tone text-shadow glow — matches the
        .tier-head pattern in the rest of the page so titles read as clean
@@ -326,8 +327,8 @@
     .donot li::before {
       content: ""; position: absolute; left: 4px; top: 16px;
       width: 16px; height: 16px; border-radius: 50%;
-      background: rgba(255,55,90,0.22); border: 1.5px solid rgba(255,55,90,0.65);
-      box-shadow: 0 0 8px rgba(255,55,90,0.35);
+      background: rgba(255,55,90,0.24); border: 1.5px solid rgba(255,55,90,0.70);
+      box-shadow: 0 0 10px rgba(255,55,90,0.42);
     }
     .donot li:first-child::before { top: 8px; }
     .donot li::after {
@@ -365,8 +366,8 @@
       display: flex; flex-direction: column;
       transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
     }
-    .tipbox.tone-blue:hover  { transform: translateY(-2px); border-color: rgba(0,212,255,0.45); box-shadow: 0 0 0 1px rgba(0,212,255,0.18) inset, 0 0 36px rgba(0,212,255,0.14); }
-    .tipbox.tone-amber:hover { transform: translateY(-2px); border-color: rgba(255,157,0,0.45); box-shadow: 0 0 0 1px rgba(255,157,0,0.18) inset, 0 0 36px rgba(255,157,0,0.14); }
+    .tipbox.tone-blue:hover  { transform: translateY(-2px); border-color: rgba(0,212,255,0.50); box-shadow: 0 0 0 1px rgba(0,212,255,0.20) inset, 0 0 42px rgba(0,212,255,0.16); }
+    .tipbox.tone-amber:hover { transform: translateY(-2px); border-color: rgba(255,157,0,0.50); box-shadow: 0 0 0 1px rgba(255,157,0,0.20) inset, 0 0 42px rgba(255,157,0,0.16); }
     .tipbox::before {
       content: ""; position: absolute; top: 0; left: 0; right: 0;
       height: 6px;
