@@ -38,12 +38,12 @@ USER_AGENT = "Mozilla/5.0 SakeKittyCards-JPIndex/1.0 (sakekittycards.com)"
 RATE_DELAY_SEC = 0.5
 
 # Drop JP cards with TCGplayer market < this floor — same convention used in
-# build_all_cards_index.py. Aligned with the customer-facing $5+ guidance on
-# trade-in.html (cards under ~$5 flow into the Quick-Add Flat-Rate Categories
-# section instead of being individually searchable). Cards with no tracked
-# price (market is None) are KEPT so obscure / new releases without prices
-# yet still surface in search.
-MARKET_FLOOR_USD = 5.00
+# build_all_cards_index.py. Aligned with the customer-facing "$3+ singles"
+# guidance on trade-in.html (cards under ~$3 flow into the Quick-Add
+# Flat-Rate Categories section instead of being individually searchable).
+# Cards with no tracked price (market is None) are KEPT so obscure / new
+# releases without prices yet still surface in search.
+MARKET_FLOOR_USD = 3.00
 
 # Same list trade-in.html / grading-prep.html use to filter sealed products
 # out of card-grading flows. Sealed boxes/packs aren't gradeable.
