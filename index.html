@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=107" />
+  <link rel="stylesheet" href="style.css?v=108" />
 
   <style>
     /* Hero-specific styles */
@@ -60,9 +60,9 @@
       position: relative; z-index: 1;
       min-height: calc(100vh - var(--nav-h));
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: calc(var(--nav-h) + 40px) 24px 60px;
+      padding: calc(var(--nav-h) + 30px) 24px 48px;
       text-align: center;
-      gap: 24px;
+      gap: 20px;
     }
 
     /* Work-in-progress badge */
@@ -71,7 +71,7 @@
       align-items: center;
       gap: 9px;
       padding: 9px 18px;
-      margin-bottom: 20px;        /* breathing room before the logo */
+      margin-bottom: 12px;        /* breathing room before the logo */
       border-radius: 100px;
       background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(255,0,128,0.12));
       border: 1px solid rgba(255,106,0,0.35);
@@ -272,8 +272,8 @@
     }
     .hero-tagline {
       font-size: clamp(14px, 2.7vw, 18px);
-      color: rgba(255,255,255,0.72);
-      max-width: 560px; line-height: 1.7;
+      color: rgba(255,255,255,0.82);
+      max-width: 560px; line-height: 1.6;
       animation: fadeUp 0.6s ease both 0.55s;
     }
     .hero-ctas {
@@ -281,29 +281,34 @@
       animation: fadeUp 0.6s ease both 0.75s;
     }
 
-    /* Features strip */
+    /* Features strip — trust row. Pulled tighter to the hero, slightly bigger
+       icons + brighter labels so the row feels integrated, not floating. */
     .features {
       position: relative; z-index: 1;
-      max-width: var(--max-w); margin: 0 auto; padding: 40px 24px 80px;
+      max-width: var(--max-w); margin: 0 auto; padding: 24px 24px 56px;
     }
     .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 22px;
     }
     .feature-item {
-      text-align: center; padding: 24px 20px;
+      text-align: center; padding: 22px 22px;
     }
     .feature-icon {
-      font-size: 32px; margin-bottom: 10px;
-      filter: drop-shadow(0 0 14px rgba(255,106,0,0.4));
+      font-size: 38px; margin-bottom: 12px;
+      filter: drop-shadow(0 0 16px rgba(255,106,0,0.45));
     }
-    .feature-item h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
-    .feature-item p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .feature-item h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: rgba(255,255,255,0.95); }
+    .feature-item p { font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.65; }
 
     /* Section title center variant */
-    .center-heading { text-align: center; margin-bottom: 36px; }
+    .center-heading { text-align: center; margin-bottom: 30px; }
     .center-heading .section-title { display: inline-block; }
     .center-heading .divider { margin: 10px auto 0; }
     .center-heading .section-sub { margin: 10px auto 0; }
+    /* Tighten section-to-section pacing on the homepage (only — global .section
+       remains 72px elsewhere). Each lower-section uses padding-top:0 inline,
+       so this tightens the bottom side. */
+    .page-content > section.section { padding-bottom: 56px; }
 
     /* Events preview */
     .events-preview-grid {
@@ -366,10 +371,10 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 24px;
+      padding: 26px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
       transition: border-color 0.2s, transform 0.2s;
     }
     .testimonial-card:hover {
@@ -383,9 +388,9 @@
       line-height: 1;
     }
     .testimonial-text {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
+      font-size: 14.5px;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.72;
       flex: 1;
       margin: 0;
     }
@@ -408,28 +413,36 @@
       font-size: 10px;
     }
 
-    /* CTA section */
+    /* CTA section — sell/trade is PRIMARY (it's the unique-on-site conversion path).
+       TCGPlayer banner is SECONDARY (off-site referral). Hierarchy via padding +
+       title size + glow intensity, not via tone change. */
     .cta-banner {
       max-width: var(--max-w); margin: 0 auto;
-      padding: 48px 40px;
-      background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(123,47,255,0.12));
-      border: 1px solid rgba(255,106,0,0.25); border-radius: var(--r);
+      padding: 40px 36px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.10), rgba(123,47,255,0.10));
+      border: 1px solid rgba(255,106,0,0.22); border-radius: var(--r);
       text-align: center;
     }
-    /* Sell/trade variant — cyan + pink palette so it reads distinct from the orange buy CTA */
+    /* Sell/trade — PRIMARY: bigger pad, bigger title, cyan/pink palette + outer glow */
     .cta-banner.cta-sell {
-      background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(255,0,128,0.10));
-      border-color: rgba(0,212,255,0.32);
+      padding: 56px 40px;
+      background: linear-gradient(135deg, rgba(0,212,255,0.14), rgba(255,0,128,0.12));
+      border: 1.5px solid rgba(0,212,255,0.40);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.15) inset, 0 0 36px rgba(0,212,255,0.10);
     }
     .cta-banner h2 {
-      font-family: 'Bangers', cursive; font-size: clamp(24px, 4.5vw, 40px);
-      letter-spacing: 0.03em; margin-bottom: 8px;
+      font-family: 'Bangers', cursive; font-size: clamp(24px, 4.5vw, 38px);
+      letter-spacing: 0.03em; margin-bottom: 10px;
+      padding-bottom: 4px; line-height: 1.25;
     }
     .cta-banner.cta-sell h2 {
+      font-size: clamp(28px, 5vw, 44px);
       background: linear-gradient(135deg, #00d4ff, #ff0080);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 16px rgba(0,212,255,0.30));
     }
-    .cta-banner p { color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+    .cta-banner p { color: rgba(255,255,255,0.88); font-size: 15px; line-height: 1.65; margin-bottom: 24px; max-width: 560px; margin-left: auto; margin-right: auto; }
+    .cta-banner.cta-sell p { font-size: 16px; line-height: 1.6; margin-bottom: 28px; }
 
     .see-all {
       display: block; text-align: center; margin-top: 28px;
