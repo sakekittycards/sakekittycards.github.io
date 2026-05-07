@@ -105,14 +105,18 @@
       display: block; font-size: 12.5px; color: var(--muted);
     }
 
-    /* ── Connect cards ── */
+    /* ── Connect cards — locked to 5-col on desktop so last card doesn't
+       orphan-wrap. Drops cleanly to 3/2/1 col on smaller screens. ── */
     .connect-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       gap: 18px;
-      max-width: 1080px;
+      max-width: 1180px;
       margin: 0 auto;
     }
+    @media (max-width: 1100px) { .connect-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 760px)  { .connect-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px)  { .connect-grid { grid-template-columns: 1fr; } }
     .connect-card {
       display: flex; flex-direction: column;
       padding: 28px 22px 22px;
