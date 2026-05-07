@@ -728,14 +728,21 @@ body.cart-open { overflow: hidden; }
   text-align: center; max-width: var(--max-w); margin: 0 auto;
 }
 .page-hero h1 {
-  font-family: 'Bangers', cursive; font-size: clamp(38px,8vw,76px);
+  /* Sitewide hero scale unified at clamp(40, 7vw, 64). Was clamp(38, 8vw, 76)
+     which over-shouted on desktop; multiple per-page overrides had already
+     converged on this same scale. Now everything uses one rhythm. */
+  font-family: 'Bangers', cursive; font-size: clamp(40px,7vw,64px);
   letter-spacing: 0.03em; line-height: 1.25; padding: 0 10px;
   background: linear-gradient(135deg,var(--orange) 0%,var(--pink) 50%,var(--purple) 100%);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  /* Reduced from 0.35 → 0.22 — sitewide glow restraint pass. */
   filter: drop-shadow(0 0 16px rgba(255,106,0,0.22)); margin-bottom: 14px;
 }
-.page-hero p { font-size: clamp(14px,2.5vw,17px); color: var(--muted); max-width: 500px; margin: 0 auto; }
+.page-hero p {
+  /* Standardized — was clamp(14,2.5vw,17), tightened minimum to 15 so the
+     subhead reads body-size on mobile instead of caption-size. */
+  font-size: clamp(15px,2vw,17px); line-height: 1.6;
+  color: var(--muted); max-width: 580px; margin: 0 auto;
+}
 
 /* ── Layout helpers ── */
 .section { padding: 72px 24px; max-width: var(--max-w); margin: 0 auto; }
@@ -1763,5 +1770,10 @@ body.drip-unlocked { position: relative; }
   .tier-card:hover,
   .service-card:hover,
   .testimonial-card:hover,
-  .connect-card:hover { transform: none; }
+  .connect-card:hover,
+  .card:hover,
+  .value-card:hover,
+  .feature-card:hover,
+  .cm-pill:hover,
+  .btn:hover { transform: none; }
 }

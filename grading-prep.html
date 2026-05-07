@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=112" />
+  <link rel="stylesheet" href="style.css?v=113" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -1101,6 +1101,53 @@
         return out;
       }
 
+      // English Pokemon static index — built from TCG CSV (categoryId 3) by
+      // scripts/build_en_card_index.py. Mirrors the JP index. Used as a
+      // parallel EN search source alongside pokemontcg.io: pokemontcg.io
+      // wins for shared cards (nicer images), this fills the gaps it misses
+      // (newer promos, oddballs, special collabs). Same shape as JP rows.
+      let _enIndex = null;
+      let _enIndexLoading = null;
+      const _EN_INDEX_URL = 'assets/en-cards.json?v=1';
+      function loadEnIndex() {
+        if (_enIndex) return Promise.resolve(_enIndex);
+        if (_enIndexLoading) return _enIndexLoading;
+        _enIndexLoading = fetch(_EN_INDEX_URL)
+          .then(r => r.ok ? r.json() : [])
+          .then(arr => { _enIndex = Array.isArray(arr) ? arr : []; return _enIndex; })
+          .catch(() => { _enIndex = []; return _enIndex; });
+        return _enIndexLoading;
+      }
+      async function searchEnglish(tokens) {
+        if (!tokens.length) return [];
+        const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+        const idx = await loadEnIndex();
+        if (!idx.length) return [];
+        const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+        const out = [];
+        for (let i = 0; i < idx.length && out.length < 30; i++) {
+          const [name, setName, number, productId, market] = idx[i];
+          const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+          let allMatch = true;
+          for (const t of cleaned) {
+            if (!hay.includes(t)) { allMatch = false; break; }
+          }
+          if (!allMatch) continue;
+          // Strip " - 4/102" set-number suffix from display name (it's
+          // already broken out into the number field).
+          const cleanName = (name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || name;
+          out.push({
+            lang: 'en',
+            name: cleanName,
+            setName,
+            number,
+            productId,
+            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
+          });
+        }
+        return out;
+      }
+
       // Substring-match every JP card by tokens against name + setName + number.
       // Index entries: [name, setName, number, productId, marketPrice].
       // Grading prep doesn't use price (it's a screening service, not a quote),
@@ -1422,33 +1469,39 @@
           const lucene = buildQuery(tokens);
           if (!lucene) { gpResultsEl.classList.remove('open'); return; }
 
-          // Fire English (pokemontcg.io), Japanese (static JP index), and the
-          // PriceCharting fallback (Japanese gaps + all Chinese cards) in
-          // parallel. pageSize bumped 12 -> 25 so more variants surface.
+          // Fire all four sources in parallel:
+          //   pokemontcg.io (live EN) — nicer images + variant pricing
+          //   en-static (TCG CSV)     — every TCGplayer-tracked EN card
+          //   JP static (TCG CSV)     — every TCGplayer-tracked JP card
+          //   PC fallback             — final safety net (e.g. Chinese)
           const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=25&orderBy=-set.releaseDate`;
-          const [enRes, jpRes, fbRes] = await Promise.allSettled([
+          const [enRes, enStaticRes, jpRes, fbRes] = await Promise.allSettled([
             fetch(enUrl).then(r => r.ok ? r.json() : Promise.reject('en error')),
+            searchEnglish(tokens),
             searchJapanese(tokens),
             searchAllCardsFallbackForGrading(tokens, new Set()),
           ]);
 
-          const enCards = enRes.status === 'fulfilled' ? (enRes.value.data || []) : [];
-          const jpCards = jpRes.status === 'fulfilled' ? (jpRes.value || [])      : [];
-          const fbCards = fbRes.status === 'fulfilled' ? (fbRes.value || [])      : [];
+          const enCards     = enRes.status        === 'fulfilled' ? (enRes.value.data || []) : [];
+          const enStaticArr = enStaticRes.status  === 'fulfilled' ? (enStaticRes.value || []) : [];
+          const jpCards     = jpRes.status        === 'fulfilled' ? (jpRes.value || [])      : [];
+          const fbCards     = fbRes.status        === 'fulfilled' ? (fbRes.value || [])      : [];
 
-          // Dedupe fallback rows that pokemontcg.io already returned. Two
-          // dedup keys: productId (vs JP results) and lowercased name+number
-          // (vs EN results, since pokemontcg.io doesn't expose productId).
+          // Dedupe across sources by lowercased name+number (productId for JP).
           const seenJpPids = new Set(jpCards.map(c => c.productId).filter(Boolean));
           const seenEnNN   = new Set(enCards.map(c => `${(c.name || '').toLowerCase()}|${c.number || ''}`));
+          // en-static rows have already-cleaned name (suffix stripped).
+          // Add their keys to the dedup set so PC fallback doesn't double-add.
+          for (const e of enStaticArr) {
+            if (e.number) seenEnNN.add(`${(e.name || '').toLowerCase()}|${e.number}`);
+          }
           const fbCleaned  = fbCards.filter(c =>
             !seenJpPids.has(c.productId) &&
             !(c.number && seenEnNN.has(`${(c.name || '').toLowerCase()}|${c.number}`))
           );
 
-          // Unified results array: each entry has the shape used by the click
-          // handler. EN entries keep the pokemontcg.io card on .raw for image
-          // gallery use; JP entries are TCG-CSV-shaped already.
+          // Unified results array. Order: pokemontcg.io EN (nicest images),
+          // en-static EN (gap-fillers), JP static, PC fallback.
           gpSearchResults = [];
           for (const c of enCards) {
             gpSearchResults.push({
@@ -1458,6 +1511,27 @@
               number: c.number || '',
               image: c.images?.small || '',
               productId: null,  // resolved on add via resolveEnProductId
+            });
+          }
+          for (const e of enStaticArr) {
+            // Skip if pokemontcg.io already has this name+number.
+            const k = `${(e.name || '').toLowerCase()}|${e.number || ''}`;
+            if (seenEnNN.has(k) && !enStaticArr.includes(e)) continue;
+            // Avoid double-pushing when both have it — pokemontcg.io ran first
+            // so check existing gpSearchResults rows directly.
+            const dup = gpSearchResults.some(r =>
+              r.lang === 'en' &&
+              (r.name || '').toLowerCase() === (e.name || '').toLowerCase() &&
+              (r.number || '') === (e.number || '')
+            );
+            if (dup) continue;
+            gpSearchResults.push({
+              lang: 'en',
+              name: e.name,
+              setName: e.setName || '',
+              number: e.number || '',
+              image: e.image || '',
+              productId: e.productId || null,
             });
           }
           for (const j of jpCards) {
@@ -1470,7 +1544,6 @@
               productId: j.productId || null,
             });
           }
-          // Append fallback (JP gaps + Chinese), deduped against jpCards above.
           for (const f of fbCleaned) {
             gpSearchResults.push({
               lang: f.lang,  // 'jp' or 'cn'
