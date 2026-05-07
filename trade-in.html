@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=126" />
+  <link rel="stylesheet" href="style.css?v=127" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1432,7 +1432,7 @@
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
             </span>
-            <input type="text" class="ti-search" id="searchInput" placeholder='Search by name, set, or number (e.g. "170/198", "SWSH001", "242/SV-P")' autocomplete="off" />
+            <input type="text" class="ti-search" id="searchInput" aria-label="Search cards by name, set, or number" placeholder='Search by name, set, or number (e.g. "170/198", "SWSH001", "242/SV-P")' autocomplete="off" />
             <div class="ti-results" id="searchResults"></div>
           </div>
 
@@ -1463,7 +1463,7 @@
           <div class="ti-sealed-form" id="gradedForm">
             <div class="ti-sealed-form-title">Add Graded Card</div>
             <div class="ti-graded-search" style="position:relative;margin-bottom:12px">
-              <input type="text" class="ti-input" id="gradedName" placeholder="Card name (e.g. Charizard Base Set Holo)" autocomplete="off" style="margin:0" />
+              <input type="text" class="ti-input" id="gradedName" aria-label="Graded card name" placeholder="Card name (e.g. Charizard Base Set Holo)" autocomplete="off" style="margin:0" />
               <div class="ti-results" id="gradedResults"></div>
             </div>
             <div class="ti-sealed-form-row">
@@ -1471,10 +1471,10 @@
                 <button type="button" class="ti-cond-btn" id="gradedGradeBtn">PSA 10<span class="ti-cond-arrow">▼</span></button>
                 <div class="ti-cond-menu" id="gradedGradeMenu"></div>
               </div>
-              <input type="number" class="ti-input" id="gradedValue" placeholder="Estimated value ($)" step="0.01" min="0" style="flex:1" />
+              <input type="number" class="ti-input" id="gradedValue" aria-label="Estimated value in dollars" inputmode="decimal" placeholder="Estimated value ($)" step="0.01" min="0" style="flex:1" />
             </div>
             <div class="ti-sealed-form-row" style="margin-top:8px">
-              <input type="text" class="ti-input" id="gradedCert" placeholder="Cert # (PSA/CGC/BGS — required)" autocomplete="off" inputmode="numeric" style="flex:1" required />
+              <input type="text" class="ti-input" id="gradedCert" aria-label="Grading cert number (PSA, CGC, or BGS)" placeholder="Cert # (PSA/CGC/BGS — required)" autocomplete="off" inputmode="numeric" style="flex:1" required />
             </div>
             <div style="display:flex;align-items:center;gap:10px;margin:-2px 0 8px;flex-wrap:wrap">
               <button type="button" id="gradedLookupBtn" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px">🔎 Check recent sold prices on eBay</button>
@@ -1578,9 +1578,9 @@
 
           <div class="ti-contact">
             <h4>Your Info</h4>
-            <input type="text" id="custName" class="ti-input" placeholder="Your name *" />
-            <input type="email" id="custEmail" class="ti-input" placeholder="Email address *" />
-            <input type="tel" id="custPhone" class="ti-input" placeholder="Phone (optional)" />
+            <input type="text" id="custName" class="ti-input" aria-label="Your name (required)" placeholder="Your name *" required />
+            <input type="email" id="custEmail" class="ti-input" aria-label="Email address (required)" placeholder="Email address *" required />
+            <input type="tel" id="custPhone" class="ti-input" aria-label="Phone number (optional)" placeholder="Phone (optional)" />
 
             <div class="ti-pref-label">Payment Preference</div>
             <div class="ti-pref" id="prefGroup">
@@ -1589,7 +1589,7 @@
               <button type="button" data-val="Store Credit">Store Credit</button>
             </div>
 
-            <textarea id="custNotes" class="ti-textarea" placeholder="Additional notes (optional)"></textarea>
+            <textarea id="custNotes" class="ti-textarea" aria-label="Additional notes (optional)" placeholder="Additional notes (optional)"></textarea>
           </div>
 
           <div class="ti-actions" style="padding-top:8px">
@@ -1695,7 +1695,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=50"></script>
+  <script src="main.js?v=51"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
