@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="style.css?v=126" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -61,8 +61,7 @@
        refined, estimator breathing room, accordion deprioritized, bulk
        table tightened, CTA elevated. ── */
     .page-tradein .bg-blob { opacity: 0.06; filter: blur(140px); }
-    .page-tradein .page-hero,
-    .page-tradein .section { max-width: 1360px; }   /* widened — was 1240, felt boxed */
+    /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
     .page-tradein .page-hero { padding-bottom: 24px; }
     .page-tradein .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
     .page-tradein .page-hero > p {
@@ -1696,7 +1695,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=49"></script>
+  <script src="main.js?v=50"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {

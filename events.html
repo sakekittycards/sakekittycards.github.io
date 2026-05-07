@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="style.css?v=126" />
   <style>
     /* ── Calendar layout ── */
     .cal-layout {
@@ -275,8 +275,7 @@
 
     /* ── Page-scoped polish — wider container, bigger calendar, CTA hierarchy,
        tighter section transitions. Matches the rhythm shipping/team set. ── */
-    .page-events .page-hero,
-    .page-events .section { max-width: 1320px; }      /* widened — was 1240, page felt boxed-in */
+    /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
     .page-events .bg-blob { opacity: 0.06; filter: blur(140px); }
     .page-events .page-hero { padding-bottom: 28px; }
     .page-events .page-hero h1 { font-size: clamp(40px, 7vw, 64px); }
@@ -335,7 +334,7 @@
     /* Closing brand strip — shipping/team rhythm so the page closes intentionally. */
     /* "Recent Show Moments" mini photo strip — proves the calendar isn't theoretical. */
     .recent-shows {
-      max-width: 1320px; margin: 0 auto;
+      max-width: var(--max-w); margin: 0 auto;
       padding: 8px 0 32px;
     }
     .recent-shows-header {
@@ -520,7 +519,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=49"></script>
+  <script src="main.js?v=50"></script>
   <script>
     const EVENTS = [
       { start: '2026-04-25', end: '2026-04-26', name: 'Bradenton TCG',              loc: 'Manatee County Fairgrounds — Veterans Expo Hall · 1402 14th Ave W, Palmetto, FL 34221', hours: 'Sat 10am–6pm · Sun 10am–5pm' },

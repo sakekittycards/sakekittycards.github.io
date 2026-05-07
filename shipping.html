@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=125" />
+  <link rel="stylesheet" href="style.css?v=126" />
   <style>
     /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
@@ -33,8 +33,7 @@
     .page-shipping .bg-blob   { opacity: 0.06; filter: blur(140px); }
     /* Bumped max-width on the centered children (hero + section) — putting it
        on .page-content broke centering since that wrapper has no margin:0 auto. */
-    .page-shipping .page-hero,
-    .page-shipping .section { max-width: 1320px; }   /* widened — was 1240, page felt boxed */
+    /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
     .page-shipping .page-hero {
       padding-bottom: 28px;        /* was 56px — pulls cards up ~28px */
     }
@@ -752,6 +751,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=49"></script>
+  <script src="main.js?v=50"></script>
 </body>
 </html>

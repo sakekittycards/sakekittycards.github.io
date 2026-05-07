@@ -14,7 +14,7 @@
   --dim:          rgba(255,255,255,0.65);   /* was 0.32 → 0.55 → 0.65 — Nick wanted more readable in sunlight */
   --border:       rgba(255,255,255,0.08);
   --nav-h:        84px;
-  --max-w:        1320px;          /* sitewide default — was 1160; per-page 1360 overrides on shop/grading-prep/trade-in still apply */
+  --max-w:        1440px;          /* sitewide default — bumped 1320 → 1440 (2026-05-07 home-pacing pass); per-page overrides at 1320/1360 unified to inherit */
   --r:            14px;
   --r-sm:         8px;
   --r-pill:       100px;
