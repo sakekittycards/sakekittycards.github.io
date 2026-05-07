@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=126" />
+  <link rel="stylesheet" href="style.css?v=127" />
   <style>
     /* Easter egg: 69 clicks on Jonathan's avatar grows an animated mustache */
     .vendor-avatar-wrap {
@@ -249,6 +249,7 @@
     .otr-tile:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
     .otr-tile img {
       width: 100%; height: 100%; object-fit: cover; display: block;
+      object-position: center 18%;     /* bias crop toward upper portion so heads stay in frame */
       transition: transform .8s ease;
     }
     .otr-tile:hover img { transform: scale(1.04); }
@@ -409,7 +410,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=50"></script>
+  <script src="main.js?v=51"></script>
   <script>
     // Easter egg: 69 clicks on Jonathan's avatar grows him an animated mustache.
     // Mustache springs in, wiggles, then poofs away after ~5.5s — so the egg can be
