@@ -216,17 +216,21 @@
     }
     .gp-radio-pill.active small { color:var(--muted); }
 
-    /* Trust strip — 5 reassurance bullets above the form. */
+    /* Trust strip — 6 reassurance bullets above the form. Locked at 3 cols
+       on desktop so 6 items render as a perfect 3×2 grid (no off-center
+       orphan row). Drops to 2 cols on tablet, 1 col on phone. */
     .gp-trust-strip {
       display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-      gap:10px;
-      max-width:920px; margin:0 auto 28px;
-      padding:18px 20px;
+      grid-template-columns:repeat(3, 1fr);
+      gap:12px 18px;
+      max-width:980px; margin:0 auto 28px;
+      padding:20px 24px;
       background:linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.04));
       border:1px solid rgba(0,212,255,0.22);
       border-radius:var(--r);
     }
+    @media (max-width:760px) { .gp-trust-strip { grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width:480px) { .gp-trust-strip { grid-template-columns:1fr; padding:18px 20px; } }
     .gp-trust-item {
       display:flex; align-items:flex-start; gap:10px;
       font-size:13px; color:rgba(229,229,247,0.82); line-height:1.5;
@@ -301,10 +305,33 @@
     .gp-profit-panel > summary {
       list-style: none;
       cursor: pointer;
-      padding: 7px 10px;
-      font-size: 12px; line-height: 1.45;
-      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px;
+      font-size: 12.5px; line-height: 1.45;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
       transition: background .15s, border-color .15s;
+    }
+    /* Profit-summary parts — labeled chip + best-profit value + meta */
+    .gpp-label { color: rgba(255,255,255,0.78); font-weight: 600; }
+    .gpp-best {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px;
+      background: rgba(80,220,140,0.12);
+      border: 1px solid rgba(80,220,140,0.40);
+      border-radius: 100px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #9aeab1;
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+    .gpp-best strong { color: #50dc8c; font-weight: 800; font-size: 13.5px; }
+    .gpp-meta {
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      margin-left: auto;
+    }
+    @media (max-width:520px) {
+      .gpp-meta { margin-left: 0; width: 100%; }
     }
     .gp-profit-panel > summary::-webkit-details-marker { display: none; }
     .gp-profit-panel > summary:hover { background: rgba(255,106,0,0.06); }
@@ -590,13 +617,14 @@
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
-      <!-- Trust strip — 5 reassurance bullets before the form. -->
+      <!-- Trust strip — 6 reassurance bullets above the form (3×2 grid). -->
       <ul class="gp-trust-strip" aria-label="What to expect">
         <li class="gp-trust-item"><span><strong>English &amp; Japanese Pokémon</strong> only</span></li>
         <li class="gp-trust-item"><span><strong>No substances or alterations</strong> — microfiber dust-off only</span></li>
         <li class="gp-trust-item"><span><strong>Screening results emailed</strong> in 2–3 business days</span></li>
         <li class="gp-trust-item"><span><strong>We review every request</strong> before you ship anything</span></li>
         <li class="gp-trust-item"><span><strong>Prep fee refunded</strong> if a card fails screening</span></li>
+        <li class="gp-trust-item"><span><strong>PSA, CGC, or Beckett</strong> — your choice of grader</span></li>
       </ul>
 
       <!-- Screening disclaimer — sets expectation up front, before customers
@@ -1180,8 +1208,8 @@
           ? Math.max(...profitable.map(g => g.val - PSA_FEE_ESTIMATE - baseline))
           : 0;
         const summary = profitable.length
-          ? `<span style="color:var(--muted)">💰 Grading profit estimate</span> <span style="color:#7fdc7f;font-weight:600">best +$${topProfit.toFixed(2)}</span> <span style="color:var(--dim)">· ${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
-          : `<span style="color:var(--muted)">💰 Grading profit estimate</span> <span style="color:var(--dim)">· no grade clears the ~$${PSA_FEE_ESTIMATE} fee floor</span>`;
+          ? `<span class="gpp-label">💰 Grading profit</span><span class="gpp-best">Best <strong>+$${topProfit.toFixed(2)}</strong></span><span class="gpp-meta">${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
+          : `<span class="gpp-label">💰 Grading profit</span><span class="gpp-meta">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor</span>`;
         return `
           <details class="gp-profit-panel" style="margin-top:8px">
             <summary>${summary}<span class="gp-profit-chev" aria-hidden="true">▾</span></summary>
