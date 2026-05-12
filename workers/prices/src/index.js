@@ -73,6 +73,12 @@ export default {
         return await fetchTcgMarket(pid, ctx, env);
       }
 
+      if (path === '/tcg/printings' && request.method === 'GET') {
+        const pid = (url.searchParams.get('productId') || '').trim();
+        if (!/^\d+$/.test(pid)) return json({ error: 'productId must be numeric' }, 400);
+        return await fetchTcgPrintings(pid, ctx, env);
+      }
+
       return json({ error: 'not found', path }, 404);
     } catch (err) {
       return json({ error: err.message || String(err) }, 500);
@@ -360,6 +366,84 @@ async function fetchTcgLastSold(productId, ctx, env) {
     avgPrice:  avg,
     samples:   recentSamples,
   });
+  const response = new Response(body, {
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type':  'application/json',
+      'Cache-Control': `public, max-age=${ttl}`,
+    },
+  });
+  ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
+}
+
+// ─── TCGplayer SKU-level printings (mp-search-api /v1/product/{id}/listings) ─
+// /tcg/market only returns the simple Normal/Foil split from mpapi pricepoints,
+// which loses 1st Edition / Shadowless / Unlimited distinctions that live on
+// the SKU. This endpoint POSTs a no-filter listings query and reads back the
+// aggregations.printing[] facet — that's the same set of values TCGplayer's
+// own product page surfaces as printing filters. Catches:
+//   * Reverse Holofoil + Holofoil (vintage e-Card era: Expedition, Aquapolis,
+//     Skyridge)
+//   * 1st Edition Holofoil + Unlimited Holofoil (Base Shadowless, Jungle,
+//     Fossil, Team Rocket, Gym, Neo)
+//   * Cracked Ice Holofoil, Cosmos Holofoil (promos)
+//   * Newer reverse-holo variants (modern sets)
+async function fetchTcgPrintings(productId, ctx, env) {
+  const cache    = caches.default;
+  const cacheKey = new Request(`https://sakekitty-prices.internal/tcg/printings?id=${productId}`, { method: 'GET' });
+
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  let upstream;
+  try {
+    upstream = await fetch(`https://mp-search-api.tcgplayer.com/v1/product/${productId}/listings`, {
+      method: 'POST',
+      headers: {
+        'User-Agent':  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept':      'application/json',
+        'Content-Type':'application/json',
+        'Origin':      'https://www.tcgplayer.com',
+        'Referer':     `https://www.tcgplayer.com/product/${productId}`,
+      },
+      // Empty filter set + size:1 — we only care about the aggregations
+      // facet, not the actual listings rows. mp-search-api still computes
+      // aggregations across the FULL result set regardless of size.
+      body: JSON.stringify({
+        filters: { term: { sellerStatus: 'Live' }, range: { quantity: { gte: 1 } } },
+        context: { shippingCountry: 'US' },
+        from: 0, size: 1,
+        sort: { field: 'price+shipping', order: 'asc' },
+      }),
+      cf: { cacheTtl: 0, cacheEverything: false },
+    });
+  } catch (err) {
+    return json({ ok: false, error: `fetch threw: ${err.message || err}` });
+  }
+
+  if (!upstream.ok) {
+    return json({ ok: false, error: `HTTP ${upstream.status}`, status: upstream.status });
+  }
+
+  let payload;
+  try {
+    payload = await upstream.json();
+  } catch {
+    return json({ ok: false, error: 'non-json upstream response' });
+  }
+
+  // Response shape:
+  //   { results: [ { aggregations: { printing: [{value, count}, ...], condition: [...], ... } } ] }
+  const ag = (payload?.results?.[0] || {}).aggregations || {};
+  const printings = Array.isArray(ag.printing)
+    ? ag.printing
+        .filter(p => p && typeof p.value === 'string' && Number(p.count) > 0)
+        .map(p => ({ type: p.value, count: Number(p.count) }))
+    : [];
+
+  const ttl = Number(env.CACHE_TTL_SECONDS) || 21600;
+  const body = JSON.stringify({ ok: true, productId, printings });
   const response = new Response(body, {
     headers: {
       ...CORS_HEADERS,

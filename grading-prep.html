@@ -1000,10 +1000,10 @@
       const GP_PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
       const gpTcgRawCache = Object.create(null);  // pidStr -> number | null
 
-      // Printings index per productId — fetched lazily from /tcg/market and
-      // used to expand a search row into one row per available printing
-      // (Holo / Reverse Holo / 1st Ed Holo / etc.). Cache forever per page —
-      // TCGplayer's printing list for an SKU is stable.
+      // Printings index per productId — fetched lazily from /tcg/printings
+      // (worker calls mp-search-api/listings, returns the SKU-level facet —
+      // catches 1st Edition Holofoil + Unlimited Holofoil + Reverse Holofoil
+      // separately rather than the coarse Normal/Foil split mpapi gives).
       const _gpPrintingsCache = Object.create(null);
       async function _gpFetchPrintings(pid) {
         const k = String(pid);
@@ -1011,10 +1011,10 @@
         // Synthetic pc:* ids are Chinese cards — TCGplayer doesn't carry them.
         if (k.startsWith('pc:')) { _gpPrintingsCache[k] = null; return null; }
         try {
-          const r = await fetch(`${GP_PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
+          const r = await fetch(`${GP_PRICES_WORKER}/tcg/printings?productId=${encodeURIComponent(pid)}`);
           if (!r.ok) { _gpPrintingsCache[k] = null; return null; }
           const d = await r.json();
-          const arr = d?.ok && Array.isArray(d.printings) ? d.printings.filter(p => p?.type) : null;
+          const arr = d?.ok && Array.isArray(d.printings) ? d.printings : null;
           _gpPrintingsCache[k] = arr;
           return arr;
         } catch { _gpPrintingsCache[k] = null; return null; }
@@ -1498,7 +1498,11 @@
         gpCards.forEach(c => gpEnsureTcgRaw(c));
 
         gpListEl.innerHTML = gpCards.map((c, i) => {
-          const firstEdEligible = _isFirstEdEligible(c.set);
+          // Hide the manual toggle when the search dropdown already split
+          // the variant out — the customer picked "1st Ed Holo" directly, no
+          // need to ask again.
+          const alreadyHasFirstEd = /1st\s*ed/i.test(c.variant || '');
+          const firstEdEligible = _isFirstEdEligible(c.set) && !alreadyHasFirstEd;
           const firstEdBadge = c.firstEd
             ? '<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.14);padding:2px 7px;border-radius:3px;margin-left:6px;text-transform:uppercase;vertical-align:1px">1st Ed</span>'
             : '';
@@ -1858,22 +1862,17 @@
           _renderGpResults();
 
           // Background enrichment: for each result with a productId and no
-          // pre-resolved variant, fetch the printings list from /tcg/market
-          // and expand the row into one entry per printing. We filter to
-          // printings TCGplayer has a market price on — a null market means
-          // the SKU exists in the catalog but the printing isn't real (e.g.
-          // Expedition Charizard returns [{Normal: null}, {Foil: 556}] —
-          // there's no actual non-holo Charizard in Expedition). Single
-          // remaining printing => no chip needed.
+          // pre-resolved variant, fetch the SKU-level printings list from
+          // /tcg/printings (catches 1st Edition / Reverse Holofoil / etc.
+          // that mpapi's coarse Normal/Foil split misses). Single printing
+          // => stays collapsed with no chip.
           (async () => {
             const expanded = [];
             for (const r of gpSearchResults) {
               if (!r.productId || r.variant) { expanded.push(r); continue; }
               const printings = await _gpFetchPrintings(r.productId);
-              if (!printings) { expanded.push(r); continue; }
-              const usable = printings.filter(p => p?.type && p.market != null);
-              if (usable.length <= 1) { expanded.push(r); continue; }
-              for (const p of usable) {
+              if (!printings || printings.length <= 1) { expanded.push(r); continue; }
+              for (const p of printings) {
                 const chip = _GP_PRINTING_TO_CHIP[p.type] ?? p.type;
                 expanded.push({ ...r, variant: chip, printingType: p.type });
               }
