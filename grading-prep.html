@@ -318,8 +318,25 @@
       font-weight: 600;
       text-align: right;
     }
+    .gp-grade-pop {
+      color: rgba(255,255,255,0.42);
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      text-align: right;
+      min-width: 76px;
+    }
+    .gp-grade-pop .pop-label {
+      color: rgba(255,255,255,0.32);
+      margin-right: 4px;
+    }
     .gp-grade-row.best .gp-grade-label { color: rgba(255,255,255,0.95); }
     .gp-grade-row.best .gp-grade-profit { color: #5fe39b; font-weight: 700; }
+    .gp-grade-row.best .gp-grade-pop { color: rgba(255,255,255,0.62); }
+    @media (max-width: 480px) {
+      .gp-grade-row { grid-template-columns: 60px 1fr auto; gap: 10px; }
+      .gp-grade-pop { display: none; }
+    }
     .gp-noprofit {
       padding: 14px 8px 4px;
       text-align: center;
@@ -1515,6 +1532,35 @@
         return gpGradedLoading;
       }
 
+      // PSA pop index, parallel to the graded-price index.
+      // Shape: { "<productId>": { "PSA 10": 28536, "PSA 9": 6562, "PSA 8": 1200, ... } }
+      // Lazily loaded the first time renderList sees a card with a productId.
+      // Coverage is partial today — population is a separate pipeline; missing
+      // entries simply render no pop cell next to the grade.
+      let gpPopIndex = null;
+      let gpPopLoading = null;
+      const PSA_POP_URL = 'assets/psa-pop.json?v=1';
+      function loadPopIndex() {
+        if (gpPopIndex) return Promise.resolve(gpPopIndex);
+        if (gpPopLoading) return gpPopLoading;
+        gpPopLoading = fetch(PSA_POP_URL)
+          .then(r => r.ok ? r.json() : {})
+          .then(d => { gpPopIndex = d || {}; return gpPopIndex; })
+          .catch(() => { gpPopIndex = {}; return gpPopIndex; });
+        return gpPopLoading;
+      }
+      function ensurePopIndexLoaded() {
+        if (gpPopIndex !== null) return;
+        loadPopIndex().then(() => renderList());
+      }
+      function popFor(productId, gradeLabel) {
+        if (!gpPopIndex || !productId) return null;
+        const entry = gpPopIndex[String(productId)];
+        if (!entry) return null;
+        const n = entry[gradeLabel];
+        return (typeof n === 'number' && n > 0) ? n : null;
+      }
+
       // TCGplayer raw market price cache — the same /tcg/market and
       // /tcg/lastsold worker the trade-in form uses. Populated lazily as
       // cards are added; results memoize so re-renders don't re-fetch.
@@ -2023,14 +2069,22 @@
                <div class="gp-kpi-value muted">Below fee floor</div>
                <div class="gp-kpi-sub">No grade clears the ~$${PSA_FEE_ESTIMATE} fee threshold at current market</div>
              </div>`;
-        // Grade table — visible by default beneath the KPI.
+        // Grade table — visible by default beneath the KPI. Pop count is
+        // appended per row when we have it in the static psa-pop index;
+        // missing data renders an empty cell rather than a placeholder.
+        const fmtPop = n => n.toLocaleString('en-US');
         const tableRows = profitable.map(g => {
           const profit = g.val - PSA_FEE_ESTIMATE - baseline;
           const isBest = Math.abs(profit - topProfit) < 0.01;
+          const popN = popFor(c.productId, g.label);
+          const popCell = popN
+            ? `<span class="gp-grade-pop"><span class="pop-label">Pop</span>${fmtPop(popN)}</span>`
+            : `<span class="gp-grade-pop"></span>`;
           return `<div class="gp-grade-row${isBest ? ' best' : ''}">`
                + `<span class="gp-grade-label">${g.label}</span>`
                + `<span class="gp-grade-val">$${fmtMoney(g.val)}</span>`
                + `<span class="gp-grade-profit">+$${fmtMoney(profit)}</span>`
+               + popCell
                + `</div>`;
         }).join('');
         const baselineRow = ungraded
@@ -2093,7 +2147,7 @@
         // Kick off the lazy index load when there's at least one card with
         // a productId — the panel only renders for those, no point loading
         // 1.5MB of JSON if the customer only added manual entries.
-        if (gpCards.some(c => c.productId)) ensureGradedIndexLoaded();
+        if (gpCards.some(c => c.productId)) { ensureGradedIndexLoaded(); ensurePopIndexLoaded(); }
         // Fire the TCGplayer raw-price lookup for any newly-added card.
         // Function memoizes on the cache so repeated renders don't re-fetch.
         gpCards.forEach(c => gpEnsureTcgRaw(c));
