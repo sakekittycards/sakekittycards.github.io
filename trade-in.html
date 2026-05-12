@@ -2019,6 +2019,7 @@
     // work because the substring check runs on the normalized joined haystack
     // (which also has aliases expanded), not on individual tokens.
     const _SK_TOKEN_ALIASES = {
+      // ─── Card type / rarity shortcuts ──────────────────────────────
       'm':   'mega',                          // M Lucario EX, M Charizard EX, etc.
       'fa':  'full art',
       'sir': 'special illustration rare',
@@ -2030,8 +2031,51 @@
       'jp':  'japanese',
       'jpn': 'japanese',
       '1st': 'first',
-      // Community slang — extend as we hear new ones.
+      // ─── Modern set abbreviations (Sword & Shield onward) ──────────
+      // Lets customers type "obf charizard" instead of "obsidian flames
+      // charizard". Map runs on BOTH query and haystack so they converge.
+      // Scarlet & Violet era
+      'svi': 'scarlet violet',
+      'pal': 'paldea evolved',
+      'obf': 'obsidian flames',
+      '151': 'pokemon 151',
+      'mew': 'pokemon 151',
+      'par': 'paradox rift',
+      'pri': 'paldean fates',
+      'tef': 'temporal forces',
+      'twm': 'twilight masquerade',
+      'sfa': 'shrouded fable',
+      'scr': 'stellar crown',
+      'ssp': 'surging sparks',
+      'pre': 'prismatic evolutions',
+      'jtg': 'journey together',
+      'dri': 'destined rivals',
+      // Sword & Shield era
+      'swsh': 'sword and shield',
+      'rcl':  'rebel clash',
+      'daa':  'darkness ablaze',
+      'cpa':  'champions path',
+      'vmx':  'vivid voltage',
+      'shf':  'shining fates',
+      'bst':  'battle styles',
+      'cre':  'chilling reign',
+      'evs':  'evolving skies',
+      'fst':  'fusion strike',
+      'brs':  'brilliant stars',
+      'ast':  'astral radiance',
+      'pgo':  'pokemon go',
+      'lor':  'lost origin',
+      'sit':  'silver tempest',
+      'crz':  'crown zenith',
+      // Classic
+      'bs':   'base set',
+      'cel':  'celebrations',
+      'hf':   'hidden fates',
+      // ─── Community slang ───────────────────────────────────────────
       'moonbreon': 'umbreon vmax 215',
+      'goldzard':  'charizard',
+      'zard':      'charizard',
+      'rayray':    'rayquaza',
     };
     function normalizeSearchText(text) {
       return (text || '')
@@ -2353,14 +2397,17 @@
       const cleanedNo1st = wants1stEd
         ? cleaned.filter(t => !_TI_FIRST_ED_QUERY_TOKENS.has(t))
         : cleaned;
-      const out = [];
-      // Cap raised from 30 -> 1000. The substring loop over 13K rows is
-      // ~5ms regardless. Per Nick's directive: surface every English card
-      // matching the query, every variant. Niche queries return <50 hits;
-      // broad queries like "charizard" still finish under 20ms total.
-      for (let i = 0; i < idx.length && out.length < 1000; i++) {
+      // Scan the FULL index (~13K rows is <20ms), score each hit, then
+      // rank-sort before slicing. Earlier code took the first 1000 hits
+      // in alphabetical order, which buried Charizard Base Set under
+      // "Charizard - 1/99 (Cracked Ice)" promos. Now the rank pushes
+      // exact-name + high-market matches to the top regardless of where
+      // they land in the index.
+      const scored = [];
+      const fullQuery = cleaned.join(' ');
+      for (let i = 0; i < idx.length; i++) {
         const [name, setName, number, productId, market] = idx[i];
-        if (_SEALED_RE.test(name || '')) continue;   // drop sealed boxes, code cards, collections, jumbos
+        if (_SEALED_RE.test(name || '')) continue;
         const hay = normalizeSearchText(`${name} ${setName} ${number}`);
         const isFirstEdRow = wants1stEd && _tiIsFirstEdEligible(setName);
         const tokensToMatch = isFirstEdRow ? cleanedNo1st : cleaned;
@@ -2369,8 +2416,23 @@
           if (!hay.includes(t)) { allMatch = false; break; }
         }
         if (!allMatch) continue;
-        out.push({ name, setName, number, productId, market });
+        // Score: exact match > startsWith > token-boundary > substring,
+        // plus a market-price tie-breaker so $1300 Charizards beat $5 ones.
+        const nameNorm = normalizeSearchText(name);
+        let score = 0;
+        if (nameNorm === fullQuery) score = 10000;
+        else if (nameNorm.startsWith(fullQuery)) score = 5000;
+        else if (cleaned.every(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`).test(nameNorm))) score = 2000;
+        else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
+        else score = 200;  // tokens matched somewhere (setName / number only)
+        // Market boost: log-scale so $5000 doesn't dominate $500 by 10x.
+        if (market != null && market > 0) {
+          score += Math.min(500, Math.log10(market + 1) * 100);
+        }
+        scored.push({ score, row: { name, setName, number, productId, market } });
       }
+      scored.sort((a, b) => b.score - a.score);
+      const out = scored.slice(0, 1000).map(s => s.row);
       // Fuzzy fallback for typos — only runs when strict found nothing AND the
       // query has at least one non-numeric 4+-char token (don't try fuzzy on
       // "215" or "ex").
@@ -2394,16 +2456,16 @@
       const idx = await loadJpIndex();
       if (!idx.length) return [];
       const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
-      const out = [];
-      const _push = (productId, name, setName, market) => out.push({
+      const _toRow = (productId, name, setName, market) => ({
         productId, name, set: setName,
         image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
         market: market != null ? market : null,
         url: '', lang: 'jp', isSealed: false,
       });
-      // JP cap raised from 14 -> 500. JP index is ~15K rows. Per Nick's
-      // directive: surface every JP card matching the query, every variant.
-      for (let i = 0; i < idx.length && out.length < 500; i++) {
+      // Scan full JP index, rank by name relevance + market, then slice.
+      const scoredJp = [];
+      const fullQuery = cleaned.join(' ');
+      for (let i = 0; i < idx.length; i++) {
         const entry = idx[i];
         const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
         if (_SEALED_RE.test(name || '')) continue;
@@ -2413,8 +2475,19 @@
           if (!hay.includes(t)) { allMatch = false; break; }
         }
         if (!allMatch) continue;
-        _push(productId, name, setName, market);
+        const nameNorm = normalizeSearchText(name);
+        let score = 0;
+        if (nameNorm === fullQuery) score = 10000;
+        else if (nameNorm.startsWith(fullQuery)) score = 5000;
+        else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
+        else score = 200;
+        if (market != null && market > 0) {
+          score += Math.min(500, Math.log10(market + 1) * 100);
+        }
+        scoredJp.push({ score, row: _toRow(productId, name, setName, market) });
       }
+      scoredJp.sort((a, b) => b.score - a.score);
+      const out = scoredJp.slice(0, 500).map(s => s.row);
       // Fuzzy fallback — same gate as EN.
       if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
         for (let i = 0; i < idx.length && out.length < 100; i++) {
@@ -2422,7 +2495,7 @@
           const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
           if (_SEALED_RE.test(name || '')) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
-          if (fuzzyMatchTokens(cleaned, hay)) _push(productId, name, setName, market);
+          if (fuzzyMatchTokens(cleaned, hay)) out.push(_toRow(productId, name, setName, market));
         }
       }
       return out;
