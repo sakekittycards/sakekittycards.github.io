@@ -5,6 +5,8 @@
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="apple-touch-icon" href="logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
   <title>Gift Cards — Sake Kitty Cards</title>
   <meta name="description" content="Buy a Sake Kitty Cards gift card or check your balance. Digital, instant, no expiration, no fees." />
 
@@ -23,7 +25,7 @@
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=130" />
   <style>
     .gc-grid {
@@ -222,7 +224,7 @@
       <div class="gc-grid">
         <!-- Buy -->
         <div class="gc-card">
-          <img width="640" height="400" src="assets/icons/gift-card-buy-banner.png?v=2" alt="Buy a Sake Kitty Cards Gift Card" class="gc-card-banner" loading="lazy" />
+          <img width="640" height="400" src="assets/icons/gift-card-buy-banner.png?v=2" alt="Buy a Sake Kitty Cards Gift Card" class="gc-card-banner" loading="lazy" decoding="async" />
           <h2 class="visually-hidden">Buy a gift card</h2>
           <p class="gc-card-sub">Pick an amount. Code emails instantly. Spend at the booth or online.</p>
 
@@ -248,7 +250,7 @@
 
         <!-- Check Balance -->
         <div class="gc-card balance">
-          <img width="640" height="400" src="assets/icons/gift-card-balance-banner.png?v=2" alt="Check your Sake Kitty Cards Gift Card Balance" class="gc-card-banner" loading="lazy" />
+          <img width="640" height="400" src="assets/icons/gift-card-balance-banner.png?v=2" alt="Check your Sake Kitty Cards Gift Card Balance" class="gc-card-banner" loading="lazy" decoding="async" />
           <h2 class="visually-hidden">Check gift card balance</h2>
           <p class="gc-card-sub">Type the code from your gift card email — we'll show you what's left.</p>
 
@@ -301,7 +303,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54"></script>
+  <script src="main.js?v=54" defer></script>
   <script>
     // Buy flow — pick amount, then redirect to Square's gift-card order
     // page (PCI compliance forces the actual checkout to land on Square).

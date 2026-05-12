@@ -5,6 +5,8 @@
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="apple-touch-icon" href="logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
   <title>Grading Prep — Sake Kitty Cards</title>
   <meta name="description" content="Pre-screening and card prep services from Sake Kitty Cards. Know before you submit — pass/fail or detailed feedback, plus hands-on prep for your best shot at the grade." />
 
@@ -23,7 +25,7 @@
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css?v=130" />
   <style>
     /* ── Grading Prep card intake form ── */
@@ -901,7 +903,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54"></script>
+  <script src="main.js?v=54" defer></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
@@ -1598,7 +1600,7 @@
             </label>` : '';
           return `
           <div class="gp-item">
-            <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" />
+            <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" decoding="async" />
             <div class="gp-item-info">
               <h4>${c.name}${firstEdBadge}</h4>
               <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
