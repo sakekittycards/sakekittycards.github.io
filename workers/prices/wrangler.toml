@@ -5,8 +5,3 @@ compatibility_date = "2025-10-01"
 # Public, non-secret configuration.
 [vars]
 CACHE_TTL_SECONDS = "21600"   # 6 hours
-# CF_ACCOUNT_ID: set via `wrangler secret put CF_ACCOUNT_ID` (kept as secret
-# even though account IDs aren't strictly sensitive — keeps the surface area
-# uniform with the API token).
-# Required for /grading/pop: BROWSER_TOKEN (Browser Rendering scope, paid
-# Workers plan). Set via `wrangler secret put BROWSER_TOKEN`.
