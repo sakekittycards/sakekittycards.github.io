@@ -86,6 +86,33 @@ export default {
         return await fetchPsaPop(setName, number, ctx, env);
       }
 
+      // Debug-only: return upstream Pikawiz status + first slice of HTML.
+      if (path === '/dev/pop-raw' && request.method === 'GET') {
+        const setName = (url.searchParams.get('set') || '').trim();
+        const slug = slugifySet(setName);
+        if (!slug) return json({ ok: false, error: 'unmapped set', set: setName });
+        const u = `https://www.pikawiz.com/cards/pop-report/${slug}`;
+        let res;
+        try {
+          res = await fetch(u, {
+            headers: { ...BROWSER_HEADERS, Referer: 'https://www.pikawiz.com/' },
+            cf: { cacheTtl: 0, cacheEverything: false },
+          });
+        } catch (err) {
+          return json({ ok: false, error: 'fetch threw', detail: String(err) });
+        }
+        const ct = res.headers.get('content-type') || '';
+        const text = await res.text();
+        return json({
+          ok: res.ok,
+          status: res.status,
+          url: u,
+          contentType: ct,
+          length: text.length,
+          preview: text.slice(0, 800),
+        });
+      }
+
       return json({ error: 'not found', path }, 404);
     } catch (err) {
       return json({ error: err.message || String(err) }, 500);
