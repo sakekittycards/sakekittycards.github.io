@@ -1871,7 +1871,12 @@
       'reverseholo':      ['reverseHolofoil'],
       'reverseholofoil':  ['reverseHolofoil'],
       'normal':           ['normal', '1stEditionNormal'],
-      'shadowless':       ['unlimited', 'unlimitedHolofoil'],
+      // NOTE: 'shadowless' is intentionally NOT a variant keyword. It's a
+      // SET-name component on TCGplayer ("Base Set (Shadowless)") so the
+      // word needs to flow through to the en-static + pokemontcg.io search
+      // as a real query term. Stripping it as a variant filter (which is
+      // what we used to do) made "charizard shadowless" miss the Base Set
+      // Shadowless row entirely.
       // noise words to strip completely
       'the': [], 'a': [], 'an': [], 'and': [], 'pokemon': [], 'card': [], 'cards': [],
     };
