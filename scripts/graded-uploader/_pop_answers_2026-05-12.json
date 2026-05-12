@@ -1,0 +1,394 @@
+[
+  {
+    "cert": "121116624",
+    "pop_psa10": 1343,
+    "pop_psa9": 2091,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Deoxys GG12 Crown Zenith FA Holo; total pop 3,906"
+  },
+  {
+    "cert": "95199161",
+    "pop_psa10": 18607,
+    "pop_psa9": 10615,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Arceus VSTAR GG70 FA Gold Holo; total pop 32,151"
+  },
+  {
+    "cert": "99513425",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Latias ex SAR Japanese SV7a Paradise Dragona; no aggregator breakdown published"
+  },
+  {
+    "cert": "107496657",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Rayquaza VMAX CSR Japanese VMAX Climax; no public per-grade aggregator data"
+  },
+  {
+    "cert": "139206918",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Mega Venusaur ex 177 SIR; 2025 release, no aggregator pop yet"
+  },
+  {
+    "cert": "108973922",
+    "pop_psa10": 14826,
+    "pop_psa9": 9791,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Origin Forme Palkia VSTAR GG67 FA Gold Holo; total pop 27,175"
+  },
+  {
+    "cert": "131611480",
+    "pop_psa10": 2628,
+    "pop_psa9": 6131,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Mewtwo-GX #78 Shining Legends Half Art Holo; total pop 14,114"
+  },
+  {
+    "cert": "84566703",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Moltres Japanese Vending Series 146; aggregator pages exist but no per-grade pop shown in snippets"
+  },
+  {
+    "cert": "145316191",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Bulbasaur 133 Mega Evolution IR; 2025 release, no aggregator pop yet (Pikawiz reports no data)"
+  },
+  {
+    "cert": "111350109",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Charizard VMAX 308 Japanese Shiny Star V SSR; no clean per-grade aggregator pop confirmed"
+  },
+  {
+    "cert": "94676138",
+    "pop_psa10": 46455,
+    "pop_psa9": 47620,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Pikachu Grey Felt Hat SVP 085 Van Gogh; total pop 103,809"
+  },
+  {
+    "cert": "134321907",
+    "pop_psa10": 1372,
+    "pop_psa9": 1543,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Mega Sableye & Tyranitar-GX 226 Unified Minds FA Holo (query said Mawile but UM #226 is M-Sableye/Tyranitar); total pop 3,457"
+  },
+  {
+    "cert": "110772487",
+    "pop_psa10": 15290,
+    "pop_psa9": 11285,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Charizard V 154 Brilliant Stars Alt Art; total pop 29,989"
+  },
+  {
+    "cert": "146746311",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Mega Latias ex 181 SIR; 2025 release, no aggregator pop yet"
+  },
+  {
+    "cert": "99211118",
+    "pop_psa10": 11585,
+    "pop_psa9": 5932,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Espeon VMAX 270 Fusion Strike Alt Art; total pop 19,021"
+  },
+  {
+    "cert": "0014250139",
+    "pop_psa10": 489,
+    "pop_psa9": 8417,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Charizard Base Set 4 Unlimited Holo; total pop 92,856"
+  },
+  {
+    "cert": "110420477",
+    "pop_psa10": 19858,
+    "pop_psa9": 5699,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Umbreon VMAX 215 Evolving Skies Alt Art (Moonbreon); total pop 28,118"
+  },
+  {
+    "cert": "75183695",
+    "pop_psa10": 15457,
+    "pop_psa9": 9176,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Origin Forme Dialga VSTAR GG68 FA Gold Holo; total pop 26,993"
+  },
+  {
+    "cert": "135860324",
+    "pop_psa10": 1634,
+    "pop_psa9": 4365,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Team Rocket's Wobbuffet SVP 203 Holo; total pop 7,436"
+  },
+  {
+    "cert": "102607615",
+    "pop_psa10": 46455,
+    "pop_psa9": 47620,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Pikachu Grey Felt Hat SVP 085 Van Gogh (duplicate cert); total pop 103,809"
+  },
+  {
+    "cert": "113910492",
+    "pop_psa10": 7270,
+    "pop_psa9": 5286,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Mewtwo V 72 Pokemon GO FA Alt Art; total pop 14,591"
+  },
+  {
+    "cert": "106438552",
+    "pop_psa10": 9737,
+    "pop_psa9": 7069,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Dragonite V 192 Evolving Skies Alt Art; total pop 18,653"
+  },
+  {
+    "cert": "119392108",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Pikachu ex 238 Surging Sparks SIR; aggregator pages exist but per-grade pop not in snippets (Card Ladder noted ~8,936 total but breakdown unclear)"
+  },
+  {
+    "cert": "102369962",
+    "pop_psa10": 5726,
+    "pop_psa9": 7827,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Charizard ex 215 Obsidian Flames FA Holo; total pop 15,375"
+  },
+  {
+    "cert": "115079776",
+    "pop_psa10": 8682,
+    "pop_psa9": 8738,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Gardevoir ex 233 Paldean Fates SIR; total pop 18,865"
+  },
+  {
+    "cert": "114068076",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Milotic ex SAR Japanese SV8 Super Electric Breaker; no aggregator breakdown published"
+  },
+  {
+    "cert": "113090244",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Rowlet & Alolan Exeggutor GX 056 Japanese Sky Legend; no per-grade aggregator pop in snippets"
+  },
+  {
+    "cert": "51557052",
+    "pop_psa10": 44,
+    "pop_psa9": 612,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Rocket's Scyther 13 Gym Heroes Unlimited Holo; total pop 3,079"
+  },
+  {
+    "cert": "65570347",
+    "pop_psa10": 585,
+    "pop_psa9": 5682,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Venusaur 15 Base Set Unlimited Holo; total pop 41,972"
+  },
+  {
+    "cert": "60607369",
+    "pop_psa10": 11820,
+    "pop_psa9": 6623,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Rayquaza 138 Vivid Voltage Amazing Rare; total pop 19,587"
+  },
+  {
+    "cert": "50358384",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Celebi-Holo Japanese Neo 3 Promo 251; snippets mention 907 graded higher than PSA 8 but no clean 10/9 split"
+  },
+  {
+    "cert": "95276041",
+    "pop_psa10": 5726,
+    "pop_psa9": 7827,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Charizard ex 215 Obsidian Flames FA Holo (duplicate cert); total pop 15,375"
+  },
+  {
+    "cert": "112214360",
+    "pop_psa10": 743,
+    "pop_psa9": 2067,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Pidgeotto 208 Obsidian Flames Illustration Rare; total pop 3,768"
+  },
+  {
+    "cert": "92889917",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Magikarp 080 Japanese Triplet Beat Art Rare; aggregator pages exist but no per-grade pop in snippets"
+  },
+  {
+    "cert": "72016903",
+    "pop_psa10": 2118,
+    "pop_psa9": 12294,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Charizard 11 Evolutions Reverse Holo; total pop 26,076"
+  },
+  {
+    "cert": "143540438",
+    "pop_psa10": 1905,
+    "pop_psa9": 2800,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Roaring Moon EX 162 Prismatic Evolutions Holo (SIR variant tracked separately on GemRate); total pop 5,627"
+  },
+  {
+    "cert": "6136935033",
+    "pop_psa10": 16228,
+    "pop_psa9": 10748,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Umbreon Gold Star 17 Celebrations Classic Collection; total pop 28,411"
+  },
+  {
+    "cert": "126435156",
+    "pop_psa10": 3027,
+    "pop_psa9": 8527,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Eevee ex SVP 174 Black Star Promo Holo; total pop 13,660"
+  },
+  {
+    "cert": "146514325",
+    "pop_psa10": 3027,
+    "pop_psa9": 8527,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Eevee ex SVP 174 Black Star Promo Holo (duplicate cert); total pop 13,660"
+  },
+  {
+    "cert": "128159429",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Pikachu 172 Chinese 151 Art Rare; 2025 release, aggregator data not yet published"
+  },
+  {
+    "cert": "98517579",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Shaymin EX 77a Roaring Skies Alt Art Promo; Pikawiz/PriceCharting pages exist but per-grade pop not in snippets"
+  },
+  {
+    "cert": "6130902118",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Mega Charizard X ex 023 MEP Black Star Promo; 2025 release, no aggregator breakdown yet"
+  },
+  {
+    "cert": "3914522049",
+    "pop_psa10": 8,
+    "pop_psa9": 222,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Feraligatr 5 Neo Genesis Unlimited Holo; total pop 1,980"
+  },
+  {
+    "cert": "4322429002",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Eevee 062/SV-P Japanese Promo Yu Nagaba; per-grade pop not in snippets"
+  },
+  {
+    "cert": "61407202",
+    "pop_psa10": 94,
+    "pop_psa9": 444,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Dark Gengar 6 Neo Destiny Unlimited Holo; total pop 2,047"
+  },
+  {
+    "cert": "138441842",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Umbreon-Holo 197 Japanese Neo 2; snippets returned Neo Discovery data instead; Neo 2 #197 per-grade pop unclear"
+  },
+  {
+    "cert": "139036804",
+    "pop_psa10": 684,
+    "pop_psa9": 4093,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Zapdos 16 Base Set Unlimited Holo; total pop 17,520"
+  },
+  {
+    "cert": "147655076",
+    "pop_psa10": 11292,
+    "pop_psa9": 5073,
+    "pop_current": null,
+    "source": "pikawiz",
+    "notes": "Pikachu VMAX 188 Vivid Voltage Rainbow Secret Rare; total pop 18,407"
+  },
+  {
+    "cert": "4321131035",
+    "pop_psa10": null,
+    "pop_psa9": null,
+    "pop_current": null,
+    "source": "not found",
+    "notes": "Blastoise ex 202 Japanese 151 SV2a Special Art Rare; no aggregator per-grade breakdown in snippets"
+  }
+]
