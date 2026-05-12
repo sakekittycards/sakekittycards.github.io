@@ -999,6 +999,39 @@
       // anchor matches what customers see on TCGplayer's product page.
       const GP_PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
       const gpTcgRawCache = Object.create(null);  // pidStr -> number | null
+
+      // Printings index per productId — fetched lazily from /tcg/market and
+      // used to expand a search row into one row per available printing
+      // (Holo / Reverse Holo / 1st Ed Holo / etc.). Cache forever per page —
+      // TCGplayer's printing list for an SKU is stable.
+      const _gpPrintingsCache = Object.create(null);
+      async function _gpFetchPrintings(pid) {
+        const k = String(pid);
+        if (k in _gpPrintingsCache) return _gpPrintingsCache[k];
+        // Synthetic pc:* ids are Chinese cards — TCGplayer doesn't carry them.
+        if (k.startsWith('pc:')) { _gpPrintingsCache[k] = null; return null; }
+        try {
+          const r = await fetch(`${GP_PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
+          if (!r.ok) { _gpPrintingsCache[k] = null; return null; }
+          const d = await r.json();
+          const arr = d?.ok && Array.isArray(d.printings) ? d.printings.filter(p => p?.type) : null;
+          _gpPrintingsCache[k] = arr;
+          return arr;
+        } catch { _gpPrintingsCache[k] = null; return null; }
+      }
+      // TCGplayer printing-type → short chip label. Anything not mapped falls
+      // through to the raw type so we don't silently drop a new printing.
+      const _GP_PRINTING_TO_CHIP = {
+        'Normal': '',
+        'Holofoil': 'Holo',
+        'Reverse Holofoil': 'Reverse Holo',
+        '1st Edition Holofoil': '1st Ed Holo',
+        '1st Edition Normal': '1st Ed',
+        'Unlimited Holofoil': 'Unlimited Holo',
+      };
+      // Search invocation counter — used to abort stale enrichment when a
+      // newer search has fired before the previous one's printings landed.
+      let _gpSearchToken = 0;
       async function gpLookupTcgMarket(pid) {
         try {
           const r = await fetch(`${GP_PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
@@ -1556,6 +1589,7 @@
       async function doSearch(q) {
         q = q.trim();
         if (q.length < 2) { gpResultsEl.classList.remove('open'); return; }
+        const myToken = ++_gpSearchToken;
         gpResultsEl.innerHTML = '<div class="gp-status">Searching…</div>';
         gpResultsEl.classList.add('open');
         try {
@@ -1653,6 +1687,11 @@
             if (!m) return { name: noNum, variantLabel: '' };
             const baseName = m[1].trim();
             const variantRaw = m[2].trim();
+            // Numeric parens like "Charizard (6)" are CARD NUMBERS, not variants.
+            // Strip them off the display name and emit no chip.
+            if (/^\d+$/.test(variantRaw)) {
+              return { name: baseName, variantLabel: '' };
+            }
             const mapped = _GRADED_VARIANT_LABELS[variantRaw];
             return { name: baseName, variantLabel: mapped !== undefined ? mapped : variantRaw };
           };
@@ -1662,10 +1701,18 @@
             // Dedup against pokemontcg.io only if THIS en-static row is the
             // non-variant ("any printing") version. Variant-specific rows are
             // ALWAYS surfaced because they're a different printing for grading.
-            const dup = !parsed.variantLabel && gpSearchResults.some(r =>
-              r.lang === 'en' && _ddKey(r.name, r.number) === k
-            );
-            if (dup) continue;
+            const dupIdx = !parsed.variantLabel
+              ? gpSearchResults.findIndex(r => r.lang === 'en' && _ddKey(r.name, r.number) === k)
+              : -1;
+            if (dupIdx >= 0) {
+              // Carry the productId up to the surviving pokemontcg.io row so
+              // the printings enrichment can fire on it (pokemontcg.io rows
+              // ship without a pid at search time).
+              if (!gpSearchResults[dupIdx].productId && e.productId) {
+                gpSearchResults[dupIdx].productId = e.productId;
+              }
+              continue;
+            }
             gpSearchResults.push({
               lang: 'en',
               name: parsed.name || e.name,
@@ -1702,56 +1749,83 @@
             return;
           }
 
-          gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
-            const jpBadge = r.lang === 'jp'
-              ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
-              : '';
-            const variantChip = r.variant
-              ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${r.variant}</span>`
-              : '';
-            return `
-              <div class="gp-result" data-ri="${i}">
-                <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
-                <div class="gp-result-info">
-                  <div class="gp-result-name">${jpBadge}${r.name}${variantChip}</div>
-                  <div class="gp-result-set">${r.setName}${r.number ? ' · #' + r.number : ''}</div>
+          // Renders gpSearchResults to the dropdown. Called once with the
+          // initial results, again after the printings enrichment expands
+          // single rows into per-printing variants.
+          const _renderGpResults = () => {
+            gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
+              const jpBadge = r.lang === 'jp'
+                ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
+                : '';
+              const variantChip = r.variant
+                ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${r.variant}</span>`
+                : '';
+              return `
+                <div class="gp-result" data-ri="${i}">
+                  <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+                  <div class="gp-result-info">
+                    <div class="gp-result-name">${jpBadge}${r.name}${variantChip}</div>
+                    <div class="gp-result-set">${r.setName}${r.number ? ' · #' + r.number : ''}</div>
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join('');
+              `;
+            }).join('');
 
-          gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
-            el.addEventListener('click', async () => {
-              const r = gpSearchResults[+el.dataset.ri];
-              const variantSuffix = r.variant ? ` (${r.variant})` : '';
-              const displayName = (r.lang === 'jp' ? `[JP] ${r.name}` : r.name) + variantSuffix;
-              const cardEntry = {
-                name: displayName,
-                set:  r.setName,
-                num:  r.number,
-                img:  r.image,
-                svc:  'standard',
-                prep: false,
-                lang: r.lang,
-                productId: r.productId || null,
-                variant: r.variant || '',
-              };
-              gpCards.push(cardEntry);
-              gpSearchEl.value = '';
-              gpResultsEl.classList.remove('open');
-              renderList();
-              // For English cards we don't have productId at search time — try
-              // to resolve it from the PriceCharting fallback index, then
-              // re-render once we have it (so the PSA value panel can show).
-              if (!cardEntry.productId && r.lang === 'en') {
-                const pid = await resolveEnProductId(r.name, r.setName, r.number);
-                if (pid && gpCards.includes(cardEntry)) {
-                  cardEntry.productId = pid;
-                  renderList();
+            gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
+              el.addEventListener('click', async () => {
+                const r = gpSearchResults[+el.dataset.ri];
+                const variantSuffix = r.variant ? ` (${r.variant})` : '';
+                const displayName = (r.lang === 'jp' ? `[JP] ${r.name}` : r.name) + variantSuffix;
+                const cardEntry = {
+                  name: displayName,
+                  set:  r.setName,
+                  num:  r.number,
+                  img:  r.image,
+                  svc:  'standard',
+                  prep: false,
+                  lang: r.lang,
+                  productId: r.productId || null,
+                  variant: r.variant || '',
+                };
+                gpCards.push(cardEntry);
+                gpSearchEl.value = '';
+                gpResultsEl.classList.remove('open');
+                renderList();
+                // For English cards we don't have productId at search time — try
+                // to resolve it from the PriceCharting fallback index, then
+                // re-render once we have it (so the PSA value panel can show).
+                if (!cardEntry.productId && r.lang === 'en') {
+                  const pid = await resolveEnProductId(r.name, r.setName, r.number);
+                  if (pid && gpCards.includes(cardEntry)) {
+                    cardEntry.productId = pid;
+                    renderList();
+                  }
                 }
-              }
+              });
             });
-          });
+          };
+
+          _renderGpResults();
+
+          // Background enrichment: for each result with a productId and no
+          // pre-resolved variant, fetch the printings list from /tcg/market
+          // and expand the row into one entry per printing. Re-renders the
+          // dropdown when finished — unless a newer search has fired first.
+          (async () => {
+            const expanded = [];
+            for (const r of gpSearchResults) {
+              if (!r.productId || r.variant) { expanded.push(r); continue; }
+              const printings = await _gpFetchPrintings(r.productId);
+              if (!printings || printings.length <= 1) { expanded.push(r); continue; }
+              for (const p of printings) {
+                const chip = _GP_PRINTING_TO_CHIP[p.type] ?? p.type;
+                expanded.push({ ...r, variant: chip, printingType: p.type });
+              }
+            }
+            if (myToken !== _gpSearchToken) return;  // stale — newer search took over
+            gpSearchResults = expanded;
+            _renderGpResults();
+          })();
         } catch (e) {
           gpResultsEl.innerHTML = '<div class="gp-status err">Search failed. Try again.</div>';
         }

@@ -2844,6 +2844,36 @@
     //                    listing but have transaction history.
     // Deployed at workers/prices/. Edge-cached 6h per productId.
     const PRICES_WORKER = 'https://sakekitty-prices.nwilliams23999.workers.dev';
+
+    // Printings index per productId — fetched from /tcg/market and used by
+    // the graded search dropdown to expand a single row into one row per
+    // available printing (Holo / Reverse Holo / 1st Ed Holo / etc.). The
+    // worker edge-caches its mpapi calls 6h; we cache the parsed result
+    // forever per page-load.
+    const _tiPrintingsCache = Object.create(null);
+    async function _tiFetchPrintings(pid) {
+      const k = String(pid);
+      if (k in _tiPrintingsCache) return _tiPrintingsCache[k];
+      if (k.startsWith('pc:')) { _tiPrintingsCache[k] = null; return null; }
+      try {
+        const r = await fetch(`${PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
+        if (!r.ok) { _tiPrintingsCache[k] = null; return null; }
+        const d = await r.json();
+        const arr = d?.ok && Array.isArray(d.printings) ? d.printings.filter(p => p?.type) : null;
+        _tiPrintingsCache[k] = arr;
+        return arr;
+      } catch { _tiPrintingsCache[k] = null; return null; }
+    }
+    const _TI_PRINTING_TO_CHIP = {
+      'Normal': '',
+      'Holofoil': 'Holo',
+      'Reverse Holofoil': 'Reverse Holo',
+      '1st Edition Holofoil': '1st Ed Holo',
+      '1st Edition Normal': '1st Ed',
+      'Unlimited Holofoil': 'Unlimited Holo',
+    };
+    let _tiGradedSearchToken = 0;
+
     async function lookupTcgMarket(productId) {
       try {
         const r = await fetch(`${PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(productId)}`);
@@ -3444,6 +3474,11 @@
       if (!m) return { name: noNum, variantRaw: '', variantLabel: '' };
       const baseName = m[1].trim();
       const variantRaw = m[2].trim();
+      // Numeric parens like "Charizard (6)" carry the CARD NUMBER, not a
+      // variant. Strip them off the name and emit no chip.
+      if (/^\d+$/.test(variantRaw)) {
+        return { name: baseName, variantRaw: '', variantLabel: '' };
+      }
       const mapped = _GRADED_VARIANT_LABELS[variantRaw];
       return {
         name: baseName,
@@ -3458,6 +3493,7 @@
       const lucene = buildQuery(tokens);
       if (!lucene) { gradedResults.classList.remove('open'); return; }
 
+      const myToken = ++_tiGradedSearchToken;
       gradedResults.innerHTML = '<div class="ti-status">Searching…</div>';
       gradedResults.classList.add('open');
       try {
@@ -3530,7 +3566,36 @@
           const k = `${(c.name || '').toLowerCase()}|${c.number || ''}|${(c.set?.name || '').toLowerCase()}`;
           return !variantKeySet.has(k);
         });
-        renderGradedSuggestions(dedupedItems.concat(variantRows).concat(chinese));
+        // Initial render — pokemontcg.io rows + variantRows + chinese.
+        const initialMerged = dedupedItems.concat(variantRows).concat(chinese);
+        renderGradedSuggestions(initialMerged);
+
+        // Background enrichment: for each result with a productId and no
+        // pre-resolved _variant, fetch TCGplayer printings and expand into
+        // one row per printing. Catches vintage cards (Expedition, Aquapolis
+        // etc.) where the index has a single row but the SKU has Holo +
+        // Reverse Holo printings.
+        (async () => {
+          const expanded = [];
+          for (const c of initialMerged) {
+            const pid = c._productId || c._fallbackProductId;
+            if (!pid || c._variant) { expanded.push(c); continue; }
+            const printings = await _tiFetchPrintings(pid);
+            if (!printings || printings.length <= 1) { expanded.push(c); continue; }
+            for (const p of printings) {
+              const chip = _TI_PRINTING_TO_CHIP[p.type] ?? p.type;
+              expanded.push({
+                ...c,
+                id: `${c.id}__${p.type.replace(/\s+/g, '_')}`,
+                _productId: pid,
+                _variant: chip,
+                _printingType: p.type,
+              });
+            }
+          }
+          if (myToken !== _tiGradedSearchToken) return;  // stale
+          renderGradedSuggestions(expanded);
+        })();
       } catch {
         gradedResults.innerHTML = '<div class="ti-status">Couldn\'t load suggestions — just type the card name manually.</div>';
       }
