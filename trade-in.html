@@ -1906,6 +1906,38 @@
     function tcgcsvUrl(path) {
       return `${TCGCSV_BASE}/${path}`;
     }
+    // Token-level search aliases — applied to BOTH query and haystack so they
+    // converge in canonical form. Lets customers type "M Lucario" or "mega lucario"
+    // for the same card, "FA Charizard" or "Full Art Charizard", "SIR" or
+    // "Special Illustration Rare", etc. Lower-cased keys only. Multi-word values
+    // work because the substring check runs on the normalized joined haystack
+    // (which also has aliases expanded), not on individual tokens.
+    const _SK_TOKEN_ALIASES = {
+      'm':   'mega',                          // M Lucario EX, M Charizard EX, etc.
+      'fa':  'full art',
+      'sir': 'special illustration rare',
+      'sar': 'special art rare',
+      'ir':  'illustration rare',
+      'ar':  'art rare',
+      'hr':  'hyper rare',
+      'sr':  'secret rare',
+      'jp':  'japanese',
+      'jpn': 'japanese',
+      '1st': 'first',
+      // Community slang — extend as we hear new ones.
+      'moonbreon': 'umbreon vmax 215',
+    };
+    function normalizeSearchText(text) {
+      return (text || '')
+        .toLowerCase()
+        .normalize('NFKD').replace(/[̀-ͯ]/g, '')                  // accent strip (Pokémon → pokemon)
+        .replace(/&/g, ' and ')
+        .replace(/[‘’']s\b/g, '').replace(/[‘’']/g, '') // possessives + smart quotes
+        .replace(/[-_/.,!?:;()\[\]"]/g, ' ')                                 // punctuation → space
+        .split(/\s+/).filter(Boolean)
+        .map(t => _SK_TOKEN_ALIASES[t] || t)
+        .join(' ');
+    }
     const SEALED_KEYWORDS = [
       'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
       'elite trainer','etb','premium collection','ultra premium','upc',
@@ -1914,6 +1946,11 @@
       'build & battle','build and battle','trainer kit','theme deck','battle deck','league battle',
       'gift set','deluxe','display case','case file','stadium',
       'v box','vmax box','vstar box','v battle','starter set','starter collection',
+      // Sealed products that TCG CSV indexes as card-shaped rows in the singles
+      // catalog (categoryId 3). 'code card' catches booster-code redemption
+      // cards; 'collection' catches sealed boxes like "Mega Lucario Collection"
+      // that the build script let through.
+      'code card', 'collection',
       // Jumbo / oversized cards (4x6"+) — not accepted at any tier (CLAUDE.md).
       'jumbo',
     ];
@@ -2046,7 +2083,7 @@
       // versa) because of one curly-vs-straight apostrophe difference.
       const stripApos = s => s.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
       const tokens = stripApos(query.toLowerCase())
-        .split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
+        .split(/\s+/).filter(t => t.length > 1 || /\d/.test(t) || _SK_TOKEN_ALIASES[t]);
       if (!tokens.length) return { sealed: [], japanese: [] };
 
       // Hyphen-insensitive matcher — Japanese set codes ("SV-P", "S-P", "SM-P")
@@ -2149,14 +2186,14 @@
     }
     async function searchEnByName(tokens) {
       if (!tokens.length) return [];
-      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
       const idx = await loadEnIndex();
       if (!idx.length) return [];
-      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
       const out = [];
       for (let i = 0; i < idx.length && out.length < 30; i++) {
         const [name, setName, number, productId, market] = idx[i];
-        const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+        if (_SEALED_RE.test(name || '')) continue;   // drop sealed boxes, code cards, collections, jumbos
+        const hay = normalizeSearchText(`${name} ${setName} ${number}`);
         let allMatch = true;
         for (const t of cleaned) {
           if (!hay.includes(t)) { allMatch = false; break; }
@@ -2171,15 +2208,15 @@
     // Index entries: [name, setName, number, productId, marketPrice].
     async function searchJpByName(tokens) {
       if (!tokens.length) return [];
-      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
       const idx = await loadJpIndex();
       if (!idx.length) return [];
-      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
       const out = [];
       for (let i = 0; i < idx.length && out.length < 14; i++) {
         const entry = idx[i];
         const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
-        const hay = stripApos(`${name} ${setName} ${number}`.toLowerCase());
+        if (_SEALED_RE.test(name || '')) continue;   // same sealed/jumbo guard as EN
+        const hay = normalizeSearchText(`${name} ${setName} ${number}`);
         let allMatch = true;
         for (const t of cleaned) {
           if (!hay.includes(t)) { allMatch = false; break; }
@@ -2226,10 +2263,9 @@
     // / sealed search rows so they can flow through addTcgCsvItem unchanged.
     async function searchAllCardsFallback(tokens, excludeProductIds, excludeNameNum) {
       if (!tokens.length) return [];
-      const stripApos = s => String(s || '').replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
       const idx = await loadAllCardsIndex();
       if (!idx.length) return [];
-      const cleaned = tokens.map(t => stripApos(t.toLowerCase()));
+      const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
       const exclude = excludeProductIds instanceof Set ? excludeProductIds : new Set();
       const excludeNN = excludeNameNum instanceof Set ? excludeNameNum : new Set();
       const out = [];
@@ -2238,7 +2274,7 @@
         if (exclude.has(productId)) continue;
         // Drop jumbos entirely — Sake Kitty doesn't accept them at any tier.
         if (/\bjumbo\b/i.test(name)) continue;
-        const hay = stripApos(`${name} ${console_}`.toLowerCase());
+        const hay = normalizeSearchText(`${name} ${console_}`);
         let allMatch = true;
         for (const t of cleaned) {
           if (!hay.includes(t)) { allMatch = false; break; }
@@ -2415,7 +2451,8 @@
 
       // Tokenize + split search terms from variant intent.
       // Keep single-digit tokens too — "4" can be a real card number (Base Set Charizard).
-      const rawTokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t));
+      // Keep single-char alias tokens ("m" → "mega") through normalization.
+      const rawTokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t) || _SK_TOKEN_ALIASES[t]);
       const { searchTokens, variantFilter } = parseVariantIntent(rawTokens);
       currentVariantFilter = variantFilter;
 
@@ -3330,7 +3367,7 @@
     }
 
     async function searchGradedSuggestions(query) {
-      const tokens = query.trim().toLowerCase().split(/\s+/).filter(t => t.length > 1);
+      const tokens = query.trim().toLowerCase().split(/\s+/).filter(t => t.length > 1 || _SK_TOKEN_ALIASES[t]);
       if (!tokens.length) { gradedResults.classList.remove('open'); return; }
       const lucene = buildQuery(tokens);
       if (!lucene) { gradedResults.classList.remove('open'); return; }
