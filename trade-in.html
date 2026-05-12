@@ -2883,6 +2883,24 @@
     };
     let _tiGradedSearchToken = 0;
 
+    // Wizards-era sets where 1st Edition + Unlimited share one TCGplayer
+    // productId. Customers picking from these sets see a "1st Edition?"
+    // toggle on the list row so we capture the variant.
+    const _TI_FIRST_ED_SETS = new Set([
+      'Base Set (Shadowless)',
+      'Jungle',
+      'Fossil',
+      'Team Rocket',
+      'Gym Heroes',
+      'Gym Challenge',
+      'Neo Genesis',
+      'Neo Discovery',
+      'Neo Revelation',
+      'Neo Destiny',
+    ]);
+    const _tiIsFirstEdEligible = (setName) =>
+      _TI_FIRST_ED_SETS.has((setName || '').trim());
+
     async function lookupTcgMarket(productId) {
       try {
         const r = await fetch(`${PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(productId)}`);
@@ -3080,17 +3098,31 @@
           ? `<div class="set">Graded${c.cert ? ' · Cert #' + c.cert : ''}</div>`
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
+        // 1st Edition toggle — surfaces for graded cards from Wizards-era
+        // sets (Base Shadowless / Jungle / Fossil / Team Rocket / Gym /
+        // Neo) where 1st Ed and Unlimited share a TCGplayer productId.
+        const firstEdEligible = isGraded && _tiIsFirstEdEligible(c.set);
+        const firstEdBadge = c.firstEd
+          ? '<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.14);padding:2px 7px;border-radius:3px;margin-left:6px;text-transform:uppercase;vertical-align:1px">1st Ed</span>'
+          : '';
+        const firstEdRow = firstEdEligible ? `
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;margin-top:6px;user-select:none">
+            <input type="checkbox" data-firsted="${i}"${c.firstEd ? ' checked' : ''} style="width:16px;height:16px;accent-color:#ffae00;cursor:pointer;margin:0">
+            <span>1st Edition?<span style="color:var(--dim);margin-left:4px;font-weight:400">(check if the slab is labeled 1st Edition)</span></span>
+          </label>` : '';
+
         return `
           <div class="ti-item ${isSealed?'is-sealed':''}">
             ${thumb}
             <div class="ti-item-info">
-              <h4>${c.name}</h4>
+              <h4>${c.name}${firstEdBadge}</h4>
               ${subtitle}
               <div class="row">
                 ${condControl}
                 <span class="market">${marketLabel}: ${marketStr}</span>
                 ${offerStr}
               </div>
+              ${firstEdRow}
             </div>
             <button class="ti-remove" data-idx="${i}" aria-label="Remove">×</button>
           </div>
@@ -3137,6 +3169,14 @@
       listEl.querySelectorAll('.ti-remove').forEach(btn => {
         btn.addEventListener('click', e => {
           cards.splice(+e.currentTarget.dataset.idx, 1);
+          renderList();
+        });
+      });
+      // 1st Edition toggle (graded cards from Wizards-era sets only)
+      listEl.querySelectorAll('[data-firsted]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const i = +cb.dataset.firsted;
+          cards[i].firstEd = cb.checked;
           renderList();
         });
       });
@@ -3893,16 +3933,17 @@
         const idx = (i+1) + '.';
         const numPart = c.number ? ' #'+c.number : '';
         const setPart = c.type === 'sealed' ? '' : ` (${c.set}${numPart})`;
+        const firstEdMark = c.firstEd ? ' [1st Edition]' : '';
         const certLine = (c.type === 'graded' && c.cert) ? `\n   Cert #: ${c.cert}` : '';
         if (c.market == null) {
-          return `${idx} ${c.name}${setPart} — ${c.condition} — Price unavailable, please quote${certLine}`;
+          return `${idx} ${c.name}${firstEdMark}${setPart} — ${c.condition} — Price unavailable, please quote${certLine}`;
         }
         const adj = c.market * COND_MULT[c.condition];
         const r = ratesFor(c);
         const lineCash   = adj * r.cash;
         const lineCredit = adj * r.credit;
         market += c.market; cash += lineCash; credit += lineCredit;
-        return `${idx} ${c.name}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}${certLine}`;
+        return `${idx} ${c.name}${firstEdMark}${setPart} — ${c.condition}\n   Market $${c.market.toFixed(2)} | Cash $${lineCash.toFixed(2)} | Credit $${lineCredit.toFixed(2)}${certLine}`;
       };
 
       const singlesText = cardItems.length ? cardItems.map((c,i)=>formatItem(c,i)).join('\n\n') : 'None';

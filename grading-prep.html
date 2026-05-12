@@ -1040,6 +1040,26 @@
       // Search invocation counter — used to abort stale enrichment when a
       // newer search has fired before the previous one's printings landed.
       let _gpSearchToken = 0;
+
+      // Wizards-era sets where the same TCGplayer productId covers BOTH
+      // Unlimited and 1st Edition printings (TCGplayer's pricepoints
+      // doesn't split SKU-level attributes like 1st Ed). When the customer
+      // adds a card from one of these sets, show a "1st Edition?" toggle on
+      // the list item so we capture the variant for grading.
+      const _FIRST_ED_SETS = new Set([
+        'Base Set (Shadowless)',
+        'Jungle',
+        'Fossil',
+        'Team Rocket',
+        'Gym Heroes',
+        'Gym Challenge',
+        'Neo Genesis',
+        'Neo Discovery',
+        'Neo Revelation',
+        'Neo Destiny',
+      ]);
+      const _isFirstEdEligible = (setName) =>
+        _FIRST_ED_SETS.has((setName || '').trim());
       async function gpLookupTcgMarket(pid) {
         try {
           const r = await fetch(`${GP_PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
@@ -1477,12 +1497,23 @@
         // Function memoizes on the cache so repeated renders don't re-fetch.
         gpCards.forEach(c => gpEnsureTcgRaw(c));
 
-        gpListEl.innerHTML = gpCards.map((c, i) => `
+        gpListEl.innerHTML = gpCards.map((c, i) => {
+          const firstEdEligible = _isFirstEdEligible(c.set);
+          const firstEdBadge = c.firstEd
+            ? '<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.14);padding:2px 7px;border-radius:3px;margin-left:6px;text-transform:uppercase;vertical-align:1px">1st Ed</span>'
+            : '';
+          const firstEdRow = firstEdEligible ? `
+            <label class="gp-firsted-row" style="display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;margin:6px 0 4px;user-select:none">
+              <input type="checkbox" data-firsted="${i}"${c.firstEd ? ' checked' : ''} style="width:16px;height:16px;accent-color:#ffae00;cursor:pointer;margin:0">
+              <span>1st Edition?<span style="color:var(--dim);margin-left:4px;font-weight:400">(Yes if your card has the &ldquo;Edition 1&rdquo; stamp)</span></span>
+            </label>` : '';
+          return `
           <div class="gp-item">
             <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" />
             <div class="gp-item-info">
-              <h4>${c.name}</h4>
+              <h4>${c.name}${firstEdBadge}</h4>
               <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
+              ${firstEdRow}
               ${gradePanel(c)}
               <div class="gp-item-svc">
                 <div class="gp-svc-row">
@@ -1515,7 +1546,8 @@
               <button class="gp-remove" data-rm="${i}" aria-label="Remove card">×</button>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
 
         gpListEl.querySelectorAll('input[type="radio"]').forEach(r => {
           r.addEventListener('change', () => {
@@ -1549,6 +1581,16 @@
             cb.closest('.gp-check-label').classList.toggle('active', cb.checked);
             gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
             recalc();
+          });
+        });
+
+        // 1st Edition toggle (vintage sets only) — flips a flag on the card
+        // and re-renders so the "1st Ed" badge appears next to the name.
+        gpListEl.querySelectorAll('[data-firsted]').forEach(cb => {
+          cb.addEventListener('change', () => {
+            const i = +cb.dataset.firsted;
+            gpCards[i].firstEd = cb.checked;
+            renderList();
           });
         });
 
@@ -1935,7 +1977,8 @@
             svcLabel = c.svc === 'standard' ? 'Standard Screen ($3)' : 'Detailed Screen ($5)';
             if (c.prep) prepLabel = ' + Card Prep ($5)';
           }
-          return `${i + 1}. ${c.name} (${c.set}${c.num ? ' #' + c.num : ''}) — ${svcLabel}${prepLabel} = ${fmt(cardCost(c))}`;
+          const firstEdMark = c.firstEd ? ' [1st Edition]' : '';
+          return `${i + 1}. ${c.name}${firstEdMark} (${c.set}${c.num ? ' #' + c.num : ''}) — ${svcLabel}${prepLabel} = ${fmt(cardCost(c))}`;
         }).join('\n');
 
         const anyPrep = gpCards.some(cardHasPrep);
@@ -1966,7 +2009,7 @@
             notes,
             tier: submittingForCustomer ? tier.name : '',
             submission: anyPrep ? gpSubmitPref : '',
-            cards: gpCards.map(c => ({ name: c.name, set: c.set, num: c.num || '', svc: c.svc, prep: !!c.prep, img: c.img || '' })),
+            cards: gpCards.map(c => ({ name: c.name, set: c.set, num: c.num || '', svc: c.svc, prep: !!c.prep, firstEd: !!c.firstEd, img: c.img || '' })),
             cardCount: gpCards.length,
             totalCost: total,
           }),
