@@ -169,15 +169,31 @@
       text-align: right;
     }
     .gp-item[open] .gp-summary-meta { display: none; }
+    /* Chev — sized + framed like the close (×) button so it reads as an
+       interactive control, not decoration.  Previous 22px / 0.40 opacity
+       was too faint, customers couldn't see the card was collapsible. */
     .gp-chev {
-      width: 22px; height: 22px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.02);
+      color: rgba(255,255,255,0.62);
       display: flex; align-items: center; justify-content: center;
-      color: rgba(255,255,255,0.40);
-      transition: transform .2s ease, color .2s;
-      font-size: 11px;
+      transition: transform .2s ease, color .2s, border-color .2s, background .2s;
+      font-size: 13px;
       line-height: 1;
     }
-    .gp-item[open] .gp-chev { transform: rotate(180deg); color: var(--orange); }
+    .gp-item summary:hover .gp-chev {
+      color: rgba(255,255,255,0.90);
+      border-color: rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.04);
+    }
+    .gp-item[open] .gp-chev {
+      transform: rotate(180deg);
+      color: var(--orange);
+      border-color: rgba(255,106,0,0.40);
+      background: rgba(255,106,0,0.06);
+    }
     /* Body shown only when expanded. */
     .gp-item-body { padding-top: 4px; }
     .gp-item-info h4 {
@@ -268,7 +284,7 @@
     }
     .gp-grade-row {
       display: grid;
-      grid-template-columns: 70px 1fr auto;
+      grid-template-columns: 70px 1fr auto auto;
       align-items: baseline;
       gap: 16px;
       padding: 11px 14px;
@@ -344,9 +360,9 @@
       overflow: hidden;
       transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .25s ease;
     }
-    /* Top accent strip — always visible at low opacity, locked at full
-       on hover/active.  Each tier overrides the gradient below.  Default
-       is the page-theme orange→pink (Detailed inherits this). */
+    /* Top accent strip — primary tier signal, visible at moderate opacity
+       in idle so the tier identity reads, locked at full on hover/active.
+       Each tier overrides the gradient in its own block below. */
     .gp-service-btn::before {
       content: '';
       position: absolute; top: 0; left: 0; right: 0;
@@ -357,9 +373,10 @@
         rgba(255,0,128,0.95) 60%,
         rgba(255,106,0,0.85) 85%,
         transparent 100%);
-      opacity: 0.55;
+      opacity: 0.40;
       transition: opacity .25s ease;
     }
+    /* Corner glow — fades in on hover/active only (idle stays calm). */
     .gp-service-btn::after {
       content: '';
       position: absolute; inset: 0;
@@ -375,8 +392,8 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,106,0,0.08);
     }
-    .gp-service-btn:hover::before { opacity: 0.85; }
-    .gp-service-btn:hover::after  { opacity: 1; }
+    .gp-service-btn:hover::before { opacity: 0.95; }
+    .gp-service-btn:hover::after  { opacity: 0.9; }
     .gp-service-btn.active {
       border-color: rgba(255,106,0,0.55);
       background: linear-gradient(135deg, rgba(255,106,0,0.13) 0%, rgba(255,0,128,0.06) 100%);
@@ -403,10 +420,11 @@
     .gp-service-btn:hover .gp-service-desc { color: rgba(255,255,255,0.62); }
     .gp-service-btn.active .gp-service-desc { color: rgba(255,255,255,0.68); }
     /* Service price — 23px / weight 800, always rendered with the tier's
-       gradient text-fill (no longer interaction-gated).  Tier-specific
-       gradients are defined in the per-tier blocks below; this is the
-       Detailed default (yellow→orange — matches the page's Detailed
-       Screen "How It Works" card up top). */
+       gradient text-fill (idle is the primary tier signal).  Tier-specific
+       gradients defined in the per-tier blocks below; this is the Detailed
+       default (yellow→orange — matches the page's Detailed Screen "How It
+       Works" card up top).  Idle is partially faded so the row reads
+       calmer; hover/active bring it to full saturation + drop-shadow. */
     .gp-service-price {
       margin-top: 8px;
       font-size: 23px;
@@ -418,9 +436,12 @@
       background-clip: text;
       -webkit-text-fill-color: transparent;
       color: transparent;
-      transition: filter .2s;
+      opacity: 0.72;
+      transition: opacity .2s, filter .2s;
       line-height: 1;
     }
+    .gp-service-btn:hover .gp-service-price,
+    .gp-service-btn.active .gp-service-price { opacity: 1; }
     .gp-service-btn.active .gp-service-price {
       filter: drop-shadow(0 0 14px rgba(255,166,0,0.28));
     }
@@ -432,11 +453,9 @@
        glow, active state, and price text-fill follow its tier's identity. */
 
     /* Standard — cyan (screen-only).  Same gradient as the Standard Screen
-       "How It Works" card.  Border tint + price gradient + corner glow all
-       always-on so the color identity reads even in idle state. */
-    .gp-service-btn.tier-standard {
-      border-color: rgba(0,212,255,0.18);
-    }
+       "How It Works" card.  Idle keeps a neutral border + invisible corner
+       glow — the tier color reads through the top strip + price gradient
+       only.  Hover/active bring the cyan border + corner glow in. */
     .gp-service-btn.tier-standard::before {
       background: linear-gradient(90deg,
         transparent 0%,
@@ -447,7 +466,6 @@
     }
     .gp-service-btn.tier-standard::after {
       background: radial-gradient(circle at 100% 0%, rgba(0,212,255,0.10), transparent 55%);
-      opacity: 0.45;
     }
     .gp-service-btn.tier-standard .gp-service-price {
       background: linear-gradient(135deg, var(--cyan), #2f8fff);
@@ -471,12 +489,8 @@
     }
 
     /* Detailed — yellow→orange (matches the Detailed Screen "How It Works"
-       card; this is the "most popular" tier).  Border + price gradient
-       always-on; the base .gp-service-price rule above already sets the
-       yellow→orange text-fill, so this block only handles the chrome. */
-    .gp-service-btn.tier-detailed {
-      border-color: rgba(255,166,0,0.20);
-    }
+       card; this is the "most popular" tier).  Same calm-idle / colored-
+       interaction pattern as the other tiers. */
     .gp-service-btn.tier-detailed::before {
       background: linear-gradient(90deg,
         transparent 0%,
@@ -487,7 +501,6 @@
     }
     .gp-service-btn.tier-detailed::after {
       background: radial-gradient(circle at 100% 0%, rgba(255,166,0,0.12), transparent 55%);
-      opacity: 0.45;
     }
     .gp-service-btn.tier-detailed:hover {
       border-color: rgba(255,166,0,0.45);
@@ -504,9 +517,6 @@
     }
 
     /* Prep Only — purple (Card Prep, standalone path). */
-    .gp-service-btn.tier-prep_only {
-      border-color: rgba(123,47,255,0.20);
-    }
     .gp-service-btn.tier-prep_only::before {
       background: linear-gradient(90deg,
         transparent 0%,
@@ -517,7 +527,6 @@
     }
     .gp-service-btn.tier-prep_only::after {
       background: radial-gradient(circle at 100% 0%, rgba(123,47,255,0.14), transparent 55%);
-      opacity: 0.45;
     }
     .gp-service-btn.tier-prep_only .gp-service-price {
       background: linear-gradient(135deg, #b46cff, var(--purple));
@@ -543,9 +552,6 @@
     /* + Prep — pink/magenta (Card Prep, add-on path).  Distinct from Prep
        Only's purple so the two card-prep variants don't look identical;
        pink also keeps it inside the page's existing brand palette. */
-    .gp-service-btn.tier-prep {
-      border-color: rgba(255,0,128,0.22);
-    }
     .gp-service-btn.tier-prep::before {
       background: linear-gradient(90deg,
         transparent 0%,
@@ -556,7 +562,6 @@
     }
     .gp-service-btn.tier-prep::after {
       background: radial-gradient(circle at 100% 0%, rgba(255,0,128,0.14), transparent 55%);
-      opacity: 0.45;
     }
     .gp-service-btn.tier-prep .gp-service-price {
       background: linear-gradient(135deg, #ff4da6, var(--pink));
