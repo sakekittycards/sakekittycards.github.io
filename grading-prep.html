@@ -1159,6 +1159,7 @@
       // for the same card, "FA Charizard" or "Full Art Charizard", "SIR" or
       // "Special Illustration Rare", etc. Mirrored verbatim in trade-in.html.
       const _SK_TOKEN_ALIASES = {
+        // Card type / rarity shortcuts
         'm':   'mega',
         'fa':  'full art',
         'sir': 'special illustration rare',
@@ -1170,7 +1171,48 @@
         'jp':  'japanese',
         'jpn': 'japanese',
         '1st': 'first',
+        // Modern set abbreviations (Scarlet & Violet era)
+        'svi': 'scarlet violet',
+        'pal': 'paldea evolved',
+        'obf': 'obsidian flames',
+        '151': 'pokemon 151',
+        'mew': 'pokemon 151',
+        'par': 'paradox rift',
+        'pri': 'paldean fates',
+        'tef': 'temporal forces',
+        'twm': 'twilight masquerade',
+        'sfa': 'shrouded fable',
+        'scr': 'stellar crown',
+        'ssp': 'surging sparks',
+        'pre': 'prismatic evolutions',
+        'jtg': 'journey together',
+        'dri': 'destined rivals',
+        // Sword & Shield era
+        'swsh': 'sword and shield',
+        'rcl':  'rebel clash',
+        'daa':  'darkness ablaze',
+        'cpa':  'champions path',
+        'vmx':  'vivid voltage',
+        'shf':  'shining fates',
+        'bst':  'battle styles',
+        'cre':  'chilling reign',
+        'evs':  'evolving skies',
+        'fst':  'fusion strike',
+        'brs':  'brilliant stars',
+        'ast':  'astral radiance',
+        'pgo':  'pokemon go',
+        'lor':  'lost origin',
+        'sit':  'silver tempest',
+        'crz':  'crown zenith',
+        // Classic
+        'bs':   'base set',
+        'cel':  'celebrations',
+        'hf':   'hidden fates',
+        // Community slang
         'moonbreon': 'umbreon vmax 215',
+        'goldzard':  'charizard',
+        'zard':      'charizard',
+        'rayray':    'rayquaza',
       };
       function normalizeSearchText(text) {
         return (text || '')
@@ -1564,21 +1606,20 @@
         const cleanedNo1st = wants1stEd
           ? cleaned.filter(t => !_FIRST_ED_QUERY_TOKENS.has(t))
           : cleaned;
-        const out = [];
-        const _push = (name, setName, number, productId) => {
+        const _toRow = (name, setName, number, productId) => {
           const cleanName = (name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || name;
-          out.push({
+          return {
             lang: 'en', name: cleanName, setName, number, productId,
             image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
-          });
+          };
         };
-        // EN cap 1000 per Nick — every EN match in en-cards.json, every variant.
-        for (let i = 0; i < idx.length && out.length < 1000; i++) {
+        // Scan full index, rank by name relevance + market.
+        const scored = [];
+        const fullQuery = cleaned.join(' ');
+        for (let i = 0; i < idx.length; i++) {
           const [name, setName, number, productId, market] = idx[i];
           if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
-          // If the row is from a 1st-Ed-eligible set AND the query implies
-          // 1st-Ed intent, only require the non-variant tokens to match.
           const isFirstEdRow = wants1stEd && _isFirstEdEligible(setName);
           const tokensToMatch = isFirstEdRow ? cleanedNo1st : cleaned;
           let allMatch = true;
@@ -1586,14 +1627,25 @@
             if (!hay.includes(t)) { allMatch = false; break; }
           }
           if (!allMatch) continue;
-          _push(name, setName, number, productId);
+          const nameNorm = normalizeSearchText(name);
+          let score = 0;
+          if (nameNorm === fullQuery) score = 10000;
+          else if (nameNorm.startsWith(fullQuery)) score = 5000;
+          else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
+          else score = 200;
+          if (market != null && market > 0) {
+            score += Math.min(500, Math.log10(market + 1) * 100);
+          }
+          scored.push({ score, row: _toRow(name, setName, number, productId) });
         }
+        scored.sort((a, b) => b.score - a.score);
+        const out = scored.slice(0, 1000).map(s => s.row);
         if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
           for (let i = 0; i < idx.length && out.length < 100; i++) {
             const [name, setName, number, productId] = idx[i];
             if (_isFallbackSealed(name)) continue;
             const hay = normalizeSearchText(`${name} ${setName} ${number}`);
-            if (fuzzyMatchTokens(cleaned, hay)) _push(name, setName, number, productId);
+            if (fuzzyMatchTokens(cleaned, hay)) out.push(_toRow(name, setName, number, productId));
           }
         }
         return out;
@@ -1608,15 +1660,16 @@
         const idx = await loadJpIndex();
         if (!idx.length) return [];
         const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
-        const out = [];
-        const _push = (name, setName, number, productId) => out.push({
+        const _toRow = (name, setName, number, productId) => ({
           lang: 'jp', name, setName, number, productId,
           image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
         });
-        // JP cap 500 per Nick — every JP match in jp-cards.json, every variant.
-        for (let i = 0; i < idx.length && out.length < 500; i++) {
+        // Scan full JP index, rank by name relevance + market.
+        const scoredJp = [];
+        const fullQuery = cleaned.join(' ');
+        for (let i = 0; i < idx.length; i++) {
           const entry = idx[i];
-          const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
+          const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
           if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
           let allMatch = true;
@@ -1624,15 +1677,26 @@
             if (!hay.includes(t)) { allMatch = false; break; }
           }
           if (!allMatch) continue;
-          _push(name, setName, number, productId);
+          const nameNorm = normalizeSearchText(name);
+          let score = 0;
+          if (nameNorm === fullQuery) score = 10000;
+          else if (nameNorm.startsWith(fullQuery)) score = 5000;
+          else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
+          else score = 200;
+          if (market != null && market > 0) {
+            score += Math.min(500, Math.log10(market + 1) * 100);
+          }
+          scoredJp.push({ score, row: _toRow(name, setName, number, productId) });
         }
+        scoredJp.sort((a, b) => b.score - a.score);
+        const out = scoredJp.slice(0, 500).map(s => s.row);
         if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
           for (let i = 0; i < idx.length && out.length < 100; i++) {
             const entry = idx[i];
             const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
             if (_isFallbackSealed(name)) continue;
             const hay = normalizeSearchText(`${name} ${setName} ${number}`);
-            if (fuzzyMatchTokens(cleaned, hay)) _push(name, setName, number, productId);
+            if (fuzzyMatchTokens(cleaned, hay)) out.push(_toRow(name, setName, number, productId));
           }
         }
         return out;
