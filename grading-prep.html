@@ -912,6 +912,42 @@
           .map(t => _SK_TOKEN_ALIASES[t] || t)
           .join(' ');
       }
+      // Damerau-Levenshtein + per-token fuzzy fallback. Same implementation as
+      // trade-in.html — applied only when strict substring match returns zero.
+      function _damerauLevenshtein(a, b) {
+        if (a === b) return 0;
+        const m = a.length, n = b.length;
+        if (!m) return n;
+        if (!n) return m;
+        const d = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+        for (let i = 0; i <= m; i++) d[i][0] = i;
+        for (let j = 0; j <= n; j++) d[0][j] = j;
+        for (let i = 1; i <= m; i++) {
+          for (let j = 1; j <= n; j++) {
+            const cost = a[i-1] === b[j-1] ? 0 : 1;
+            d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + cost);
+            if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) {
+              d[i][j] = Math.min(d[i][j], d[i-2][j-2] + 1);
+            }
+          }
+        }
+        return d[m][n];
+      }
+      function fuzzyMatchTokens(queryTokens, hay) {
+        const hayTokens = hay.split(' ').filter(Boolean);
+        for (const qt of queryTokens) {
+          if (hay.includes(qt)) continue;
+          if (qt.length < 4 || /^\d/.test(qt)) return false;
+          const maxEdits = qt.length < 9 ? 1 : qt.length < 13 ? 2 : 3;
+          let found = false;
+          for (const ht of hayTokens) {
+            if (Math.abs(ht.length - qt.length) > maxEdits) continue;
+            if (_damerauLevenshtein(qt, ht) <= maxEdits) { found = true; break; }
+          }
+          if (!found) return false;
+        }
+        return true;
+      }
       const SEALED_KEYWORDS = [
         'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
         'elite trainer','etb','premium collection','ultra premium','upc',
@@ -1121,42 +1157,35 @@
         const exclude = excludePids instanceof Set ? excludePids : new Set();
         const excludeNN = excludeNameNum instanceof Set ? excludeNameNum : new Set();
         const out = [];
-        for (let i = 0; i < idx.length && out.length < 30; i++) {
-          const [name, console_, productId] = idx[i];
-          if (exclude.has(productId)) continue;
-          // Grading prep handles only single cards (sealed boosters aren't gradeable).
-          if (_isFallbackSealed(name)) continue;
-          // Chinese is excluded from grading prep entirely per user policy 2026-05-04
-          // (Chinese only allowed in the Sell/Trade graded form). English + Japanese
-          // both surface here so the fallback covers older promos / oddballs that
-          // pokemontcg.io doesn't index — paired with trade-in.html behavior.
-          const isJp = console_.includes('Japanese');
-          const isCn = console_.includes('Chinese');
-          if (isCn) continue;
+        function tryRow(row, useFuzzy) {
+          const [name, console_, productId] = row;
+          if (exclude.has(productId)) return;
+          if (_isFallbackSealed(name)) return;             // sealed/code-card/collection/jumbo guard
+          if (console_.includes('Chinese')) return;        // policy 2026-05-04: Chinese excluded from grading prep
           const hay = normalizeSearchText(`${name} ${console_}`);
-          let allMatch = true;
-          for (const t of cleaned) {
-            if (!hay.includes(t)) { allMatch = false; break; }
-          }
-          if (!allMatch) continue;
+          const matched = useFuzzy
+            ? fuzzyMatchTokens(cleaned, hay)
+            : cleaned.every(t => hay.includes(t));
+          if (!matched) return;
+          const isJp = console_.includes('Japanese');
           const pidStr = String(productId);
           const isPcOnly = pidStr.startsWith('pc:');
-          // Try to extract a card number from PC's "Name #NN" format.
           const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
           const cleanName = m ? m[1].trim() : name;
-          const number    = m ? m[2] : '';
-          // Cross-source dedup with pokemontcg.io results, by lowercased
-          // name + raw number. Skip rows the EN API already returned.
+          const number = m ? m[2] : '';
           const nnKey = `${cleanName.toLowerCase()}|${number}`;
-          if (number && excludeNN.has(nnKey)) continue;
+          if (number && excludeNN.has(nnKey)) return;
           out.push({
             lang: isJp ? 'jp' : 'en',
             name: cleanName,
             setName: console_.replace(/^Pokemon\s+/, ''),
-            number,
-            productId,
+            number, productId,
             image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
           });
+        }
+        for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], false);
+        if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+          for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], true);
         }
         return out;
       }
@@ -1184,26 +1213,31 @@
         if (!idx.length) return [];
         const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
         const out = [];
+        const _push = (name, setName, number, productId) => {
+          const cleanName = (name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || name;
+          out.push({
+            lang: 'en', name: cleanName, setName, number, productId,
+            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
+          });
+        };
         for (let i = 0; i < idx.length && out.length < 30; i++) {
           const [name, setName, number, productId, market] = idx[i];
-          if (_isFallbackSealed(name)) continue;   // drop sealed boxes, code cards, collections, jumbos
+          if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
           let allMatch = true;
           for (const t of cleaned) {
             if (!hay.includes(t)) { allMatch = false; break; }
           }
           if (!allMatch) continue;
-          // Strip " - 4/102" set-number suffix from display name (it's
-          // already broken out into the number field).
-          const cleanName = (name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || name;
-          out.push({
-            lang: 'en',
-            name: cleanName,
-            setName,
-            number,
-            productId,
-            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
-          });
+          _push(name, setName, number, productId);
+        }
+        if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+          for (let i = 0; i < idx.length && out.length < 30; i++) {
+            const [name, setName, number, productId] = idx[i];
+            if (_isFallbackSealed(name)) continue;
+            const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+            if (fuzzyMatchTokens(cleaned, hay)) _push(name, setName, number, productId);
+          }
         }
         return out;
       }
@@ -1218,25 +1252,30 @@
         if (!idx.length) return [];
         const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
         const out = [];
+        const _push = (name, setName, number, productId) => out.push({
+          lang: 'jp', name, setName, number, productId,
+          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
+        });
         for (let i = 0; i < idx.length && out.length < 14; i++) {
           const entry = idx[i];
           const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
-          if (_isFallbackSealed(name)) continue;   // same sealed/jumbo guard
+          if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
           let allMatch = true;
           for (const t of cleaned) {
             if (!hay.includes(t)) { allMatch = false; break; }
           }
           if (!allMatch) continue;
-          out.push({
-            lang: 'jp',
-            name,
-            setName,
-            number,
-            productId,
-            // TCGplayer CDN pattern — same imageUrl field TCG CSV ships natively.
-            image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
-          });
+          _push(name, setName, number, productId);
+        }
+        if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+          for (let i = 0; i < idx.length && out.length < 14; i++) {
+            const entry = idx[i];
+            const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
+            if (_isFallbackSealed(name)) continue;
+            const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+            if (fuzzyMatchTokens(cleaned, hay)) _push(name, setName, number, productId);
+          }
         }
         return out;
       }
