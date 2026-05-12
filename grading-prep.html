@@ -92,14 +92,14 @@
       margin:0 0 4px; padding:2px 0 4px;
       line-height: 1.25;  /* Bangers descender clip fix */}
 
-    /* ── gp-item: premium grading-decision card.  Redesigned 2026-05-12 from
-       a single-row 3-col grid to a vertical layout with explicit sections:
-       header → KPI module → grade table → service grid → service total.
+    /* ── gp-item: premium grading-decision card.  Now a <details> element
+       so each card is collapsible.  Collapsed state shows a compact summary
+       (img · title · best-profit chip · service total · close).  Expanded
+       state reveals the full KPI module · grade table · service grid.
        Border + glow intensity cut ~40% so cards read as fintech panels,
        not gaming UI.  Cohesive orange accent (no competing cyan). */
     .gp-item {
-      display: flex; flex-direction: column;
-      padding: 20px 22px 18px;
+      padding: 18px 22px;
       background: rgba(255,255,255,0.022);
       border: 1px solid rgba(255,106,0,0.16);
       border-radius: 12px;
@@ -110,16 +110,72 @@
       border-color: rgba(255,106,0,0.28);
       background: rgba(255,255,255,0.032);
     }
-    /* Header row — image · title block · close button. */
-    .gp-item-head {
-      display: grid; grid-template-columns: 56px 1fr auto;
-      gap: 16px; align-items: center;
+    .gp-item[open] { padding-bottom: 18px; }
+    /* Header row — image · title block · summary chips · chev · close. */
+    .gp-item summary {
+      list-style: none;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 56px minmax(0,1fr) auto auto auto;
+      gap: 16px;
+      align-items: center;
+      padding: 2px 0;
+      user-select: none;
     }
-    .gp-item-head img {
+    .gp-item summary::-webkit-details-marker { display: none; }
+    .gp-item summary > img {
       width: 56px; height: 78px;
       object-fit: cover; border-radius: 5px;
       background: rgba(255,255,255,0.04);
     }
+    /* Summary chips — best-profit + service total, visible only when
+       collapsed.  When expanded, the full KPI module + service total
+       footer take over so these chips disappear to avoid duplication. */
+    .gp-summary-meta {
+      display: flex; flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      line-height: 1;
+    }
+    .gp-summary-profit {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
+      color: #5fe39b;
+      display: flex; flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .gp-summary-profit-sub {
+      font-size: 9.5px; letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      font-weight: 600;
+    }
+    .gp-summary-cost {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
+      color: var(--orange);
+      padding-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      width: 100%;
+      text-align: right;
+    }
+    .gp-item[open] .gp-summary-meta { display: none; }
+    .gp-chev {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.40);
+      transition: transform .2s ease, color .2s;
+      font-size: 11px;
+      line-height: 1;
+    }
+    .gp-item[open] .gp-chev { transform: rotate(180deg); color: var(--orange); }
+    /* Body shown only when expanded. */
+    .gp-item-body { padding-top: 4px; }
     .gp-item-info h4 {
       font-size: 17px; font-weight: 700;
       line-height: 1.25;
@@ -271,53 +327,90 @@
     .gp-service-btn {
       display: flex; flex-direction: column;
       align-items: flex-start;
-      gap: 3px;
-      padding: 11px 12px 10px;
-      background: rgba(255,255,255,0.022);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 9px;
+      gap: 4px;
+      padding: 13px 13px 11px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.012) 100%);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 10px;
       cursor: pointer;
       text-align: left;
       font-family: inherit;
       user-select: none;
       position: relative;
-      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
+      overflow: hidden;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .25s ease;
+    }
+    /* Top accent strip — hidden by default, fades in on hover, locked on
+       active.  Adds a touch of life without competing with the price. */
+    .gp-service-btn::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,106,0,0.55) 30%,
+        rgba(255,166,40,0.95) 50%,
+        rgba(255,106,0,0.55) 70%,
+        transparent 100%);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    .gp-service-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 100% 0%, rgba(255,106,0,0.10), transparent 55%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .35s ease;
     }
     .gp-service-btn input { display: none; }
     .gp-service-btn:hover {
-      border-color: rgba(255,106,0,0.30);
-      background: rgba(255,106,0,0.035);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      border-color: rgba(255,106,0,0.32);
+      background: linear-gradient(180deg, rgba(255,106,0,0.06) 0%, rgba(255,106,0,0.02) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,106,0,0.08);
     }
+    .gp-service-btn:hover::before { opacity: 0.55; }
+    .gp-service-btn:hover::after  { opacity: 1; }
     .gp-service-btn.active {
       border-color: rgba(255,106,0,0.55);
-      background: rgba(255,106,0,0.07);
-      box-shadow: 0 0 0 1px rgba(255,106,0,0.20) inset;
+      background: linear-gradient(135deg, rgba(255,106,0,0.13) 0%, rgba(255,106,0,0.05) 100%);
+      box-shadow: 0 0 0 1px rgba(255,106,0,0.22) inset, 0 0 22px rgba(255,106,0,0.12);
     }
+    .gp-service-btn.active::before { opacity: 1; }
+    .gp-service-btn.active::after  { opacity: 0.8; }
     .gp-service-name {
       font-size: 10.5px;
       font-weight: 700;
       letter-spacing: 1.1px;
       text-transform: uppercase;
       color: rgba(255,255,255,0.86);
+      transition: color .15s;
     }
-    .gp-service-btn.active .gp-service-name { color: rgba(255,255,255,0.98); }
+    .gp-service-btn.active .gp-service-name { color: #fff; }
     .gp-service-desc {
       font-size: 10.5px;
       color: rgba(255,255,255,0.48);
       line-height: 1.35;
       min-height: 28px;
+      transition: color .15s;
     }
+    .gp-service-btn:hover .gp-service-desc { color: rgba(255,255,255,0.62); }
+    .gp-service-btn.active .gp-service-desc { color: rgba(255,255,255,0.68); }
     .gp-service-price {
       margin-top: 6px;
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      letter-spacing: -0.3px;
-      color: rgba(255,255,255,0.84);
+      letter-spacing: -0.4px;
+      color: rgba(255,255,255,0.86);
+      transition: color .15s, transform .2s;
     }
-    .gp-service-btn.active .gp-service-price { color: var(--orange); }
+    .gp-service-btn:hover .gp-service-price { color: var(--orange); }
+    .gp-service-btn.active .gp-service-price {
+      color: var(--orange);
+      text-shadow: 0 0 18px rgba(255,106,0,0.30);
+    }
 
     /* Service total — clearly labeled footer total. */
     .gp-service-total {
@@ -1677,6 +1770,30 @@
           : (ungraded ? `<div class="gp-profit-table">${baselineRow}</div>` : '');
         return kpiBlock + tableBlock;
       }
+      // Lightweight summary used when the card is collapsed — just enough
+      // for the customer to scan the list without expanding (best grade +
+      // best profit).  Returns null when no graded data is available yet.
+      function gradeSummary(c) {
+        if (!c.productId || !gpGradedIndex) return null;
+        const data = gpGradedIndex[String(c.productId)];
+        if (!data) return null;
+        const [pcUngraded, psa8, psa9, psa95, psa10, bgs10] = data;
+        const tcgRaw = gpTcgRawCache[String(c.productId)];
+        const ungraded = (tcgRaw != null) ? tcgRaw : (pcUngraded || null);
+        const baseline = ungraded || 0;
+        const grades = [
+          { label: 'PSA 10', val: psa10 },
+          { label: 'BGS 10', val: bgs10 },
+          { label: 'PSA 9.5', val: psa95 },
+          { label: 'PSA 9',  val: psa9 },
+          { label: 'PSA 8',  val: psa8 },
+        ];
+        const profitable = grades.filter(g => g.val && (g.val - PSA_FEE_ESTIMATE - baseline) > 0);
+        if (!profitable.length) return null;
+        const topProfit = Math.max(...profitable.map(g => g.val - PSA_FEE_ESTIMATE - baseline));
+        const bestGrade = profitable.find(g => Math.abs((g.val - PSA_FEE_ESTIMATE - baseline) - topProfit) < 0.01);
+        return { profit: topProfit, gradeLabel: bestGrade.label };
+      }
       // Lazy-load the graded index the first time renderList runs with cards
       // that might benefit from it. Triggers a re-render when it lands.
       function ensureGradedIndexLoaded() {
@@ -1721,55 +1838,78 @@
               <input type="checkbox" data-firsted="${i}"${c.firstEd ? ' checked' : ''} style="width:16px;height:16px;accent-color:#ffae00;cursor:pointer;margin:0">
               <span>1st Edition?<span style="color:var(--dim);margin-left:4px;font-weight:400">(Yes if your card has the &ldquo;Edition 1&rdquo; stamp)</span></span>
             </label>` : '';
+          const summaryStats = gradeSummary(c);
+          const fmtSummaryMoney = n => n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+          const summaryProfitChip = summaryStats
+            ? `<div class="gp-summary-profit">+$${fmtSummaryMoney(summaryStats.profit)}<span class="gp-summary-profit-sub">${summaryStats.gradeLabel}</span></div>`
+            : `<div class="gp-summary-profit" style="color:rgba(255,255,255,0.32);font-size:11px">—<span class="gp-summary-profit-sub">No data</span></div>`;
+          const isOpen = c.expanded !== false;  // default open (legacy carts have no flag)
           return `
-          <div class="gp-item">
-            <div class="gp-item-head">
+          <details class="gp-item"${isOpen ? ' open' : ''}>
+            <summary>
               <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" decoding="async" />
               <div class="gp-item-info">
                 <h4>${c.name}${firstEdBadge}</h4>
                 <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
-                ${firstEdRow}
               </div>
+              <div class="gp-summary-meta">
+                ${summaryProfitChip}
+                <div class="gp-summary-cost">${fmt(cardCost(c))}</div>
+              </div>
+              <span class="gp-chev" aria-hidden="true">▾</span>
               <button class="gp-remove" data-rm="${i}" aria-label="Remove card">×</button>
-            </div>
-            ${gradePanel(c)}
-            <div class="gp-service-section">
-              <div class="gp-service-label">Service</div>
-              <div class="gp-service-grid">
-                <label class="gp-service-btn${c.svc === 'standard' ? ' active' : ''}">
-                  <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
-                  <span class="gp-service-name">Standard</span>
-                  <span class="gp-service-desc">Quick pass / fail screen</span>
-                  <span class="gp-service-price">$3</span>
-                </label>
-                <label class="gp-service-btn${c.svc === 'detailed' ? ' active' : ''}">
-                  <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
-                  <span class="gp-service-name">Detailed</span>
-                  <span class="gp-service-desc">Deep screen + notes</span>
-                  <span class="gp-service-price">$5</span>
-                </label>
-                <label class="gp-service-btn${c.svc === 'prep_only' ? ' active' : ''}">
-                  <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
-                  <span class="gp-service-name">Prep Only</span>
-                  <span class="gp-service-desc">Skip screening</span>
-                  <span class="gp-service-price">$5</span>
-                </label>
-                ${c.svc === 'prep_only' ? '' : `
-                <label class="gp-service-btn${c.prep ? ' active' : ''}">
-                  <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
-                  <span class="gp-service-name">+ Prep</span>
-                  <span class="gp-service-desc">Sleeve + card saver</span>
-                  <span class="gp-service-price">$5</span>
-                </label>`}
+            </summary>
+            <div class="gp-item-body">
+              ${firstEdRow}
+              ${gradePanel(c)}
+              <div class="gp-service-section">
+                <div class="gp-service-label">Service</div>
+                <div class="gp-service-grid">
+                  <label class="gp-service-btn${c.svc === 'standard' ? ' active' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
+                    <span class="gp-service-name">Standard</span>
+                    <span class="gp-service-desc">Quick pass / fail screen</span>
+                    <span class="gp-service-price">$3</span>
+                  </label>
+                  <label class="gp-service-btn${c.svc === 'detailed' ? ' active' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
+                    <span class="gp-service-name">Detailed</span>
+                    <span class="gp-service-desc">Deep screen + notes</span>
+                    <span class="gp-service-price">$5</span>
+                  </label>
+                  <label class="gp-service-btn${c.svc === 'prep_only' ? ' active' : ''}">
+                    <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
+                    <span class="gp-service-name">Prep Only</span>
+                    <span class="gp-service-desc">Skip screening</span>
+                    <span class="gp-service-price">$5</span>
+                  </label>
+                  ${c.svc === 'prep_only' ? '' : `
+                  <label class="gp-service-btn${c.prep ? ' active' : ''}">
+                    <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
+                    <span class="gp-service-name">+ Prep</span>
+                    <span class="gp-service-desc">Sleeve + card saver</span>
+                    <span class="gp-service-price">$5</span>
+                  </label>`}
               </div>
               <div class="gp-service-total">
                 <span class="gp-service-total-label">Service Total</span>
                 <span class="gp-item-cost">${fmt(cardCost(c))}</span>
               </div>
             </div>
-          </div>
+          </details>
         `;
         }).join('');
+
+        // Persist collapsed/expanded state on each toggle. Native <details>
+        // handles the UI; we just track which cards are expanded so a re-
+        // render (or page reload) restores the same arrangement.
+        gpListEl.querySelectorAll('.gp-item').forEach((det, i) => {
+          det.addEventListener('toggle', () => {
+            if (!gpCards[i]) return;
+            gpCards[i].expanded = det.open;
+            gpSaveCart();
+          });
+        });
 
         gpListEl.querySelectorAll('input[type="radio"]').forEach(r => {
           r.addEventListener('change', () => {
@@ -1791,7 +1931,11 @@
             gpListEl.querySelectorAll(`[name="gpsvc${i}"]`).forEach(rb => {
               rb.closest('.gp-service-btn').classList.toggle('active', rb.checked);
             });
-            gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
+            const item = gpListEl.querySelectorAll('.gp-item')[i];
+            const newCostStr = fmt(cardCost(gpCards[i]));
+            item.querySelector('.gp-item-cost').textContent = newCostStr;
+            const summaryCost = item.querySelector('.gp-summary-cost');
+            if (summaryCost) summaryCost.textContent = newCostStr;
             recalc();
           });
         });
@@ -1801,7 +1945,11 @@
             const i = +cb.dataset.prep;
             gpCards[i].prep = cb.checked;
             cb.closest('.gp-service-btn').classList.toggle('active', cb.checked);
-            gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
+            const item = gpListEl.querySelectorAll('.gp-item')[i];
+            const newCostStr = fmt(cardCost(gpCards[i]));
+            item.querySelector('.gp-item-cost').textContent = newCostStr;
+            const summaryCost = item.querySelector('.gp-summary-cost');
+            if (summaryCost) summaryCost.textContent = newCostStr;
             recalc();
           });
         });
@@ -1817,7 +1965,11 @@
         });
 
         gpListEl.querySelectorAll('[data-rm]').forEach(btn => {
-          btn.addEventListener('click', () => {
+          btn.addEventListener('click', (e) => {
+            // Stop the click from bubbling to the <summary> and toggling
+            // the collapsible — the user wanted to remove, not collapse.
+            e.preventDefault();
+            e.stopPropagation();
             gpCards.splice(+btn.dataset.rm, 1);
             renderList();
           });
@@ -2058,6 +2210,7 @@
                   lang: r.lang,
                   productId: r.productId || null,
                   variant: r.variant || '',
+                  expanded: true,
                 };
                 gpCards.push(cardEntry);
                 gpSearchEl.value = '';
@@ -2146,6 +2299,7 @@
           svc:  'standard',
           prep: false,
           manual: true,
+          expanded: true,
         });
         closeManual();
         renderList();
