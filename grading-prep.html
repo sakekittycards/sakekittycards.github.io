@@ -428,6 +428,90 @@
       filter: drop-shadow(0 0 12px rgba(255,106,0,0.25));
     }
 
+    /* ── Per-tier color identity ─────────────────────────────────────────
+       Mirrors the color system the "How It Works" service cards higher up
+       on the page use: Standard = cyan, Detailed = orange/pink (page theme),
+       Card Prep (Prep Only + Prep) = purple. Each tile's top accent, hover
+       glow, active state, and price text-fill follow its tier's identity. */
+
+    /* Standard — cyan (screen-only) */
+    .gp-service-btn.tier-standard::before {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0,212,255,0.85) 25%,
+        rgba(47,143,255,0.95) 60%,
+        rgba(0,212,255,0.85) 85%,
+        transparent 100%);
+    }
+    .gp-service-btn.tier-standard::after {
+      background: radial-gradient(circle at 100% 0%, rgba(0,212,255,0.10), transparent 55%);
+    }
+    .gp-service-btn.tier-standard:hover {
+      border-color: rgba(0,212,255,0.32);
+      background: linear-gradient(180deg, rgba(0,212,255,0.06) 0%, rgba(47,143,255,0.025) 100%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,212,255,0.10);
+    }
+    .gp-service-btn.tier-standard.active {
+      border-color: rgba(0,212,255,0.55);
+      background: linear-gradient(135deg, rgba(0,212,255,0.13) 0%, rgba(47,143,255,0.06) 100%);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.22) inset, 0 0 22px rgba(0,212,255,0.12);
+    }
+    .gp-service-btn.tier-standard:hover .gp-service-price,
+    .gp-service-btn.tier-standard.active .gp-service-price {
+      background: linear-gradient(135deg, var(--cyan), #2f8fff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .gp-service-btn.tier-standard.active .gp-service-price {
+      filter: drop-shadow(0 0 12px rgba(0,212,255,0.30));
+    }
+
+    /* Detailed — orange→pink, page theme.  Uses the .gp-service-btn defaults
+       above (no override needed). */
+
+    /* Prep Only + Prep — purple (Card Prep) */
+    .gp-service-btn.tier-prep_only::before,
+    .gp-service-btn.tier-prep::before {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(180,108,255,0.85) 25%,
+        rgba(123,47,255,0.95) 60%,
+        rgba(180,108,255,0.85) 85%,
+        transparent 100%);
+    }
+    .gp-service-btn.tier-prep_only::after,
+    .gp-service-btn.tier-prep::after {
+      background: radial-gradient(circle at 100% 0%, rgba(123,47,255,0.12), transparent 55%);
+    }
+    .gp-service-btn.tier-prep_only:hover,
+    .gp-service-btn.tier-prep:hover {
+      border-color: rgba(123,47,255,0.32);
+      background: linear-gradient(180deg, rgba(180,108,255,0.06) 0%, rgba(123,47,255,0.025) 100%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(123,47,255,0.10);
+    }
+    .gp-service-btn.tier-prep_only.active,
+    .gp-service-btn.tier-prep.active {
+      border-color: rgba(123,47,255,0.55);
+      background: linear-gradient(135deg, rgba(180,108,255,0.13) 0%, rgba(123,47,255,0.06) 100%);
+      box-shadow: 0 0 0 1px rgba(123,47,255,0.22) inset, 0 0 22px rgba(123,47,255,0.12);
+    }
+    .gp-service-btn.tier-prep_only:hover .gp-service-price,
+    .gp-service-btn.tier-prep_only.active .gp-service-price,
+    .gp-service-btn.tier-prep:hover .gp-service-price,
+    .gp-service-btn.tier-prep.active .gp-service-price {
+      background: linear-gradient(135deg, #b46cff, var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .gp-service-btn.tier-prep_only.active .gp-service-price,
+    .gp-service-btn.tier-prep.active .gp-service-price {
+      filter: drop-shadow(0 0 12px rgba(123,47,255,0.32));
+    }
+
     /* Service total — clearly labeled footer total. */
     .gp-service-total {
       display: flex; justify-content: space-between; align-items: baseline;
@@ -1983,26 +2067,26 @@
               <div class="gp-service-section">
                 <div class="gp-service-label">Service</div>
                 <div class="gp-service-grid">
-                  <label class="gp-service-btn${c.svc === 'standard' ? ' active' : ''}">
+                  <label class="gp-service-btn tier-standard${c.svc === 'standard' ? ' active' : ''}">
                     <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
                     <span class="gp-service-name">Standard</span>
                     <span class="gp-service-desc">Quick pass / fail screen</span>
                     <span class="gp-service-price">$3</span>
                   </label>
-                  <label class="gp-service-btn${c.svc === 'detailed' ? ' active' : ''}">
+                  <label class="gp-service-btn tier-detailed${c.svc === 'detailed' ? ' active' : ''}">
                     <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
                     <span class="gp-service-name">Detailed</span>
                     <span class="gp-service-desc">Deep screen + notes</span>
                     <span class="gp-service-price">$5</span>
                   </label>
-                  <label class="gp-service-btn${c.svc === 'prep_only' ? ' active' : ''}">
+                  <label class="gp-service-btn tier-prep_only${c.svc === 'prep_only' ? ' active' : ''}">
                     <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
                     <span class="gp-service-name">Prep Only</span>
                     <span class="gp-service-desc">Skip screening</span>
                     <span class="gp-service-price">$5</span>
                   </label>
                   ${c.svc === 'prep_only' ? '' : `
-                  <label class="gp-service-btn${c.prep ? ' active' : ''}">
+                  <label class="gp-service-btn tier-prep${c.prep ? ' active' : ''}">
                     <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
                     <span class="gp-service-name">+ Prep</span>
                     <span class="gp-service-desc">Sleeve + card saver</span>
