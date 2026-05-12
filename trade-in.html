@@ -1938,6 +1938,50 @@
         .map(t => _SK_TOKEN_ALIASES[t] || t)
         .join(' ');
     }
+
+    // Damerau-Levenshtein edit distance (adds single-edit transposition vs
+    // plain Levenshtein, so "pikahcu" ↔ "pikachu" is 1 edit instead of 2).
+    // Used as a typo-tolerant fallback when strict substring match returns
+    // nothing. Cheap enough to run across the 13K-entry index on miss only.
+    function _damerauLevenshtein(a, b) {
+      if (a === b) return 0;
+      const m = a.length, n = b.length;
+      if (!m) return n;
+      if (!n) return m;
+      const d = Array.from({length: m + 1}, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) d[i][0] = i;
+      for (let j = 0; j <= n; j++) d[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i-1] === b[j-1] ? 0 : 1;
+          d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + cost);
+          if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) {
+            d[i][j] = Math.min(d[i][j], d[i-2][j-2] + 1);  // transposition
+          }
+        }
+      }
+      return d[m][n];
+    }
+    // Per-token fuzzy check. Each query token must either be a literal substring
+    // of the haystack OR within edit distance of some haystack token (length-
+    // scaled: 4-8 chars → 1 edit, 9-12 → 2, 13+ → 3). Short or numeric tokens
+    // (card numbers like "215") require exact substring — we don't want "215"
+    // matching "115" via fuzzy.
+    function fuzzyMatchTokens(queryTokens, hay) {
+      const hayTokens = hay.split(' ').filter(Boolean);
+      for (const qt of queryTokens) {
+        if (hay.includes(qt)) continue;
+        if (qt.length < 4 || /^\d/.test(qt)) return false;
+        const maxEdits = qt.length < 9 ? 1 : qt.length < 13 ? 2 : 3;
+        let found = false;
+        for (const ht of hayTokens) {
+          if (Math.abs(ht.length - qt.length) > maxEdits) continue;
+          if (_damerauLevenshtein(qt, ht) <= maxEdits) { found = true; break; }
+        }
+        if (!found) return false;
+      }
+      return true;
+    }
     const SEALED_KEYWORDS = [
       'booster box','booster display','booster pack','booster bundle','sleeved booster','blister',
       'elite trainer','etb','premium collection','ultra premium','upc',
@@ -2201,6 +2245,19 @@
         if (!allMatch) continue;
         out.push({ name, setName, number, productId, market });
       }
+      // Fuzzy fallback for typos — only runs when strict found nothing AND the
+      // query has at least one non-numeric 4+-char token (don't try fuzzy on
+      // "215" or "ex").
+      if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+        for (let i = 0; i < idx.length && out.length < 30; i++) {
+          const [name, setName, number, productId, market] = idx[i];
+          if (_SEALED_RE.test(name || '')) continue;
+          const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+          if (fuzzyMatchTokens(cleaned, hay)) {
+            out.push({ name, setName, number, productId, market });
+          }
+        }
+      }
       return out;
     }
 
@@ -2212,27 +2269,33 @@
       if (!idx.length) return [];
       const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
       const out = [];
+      const _push = (productId, name, setName, market) => out.push({
+        productId, name, set: setName,
+        image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
+        market: market != null ? market : null,
+        url: '', lang: 'jp', isSealed: false,
+      });
       for (let i = 0; i < idx.length && out.length < 14; i++) {
         const entry = idx[i];
         const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
-        if (_SEALED_RE.test(name || '')) continue;   // same sealed/jumbo guard as EN
+        if (_SEALED_RE.test(name || '')) continue;
         const hay = normalizeSearchText(`${name} ${setName} ${number}`);
         let allMatch = true;
         for (const t of cleaned) {
           if (!hay.includes(t)) { allMatch = false; break; }
         }
         if (!allMatch) continue;
-        out.push({
-          productId,
-          name,
-          set: setName,
-          // TCGplayer CDN image URL — same pattern TCG CSV's imageUrl field uses.
-          image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
-          market: market != null ? market : null,
-          url: '',
-          lang: 'jp',
-          isSealed: false,
-        });
+        _push(productId, name, setName, market);
+      }
+      // Fuzzy fallback — same gate as EN.
+      if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+        for (let i = 0; i < idx.length && out.length < 14; i++) {
+          const entry = idx[i];
+          const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
+          if (_SEALED_RE.test(name || '')) continue;
+          const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+          if (fuzzyMatchTokens(cleaned, hay)) _push(productId, name, setName, market);
+        }
       }
       return out;
     }
@@ -2269,43 +2332,31 @@
       const exclude = excludeProductIds instanceof Set ? excludeProductIds : new Set();
       const excludeNN = excludeNameNum instanceof Set ? excludeNameNum : new Set();
       const out = [];
-      for (let i = 0; i < idx.length && out.length < 30; i++) {
-        const [name, console_, productId] = idx[i];
-        if (exclude.has(productId)) continue;
-        // Drop jumbos entirely — Sake Kitty doesn't accept them at any tier.
-        if (/\bjumbo\b/i.test(name)) continue;
+      function tryRow(row, useFuzzy) {
+        const [name, console_, productId] = row;
+        if (exclude.has(productId)) return;
+        if (/\bjumbo\b/i.test(name)) return;
         const hay = normalizeSearchText(`${name} ${console_}`);
-        let allMatch = true;
-        for (const t of cleaned) {
-          if (!hay.includes(t)) { allMatch = false; break; }
-        }
-        if (!allMatch) continue;
+        const matched = useFuzzy
+          ? fuzzyMatchTokens(cleaned, hay)
+          : cleaned.every(t => hay.includes(t));
+        if (!matched) return;
         const isJp = console_.includes('Japanese');
-        const isCn = console_.includes('Chinese');
-        // Chinese is excluded from RAW card search per user policy 2026-05-04
-        // — Chinese only surfaces in the graded card form (searchGradedSuggestions
-        // pulls Chinese matches separately so customers can trade in graded
-        // Chinese cards but not raw / non-graded ones).
-        if (isCn) continue;
+        if (console_.includes('Chinese')) return;   // Chinese excluded from raw search (policy 2026-05-04)
         const isSealed = _isFallbackSealed(name);
         const pidStr = String(productId);
         const isPcOnly = pidStr.startsWith('pc:');
-        // Cross-source dedup — strip variant suffixes (" [Holo]", " (Reverse Holo)")
-        // before keying so the same card from different sources collapses.
         const m = name.match(/^(.*?)\s*#(\S+)\s*$/);
         const rawName = m ? m[1].trim() : '';
         const stripped = rawName
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .replace(/\s*[\(\[][^)\]]+[\)\]]\s*$/, '')
           .trim();
-        // Normalize the number on the fallback side too: "6" should match
-        // "006/165" passed in from the en-static enKeysSeen set.
         const fbNum = m ? String(m[2]).split('/')[0].replace(/^0+/, '') || '0' : '';
         const nnKey = m ? `${stripped.toLowerCase()}|${fbNum}` : '';
-        if (nnKey && excludeNN.has(nnKey)) continue;
+        if (nnKey && excludeNN.has(nnKey)) return;
         out.push({
-          productId,
-          name,
+          productId, name,
           set: console_.replace(/^Pokemon\s+/, ''),
           image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
           market: null,
@@ -2313,6 +2364,11 @@
           lang: isJp ? 'jp' : 'en',
           isSealed,
         });
+      }
+      for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], false);
+      // Fuzzy fallback — same gate as the static indexes.
+      if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
+        for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], true);
       }
       return out;
     }
