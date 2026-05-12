@@ -1268,11 +1268,29 @@
           .catch(() => { _enIndex = []; return _enIndex; });
         return _enIndexLoading;
       }
+      // Tokens that signal the user is looking for a 1st Edition variant.
+      // The Wizards-era sets where 1st Edition was printed don't have "1st"
+      // in their TCG CSV name or setName — Base Set (Shadowless) Charizard
+      // is just "Charizard" / "Base Set (Shadowless)" — so strict token
+      // matching on "charizard 1st" rules them out. When we detect 1st-Ed
+      // intent we drop those tokens for the haystack check on cards that
+      // come from _FIRST_ED_SETS, so the customer can find them via
+      // "charizard 1st", "charizard first edition", etc.
+      const _FIRST_ED_QUERY_TOKENS = new Set([
+        '1st', '1stedition', 'first', 'firstedition', 'edition',
+      ]);
+
       async function searchEnglish(tokens) {
         if (!tokens.length) return [];
         const idx = await loadEnIndex();
         if (!idx.length) return [];
         const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
+        const wants1stEd = cleaned.some(t => _FIRST_ED_QUERY_TOKENS.has(t));
+        // Cleaned tokens with the 1st-Ed signal stripped — for matching
+        // against haystacks of cards already known to be 1st-Ed eligible.
+        const cleanedNo1st = wants1stEd
+          ? cleaned.filter(t => !_FIRST_ED_QUERY_TOKENS.has(t))
+          : cleaned;
         const out = [];
         const _push = (name, setName, number, productId) => {
           const cleanName = (name || '').replace(/\s*-\s*\d+\/\S+\s*$/, '').trim() || name;
@@ -1285,8 +1303,12 @@
           const [name, setName, number, productId, market] = idx[i];
           if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+          // If the row is from a 1st-Ed-eligible set AND the query implies
+          // 1st-Ed intent, only require the non-variant tokens to match.
+          const isFirstEdRow = wants1stEd && _isFirstEdEligible(setName);
+          const tokensToMatch = isFirstEdRow ? cleanedNo1st : cleaned;
           let allMatch = true;
-          for (const t of cleaned) {
+          for (const t of tokensToMatch) {
             if (!hay.includes(t)) { allMatch = false; break; }
           }
           if (!allMatch) continue;

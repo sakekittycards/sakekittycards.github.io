@@ -2233,18 +2233,34 @@
         .catch(() => { _enIndex = []; return _enIndex; });
       return _enIndexLoading;
     }
+    // Tokens that signal 1st-Edition intent. The Wizards-era sets where 1st
+    // Edition was printed don't have "1st" in the indexed name/setName, so
+    // strict token matching rules them out. When we see 1st-Ed intent we
+    // drop those tokens for the haystack check on cards from sets in
+    // _TI_FIRST_ED_SETS, so "charizard 1st" surfaces Base Set (Shadowless)
+    // Charizard etc.
+    const _TI_FIRST_ED_QUERY_TOKENS = new Set([
+      '1st', '1stedition', 'first', 'firstedition', 'edition',
+    ]);
+
     async function searchEnByName(tokens) {
       if (!tokens.length) return [];
       const idx = await loadEnIndex();
       if (!idx.length) return [];
       const cleaned = normalizeSearchText(tokens.join(' ')).split(/\s+/).filter(Boolean);
+      const wants1stEd = cleaned.some(t => _TI_FIRST_ED_QUERY_TOKENS.has(t));
+      const cleanedNo1st = wants1stEd
+        ? cleaned.filter(t => !_TI_FIRST_ED_QUERY_TOKENS.has(t))
+        : cleaned;
       const out = [];
       for (let i = 0; i < idx.length && out.length < 30; i++) {
         const [name, setName, number, productId, market] = idx[i];
         if (_SEALED_RE.test(name || '')) continue;   // drop sealed boxes, code cards, collections, jumbos
         const hay = normalizeSearchText(`${name} ${setName} ${number}`);
+        const isFirstEdRow = wants1stEd && _tiIsFirstEdEligible(setName);
+        const tokensToMatch = isFirstEdRow ? cleanedNo1st : cleaned;
         let allMatch = true;
-        for (const t of cleaned) {
+        for (const t of tokensToMatch) {
           if (!hay.includes(t)) { allMatch = false; break; }
         }
         if (!allMatch) continue;
