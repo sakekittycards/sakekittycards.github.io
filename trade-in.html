@@ -1736,7 +1736,16 @@
     // — image URLs are pokemontcg.io CDN paths (already a primary data source
     // for this page), `note` is the "what to look for" hint.
     const BULK_RATES = [
-      // Sorted ascending by cash rate so the cheapest tiers display first
+      // Lead row: the easy path. By-weight pricing for customers who don't
+      // want to (or can't) sort their pile by rarity. `unit: 'lb'` flips the
+      // rate display from "$X" to "$X/lb" and the modal suffix from "per
+      // card" to "per lb". Excludes energy cards + jumbos + non-English to
+      // prevent abuse (basic energy is the most-dumped low-value type).
+      { name: 'Unsorted Bulk (by weight)',           cash: 1.50, credit: 2.50, unit: 'lb',
+        img:  '',
+        cardName: '', cardNumber: '', cardSet: '',
+        note: `Don't want to sort everything? We got you — toss it all in one box and ship by weight. <strong style="color:#ffcc00">English Pokémon only · no basic energy cards · no jumbo / oversized cards.</strong> Quantity below is total pounds.` },
+      // Sorted ascending by cash rate (per-card tiers) so the cheapest tiers display first
       // and the eye lands on the high-value categories at the bottom.
       // Each entry includes the example card identity (cardName / cardNumber / cardSet)
       // so the bulk-example modal can show "this is what you're looking at."
@@ -3113,8 +3122,8 @@
               <button type="button" class="qty-btn" data-nudge="1" data-idx="${i}" aria-label="Increase">+</button>
             </div>
           </td>
-          <td class="buy-price" style="text-align:right">${fmt(r.cash)}</td>
-          <td class="credit-price" style="text-align:right">${fmt(r.credit)}</td>
+          <td class="buy-price" style="text-align:right">${fmt(r.cash)}${r.unit ? ' /' + r.unit : ''}</td>
+          <td class="credit-price" style="text-align:right">${fmt(r.credit)}${r.unit ? ' /' + r.unit : ''}</td>
           <td class="line-total" data-line="${i}">—</td>
         </tr>`;
       }).join('');
@@ -3220,7 +3229,7 @@
         `<span class="bm-rate-label">Bulk rate:</span> ` +
         `<span class="bm-rate-cash">${fmt(row.cash)}</span>` +
         `<span class="bm-rate-sep"> / </span>` +
-        `<span class="bm-rate-credit">${fmt(row.credit)}</span> per card`;
+        `<span class="bm-rate-credit">${fmt(row.credit)}</span> per ${row.unit || 'card'}`;
       modal.classList.add('open');
       document.body.style.overflow = 'hidden';
     }
