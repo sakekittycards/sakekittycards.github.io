@@ -2295,19 +2295,47 @@
             return;
           }
 
+          // Active variant-filter pill (null = show all). Resets per search.
+          let _gpVariantFilter = null;
+
           // Renders gpSearchResults to the dropdown. Called once with the
           // initial results, again after the printings enrichment expands
           // single rows into per-printing variants.
           const _renderGpResults = () => {
             const _ht = _gpCurrentSearchTokens;
-            // English results first, then Japanese — same ordering rule as
-            // the Sell/Trade dropdown so customers see the same hierarchy.
+            // English results first, then Japanese.
             const ordered = gpSearchResults.slice().sort((a, b) => {
               const ax = a.lang === 'jp' ? 1 : 0;
               const bx = b.lang === 'jp' ? 1 : 0;
               return ax - bx;
             });
-            gpResultsEl.innerHTML = ordered.map((r, i) => {
+            // Build variant-filter chip toolbar from the unique variant
+            // labels in the current result set. Only render if 2+ distinct
+            // variants exist (single-variant queries don't benefit).
+            const variantCounts = new Map();
+            for (const r of ordered) {
+              const v = (r.variant || '').trim();
+              if (!v) continue;
+              variantCounts.set(v, (variantCounts.get(v) || 0) + 1);
+            }
+            let chipBar = '';
+            if (variantCounts.size >= 2) {
+              const chipFor = (label, val, count) => {
+                const active = (_gpVariantFilter || null) === val;
+                return `<button type="button" class="gp-vchip" data-vfilter="${_gpEscHtml(val ?? '')}" style="background:${active ? 'rgba(255,174,0,0.22)' : 'rgba(255,255,255,0.05)'};border:1px solid ${active ? 'rgba(255,174,0,0.6)' : 'rgba(255,255,255,0.10)'};color:${active ? '#ffae00' : 'var(--text)'};padding:5px 11px;border-radius:13px;font-size:12px;font-weight:${active ? '700' : '500'};letter-spacing:0.3px;cursor:pointer;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px">
+                  ${_gpEscHtml(label)}${count != null ? `<span style="opacity:0.55;font-weight:600">${count}</span>` : ''}
+                </button>`;
+              };
+              const chips = [chipFor('All', null, ordered.length)];
+              const sortedVariants = [...variantCounts.entries()].sort((a, b) => b[1] - a[1]);
+              for (const [v, c] of sortedVariants) chips.push(chipFor(v, v, c));
+              chipBar = `<div style="padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.20)">${chips.join('')}</div>`;
+            }
+            // Apply active filter.
+            const filtered = _gpVariantFilter
+              ? ordered.filter(r => (r.variant || '') === _gpVariantFilter)
+              : ordered;
+            const rowsHtml = filtered.map((r, i) => {
               // Find original index so the click handler still lines up.
               const origIdx = gpSearchResults.indexOf(r);
               const jpBadge = r.lang === 'jp'
@@ -2326,6 +2354,17 @@
                 </div>
               `;
             }).join('');
+            gpResultsEl.innerHTML = chipBar + rowsHtml;
+
+            // Variant chip clicks — flip filter state, re-render in place.
+            gpResultsEl.querySelectorAll('.gp-vchip').forEach(el => {
+              el.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const v = el.dataset.vfilter || '';
+                _gpVariantFilter = v ? v : null;
+                _renderGpResults();
+              });
+            });
 
             gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
               el.addEventListener('click', async () => {
