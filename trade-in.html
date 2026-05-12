@@ -2850,16 +2850,21 @@
     // available printing (Holo / Reverse Holo / 1st Ed Holo / etc.). The
     // worker edge-caches its mpapi calls 6h; we cache the parsed result
     // forever per page-load.
+    // Fetches SKU-level printings from /tcg/printings (worker proxy for
+    // mp-search-api/listings aggregations). Returns the real printing
+    // facets — '1st Edition Holofoil', 'Unlimited Holofoil', 'Reverse
+    // Holofoil', 'Holofoil', etc. — vs the coarse Normal/Foil split that
+    // mpapi pricepoints exposes via /tcg/market.
     const _tiPrintingsCache = Object.create(null);
     async function _tiFetchPrintings(pid) {
       const k = String(pid);
       if (k in _tiPrintingsCache) return _tiPrintingsCache[k];
       if (k.startsWith('pc:')) { _tiPrintingsCache[k] = null; return null; }
       try {
-        const r = await fetch(`${PRICES_WORKER}/tcg/market?productId=${encodeURIComponent(pid)}`);
+        const r = await fetch(`${PRICES_WORKER}/tcg/printings?productId=${encodeURIComponent(pid)}`);
         if (!r.ok) { _tiPrintingsCache[k] = null; return null; }
         const d = await r.json();
-        const arr = d?.ok && Array.isArray(d.printings) ? d.printings.filter(p => p?.type) : null;
+        const arr = d?.ok && Array.isArray(d.printings) ? d.printings : null;
         _tiPrintingsCache[k] = arr;
         return arr;
       } catch { _tiPrintingsCache[k] = null; return null; }
@@ -3099,9 +3104,10 @@
           : `<div class="set">${c.set}${c.number?' · #'+c.number:''}</div>`;
 
         // 1st Edition toggle — surfaces for graded cards from Wizards-era
-        // sets (Base Shadowless / Jungle / Fossil / Team Rocket / Gym /
-        // Neo) where 1st Ed and Unlimited share a TCGplayer productId.
-        const firstEdEligible = isGraded && _tiIsFirstEdEligible(c.set);
+        // sets. Hidden when the search dropdown already split out the
+        // variant (e.g. customer picked "1st Ed Holo" directly).
+        const alreadyHasFirstEd = /1st\s*ed/i.test(c.name || '');
+        const firstEdEligible = isGraded && _tiIsFirstEdEligible(c.set) && !alreadyHasFirstEd;
         const firstEdBadge = c.firstEd
           ? '<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.14);padding:2px 7px;border-radius:3px;margin-left:6px;text-transform:uppercase;vertical-align:1px">1st Ed</span>'
           : '';
@@ -3620,22 +3626,18 @@
         renderGradedSuggestions(initialMerged);
 
         // Background enrichment: for each result with a productId and no
-        // pre-resolved _variant, fetch TCGplayer printings and expand into
-        // one row per printing. Filter to printings with a market price —
-        // a null market means the SKU exists in TCGplayer's catalog but
-        // the printing isn't real for the card (e.g. Expedition Charizard
-        // returns [{Normal: null}, {Foil: 556}] — no actual non-holo).
-        // Single remaining printing => no expansion, no chip noise.
+        // pre-resolved _variant, fetch SKU-level printings from
+        // /tcg/printings and expand into one row per printing. Catches
+        // 1st Edition / Reverse Holofoil / etc. that the mpapi pricepoints
+        // Normal/Foil split misses. Single printing => no expansion.
         (async () => {
           const expanded = [];
           for (const c of initialMerged) {
             const pid = c._productId || c._fallbackProductId;
             if (!pid || c._variant) { expanded.push(c); continue; }
             const printings = await _tiFetchPrintings(pid);
-            if (!printings) { expanded.push(c); continue; }
-            const usable = printings.filter(p => p?.type && p.market != null);
-            if (usable.length <= 1) { expanded.push(c); continue; }
-            for (const p of usable) {
+            if (!printings || printings.length <= 1) { expanded.push(c); continue; }
+            for (const p of printings) {
               const chip = _TI_PRINTING_TO_CHIP[p.type] ?? p.type;
               expanded.push({
                 ...c,
