@@ -79,6 +79,13 @@ export default {
         return await fetchTcgPrintings(pid, ctx, env);
       }
 
+      if (path === '/grading/pop' && request.method === 'GET') {
+        const setName = (url.searchParams.get('set') || '').trim();
+        const number  = (url.searchParams.get('number') || '').trim();
+        if (!setName || !number) return json({ error: 'set + number required' }, 400);
+        return await fetchPsaPop(setName, number, ctx, env);
+      }
+
       return json({ error: 'not found', path }, 404);
     } catch (err) {
       return json({ error: err.message || String(err) }, 500);
@@ -453,6 +460,148 @@ async function fetchTcgPrintings(productId, ctx, env) {
   });
   ctx.waitUntil(cache.put(cacheKey, response.clone()));
   return response;
+}
+
+// ─── PSA pop report (Pikawiz set-page scrape, edge-cached) ───────────────
+// Inputs: human-readable set name (e.g. "Shining Fates") + card number
+// (e.g. "SV107"). We map the set name to a Pikawiz set slug, fetch the whole
+// set's pop page once per 24h (one fetch covers every card in the set), and
+// extract the row for the requested number. Pikawiz aggregates the official
+// PSA Pop Report and updates frequently.
+//
+// Known limitations:
+//   * English sets only (no Japanese / Chinese coverage on Pikawiz)
+//   * Set must be in the slug map below — unmapped sets return ok:false
+//   * If Pikawiz starts blocking CF Workers, this fails closed (ok:false)
+const PIKAWIZ_SLUGS = {
+  'shining fates': 'shiningfates',
+  'evolving skies': 'evolvingskies',
+  'brilliant stars': 'brilliantstars',
+  'fusion strike': 'fusionstrike',
+  'vivid voltage': 'vividvoltage',
+  'crown zenith': 'crownzenith',
+  'astral radiance': 'astralradiance',
+  'lost origin': 'lostorigin',
+  'silver tempest': 'silvertempest',
+  'paldea evolved': 'paldeaevolved',
+  'obsidian flames': 'obsidianflames',
+  'paradox rift': 'paradoxrift',
+  'paldean fates': 'paldeanfates',
+  'temporal forces': 'temporalforces',
+  'twilight masquerade': 'twilightmasquerade',
+  'shrouded fable': 'shroudedfable',
+  'stellar crown': 'stellarcrown',
+  'surging sparks': 'surgingsparks',
+  'prismatic evolutions': 'prismaticevolutions',
+  'journey together': 'journeytogether',
+  'mega evolution': 'megaevolution',
+  'evolutions': 'evolutions',
+  'hidden fates': 'hiddenfates',
+  'celebrations': 'celebrations',
+  'pokemon go': 'pokemongo',
+  'unified minds': 'unifiedminds',
+  'shining legends': 'shininglegends',
+};
+
+function slugifySet(name) {
+  if (!name) return null;
+  const key = name.toLowerCase().trim()
+    .replace(/sword\s*&?\s*shield:?\s*/i, '')
+    .replace(/scarlet\s*&?\s*violet:?\s*/i, '')
+    .replace(/sun\s*&?\s*moon:?\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return PIKAWIZ_SLUGS[key] || null;
+}
+
+async function fetchPsaPop(setName, number, ctx, env) {
+  const slug = slugifySet(setName);
+  if (!slug) {
+    return json({ ok: false, error: 'unmapped set', set: setName });
+  }
+
+  // Edge cache keyed by (slug, number). The whole set page is the upstream
+  // fetch unit, but we cache per-card responses so the front-end always gets
+  // the small payload it expects.
+  const cache    = caches.default;
+  const cacheUrl = new URL(`https://sakekitty-prices.internal/cache/pop/${slug}/${encodeURIComponent(number)}`);
+  const cacheKey = new Request(cacheUrl.toString(), { method: 'GET' });
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+
+  const popMap = await fetchPikawizPopForCard(slug, number);
+  const ttl = 86400;  // 24h
+  const body = JSON.stringify({
+    ok: !!popMap,
+    set: setName,
+    number,
+    pop: popMap || null,
+    source: popMap ? 'pikawiz' : null,
+  });
+  const response = new Response(body, {
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': 'application/json',
+      'Cache-Control': popMap ? `public, max-age=${ttl}` : 'no-store',
+    },
+  });
+  if (popMap) ctx.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
+}
+
+async function fetchPikawizPopForCard(slug, number) {
+  const url = `https://www.pikawiz.com/cards/pop-report/${slug}`;
+  let res;
+  try {
+    res = await fetch(url, {
+      headers: {
+        ...BROWSER_HEADERS,
+        Referer: 'https://www.pikawiz.com/',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'navigate',
+      },
+      cf: { cacheTtl: 0, cacheEverything: false },
+    });
+  } catch {
+    return null;
+  }
+  if (!res.ok) return null;
+  const html = await res.text();
+  return parsePikawizPop(html, number);
+}
+
+// Pikawiz renders a table per card with PSA grade counts. We isolate the
+// row matching the card number, then pluck grade-by-grade counts. The page
+// markup is HTML-rendered; we use scoped regex rather than a real parser to
+// keep the Worker tiny.
+function parsePikawizPop(html, number) {
+  // Normalize the card number for matching: "SV107", "087", "GG12" all stay
+  // as-is; remove a leading "#" if the caller passed one.
+  const num = String(number).replace(/^#/, '').trim();
+  if (!num) return null;
+
+  // Find a row block that anchors on the card number. Pikawiz wraps each
+  // card row in a <tr> with the number visible early in the cells. We grab
+  // 2KB after the anchor — enough for the full row's grade cells.
+  const anchorRe = new RegExp(`(?:>|\\s)#?${num.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}(?:<|\\s|/)`, 'i');
+  const m = anchorRe.exec(html);
+  if (!m) return null;
+  const slice = html.slice(m.index, m.index + 2400);
+
+  // Each grade appears as a labelled cell. Look for "PSA 10", "PSA 9", etc.,
+  // followed by a number within a few hundred chars. Falls back to standalone
+  // "Grade 10" / "GEM MT 10" wording variants too.
+  const grades = ['PSA 10', 'PSA 9.5', 'PSA 9', 'PSA 8.5', 'PSA 8', 'PSA 7', 'PSA 6', 'PSA 5'];
+  const pop = {};
+  for (const g of grades) {
+    const re = new RegExp(`${g.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}[^0-9]{0,80}([0-9,]+)`, 'i');
+    const gm = re.exec(slice);
+    if (gm) {
+      const n = parseInt(gm[1].replace(/,/g, ''), 10);
+      if (!Number.isNaN(n) && n > 0) pop[g] = n;
+    }
+  }
+  return Object.keys(pop).length ? pop : null;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────

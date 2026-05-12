@@ -1553,12 +1553,49 @@
         if (gpPopIndex !== null) return;
         loadPopIndex().then(() => renderList());
       }
-      function popFor(productId, gradeLabel) {
-        if (!gpPopIndex || !productId) return null;
-        const entry = gpPopIndex[String(productId)];
-        if (!entry) return null;
-        const n = entry[gradeLabel];
-        return (typeof n === 'number' && n > 0) ? n : null;
+      // Live pop lookup via the sakekitty-prices Worker. Hits Pikawiz's PSA
+      // pop page (cached at the CF edge for 24h). For each card the customer
+      // adds, we fire one call keyed by (set, number); successful responses
+      // are merged into gpPopIndex under a synthetic `live:<set>:<number>`
+      // key and trigger a re-render. Static psa-pop.json (keyed by productId)
+      // still wins if it has data, so manual seed entries override.
+      const POP_WORKER_URL = 'https://sakekitty-prices.nwilliams23999.workers.dev/grading/pop';
+      const gpPopLiveCache = {};   // (set|number) -> {pop:{...}} or null
+      function gpPopLiveKey(c) {
+        return `${(c.set || '').toLowerCase().trim()}|${(c.number || '').toLowerCase().trim()}`;
+      }
+      function gpEnsurePopLive(c) {
+        if (!c.set || !c.number) return;
+        const key = gpPopLiveKey(c);
+        if (key in gpPopLiveCache) return;
+        gpPopLiveCache[key] = null;  // pending sentinel — prevents re-fires
+        const u = `${POP_WORKER_URL}?set=${encodeURIComponent(c.set)}&number=${encodeURIComponent(c.number)}`;
+        fetch(u)
+          .then(r => r.ok ? r.json() : null)
+          .then(d => {
+            if (d && d.ok && d.pop) {
+              gpPopLiveCache[key] = { pop: d.pop };
+              renderList();
+            }
+          })
+          .catch(() => { /* leave as null; we just won't show a pop cell */ });
+      }
+      function popFor(c, gradeLabel) {
+        // Prefer the static index by productId (manually curated, wins on conflict).
+        if (gpPopIndex && c && c.productId) {
+          const entry = gpPopIndex[String(c.productId)];
+          if (entry && typeof entry[gradeLabel] === 'number' && entry[gradeLabel] > 0) {
+            return entry[gradeLabel];
+          }
+        }
+        // Then the live (Worker) cache by (set, number).
+        if (c && c.set && c.number) {
+          const live = gpPopLiveCache[gpPopLiveKey(c)];
+          if (live && typeof live.pop[gradeLabel] === 'number' && live.pop[gradeLabel] > 0) {
+            return live.pop[gradeLabel];
+          }
+        }
+        return null;
       }
 
       // TCGplayer raw market price cache — the same /tcg/market and
@@ -2076,7 +2113,7 @@
         const tableRows = profitable.map(g => {
           const profit = g.val - PSA_FEE_ESTIMATE - baseline;
           const isBest = Math.abs(profit - topProfit) < 0.01;
-          const popN = popFor(c.productId, g.label);
+          const popN = popFor(c, g.label);
           const popCell = popN
             ? `<span class="gp-grade-pop"><span class="pop-label">Pop</span>${fmtPop(popN)}</span>`
             : `<span class="gp-grade-pop"></span>`;
@@ -2148,6 +2185,10 @@
         // a productId — the panel only renders for those, no point loading
         // 1.5MB of JSON if the customer only added manual entries.
         if (gpCards.some(c => c.productId)) { ensureGradedIndexLoaded(); ensurePopIndexLoaded(); }
+        // Live PSA pop lookups via the prices worker — one fetch per card,
+        // edge-cached 24h, runs in the background and re-renders when the
+        // data lands. Skipped for cards with no set/number metadata.
+        gpCards.forEach(c => gpEnsurePopLive(c));
         // Fire the TCGplayer raw-price lookup for any newly-added card.
         // Function memoizes on the cache so repeated renders don't re-fetch.
         gpCards.forEach(c => gpEnsureTcgRaw(c));
