@@ -3422,6 +3422,36 @@
       return out;
     }
 
+    // Maps TCG CSV variant suffixes (which en-cards.json carries verbatim) to
+    // short, customer-readable labels for the dropdown. Empty string means
+    // omit the chip — base / "Normal" variants don't need a label since they
+    // ARE the default. Anything not in this map shows verbatim.
+    const _GRADED_VARIANT_LABELS = {
+      'Holofoil': 'Holo',
+      'Reverse Holofoil': 'Reverse Holo',
+      'Reverse Holo': 'Reverse Holo',
+      '1st Edition Holofoil': '1st Ed Holo',
+      '1st Edition': '1st Ed',
+      'Unlimited Holofoil': 'Unlimited Holo',
+      'Normal': '',
+      'Non-Holo': '',
+    };
+    function _parseGradedVariant(rawName) {
+      // Strip trailing " - 6/165" set/number suffix first so the variant in
+      // "Charizard - 6/165 (Holofoil)" is reachable.
+      const noNum = (rawName || '').replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '').trim();
+      const m = noNum.match(/^(.*?)\s*[\(\[]([^)\]]+)[\)\]]\s*$/);
+      if (!m) return { name: noNum, variantRaw: '', variantLabel: '' };
+      const baseName = m[1].trim();
+      const variantRaw = m[2].trim();
+      const mapped = _GRADED_VARIANT_LABELS[variantRaw];
+      return {
+        name: baseName,
+        variantRaw,
+        variantLabel: mapped !== undefined ? mapped : variantRaw,
+      };
+    }
+
     async function searchGradedSuggestions(query) {
       const tokens = query.trim().toLowerCase().split(/\s+/).filter(t => t.length > 1 || _SK_TOKEN_ALIASES[t]);
       if (!tokens.length) { gradedResults.classList.remove('open'); return; }
@@ -3432,15 +3462,75 @@
       gradedResults.classList.add('open');
       try {
         const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=10&orderBy=-set.releaseDate`;
-        // Pokemontcg.io for English + JP that's already in their database, plus
-        // a parallel PC fallback search for Chinese (not in pokemontcg.io).
-        const [enRes, cnRes] = await Promise.allSettled([
+        // Four sources in parallel:
+        //   pokemontcg.io   — nicest images, one row per card (collapses variants)
+        //   en-static       — TCG CSV singles index, has a row PER VARIANT (Holo, Reverse Holo, etc.)
+        //   PC fallback     — final safety net for older promos / oddballs
+        //   Chinese (PC)    — separate path (Chinese excluded from pokemontcg.io)
+        const [enRes, enStaticRes, fbRes, cnRes] = await Promise.allSettled([
           fetch(url).then(r => r.ok ? r.json() : Promise.reject('en error')),
+          searchEnByName(tokens),
+          searchAllCardsFallback(tokens, new Set(), new Set()),
           searchChineseGradedCandidates(tokens),
         ]);
-        const items   = enRes.status === 'fulfilled' ? (enRes.value.data || []) : [];
-        const chinese = cnRes.status === 'fulfilled' ? (cnRes.value || [])      : [];
-        renderGradedSuggestions(items.concat(chinese));
+        const items    = enRes.status        === 'fulfilled' ? (enRes.value.data || [])   : [];
+        const enStatic = enStaticRes.status  === 'fulfilled' ? (enStaticRes.value || [])  : [];
+        const fbCards  = fbRes.status        === 'fulfilled' ? (fbRes.value || [])        : [];
+        const chinese  = cnRes.status        === 'fulfilled' ? (cnRes.value || [])        : [];
+
+        // Convert en-static rows (which carry variant info in the name) to the
+        // pokemontcg.io card shape so renderGradedSuggestions can treat them
+        // uniformly. The variant suffix becomes a visible chip in the dropdown.
+        const variantRows = [];
+        const seenPids = new Set();
+        for (const e of enStatic) {
+          if (!e.productId || seenPids.has(e.productId)) continue;
+          seenPids.add(e.productId);
+          const parsed = _parseGradedVariant(e.name);
+          variantRows.push({
+            id: `en-${e.productId}`,
+            name: parsed.name || e.name,
+            number: e.number,
+            images: { small: `https://tcgplayer-cdn.tcgplayer.com/product/${e.productId}_200w.jpg` },
+            set: { name: e.setName },
+            _productId: e.productId,
+            _variant: parsed.variantLabel,
+          });
+        }
+        // Pull EN variants from the PC fallback too (catches printings the TCG
+        // CSV index missed, especially vintage). Skip rows already seen by pid.
+        for (const f of fbCards) {
+          if (f.lang === 'jp' || !f.productId || seenPids.has(f.productId)) continue;
+          if (String(f.productId).startsWith('pc:')) continue;  // PC-only ids have no usable image / TCG market
+          seenPids.add(f.productId);
+          // f.name shape: "Charizard #6 [Holo]" — extract variant from the bracketed tail
+          const numMatch = f.name.match(/^(.*?)\s*#(\S+)\s*$/);
+          const namePart = numMatch ? numMatch[1].trim() : f.name;
+          const numPart  = numMatch ? numMatch[2]        : '';
+          const parsed = _parseGradedVariant(namePart);
+          variantRows.push({
+            id: `fb-${f.productId}`,
+            name: parsed.name || namePart,
+            number: numPart,
+            images: { small: f.image },
+            set: { name: f.set },
+            _productId: f.productId,
+            _variant: parsed.variantLabel,
+          });
+        }
+
+        // Merge: pokemontcg.io's API entry first (best image), then per-variant
+        // rows, then Chinese. Dedupe pokemontcg.io entries whose (name,number,
+        // set) match a variant row to avoid showing the "any printing" generic
+        // row next to specific variants.
+        const variantKeySet = new Set(variantRows.map(v =>
+          `${(v.name || '').toLowerCase()}|${v.number}|${(v.set?.name || '').toLowerCase()}`
+        ));
+        const dedupedItems = items.filter(c => {
+          const k = `${(c.name || '').toLowerCase()}|${c.number || ''}|${(c.set?.name || '').toLowerCase()}`;
+          return !variantKeySet.has(k);
+        });
+        renderGradedSuggestions(dedupedItems.concat(variantRows).concat(chinese));
       } catch {
         gradedResults.innerHTML = '<div class="ti-status">Couldn\'t load suggestions — just type the card name manually.</div>';
       }
@@ -3455,11 +3545,17 @@
         const cnBadge = c._isChinese
           ? '<span style="color:#ff4e6a;font-weight:700;font-size:9px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 5px;border-radius:3px;margin-right:5px">CN</span>'
           : '';
+        // Variant chip — orange pill next to the card name when a specific
+        // printing (Holo / Reverse Holo / 1st Ed) was matched from en-static
+        // or PC fallback. Empty for the "any printing" pokemontcg.io row.
+        const variantChip = c._variant
+          ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${escG(c._variant)}</span>`
+          : '';
         return `
         <button type="button" class="ti-result" data-card-id="${escG(c.id)}" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 10px;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;color:inherit">
           <img src="${escG(c.images?.small || '')}" alt="" style="width:36px;height:50px;object-fit:cover;border-radius:3px;flex-shrink:0;background:rgba(255,255,255,0.05)" onerror="this.style.visibility='hidden'" />
           <div style="flex:1;min-width:0;overflow:hidden">
-            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cnBadge}${escG(c.name)}</div>
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${cnBadge}${escG(c.name)}${variantChip}</div>
             <div style="font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escG(c.set?.name || '')}${c.number ? ` · #${escG(c.number)}` : ''}</div>
           </div>
         </button>`;}).join('');
@@ -3470,8 +3566,11 @@
           const card = items.find(c => c.id === id);
           if (!card) return;
           selectedGradedCard = card;
-          // Display a clean summary string; keep full data in selectedGradedCard for the add step
-          gradedName.value = `${card.name} · ${card.set?.name || ''}${card.number ? ` · #${card.number}` : ''}`;
+          // Display a clean summary string with variant when present (so the
+          // customer can verify what they picked); selectedGradedCard carries
+          // the pre-resolved _productId for the variant.
+          const variantPart = card._variant ? ` · ${card._variant}` : '';
+          gradedName.value = `${card.name}${variantPart} · ${card.set?.name || ''}${card.number ? ` · #${card.number}` : ''}`;
           gradedResults.classList.remove('open');
           // Try to auto-fill the value field from PriceCharting for the
           // currently-selected grade. Chinese candidates already carry a

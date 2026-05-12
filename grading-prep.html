@@ -1632,20 +1632,48 @@
               productId: null,  // resolved on add via resolveEnProductId
             });
           }
+          // en-static carries variant suffixes ("Charizard - 6/165 (Holofoil)")
+          // — peel them off so each printing renders as its own row with a
+          // visible variant chip in the dropdown. pokemontcg.io entries with
+          // no variant chip remain the "any printing" fallback for cards we
+          // can't break out by variant.
+          const _GRADED_VARIANT_LABELS = {
+            'Holofoil': 'Holo',
+            'Reverse Holofoil': 'Reverse Holo',
+            'Reverse Holo': 'Reverse Holo',
+            '1st Edition Holofoil': '1st Ed Holo',
+            '1st Edition': '1st Ed',
+            'Unlimited Holofoil': 'Unlimited Holo',
+            'Normal': '',
+            'Non-Holo': '',
+          };
+          const _parseGradedVariant = (rawName) => {
+            const noNum = (rawName || '').replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '').trim();
+            const m = noNum.match(/^(.*?)\s*[\(\[]([^)\]]+)[\)\]]\s*$/);
+            if (!m) return { name: noNum, variantLabel: '' };
+            const baseName = m[1].trim();
+            const variantRaw = m[2].trim();
+            const mapped = _GRADED_VARIANT_LABELS[variantRaw];
+            return { name: baseName, variantLabel: mapped !== undefined ? mapped : variantRaw };
+          };
           for (const e of enStaticArr) {
             const k = _ddKey(e.name, e.number);
-            // Skip if pokemontcg.io already covered it (under stripped key).
-            const dup = gpSearchResults.some(r =>
+            const parsed = _parseGradedVariant(e.name);
+            // Dedup against pokemontcg.io only if THIS en-static row is the
+            // non-variant ("any printing") version. Variant-specific rows are
+            // ALWAYS surfaced because they're a different printing for grading.
+            const dup = !parsed.variantLabel && gpSearchResults.some(r =>
               r.lang === 'en' && _ddKey(r.name, r.number) === k
             );
             if (dup) continue;
             gpSearchResults.push({
               lang: 'en',
-              name: e.name,
+              name: parsed.name || e.name,
               setName: e.setName || '',
               number: e.number || '',
               image: e.image || '',
               productId: e.productId || null,
+              variant: parsed.variantLabel,
             });
           }
           for (const j of jpCards) {
@@ -1678,11 +1706,14 @@
             const jpBadge = r.lang === 'jp'
               ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
               : '';
+            const variantChip = r.variant
+              ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${r.variant}</span>`
+              : '';
             return `
               <div class="gp-result" data-ri="${i}">
                 <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
                 <div class="gp-result-info">
-                  <div class="gp-result-name">${jpBadge}${r.name}</div>
+                  <div class="gp-result-name">${jpBadge}${r.name}${variantChip}</div>
                   <div class="gp-result-set">${r.setName}${r.number ? ' · #' + r.number : ''}</div>
                 </div>
               </div>
@@ -1692,7 +1723,8 @@
           gpResultsEl.querySelectorAll('.gp-result').forEach(el => {
             el.addEventListener('click', async () => {
               const r = gpSearchResults[+el.dataset.ri];
-              const displayName = r.lang === 'jp' ? `[JP] ${r.name}` : r.name;
+              const variantSuffix = r.variant ? ` (${r.variant})` : '';
+              const displayName = (r.lang === 'jp' ? `[JP] ${r.name}` : r.name) + variantSuffix;
               const cardEntry = {
                 name: displayName,
                 set:  r.setName,
@@ -1702,6 +1734,7 @@
                 prep: false,
                 lang: r.lang,
                 productId: r.productId || null,
+                variant: r.variant || '',
               };
               gpCards.push(cardEntry);
               gpSearchEl.value = '';
