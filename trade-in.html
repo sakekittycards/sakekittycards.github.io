@@ -2253,7 +2253,11 @@
         ? cleaned.filter(t => !_TI_FIRST_ED_QUERY_TOKENS.has(t))
         : cleaned;
       const out = [];
-      for (let i = 0; i < idx.length && out.length < 30; i++) {
+      // Cap raised from 30 -> 1000. The substring loop over 13K rows is
+      // ~5ms regardless. Per Nick's directive: surface every English card
+      // matching the query, every variant. Niche queries return <50 hits;
+      // broad queries like "charizard" still finish under 20ms total.
+      for (let i = 0; i < idx.length && out.length < 1000; i++) {
         const [name, setName, number, productId, market] = idx[i];
         if (_SEALED_RE.test(name || '')) continue;   // drop sealed boxes, code cards, collections, jumbos
         const hay = normalizeSearchText(`${name} ${setName} ${number}`);
@@ -2270,7 +2274,7 @@
       // query has at least one non-numeric 4+-char token (don't try fuzzy on
       // "215" or "ex").
       if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
-        for (let i = 0; i < idx.length && out.length < 30; i++) {
+        for (let i = 0; i < idx.length && out.length < 100; i++) {
           const [name, setName, number, productId, market] = idx[i];
           if (_SEALED_RE.test(name || '')) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
@@ -2296,7 +2300,9 @@
         market: market != null ? market : null,
         url: '', lang: 'jp', isSealed: false,
       });
-      for (let i = 0; i < idx.length && out.length < 14; i++) {
+      // JP cap raised from 14 -> 500. JP index is ~15K rows. Per Nick's
+      // directive: surface every JP card matching the query, every variant.
+      for (let i = 0; i < idx.length && out.length < 500; i++) {
         const entry = idx[i];
         const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
         if (_SEALED_RE.test(name || '')) continue;
@@ -2310,7 +2316,7 @@
       }
       // Fuzzy fallback — same gate as EN.
       if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
-        for (let i = 0; i < idx.length && out.length < 14; i++) {
+        for (let i = 0; i < idx.length && out.length < 100; i++) {
           const entry = idx[i];
           const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
           if (_SEALED_RE.test(name || '')) continue;
@@ -2677,8 +2683,8 @@
             });
           }
         }
-        csv.japanese = mergedJp.slice(0, 30);     // bumped from 14
-        csv.sealed   = (csv.sealed || []).slice(0, 20);  // bumped from 12
+        csv.japanese = mergedJp.slice(0, 500);    // every JP variant per Nick
+        csv.sealed   = (csv.sealed || []).slice(0, 50);
 
         // For any card pokemontcg.io returned WITHOUT TCGplayer prices, look
         // it up on TCG CSV (TCGplayer Market Price) before rendering. This
@@ -2723,9 +2729,12 @@
           cardRows.push({ kind: 'card', ...r });
         }
       }
-      const sealedRows = (sealedResults   || []).slice(0, 10);
-      const jpRows     = (japaneseResults || []).slice(0, 14);
-      const cards      = cardRows.slice(0, 16);
+      // Render caps: render every search hit. Dropdown is overflow:auto
+      // scrollable, so DOM length isn't a hard cliff. Per Nick's directive:
+      // every English card, every Japanese card, every variant.
+      const sealedRows = (sealedResults   || []).slice(0, 50);
+      const jpRows     = (japaneseResults || []).slice(0, 500);
+      const cards      = cardRows.slice(0, 1000);
 
       if (!cardRows.length && !sealedRows.length && !jpRows.length) {
         resultsEl.innerHTML = '<div class="ti-status">No results found. Try a different spelling or search by set name.</div>';
@@ -2741,43 +2750,12 @@
 
       const html = [];
 
-      // 1) Sealed (English)
-      if (sealedRows.length) {
-        html.push(sectionHeader('📦', 'Sealed Product', 'var(--orange)', 'rgba(255,106,0,0.08)'));
-        html.push(...sealedRows.map((r, i) => `
-          <div class="ti-result" data-sealed-idx="${i}">
-            <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
-            <div class="ti-result-info">
-              <div class="ti-result-name">${r.name}</div>
-              <div class="ti-result-set">${r.set}</div>
-            </div>
-            ${priceHTML(r.market)}
-          </div>
-        `));
-      }
+      // Order: English Singles -> English Sealed -> Japanese.
+      // English-first is the customer mental model — most search traffic
+      // is for EN cards. JP section comes last so it's still scrollable-to
+      // when needed but doesn't push EN results off-screen.
 
-      // 2) Japanese (cards + sealed). Chinese is excluded from raw search
-      // per user policy — only allowed in the graded card form.
-      if (jpRows.length) {
-        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
-        html.push(...jpRows.map((r, i) => {
-          const typeTag = r.isSealed
-            ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
-            : '';
-          return `
-            <div class="ti-result" data-jp-idx="${i}">
-              <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
-              <div class="ti-result-info">
-                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
-                <div class="ti-result-set">${r.set}</div>
-              </div>
-              ${priceHTML(r.market)}
-            </div>
-          `;
-        }));
-      }
-
-      // 3) Singles (English, from pokemontcg.io)
+      // 1) Singles (English, from pokemontcg.io + en-static TCG CSV)
       if (cards.length) {
         html.push(sectionHeader('🎴', 'Singles', 'var(--cyan)', 'rgba(0,212,255,0.05)'));
         html.push(...cards.map((r, i) => {
@@ -2795,6 +2773,42 @@
                 <div class="ti-result-set">${setName}${num}</div>
               </div>
               ${priceHTML(r.price)}
+            </div>
+          `;
+        }));
+      }
+
+      // 2) Sealed (English)
+      if (sealedRows.length) {
+        html.push(sectionHeader('📦', 'Sealed Product', 'var(--orange)', 'rgba(255,106,0,0.08)'));
+        html.push(...sealedRows.map((r, i) => `
+          <div class="ti-result" data-sealed-idx="${i}">
+            <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+            <div class="ti-result-info">
+              <div class="ti-result-name">${r.name}</div>
+              <div class="ti-result-set">${r.set}</div>
+            </div>
+            ${priceHTML(r.market)}
+          </div>
+        `));
+      }
+
+      // 3) Japanese (cards + sealed). Chinese is excluded from raw search
+      // per user policy — only allowed in the graded card form.
+      if (jpRows.length) {
+        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
+        html.push(...jpRows.map((r, i) => {
+          const typeTag = r.isSealed
+            ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
+            : '';
+          return `
+            <div class="ti-result" data-jp-idx="${i}">
+              <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
+              <div class="ti-result-info">
+                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
+                <div class="ti-result-set">${r.set}</div>
+              </div>
+              ${priceHTML(r.market)}
             </div>
           `;
         }));

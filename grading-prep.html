@@ -1303,9 +1303,11 @@
             image: isPcOnly ? '' : `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg`,
           });
         }
-        for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], false);
+        // PC fallback cap bumped 30 -> 300 per Nick: catch every oddball
+        // promo / collab the TCG CSV statics don't index.
+        for (let i = 0; i < idx.length && out.length < 300; i++) tryRow(idx[i], false);
         if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
-          for (let i = 0; i < idx.length && out.length < 30; i++) tryRow(idx[i], true);
+          for (let i = 0; i < idx.length && out.length < 100; i++) tryRow(idx[i], true);
         }
         return out;
       }
@@ -1358,9 +1360,8 @@
             image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
           });
         };
-        // EN cap raised 30 -> 500. ~13K-row loop is <10ms; rendering 500
-        // is fine because the dropdown is overflow:auto-scrollable.
-        for (let i = 0; i < idx.length && out.length < 500; i++) {
+        // EN cap 1000 per Nick — every EN match in en-cards.json, every variant.
+        for (let i = 0; i < idx.length && out.length < 1000; i++) {
           const [name, setName, number, productId, market] = idx[i];
           if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
@@ -1400,9 +1401,8 @@
           lang: 'jp', name, setName, number, productId,
           image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
         });
-        // JP cap raised 14 -> 200. Same reasoning as EN — let customers see
-        // every JP variant instead of just the first 14.
-        for (let i = 0; i < idx.length && out.length < 200; i++) {
+        // JP cap 500 per Nick — every JP match in jp-cards.json, every variant.
+        for (let i = 0; i < idx.length && out.length < 500; i++) {
           const entry = idx[i];
           const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
           if (_isFallbackSealed(name)) continue;
