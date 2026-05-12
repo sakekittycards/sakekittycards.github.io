@@ -2077,6 +2077,42 @@
       'zard':      'charizard',
       'rayray':    'rayquaza',
     };
+    // ─── Search-UX helpers ─────────────────────────────────────────
+    // Module-level slot so renderResults can paint <mark> highlights
+    // without changing every call signature.
+    let _currentSearchTokens = [];
+    function _escHtml(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function _highlightTokens(text, tokens) {
+      const safe = _escHtml(text);
+      if (!tokens || !tokens.length) return safe;
+      const escs = tokens
+        .filter(t => t && t.length > 1 && t.length <= 30)
+        .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .sort((a, b) => b.length - a.length);
+      if (!escs.length) return safe;
+      const re = new RegExp(`(${escs.join('|')})`, 'gi');
+      return safe.replace(re,
+        '<mark style="background:rgba(255,174,0,0.24);color:inherit;border-radius:2px;padding:0 2px">$1</mark>');
+    }
+    // localStorage-backed recent searches (5 most recent, deduped, case-insensitive).
+    const _RECENT_SEARCH_KEY = 'sk_ti_recent_v1';
+    function _loadRecentSearches() {
+      try { return JSON.parse(localStorage.getItem(_RECENT_SEARCH_KEY) || '[]') || []; }
+      catch { return []; }
+    }
+    function _pushRecentSearch(q) {
+      q = (q || '').trim();
+      if (q.length < 2) return;
+      let list = _loadRecentSearches().filter(x => x.toLowerCase() !== q.toLowerCase());
+      list.unshift(q);
+      if (list.length > 5) list = list.slice(0, 5);
+      try { localStorage.setItem(_RECENT_SEARCH_KEY, JSON.stringify(list)); } catch {}
+    }
+
     function normalizeSearchText(text) {
       return (text || '')
         .toLowerCase()
@@ -2712,6 +2748,13 @@
       const rawTokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t) || _SK_TOKEN_ALIASES[t]);
       const { searchTokens, variantFilter } = parseVariantIntent(rawTokens);
       currentVariantFilter = variantFilter;
+      // Expose tokens to renderResults for <mark> highlighting in results.
+      // Normalize so the highlight regex matches the same way the search does
+      // (alias expansion + accent strip).
+      _currentSearchTokens = normalizeSearchText(rawTokens.join(' '))
+        .split(/\s+/).filter(t => t && t.length > 1);
+      // Remember this search so the empty-input dropdown can offer it back.
+      _pushRecentSearch(query);
 
       // If the user only typed variant words, we need some search terms too
       if (searchTokens.length === 0) {
@@ -2929,9 +2972,12 @@
       // is for EN cards. JP section comes last so it's still scrollable-to
       // when needed but doesn't push EN results off-screen.
 
+      // Cache tokens locally so each row's highlight call doesn't re-read.
+      const _ht = _currentSearchTokens;
+
       // 1) Singles (English, from pokemontcg.io + en-static TCG CSV)
       if (cards.length) {
-        html.push(sectionHeader('🎴', 'Singles', 'var(--cyan)', 'rgba(0,212,255,0.05)'));
+        html.push(sectionHeader('🎴', `Singles${cards.length > 12 ? ` · ${cards.length}` : ''}`, 'var(--cyan)', 'rgba(0,212,255,0.05)'));
         html.push(...cards.map((r, i) => {
           const c = r.card;
           const setName = c.set?.name || '';
@@ -2943,8 +2989,8 @@
             <div class="ti-result" data-card-idx="${i}">
               <img src="${c.images?.small || ''}" alt="" onerror="this.style.visibility='hidden'" />
               <div class="ti-result-info">
-                <div class="ti-result-name">${c.name}${variantTag}</div>
-                <div class="ti-result-set">${setName}${num}</div>
+                <div class="ti-result-name">${_highlightTokens(c.name, _ht)}${variantTag}</div>
+                <div class="ti-result-set">${_highlightTokens(setName, _ht)}${num}</div>
               </div>
               ${priceHTML(r.price)}
             </div>
@@ -2954,13 +3000,13 @@
 
       // 2) Sealed (English)
       if (sealedRows.length) {
-        html.push(sectionHeader('📦', 'Sealed Product', 'var(--orange)', 'rgba(255,106,0,0.08)'));
+        html.push(sectionHeader('📦', `Sealed Product${sealedRows.length > 8 ? ` · ${sealedRows.length}` : ''}`, 'var(--orange)', 'rgba(255,106,0,0.08)'));
         html.push(...sealedRows.map((r, i) => `
           <div class="ti-result" data-sealed-idx="${i}">
             <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
             <div class="ti-result-info">
-              <div class="ti-result-name">${r.name}</div>
-              <div class="ti-result-set">${r.set}</div>
+              <div class="ti-result-name">${_highlightTokens(r.name, _ht)}</div>
+              <div class="ti-result-set">${_highlightTokens(r.set, _ht)}</div>
             </div>
             ${priceHTML(r.market)}
           </div>
@@ -2970,7 +3016,7 @@
       // 3) Japanese (cards + sealed). Chinese is excluded from raw search
       // per user policy — only allowed in the graded card form.
       if (jpRows.length) {
-        html.push(sectionHeader('🇯🇵', 'Japanese', '#ff4e6a', 'rgba(255,78,106,0.08)'));
+        html.push(sectionHeader('🇯🇵', `Japanese${jpRows.length > 12 ? ` · ${jpRows.length}` : ''}`, '#ff4e6a', 'rgba(255,78,106,0.08)'));
         html.push(...jpRows.map((r, i) => {
           const typeTag = r.isSealed
             ? ' <span style="color:var(--orange);font-weight:600;font-size:11px">· Sealed</span>'
@@ -2979,8 +3025,8 @@
             <div class="ti-result" data-jp-idx="${i}">
               <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
               <div class="ti-result-info">
-                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${r.name}${typeTag}</div>
-                <div class="ti-result-set">${r.set}</div>
+                <div class="ti-result-name"><span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>${_highlightTokens(r.name, _ht)}${typeTag}</div>
+                <div class="ti-result-set">${_highlightTokens(r.set, _ht)}</div>
               </div>
               ${priceHTML(r.market)}
             </div>
@@ -3630,9 +3676,41 @@
     searchInput.addEventListener('input', e => {
       clearTimeout(searchTimeout);
       const v = e.target.value;
-      if (v.trim().length < 2) { resultsEl.classList.remove('open'); return; }
+      if (v.trim().length < 2) {
+        // Show the recents panel as soon as the user empties the field —
+        // covers the common "deleted text to start over" flow without
+        // requiring a fresh focus event.
+        if (v.length === 0) _showRecentSearches();
+        else resultsEl.classList.remove('open');
+        return;
+      }
       searchTimeout = setTimeout(() => searchCards(v), 300);
     });
+    // Show recent searches as clickable chips when the empty input is focused.
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim().length < 2) _showRecentSearches();
+    });
+    function _showRecentSearches() {
+      const recent = _loadRecentSearches();
+      if (!recent.length) { resultsEl.classList.remove('open'); return; }
+      const chips = recent.map((q, i) => `
+        <button type="button" class="ti-recent-chip" data-q="${_escHtml(q)}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:var(--text);padding:6px 12px;border-radius:14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <span style="opacity:0.55">↻</span>${_escHtml(q)}
+        </button>
+      `).join('');
+      resultsEl.innerHTML = `
+        <div style="padding:14px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Recent searches</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+        </div>`;
+      resultsEl.classList.add('open');
+      resultsEl.querySelectorAll('.ti-recent-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          searchInput.value = btn.dataset.q;
+          searchCards(btn.dataset.q);
+        });
+      });
+    }
 
     // Close search results + condition menus when clicking outside
     document.addEventListener('click', e => {

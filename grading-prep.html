@@ -1214,6 +1214,39 @@
         'zard':      'charizard',
         'rayray':    'rayquaza',
       };
+      // ─── Search UX helpers ───────────────────────────────────────
+      let _gpCurrentSearchTokens = [];
+      function _gpEscHtml(s) {
+        return String(s ?? '')
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      }
+      function _gpHighlightTokens(text, tokens) {
+        const safe = _gpEscHtml(text);
+        if (!tokens || !tokens.length) return safe;
+        const escs = tokens
+          .filter(t => t && t.length > 1 && t.length <= 30)
+          .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          .sort((a, b) => b.length - a.length);
+        if (!escs.length) return safe;
+        const re = new RegExp(`(${escs.join('|')})`, 'gi');
+        return safe.replace(re,
+          '<mark style="background:rgba(255,174,0,0.24);color:inherit;border-radius:2px;padding:0 2px">$1</mark>');
+      }
+      const _GP_RECENT_KEY = 'sk_gp_recent_v1';
+      function _gpLoadRecent() {
+        try { return JSON.parse(localStorage.getItem(_GP_RECENT_KEY) || '[]') || []; }
+        catch { return []; }
+      }
+      function _gpPushRecent(q) {
+        q = (q || '').trim();
+        if (q.length < 2) return;
+        let list = _gpLoadRecent().filter(x => x.toLowerCase() !== q.toLowerCase());
+        list.unshift(q);
+        if (list.length > 5) list = list.slice(0, 5);
+        try { localStorage.setItem(_GP_RECENT_KEY, JSON.stringify(list)); } catch {}
+      }
+
       function normalizeSearchText(text) {
         return (text || '')
           .toLowerCase()
@@ -2090,6 +2123,10 @@
           const tokens = qq.toLowerCase().split(/\s+/).filter(t => t.length > 1 || /\d/.test(t) || _SK_TOKEN_ALIASES[t]);
           const lucene = buildQuery(tokens);
           if (!lucene) { gpResultsEl.classList.remove('open'); return; }
+          // Stash tokens for <mark> highlighting; remember query for recents.
+          _gpCurrentSearchTokens = normalizeSearchText(tokens.join(' '))
+            .split(/\s+/).filter(t => t && t.length > 1);
+          _gpPushRecent(q);
 
           // Fire all four sources in parallel:
           //   pokemontcg.io (live EN) — nicer images + variant pricing
@@ -2241,19 +2278,29 @@
           // initial results, again after the printings enrichment expands
           // single rows into per-printing variants.
           const _renderGpResults = () => {
-            gpResultsEl.innerHTML = gpSearchResults.map((r, i) => {
+            const _ht = _gpCurrentSearchTokens;
+            // English results first, then Japanese — same ordering rule as
+            // the Sell/Trade dropdown so customers see the same hierarchy.
+            const ordered = gpSearchResults.slice().sort((a, b) => {
+              const ax = a.lang === 'jp' ? 1 : 0;
+              const bx = b.lang === 'jp' ? 1 : 0;
+              return ax - bx;
+            });
+            gpResultsEl.innerHTML = ordered.map((r, i) => {
+              // Find original index so the click handler still lines up.
+              const origIdx = gpSearchResults.indexOf(r);
               const jpBadge = r.lang === 'jp'
                 ? '<span style="color:#ff4e6a;font-weight:700;font-size:10px;letter-spacing:1px;background:rgba(255,78,106,0.12);padding:1px 6px;border-radius:4px;margin-right:6px">JP</span>'
                 : '';
               const variantChip = r.variant
-                ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${r.variant}</span>`
+                ? `<span style="color:#ffae00;font-weight:700;font-size:9px;letter-spacing:0.5px;background:rgba(255,174,0,0.12);padding:1px 6px;border-radius:3px;margin-left:6px;text-transform:uppercase">${_gpEscHtml(r.variant)}</span>`
                 : '';
               return `
-                <div class="gp-result" data-ri="${i}">
+                <div class="gp-result" data-ri="${origIdx}">
                   <img src="${r.image}" alt="" onerror="this.style.visibility='hidden'" />
                   <div class="gp-result-info">
-                    <div class="gp-result-name">${jpBadge}${r.name}${variantChip}</div>
-                    <div class="gp-result-set">${r.setName}${r.number ? ' · #' + r.number : ''}</div>
+                    <div class="gp-result-name">${jpBadge}${_gpHighlightTokens(r.name, _ht)}${variantChip}</div>
+                    <div class="gp-result-set">${_gpHighlightTokens(r.setName, _ht)}${r.number ? ' · #' + _gpEscHtml(r.number) : ''}</div>
                   </div>
                 </div>
               `;
@@ -2323,8 +2370,38 @@
 
       gpSearchEl.addEventListener('input', () => {
         clearTimeout(gpTimeout);
+        const v = gpSearchEl.value;
+        if (v.trim().length < 2) {
+          if (v.length === 0) _gpShowRecent();
+          else gpResultsEl.classList.remove('open');
+          return;
+        }
         gpTimeout = setTimeout(() => doSearch(gpSearchEl.value), 320);
       });
+      gpSearchEl.addEventListener('focus', () => {
+        if (gpSearchEl.value.trim().length < 2) _gpShowRecent();
+      });
+      function _gpShowRecent() {
+        const recent = _gpLoadRecent();
+        if (!recent.length) { gpResultsEl.classList.remove('open'); return; }
+        const chips = recent.map(q => `
+          <button type="button" class="gp-recent-chip" data-q="${_gpEscHtml(q)}" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:var(--text);padding:6px 12px;border-radius:14px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <span style="opacity:0.55">↻</span>${_gpEscHtml(q)}
+          </button>
+        `).join('');
+        gpResultsEl.innerHTML = `
+          <div style="padding:14px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Recent searches</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>
+          </div>`;
+        gpResultsEl.classList.add('open');
+        gpResultsEl.querySelectorAll('.gp-recent-chip').forEach(btn => {
+          btn.addEventListener('click', () => {
+            gpSearchEl.value = btn.dataset.q;
+            doSearch(btn.dataset.q);
+          });
+        });
+      }
 
       document.addEventListener('click', e => {
         if (!e.target.closest('#gpSearchWrap')) gpResultsEl.classList.remove('open');
