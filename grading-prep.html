@@ -34,11 +34,13 @@
     .gp-col-title { font-family:'Bangers',cursive; font-size:22px; letter-spacing:.04em; line-height:1.25; padding:2px 0 8px; background:linear-gradient(135deg,var(--orange),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px; }
 
     .gp-search-wrap { position:relative; margin-bottom:14px; }
-    .gp-search { width:100%; padding:13px 18px 13px 44px; background:rgba(255,255,255,.09); border:1.5px solid rgba(255,106,0,.40); border-radius:var(--r-pill); color:var(--text); font-size:15px; font-family:'Inter',sans-serif; outline:none; box-shadow:0 0 0 1px rgba(255,106,0,.10),0 4px 18px rgba(255,106,0,.10); transition:border-color .2s,box-shadow .2s,background .2s; }
-    .gp-search:hover { background:rgba(255,255,255,.11); border-color:rgba(255,106,0,.55); }
-    .gp-search:focus { background:rgba(255,255,255,.12); border-color:rgba(255,106,0,.75); box-shadow:0 0 0 3px rgba(255,106,0,.18),0 6px 22px rgba(255,106,0,.18); }
-    .gp-search::placeholder { color:var(--muted); }
-    .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:17px; height:17px; opacity:.85; pointer-events:none; color:var(--orange); }
+    /* Search input — toned from heavy orange glow to a cleaner fintech-style
+       field (border + glow ~50% lighter, slimmer height). */
+    .gp-search { width:100%; padding:11px 18px 11px 44px; background:rgba(255,255,255,.04); border:1px solid rgba(255,106,0,.22); border-radius:var(--r-pill); color:var(--text); font-size:14.5px; font-family:'Inter',sans-serif; outline:none; box-shadow:0 0 0 1px rgba(255,106,0,.04),0 2px 10px rgba(0,0,0,0.20); transition:border-color .2s,box-shadow .2s,background .2s; }
+    .gp-search:hover { background:rgba(255,255,255,.06); border-color:rgba(255,106,0,.35); box-shadow:0 0 0 1px rgba(255,106,0,.08),0 3px 14px rgba(0,0,0,0.24); }
+    .gp-search:focus { background:rgba(255,255,255,.07); border-color:rgba(255,106,0,.55); box-shadow:0 0 0 2px rgba(255,106,0,.12),0 4px 18px rgba(0,0,0,0.30); }
+    .gp-search::placeholder { color:rgba(255,255,255,0.40); }
+    .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:16px; height:16px; opacity:.75; pointer-events:none; color:var(--orange); }
     .gp-search-icon svg { width:100%; height:100%; fill:var(--orange); }
 
     .gp-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:rgba(12,12,18,.97); border:1px solid var(--border); border-radius:var(--r); max-height:360px; overflow-y:auto; z-index:20; backdrop-filter:blur(16px); box-shadow:0 10px 40px rgba(0,0,0,.5); display:none; }
@@ -90,28 +92,255 @@
       margin:0 0 4px; padding:2px 0 4px;
       line-height: 1.25;  /* Bangers descender clip fix */}
 
-    .gp-item { display:grid; grid-template-columns:44px 1fr auto; gap:12px; align-items:start; padding:10px 12px; background:linear-gradient(135deg,rgba(255,106,0,0.10) 0%,rgba(255,106,0,0.03) 50%,rgba(255,255,255,0.02) 100%); border:1px solid rgba(255,106,0,0.25); border-radius:var(--r-sm); box-shadow:0 2px 10px rgba(255,106,0,0.05); transition:border-color .15s,box-shadow .15s,background .15s; }
-    .gp-item:hover { border-color:rgba(255,106,0,0.45); box-shadow:0 3px 14px rgba(255,106,0,0.10); background:linear-gradient(135deg,rgba(255,106,0,0.14) 0%,rgba(255,106,0,0.05) 50%,rgba(255,255,255,0.03) 100%); }
-    .gp-item img { width:44px; height:62px; object-fit:cover; border-radius:4px; }
-    .gp-item-info h4 { font-size:14px; font-weight:700; line-height:1.3; margin-bottom:2px; }
-    .gp-item-info .gp-set { font-size:13px; color:var(--dim); margin-bottom:7px; }
-    .gp-item-svc { display:flex; flex-direction:column; gap:5px; }
-    .gp-svc-row { display:flex; gap:6px; flex-wrap:wrap; }
+    /* ── gp-item: premium grading-decision card.  Redesigned 2026-05-12 from
+       a single-row 3-col grid to a vertical layout with explicit sections:
+       header → KPI module → grade table → service grid → service total.
+       Border + glow intensity cut ~40% so cards read as fintech panels,
+       not gaming UI.  Cohesive orange accent (no competing cyan). */
+    .gp-item {
+      display: flex; flex-direction: column;
+      padding: 20px 22px 18px;
+      background: rgba(255,255,255,0.022);
+      border: 1px solid rgba(255,106,0,0.16);
+      border-radius: 12px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.025) inset;
+      transition: border-color .2s, background .2s;
+    }
+    .gp-item:hover {
+      border-color: rgba(255,106,0,0.28);
+      background: rgba(255,255,255,0.032);
+    }
+    /* Header row — image · title block · close button. */
+    .gp-item-head {
+      display: grid; grid-template-columns: 56px 1fr auto;
+      gap: 16px; align-items: center;
+    }
+    .gp-item-head img {
+      width: 56px; height: 78px;
+      object-fit: cover; border-radius: 5px;
+      background: rgba(255,255,255,0.04);
+    }
+    .gp-item-info h4 {
+      font-size: 17px; font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+      margin: 0 0 5px;
+      color: rgba(255,255,255,0.97);
+    }
+    .gp-item-info .gp-set {
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.58);
+      letter-spacing: 0.15px;
+      margin: 0;
+    }
+    .gp-remove {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.45);
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 15px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      transition: color .15s, border-color .15s, background .15s;
+      padding: 0;
+    }
+    .gp-remove:hover {
+      color: #ff7878;
+      border-color: rgba(255,120,120,0.40);
+      background: rgba(255,120,120,0.08);
+    }
 
-    .gp-radio-label, .gp-check-label { display:inline-flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:8px 16px; border:1px solid var(--border); border-radius:8px; transition:border-color .15s,background .15s; user-select:none; min-width:80px; text-align:center; }
-    .gp-radio-label:hover { border-color:rgba(255,106,0,.35); }
-    .gp-check-label:hover { border-color:rgba(0,212,255,.35); }
-    .gp-radio-label input, .gp-check-label input { display:none; }
-    .gp-radio-label.active { border-color:var(--orange); background:rgba(255,106,0,.1); }
-    .gp-check-label.active { border-color:var(--cyan); background:rgba(0,212,255,.07); }
-    .gp-svc-name { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
-    .gp-radio-label.active .gp-svc-name, .gp-check-label.active .gp-svc-name { color:var(--text); }
-    .gp-svc-price { font-family:'Inter',sans-serif; font-weight:700; font-variant-numeric:tabular-nums; font-size:22px; letter-spacing:-0.5px; color:var(--orange); line-height:1.1; }
-    .gp-svc-price.cyan { color:var(--cyan); }
+    /* KPI module — primary visual anchor of each card. */
+    .gp-kpi {
+      padding: 16px 0 14px;
+      margin-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .gp-kpi-label {
+      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.40);
+      font-weight: 700;
+      margin: 0 0 7px;
+    }
+    .gp-kpi-value {
+      font-family: 'Inter', sans-serif;
+      font-size: 30px; font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.8px;
+      line-height: 1;
+      color: #5fe39b;
+      margin: 0 0 6px;
+    }
+    .gp-kpi-value.muted { color: rgba(255,255,255,0.42); font-size: 18px; letter-spacing: -0.3px; }
+    .gp-kpi-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.60);
+      letter-spacing: 0.1px;
+    }
+    .gp-kpi-sub strong {
+      color: rgba(255,255,255,0.88);
+      font-weight: 600;
+    }
 
-    .gp-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-    .gp-item-cost { font-family:'Inter',sans-serif; font-weight:700; font-variant-numeric:tabular-nums; font-size:18px; color:var(--orange); letter-spacing:-0.3px; line-height:1; }
-    .gp-remove { background:none; border:none; color:var(--dim); cursor:pointer; font-size:20px; padding:2px 4px; line-height:1; transition:color .15s; }
+    /* Grade table — aligned, breathable, restrained green highlight. */
+    .gp-profit-table {
+      display: flex; flex-direction: column;
+      margin: 14px 0 18px;
+    }
+    .gp-baseline {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 4px 14px 11px;
+      margin-bottom: 6px;
+      border-bottom: 1px dashed rgba(255,255,255,0.07);
+    }
+    .gp-baseline-label {
+      font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      font-weight: 600;
+    }
+    .gp-baseline-val {
+      font-variant-numeric: tabular-nums;
+      color: rgba(255,255,255,0.80);
+      font-weight: 500;
+      font-size: 13px;
+    }
+    .gp-grade-row {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      align-items: baseline;
+      gap: 16px;
+      padding: 11px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+      transition: background .15s;
+    }
+    .gp-grade-row + .gp-grade-row { margin-top: 1px; }
+    .gp-grade-row.best { background: rgba(80,200,140,0.055); }
+    .gp-grade-row.best::before {
+      content: '';
+      position: absolute;
+      left: 4px; top: 7px; bottom: 7px;
+      width: 3px; border-radius: 2px;
+      background: rgba(80,200,140,0.60);
+    }
+    .gp-grade-label {
+      font-weight: 600; font-size: 11.5px;
+      letter-spacing: 0.4px;
+      color: rgba(255,255,255,0.85);
+    }
+    .gp-grade-val {
+      color: rgba(255,255,255,0.62);
+      text-align: right;
+      font-weight: 500;
+    }
+    .gp-grade-profit {
+      color: rgba(95,210,150,0.82);
+      font-weight: 600;
+      text-align: right;
+    }
+    .gp-grade-row.best .gp-grade-label { color: rgba(255,255,255,0.95); }
+    .gp-grade-row.best .gp-grade-profit { color: #5fe39b; font-weight: 700; }
+    .gp-noprofit {
+      padding: 14px 8px 4px;
+      text-align: center;
+      font-size: 12px;
+      color: rgba(255,255,255,0.42);
+      font-style: italic;
+    }
+
+    /* Service section — segmented action cards, no competing cyan. */
+    .gp-service-label {
+      font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      font-weight: 700;
+      margin: 0 0 10px;
+    }
+    .gp-service-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    @media (max-width:540px) {
+      .gp-service-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .gp-service-btn {
+      display: flex; flex-direction: column;
+      align-items: flex-start;
+      gap: 3px;
+      padding: 11px 12px 10px;
+      background: rgba(255,255,255,0.022);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      user-select: none;
+      position: relative;
+      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
+    }
+    .gp-service-btn input { display: none; }
+    .gp-service-btn:hover {
+      border-color: rgba(255,106,0,0.30);
+      background: rgba(255,106,0,0.035);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    }
+    .gp-service-btn.active {
+      border-color: rgba(255,106,0,0.55);
+      background: rgba(255,106,0,0.07);
+      box-shadow: 0 0 0 1px rgba(255,106,0,0.20) inset;
+    }
+    .gp-service-name {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.86);
+    }
+    .gp-service-btn.active .gp-service-name { color: rgba(255,255,255,0.98); }
+    .gp-service-desc {
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.48);
+      line-height: 1.35;
+      min-height: 28px;
+    }
+    .gp-service-price {
+      margin-top: 6px;
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+      color: rgba(255,255,255,0.84);
+    }
+    .gp-service-btn.active .gp-service-price { color: var(--orange); }
+
+    /* Service total — clearly labeled footer total. */
+    .gp-service-total {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .gp-service-total-label {
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      font-weight: 700;
+    }
+    .gp-item-cost {
+      font-family: 'Inter', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+      color: var(--orange);
+      line-height: 1;
+    }
     .gp-remove:hover { color:#ff6b6b; }
 
     .gp-totals { margin-bottom:16px; }
@@ -299,121 +528,9 @@
     }
     @media (max-width:480px) { .prep-steps { grid-template-columns:1fr; } }
 
-    /* ── Grading profit estimate panel (collapsible per card) ──
-       Default state shows the top-profit teaser inline with the rest of
-       the card's metadata so customers don't need a click to know whether
-       the math works. Tap to expand the full per-grade chip breakdown. */
-    .gp-profit-panel { background:rgba(0,0,0,0.20); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-    .gp-profit-panel > summary {
-      list-style: none;
-      cursor: pointer;
-      padding: 9px 12px;
-      font-size: 12.5px; line-height: 1.45;
-      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
-      transition: background .15s, border-color .15s;
-    }
-    /* Profit-summary parts — labeled chip + best-profit value + meta */
-    .gpp-label { color: rgba(255,255,255,0.78); font-weight: 600; }
-    .gpp-best {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 9px;
-      background: rgba(80,220,140,0.12);
-      border: 1px solid rgba(80,220,140,0.40);
-      border-radius: 100px;
-      font-size: 12px; font-weight: 600;
-      letter-spacing: 0.3px;
-      color: #9aeab1;
-      font-family: 'Inter', sans-serif;
-      font-variant-numeric: tabular-nums;
-    }
-    .gpp-best strong { color: #50dc8c; font-weight: 800; font-size: 13.5px; }
-    .gpp-meta {
-      color: rgba(255,255,255,0.55);
-      font-size: 12px;
-      margin-left: auto;
-    }
-    @media (max-width:520px) {
-      .gpp-meta { margin-left: 0; width: 100%; }
-    }
-    .gp-profit-panel > summary::-webkit-details-marker { display: none; }
-    .gp-profit-panel > summary:hover { background: rgba(255,106,0,0.06); }
-    .gp-profit-panel .gp-profit-chev {
-      margin-left: auto;
-      color: var(--muted);
-      transition: transform .2s ease;
-      font-size: 12px;
-    }
-    .gp-profit-panel[open] .gp-profit-chev { transform: rotate(180deg); color: var(--orange); }
-    .gp-profit-panel .gp-profit-body {
-      padding: 10px 12px 12px;
-      border-top: 1px solid var(--border);
-      font-size: 12px; line-height: 1.5;
-      animation: gpProfitOpen 240ms ease-out;
-    }
-    @keyframes gpProfitOpen {
-      from { opacity: 0; transform: translateY(-4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Profit panel — aligned grade-table layout. Each grade is its own
-       row (Grade | Value | Profit), tabular nums keep currency columns
-       in vertical alignment, and the best-profit grade gets a green pill
-       background so it pops at a glance. */
-    .gpp-baseline {
-      display: flex; justify-content: space-between; align-items: baseline;
-      padding: 0 2px 9px;
-      margin-bottom: 8px;
-      border-bottom: 1px dashed rgba(255,255,255,0.10);
-    }
-    .gpp-baseline-label {
-      color: rgba(255,255,255,0.50);
-      font-size: 10.5px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    .gpp-baseline-val {
-      color: var(--text);
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      font-size: 12.5px;
-    }
-    .gpp-rows { display: flex; flex-direction: column; gap: 3px; }
-    .gpp-row {
-      display: grid;
-      grid-template-columns: 64px 1fr auto;
-      align-items: baseline;
-      gap: 12px;
-      padding: 6px 9px;
-      border-radius: 5px;
-      font-size: 12px;
-      font-variant-numeric: tabular-nums;
-      background: rgba(255,255,255,0.025);
-      border: 1px solid transparent;
-    }
-    .gpp-row.best {
-      background: rgba(80,220,140,0.10);
-      border-color: rgba(80,220,140,0.30);
-    }
-    .gpp-row-label {
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      font-size: 11px;
-      color: rgba(255,255,255,0.88);
-    }
-    .gpp-row-val { color: rgba(255,255,255,0.72); text-align: right; }
-    .gpp-row-profit { color: #9aeab1; font-weight: 700; }
-    .gpp-row.best .gpp-row-profit { color: #50dc8c; }
-    .gpp-noprofit {
-      padding: 10px 8px 4px;
-      color: var(--dim);
-      font-size: 11.5px;
-      text-align: center;
-      font-style: italic;
-    }
-    @media (max-width:380px) {
-      .gpp-row { grid-template-columns: 58px 1fr auto; gap: 8px; padding: 6px 7px; }
-    }
+    /* Old collapsible profit panel CSS removed 2026-05-12 — replaced by the
+       always-visible KPI module + grade table that ships inline as part of
+       the .gp-item structure (see definitions above). */
 
     /* ── Grading Prep Terms agreement checkbox ── */
     .gp-terms-agree { display:flex; align-items:flex-start; gap:8px; padding:10px 0 14px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }
@@ -1526,33 +1643,39 @@
         const topProfit = profitable.length
           ? Math.max(...profitable.map(g => g.val - PSA_FEE_ESTIMATE - baseline))
           : 0;
-        const profitRows = profitable.map(g => {
+        const bestGrade = profitable.find(g => Math.abs((g.val - PSA_FEE_ESTIMATE - baseline) - topProfit) < 0.01);
+        // KPI module — primary visual anchor.
+        const kpiBlock = profitable.length
+          ? `<div class="gp-kpi">
+               <div class="gp-kpi-label">Best Projected Profit</div>
+               <div class="gp-kpi-value">+$${fmtMoney(topProfit)}</div>
+               <div class="gp-kpi-sub">via <strong>${bestGrade.label}</strong> · ${profitable.length} grade${profitable.length === 1 ? ' stays' : 's stay'} above fee threshold</div>
+             </div>`
+          : `<div class="gp-kpi">
+               <div class="gp-kpi-label">Projected Profit</div>
+               <div class="gp-kpi-value muted">Below fee floor</div>
+               <div class="gp-kpi-sub">No grade clears the ~$${PSA_FEE_ESTIMATE} fee threshold at current market</div>
+             </div>`;
+        // Grade table — visible by default beneath the KPI.
+        const tableRows = profitable.map(g => {
           const profit = g.val - PSA_FEE_ESTIMATE - baseline;
           const isBest = Math.abs(profit - topProfit) < 0.01;
-          return `<div class="gpp-row${isBest ? ' best' : ''}">`
-               + `<span class="gpp-row-label">${g.label}</span>`
-               + `<span class="gpp-row-val">$${fmtMoney(g.val)}</span>`
-               + `<span class="gpp-row-profit">+$${fmtMoney(profit)}</span>`
+          return `<div class="gp-grade-row${isBest ? ' best' : ''}">`
+               + `<span class="gp-grade-label">${g.label}</span>`
+               + `<span class="gp-grade-val">$${fmtMoney(g.val)}</span>`
+               + `<span class="gp-grade-profit">+$${fmtMoney(profit)}</span>`
                + `</div>`;
         }).join('');
-        const baselineHtml = ungraded
-          ? `<div class="gpp-baseline">
-               <span class="gpp-baseline-label">Ungraded baseline</span>
-               <span class="gpp-baseline-val">$${fmtMoney(ungraded)}</span>
+        const baselineRow = ungraded
+          ? `<div class="gp-baseline">
+               <span class="gp-baseline-label">Ungraded baseline</span>
+               <span class="gp-baseline-val">$${fmtMoney(ungraded)}</span>
              </div>`
           : '';
-        const bodyHtml = profitable.length
-          ? `${baselineHtml}<div class="gpp-rows">${profitRows}</div>`
-          : `${baselineHtml}<div class="gpp-noprofit">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor at current market</div>`;
-        const summary = profitable.length
-          ? `<span class="gpp-label">💰 Grading profit</span><span class="gpp-best">Best <strong>+$${fmtMoney(topProfit)}</strong></span><span class="gpp-meta">${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
-          : `<span class="gpp-label">💰 Grading profit</span><span class="gpp-meta">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor</span>`;
-        return `
-          <details class="gp-profit-panel" style="margin-top:8px">
-            <summary>${summary}<span class="gp-profit-chev" aria-hidden="true">▾</span></summary>
-            <div class="gp-profit-body">${bodyHtml}</div>
-          </details>
-        `;
+        const tableBlock = profitable.length
+          ? `<div class="gp-profit-table">${baselineRow}${tableRows}</div>`
+          : (ungraded ? `<div class="gp-profit-table">${baselineRow}</div>` : '');
+        return kpiBlock + tableBlock;
       }
       // Lazy-load the graded index the first time renderList runs with cards
       // that might benefit from it. Triggers a re-render when it lands.
@@ -1600,41 +1723,49 @@
             </label>` : '';
           return `
           <div class="gp-item">
-            <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" decoding="async" />
-            <div class="gp-item-info">
-              <h4>${c.name}${firstEdBadge}</h4>
-              <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
-              ${firstEdRow}
-              ${gradePanel(c)}
-              <div class="gp-item-svc">
-                <div class="gp-svc-row">
-                  <label class="gp-radio-label${c.svc === 'standard' ? ' active' : ''}">
-                    <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
-                    <span class="gp-svc-name">Standard</span>
-                    <span class="gp-svc-price">$3</span>
-                  </label>
-                  <label class="gp-radio-label${c.svc === 'detailed' ? ' active' : ''}">
-                    <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
-                    <span class="gp-svc-name">Detailed</span>
-                    <span class="gp-svc-price">$5</span>
-                  </label>
-                  <label class="gp-radio-label${c.svc === 'prep_only' ? ' active' : ''}" style="border-color:${c.svc === 'prep_only' ? 'var(--cyan)' : 'var(--border)'};${c.svc === 'prep_only' ? 'background:rgba(0,212,255,.07)' : ''}">
-                    <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
-                    <span class="gp-svc-name">Prep Only</span>
-                    <span class="gp-svc-price${c.svc === 'prep_only' ? ' cyan' : ''}">$5</span>
-                  </label>
-                  ${c.svc === 'prep_only' ? '' : `
-                  <label class="gp-check-label${c.prep ? ' active' : ''}">
-                    <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
-                    <span class="gp-svc-name">+ Prep</span>
-                    <span class="gp-svc-price cyan">$5</span>
-                  </label>`}
-                </div>
+            <div class="gp-item-head">
+              <img src="${c.img}" alt="" onerror="this.style.visibility='hidden'" loading="lazy" decoding="async" />
+              <div class="gp-item-info">
+                <h4>${c.name}${firstEdBadge}</h4>
+                <div class="gp-set">${c.set}${c.num ? ' · #' + c.num : ''}</div>
+                ${firstEdRow}
               </div>
-            </div>
-            <div class="gp-item-right">
-              <div class="gp-item-cost">${fmt(cardCost(c))}</div>
               <button class="gp-remove" data-rm="${i}" aria-label="Remove card">×</button>
+            </div>
+            ${gradePanel(c)}
+            <div class="gp-service-section">
+              <div class="gp-service-label">Service</div>
+              <div class="gp-service-grid">
+                <label class="gp-service-btn${c.svc === 'standard' ? ' active' : ''}">
+                  <input type="radio" name="gpsvc${i}" value="standard" data-idx="${i}"${c.svc === 'standard' ? ' checked' : ''}>
+                  <span class="gp-service-name">Standard</span>
+                  <span class="gp-service-desc">Quick pass / fail screen</span>
+                  <span class="gp-service-price">$3</span>
+                </label>
+                <label class="gp-service-btn${c.svc === 'detailed' ? ' active' : ''}">
+                  <input type="radio" name="gpsvc${i}" value="detailed" data-idx="${i}"${c.svc === 'detailed' ? ' checked' : ''}>
+                  <span class="gp-service-name">Detailed</span>
+                  <span class="gp-service-desc">Deep screen + notes</span>
+                  <span class="gp-service-price">$5</span>
+                </label>
+                <label class="gp-service-btn${c.svc === 'prep_only' ? ' active' : ''}">
+                  <input type="radio" name="gpsvc${i}" value="prep_only" data-idx="${i}"${c.svc === 'prep_only' ? ' checked' : ''}>
+                  <span class="gp-service-name">Prep Only</span>
+                  <span class="gp-service-desc">Skip screening</span>
+                  <span class="gp-service-price">$5</span>
+                </label>
+                ${c.svc === 'prep_only' ? '' : `
+                <label class="gp-service-btn${c.prep ? ' active' : ''}">
+                  <input type="checkbox" data-prep="${i}"${c.prep ? ' checked' : ''}>
+                  <span class="gp-service-name">+ Prep</span>
+                  <span class="gp-service-desc">Sleeve + card saver</span>
+                  <span class="gp-service-price">$5</span>
+                </label>`}
+              </div>
+              <div class="gp-service-total">
+                <span class="gp-service-total-label">Service Total</span>
+                <span class="gp-item-cost">${fmt(cardCost(c))}</span>
+              </div>
             </div>
           </div>
         `;
@@ -1658,7 +1789,7 @@
               return;
             }
             gpListEl.querySelectorAll(`[name="gpsvc${i}"]`).forEach(rb => {
-              rb.closest('.gp-radio-label').classList.toggle('active', rb.checked);
+              rb.closest('.gp-service-btn').classList.toggle('active', rb.checked);
             });
             gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
             recalc();
@@ -1669,7 +1800,7 @@
           cb.addEventListener('change', () => {
             const i = +cb.dataset.prep;
             gpCards[i].prep = cb.checked;
-            cb.closest('.gp-check-label').classList.toggle('active', cb.checked);
+            cb.closest('.gp-service-btn').classList.toggle('active', cb.checked);
             gpListEl.querySelectorAll('.gp-item')[i].querySelector('.gp-item-cost').textContent = fmt(cardCost(gpCards[i]));
             recalc();
           });
