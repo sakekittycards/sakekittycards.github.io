@@ -343,8 +343,7 @@
     }
     .gp-profit-panel[open] .gp-profit-chev { transform: rotate(180deg); color: var(--orange); }
     .gp-profit-panel .gp-profit-body {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-      padding: 8px 10px 10px;
+      padding: 10px 12px 12px;
       border-top: 1px solid var(--border);
       font-size: 12px; line-height: 1.5;
       animation: gpProfitOpen 240ms ease-out;
@@ -352,6 +351,66 @@
     @keyframes gpProfitOpen {
       from { opacity: 0; transform: translateY(-4px); }
       to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Profit panel — aligned grade-table layout. Each grade is its own
+       row (Grade | Value | Profit), tabular nums keep currency columns
+       in vertical alignment, and the best-profit grade gets a green pill
+       background so it pops at a glance. */
+    .gpp-baseline {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 0 2px 9px;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed rgba(255,255,255,0.10);
+    }
+    .gpp-baseline-label {
+      color: rgba(255,255,255,0.50);
+      font-size: 10.5px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .gpp-baseline-val {
+      color: var(--text);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-size: 12.5px;
+    }
+    .gpp-rows { display: flex; flex-direction: column; gap: 3px; }
+    .gpp-row {
+      display: grid;
+      grid-template-columns: 64px 1fr auto;
+      align-items: baseline;
+      gap: 12px;
+      padding: 6px 9px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid transparent;
+    }
+    .gpp-row.best {
+      background: rgba(80,220,140,0.10);
+      border-color: rgba(80,220,140,0.30);
+    }
+    .gpp-row-label {
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.88);
+    }
+    .gpp-row-val { color: rgba(255,255,255,0.72); text-align: right; }
+    .gpp-row-profit { color: #9aeab1; font-weight: 700; }
+    .gpp-row.best .gpp-row-profit { color: #50dc8c; }
+    .gpp-noprofit {
+      padding: 10px 8px 4px;
+      color: var(--dim);
+      font-size: 11.5px;
+      text-align: center;
+      font-style: italic;
+    }
+    @media (max-width:380px) {
+      .gpp-row { grid-template-columns: 58px 1fr auto; gap: 8px; padding: 6px 7px; }
     }
 
     /* ── Grading Prep Terms agreement checkbox ── */
@@ -1299,7 +1358,9 @@
             image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
           });
         };
-        for (let i = 0; i < idx.length && out.length < 30; i++) {
+        // EN cap raised 30 -> 500. ~13K-row loop is <10ms; rendering 500
+        // is fine because the dropdown is overflow:auto-scrollable.
+        for (let i = 0; i < idx.length && out.length < 500; i++) {
           const [name, setName, number, productId, market] = idx[i];
           if (_isFallbackSealed(name)) continue;
           const hay = normalizeSearchText(`${name} ${setName} ${number}`);
@@ -1315,7 +1376,7 @@
           _push(name, setName, number, productId);
         }
         if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
-          for (let i = 0; i < idx.length && out.length < 30; i++) {
+          for (let i = 0; i < idx.length && out.length < 100; i++) {
             const [name, setName, number, productId] = idx[i];
             if (_isFallbackSealed(name)) continue;
             const hay = normalizeSearchText(`${name} ${setName} ${number}`);
@@ -1339,7 +1400,9 @@
           lang: 'jp', name, setName, number, productId,
           image: productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_200w.jpg` : '',
         });
-        for (let i = 0; i < idx.length && out.length < 14; i++) {
+        // JP cap raised 14 -> 200. Same reasoning as EN — let customers see
+        // every JP variant instead of just the first 14.
+        for (let i = 0; i < idx.length && out.length < 200; i++) {
           const entry = idx[i];
           const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
           if (_isFallbackSealed(name)) continue;
@@ -1352,7 +1415,7 @@
           _push(name, setName, number, productId);
         }
         if (out.length === 0 && cleaned.some(t => t.length >= 4 && !/^\d/.test(t))) {
-          for (let i = 0; i < idx.length && out.length < 14; i++) {
+          for (let i = 0; i < idx.length && out.length < 100; i++) {
             const entry = idx[i];
             const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3];
             if (_isFallbackSealed(name)) continue;
@@ -1447,9 +1510,7 @@
         // for Chinese cards, where TCGplayer doesn't carry the card).
         const tcgRaw = gpTcgRawCache[String(c.productId)];
         const ungraded = (tcgRaw != null) ? tcgRaw : (pcUngraded || null);
-        const ungradedNote = ungraded
-          ? `<span style="color:var(--muted)">Ungraded ~$${ungraded.toFixed(2)}</span>`
-          : '';
+        const fmtMoney = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const grades = [
           { label: 'PSA 10', val: psa10 },
           { label: 'BGS 10', val: bgs10 },
@@ -1459,33 +1520,35 @@
         ];
         const baseline = ungraded || 0;
         const profitable = grades.filter(g => g.val && (g.val - PSA_FEE_ESTIMATE - baseline) > 0);
-        if (!ungradedNote && !profitable.length) return '';
-        const profitChips = profitable.map(g => {
-          const profit = g.val - PSA_FEE_ESTIMATE - baseline;
-          return `<span style="display:inline-block;padding:2px 8px;background:rgba(50,205,50,0.10);border:1px solid rgba(50,205,50,0.25);border-radius:6px;font-size:11px;color:var(--text);white-space:nowrap"><strong>${g.label}</strong> $${g.val.toFixed(2)} <span style="color:#7fdc7f">+$${profit.toFixed(2)}</span></span>`;
-        }).join(' ');
-        const noProfitNote = !profitable.length
-          ? `<span style="color:var(--dim);font-size:11px">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor at current market</span>`
-          : '';
-        // Teaser shown in the collapsed state — surfaces the highest-profit
-        // grade so the customer knows whether expanding is worth it without
-        // having to click. Falls back to the no-profit note when nothing
-        // clears the fee floor.
+        if (!ungraded && !profitable.length) return '';
         const topProfit = profitable.length
           ? Math.max(...profitable.map(g => g.val - PSA_FEE_ESTIMATE - baseline))
           : 0;
+        const profitRows = profitable.map(g => {
+          const profit = g.val - PSA_FEE_ESTIMATE - baseline;
+          const isBest = Math.abs(profit - topProfit) < 0.01;
+          return `<div class="gpp-row${isBest ? ' best' : ''}">`
+               + `<span class="gpp-row-label">${g.label}</span>`
+               + `<span class="gpp-row-val">$${fmtMoney(g.val)}</span>`
+               + `<span class="gpp-row-profit">+$${fmtMoney(profit)}</span>`
+               + `</div>`;
+        }).join('');
+        const baselineHtml = ungraded
+          ? `<div class="gpp-baseline">
+               <span class="gpp-baseline-label">Ungraded baseline</span>
+               <span class="gpp-baseline-val">$${fmtMoney(ungraded)}</span>
+             </div>`
+          : '';
+        const bodyHtml = profitable.length
+          ? `${baselineHtml}<div class="gpp-rows">${profitRows}</div>`
+          : `${baselineHtml}<div class="gpp-noprofit">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor at current market</div>`;
         const summary = profitable.length
-          ? `<span class="gpp-label">💰 Grading profit</span><span class="gpp-best">Best <strong>+$${topProfit.toFixed(2)}</strong></span><span class="gpp-meta">${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
+          ? `<span class="gpp-label">💰 Grading profit</span><span class="gpp-best">Best <strong>+$${fmtMoney(topProfit)}</strong></span><span class="gpp-meta">${profitable.length} grade${profitable.length === 1 ? '' : 's'} clear fee floor</span>`
           : `<span class="gpp-label">💰 Grading profit</span><span class="gpp-meta">No grade clears the ~$${PSA_FEE_ESTIMATE} fee floor</span>`;
         return `
           <details class="gp-profit-panel" style="margin-top:8px">
             <summary>${summary}<span class="gp-profit-chev" aria-hidden="true">▾</span></summary>
-            <div class="gp-profit-body">
-              ${ungradedNote}
-              ${profitable.length ? `<span style="color:var(--dim);font-size:11px">·</span>` : ''}
-              ${profitChips}
-              ${noProfitNote}
-            </div>
+            <div class="gp-profit-body">${bodyHtml}</div>
           </details>
         `;
       }
