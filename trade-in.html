@@ -2081,6 +2081,12 @@
     // Module-level slot so renderResults can paint <mark> highlights
     // without changing every call signature.
     let _currentSearchTokens = [];
+    // Active variant-filter pill on the singles dropdown (null = show all).
+    // Resets per fresh search.
+    let _tiVariantFilter = null;
+    // Last-rendered result tuples so a variant chip click can re-call
+    // renderResults without re-firing the network search.
+    let _tiLastRenderArgs = null;
     function _escHtml(s) {
       return String(s ?? '')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -2753,6 +2759,8 @@
       // (alias expansion + accent strip).
       _currentSearchTokens = normalizeSearchText(rawTokens.join(' '))
         .split(/\s+/).filter(t => t && t.length > 1);
+      // Reset variant filter on every fresh user-initiated search.
+      _tiVariantFilter = null;
       // Remember this search so the empty-input dropdown can offer it back.
       _pushRecentSearch(query);
 
@@ -2938,11 +2946,16 @@
     }
 
     function renderResults(cardResults, sealedResults, japaneseResults) {
+      // Stash for chip-click re-renders.
+      _tiLastRenderArgs = [cardResults, sealedResults, japaneseResults];
       const cardRows = [];
       for (const c of (cardResults || [])) {
         for (const r of expandVariants(c)) {
           if (currentVariantFilter && r.variantKey && !currentVariantFilter.has(r.variantKey)) continue;
           if (currentVariantFilter && !r.variantKey) continue;
+          // Manual variant-pill filter (chip toolbar) — narrows the
+          // already-expanded variant rows. Empty filter means show all.
+          if (_tiVariantFilter && (r.variantLabel || '') !== _tiVariantFilter) continue;
           cardRows.push({ kind: 'card', ...r });
         }
       }
@@ -2974,6 +2987,33 @@
 
       // Cache tokens locally so each row's highlight call doesn't re-read.
       const _ht = _currentSearchTokens;
+
+      // ─── Variant-filter chip toolbar (Singles only) ────────────────
+      // Build counts from the FULL un-filtered cardRows so the chip
+      // labels stay stable regardless of which one is active. Render
+      // only when 2+ distinct variants exist in the result set.
+      const variantCounts = new Map();
+      const fullCardRows = [];
+      for (const c of (cardResults || [])) {
+        for (const r of expandVariants(c)) {
+          if (currentVariantFilter && r.variantKey && !currentVariantFilter.has(r.variantKey)) continue;
+          if (currentVariantFilter && !r.variantKey) continue;
+          fullCardRows.push(r);
+          const v = (r.variantLabel || '').trim();
+          if (!v) continue;
+          variantCounts.set(v, (variantCounts.get(v) || 0) + 1);
+        }
+      }
+      if (variantCounts.size >= 2) {
+        const chipFor = (label, val, count) => {
+          const active = (_tiVariantFilter || null) === val;
+          return `<button type="button" class="ti-vchip" data-vfilter="${_escHtml(val ?? '')}" style="background:${active ? 'rgba(255,174,0,0.22)' : 'rgba(255,255,255,0.05)'};border:1px solid ${active ? 'rgba(255,174,0,0.6)' : 'rgba(255,255,255,0.10)'};color:${active ? '#ffae00' : 'var(--text)'};padding:5px 11px;border-radius:13px;font-size:12px;font-weight:${active ? '700' : '500'};letter-spacing:0.3px;cursor:pointer;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px">${_escHtml(label)}${count != null ? `<span style="opacity:0.55;font-weight:600">${count}</span>` : ''}</button>`;
+        };
+        const chips = [chipFor('All', null, fullCardRows.length)];
+        const sorted = [...variantCounts.entries()].sort((a, b) => b[1] - a[1]);
+        for (const [v, c] of sorted) chips.push(chipFor(v, v, c));
+        html.push(`<div style="padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.20)">${chips.join('')}</div>`);
+      }
 
       // 1) Singles (English, from pokemontcg.io + en-static TCG CSV)
       if (cards.length) {
@@ -3052,6 +3092,16 @@
         el.addEventListener('click', () => {
           const r = jpRows[+el.dataset.jpIdx];
           if (r) addTcgCsvItem(r);
+        });
+      });
+      // Variant-filter chip clicks — flip filter, re-render in place using
+      // the cached args from the most recent search.
+      resultsEl.querySelectorAll('.ti-vchip').forEach(el => {
+        el.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          const v = el.dataset.vfilter || '';
+          _tiVariantFilter = v ? v : null;
+          if (_tiLastRenderArgs) renderResults(..._tiLastRenderArgs);
         });
       });
 
