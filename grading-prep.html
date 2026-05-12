@@ -1019,15 +1019,23 @@
           return arr;
         } catch { _gpPrintingsCache[k] = null; return null; }
       }
-      // TCGplayer printing-type → short chip label. Anything not mapped falls
-      // through to the raw type so we don't silently drop a new printing.
+      // TCGplayer printing-type → short chip label. mpapi /pricepoints uses
+      // condensed names ('Foil' for what most people call 'Holo'); we
+      // normalize to the labels customers recognize. Anything unmapped falls
+      // through to the raw type so a new printing isn't silently dropped.
       const _GP_PRINTING_TO_CHIP = {
-        'Normal': '',
+        'Normal': 'Non-Holo',
+        'Foil': 'Holo',
         'Holofoil': 'Holo',
         'Reverse Holofoil': 'Reverse Holo',
+        'Reverse Holo': 'Reverse Holo',
         '1st Edition Holofoil': '1st Ed Holo',
         '1st Edition Normal': '1st Ed',
+        '1st Edition': '1st Ed',
         'Unlimited Holofoil': 'Unlimited Holo',
+        'Unlimited Normal': 'Unlimited',
+        'Shadowless Holofoil': 'Shadowless Holo',
+        'Cracked Ice Holofoil': 'Cracked Ice',
       };
       // Search invocation counter — used to abort stale enrichment when a
       // newer search has fired before the previous one's printings landed.
@@ -1809,15 +1817,21 @@
 
           // Background enrichment: for each result with a productId and no
           // pre-resolved variant, fetch the printings list from /tcg/market
-          // and expand the row into one entry per printing. Re-renders the
-          // dropdown when finished — unless a newer search has fired first.
+          // and expand the row into one entry per printing. We filter to
+          // printings TCGplayer has a market price on — a null market means
+          // the SKU exists in the catalog but the printing isn't real (e.g.
+          // Expedition Charizard returns [{Normal: null}, {Foil: 556}] —
+          // there's no actual non-holo Charizard in Expedition). Single
+          // remaining printing => no chip needed.
           (async () => {
             const expanded = [];
             for (const r of gpSearchResults) {
               if (!r.productId || r.variant) { expanded.push(r); continue; }
               const printings = await _gpFetchPrintings(r.productId);
-              if (!printings || printings.length <= 1) { expanded.push(r); continue; }
-              for (const p of printings) {
+              if (!printings) { expanded.push(r); continue; }
+              const usable = printings.filter(p => p?.type && p.market != null);
+              if (usable.length <= 1) { expanded.push(r); continue; }
+              for (const p of usable) {
                 const chip = _GP_PRINTING_TO_CHIP[p.type] ?? p.type;
                 expanded.push({ ...r, variant: chip, printingType: p.type });
               }

@@ -2864,13 +2864,22 @@
         return arr;
       } catch { _tiPrintingsCache[k] = null; return null; }
     }
+    // mpapi /pricepoints uses condensed names ('Foil' for what most people
+    // call 'Holo'); normalize to labels customers recognize. Unmapped types
+    // fall through to the raw value so a new printing isn't silently dropped.
     const _TI_PRINTING_TO_CHIP = {
-      'Normal': '',
+      'Normal': 'Non-Holo',
+      'Foil': 'Holo',
       'Holofoil': 'Holo',
       'Reverse Holofoil': 'Reverse Holo',
+      'Reverse Holo': 'Reverse Holo',
       '1st Edition Holofoil': '1st Ed Holo',
       '1st Edition Normal': '1st Ed',
+      '1st Edition': '1st Ed',
       'Unlimited Holofoil': 'Unlimited Holo',
+      'Unlimited Normal': 'Unlimited',
+      'Shadowless Holofoil': 'Shadowless Holo',
+      'Cracked Ice Holofoil': 'Cracked Ice',
     };
     let _tiGradedSearchToken = 0;
 
@@ -3572,17 +3581,21 @@
 
         // Background enrichment: for each result with a productId and no
         // pre-resolved _variant, fetch TCGplayer printings and expand into
-        // one row per printing. Catches vintage cards (Expedition, Aquapolis
-        // etc.) where the index has a single row but the SKU has Holo +
-        // Reverse Holo printings.
+        // one row per printing. Filter to printings with a market price —
+        // a null market means the SKU exists in TCGplayer's catalog but
+        // the printing isn't real for the card (e.g. Expedition Charizard
+        // returns [{Normal: null}, {Foil: 556}] — no actual non-holo).
+        // Single remaining printing => no expansion, no chip noise.
         (async () => {
           const expanded = [];
           for (const c of initialMerged) {
             const pid = c._productId || c._fallbackProductId;
             if (!pid || c._variant) { expanded.push(c); continue; }
             const printings = await _tiFetchPrintings(pid);
-            if (!printings || printings.length <= 1) { expanded.push(c); continue; }
-            for (const p of printings) {
+            if (!printings) { expanded.push(c); continue; }
+            const usable = printings.filter(p => p?.type && p.market != null);
+            if (usable.length <= 1) { expanded.push(c); continue; }
+            for (const p of usable) {
               const chip = _TI_PRINTING_TO_CHIP[p.type] ?? p.type;
               expanded.push({
                 ...c,
