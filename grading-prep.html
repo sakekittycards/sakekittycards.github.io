@@ -344,10 +344,9 @@
       overflow: hidden;
       transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .25s ease;
     }
-    /* Top accent strip — hidden by default, fades in on hover, locked on
-       active.  Uses the page-wide orange→pink gradient (same one as the
-       Bangers display titles + nav glow) so the active tier reads as part
-       of the brand system, not a one-off orange chip. */
+    /* Top accent strip — always visible at low opacity, locked at full
+       on hover/active.  Each tier overrides the gradient below.  Default
+       is the page-theme orange→pink (Detailed inherits this). */
     .gp-service-btn::before {
       content: '';
       position: absolute; top: 0; left: 0; right: 0;
@@ -358,7 +357,7 @@
         rgba(255,0,128,0.95) 60%,
         rgba(255,106,0,0.85) 85%,
         transparent 100%);
-      opacity: 0;
+      opacity: 0.55;
       transition: opacity .25s ease;
     }
     .gp-service-btn::after {
@@ -376,7 +375,7 @@
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,106,0,0.08);
     }
-    .gp-service-btn:hover::before { opacity: 0.55; }
+    .gp-service-btn:hover::before { opacity: 0.85; }
     .gp-service-btn:hover::after  { opacity: 1; }
     .gp-service-btn.active {
       border-color: rgba(255,106,0,0.55);
@@ -403,29 +402,27 @@
     }
     .gp-service-btn:hover .gp-service-desc { color: rgba(255,255,255,0.62); }
     .gp-service-btn.active .gp-service-desc { color: rgba(255,255,255,0.68); }
-    /* Service price — bumped from 17px to 23px and rendered with the
-       same orange→pink gradient text-fill the Bangers titles use, so the
-       active state matches the page's brand theme. */
+    /* Service price — 23px / weight 800, always rendered with the tier's
+       gradient text-fill (no longer interaction-gated).  Tier-specific
+       gradients are defined in the per-tier blocks below; this is the
+       Detailed default (yellow→orange — matches the page's Detailed
+       Screen "How It Works" card up top). */
     .gp-service-price {
       margin-top: 8px;
       font-size: 23px;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.6px;
-      color: rgba(255,255,255,0.86);
-      transition: color .15s, transform .2s, filter .2s;
-      line-height: 1;
-    }
-    .gp-service-btn:hover .gp-service-price,
-    .gp-service-btn.active .gp-service-price {
-      background: linear-gradient(135deg, var(--orange), var(--pink));
+      background: linear-gradient(135deg, #ffd24d, var(--orange));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       color: transparent;
+      transition: filter .2s;
+      line-height: 1;
     }
     .gp-service-btn.active .gp-service-price {
-      filter: drop-shadow(0 0 12px rgba(255,106,0,0.25));
+      filter: drop-shadow(0 0 14px rgba(255,166,0,0.28));
     }
 
     /* ── Per-tier color identity ─────────────────────────────────────────
@@ -434,7 +431,12 @@
        Card Prep (Prep Only + Prep) = purple. Each tile's top accent, hover
        glow, active state, and price text-fill follow its tier's identity. */
 
-    /* Standard — cyan (screen-only) */
+    /* Standard — cyan (screen-only).  Same gradient as the Standard Screen
+       "How It Works" card.  Border tint + price gradient + corner glow all
+       always-on so the color identity reads even in idle state. */
+    .gp-service-btn.tier-standard {
+      border-color: rgba(0,212,255,0.18);
+    }
     .gp-service-btn.tier-standard::before {
       background: linear-gradient(90deg,
         transparent 0%,
@@ -445,33 +447,67 @@
     }
     .gp-service-btn.tier-standard::after {
       background: radial-gradient(circle at 100% 0%, rgba(0,212,255,0.10), transparent 55%);
+      opacity: 0.45;
     }
-    .gp-service-btn.tier-standard:hover {
-      border-color: rgba(0,212,255,0.32);
-      background: linear-gradient(180deg, rgba(0,212,255,0.06) 0%, rgba(47,143,255,0.025) 100%);
-      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,212,255,0.10);
-    }
-    .gp-service-btn.tier-standard.active {
-      border-color: rgba(0,212,255,0.55);
-      background: linear-gradient(135deg, rgba(0,212,255,0.13) 0%, rgba(47,143,255,0.06) 100%);
-      box-shadow: 0 0 0 1px rgba(0,212,255,0.22) inset, 0 0 22px rgba(0,212,255,0.12);
-    }
-    .gp-service-btn.tier-standard:hover .gp-service-price,
-    .gp-service-btn.tier-standard.active .gp-service-price {
+    .gp-service-btn.tier-standard .gp-service-price {
       background: linear-gradient(135deg, var(--cyan), #2f8fff);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       color: transparent;
     }
+    .gp-service-btn.tier-standard:hover {
+      border-color: rgba(0,212,255,0.42);
+      background: linear-gradient(180deg, rgba(0,212,255,0.07) 0%, rgba(47,143,255,0.03) 100%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,212,255,0.12);
+    }
+    .gp-service-btn.tier-standard.active {
+      border-color: rgba(0,212,255,0.60);
+      background: linear-gradient(135deg, rgba(0,212,255,0.15) 0%, rgba(47,143,255,0.07) 100%);
+      box-shadow: 0 0 0 1px rgba(0,212,255,0.25) inset, 0 0 24px rgba(0,212,255,0.16);
+    }
     .gp-service-btn.tier-standard.active .gp-service-price {
-      filter: drop-shadow(0 0 12px rgba(0,212,255,0.30));
+      filter: drop-shadow(0 0 14px rgba(0,212,255,0.36));
     }
 
-    /* Detailed — orange→pink, page theme.  Uses the .gp-service-btn defaults
-       above (no override needed). */
+    /* Detailed — yellow→orange (matches the Detailed Screen "How It Works"
+       card; this is the "most popular" tier).  Border + price gradient
+       always-on; the base .gp-service-price rule above already sets the
+       yellow→orange text-fill, so this block only handles the chrome. */
+    .gp-service-btn.tier-detailed {
+      border-color: rgba(255,166,0,0.20);
+    }
+    .gp-service-btn.tier-detailed::before {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,210,77,0.85) 25%,
+        rgba(255,106,0,0.95) 60%,
+        rgba(255,210,77,0.85) 85%,
+        transparent 100%);
+    }
+    .gp-service-btn.tier-detailed::after {
+      background: radial-gradient(circle at 100% 0%, rgba(255,166,0,0.12), transparent 55%);
+      opacity: 0.45;
+    }
+    .gp-service-btn.tier-detailed:hover {
+      border-color: rgba(255,166,0,0.45);
+      background: linear-gradient(180deg, rgba(255,210,77,0.07) 0%, rgba(255,106,0,0.03) 100%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,166,0,0.12);
+    }
+    .gp-service-btn.tier-detailed.active {
+      border-color: rgba(255,106,0,0.60);
+      background: linear-gradient(135deg, rgba(255,210,77,0.14) 0%, rgba(255,106,0,0.07) 100%);
+      box-shadow: 0 0 0 1px rgba(255,106,0,0.25) inset, 0 0 24px rgba(255,166,0,0.18);
+    }
+    .gp-service-btn.tier-detailed.active .gp-service-price {
+      filter: drop-shadow(0 0 14px rgba(255,166,0,0.36));
+    }
 
-    /* Prep Only + Prep — purple (Card Prep) */
+    /* Prep Only + Prep — purple (Card Prep). */
+    .gp-service-btn.tier-prep_only,
+    .gp-service-btn.tier-prep {
+      border-color: rgba(123,47,255,0.20);
+    }
     .gp-service-btn.tier-prep_only::before,
     .gp-service-btn.tier-prep::before {
       background: linear-gradient(90deg,
@@ -483,33 +519,32 @@
     }
     .gp-service-btn.tier-prep_only::after,
     .gp-service-btn.tier-prep::after {
-      background: radial-gradient(circle at 100% 0%, rgba(123,47,255,0.12), transparent 55%);
+      background: radial-gradient(circle at 100% 0%, rgba(123,47,255,0.14), transparent 55%);
+      opacity: 0.45;
     }
-    .gp-service-btn.tier-prep_only:hover,
-    .gp-service-btn.tier-prep:hover {
-      border-color: rgba(123,47,255,0.32);
-      background: linear-gradient(180deg, rgba(180,108,255,0.06) 0%, rgba(123,47,255,0.025) 100%);
-      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(123,47,255,0.10);
-    }
-    .gp-service-btn.tier-prep_only.active,
-    .gp-service-btn.tier-prep.active {
-      border-color: rgba(123,47,255,0.55);
-      background: linear-gradient(135deg, rgba(180,108,255,0.13) 0%, rgba(123,47,255,0.06) 100%);
-      box-shadow: 0 0 0 1px rgba(123,47,255,0.22) inset, 0 0 22px rgba(123,47,255,0.12);
-    }
-    .gp-service-btn.tier-prep_only:hover .gp-service-price,
-    .gp-service-btn.tier-prep_only.active .gp-service-price,
-    .gp-service-btn.tier-prep:hover .gp-service-price,
-    .gp-service-btn.tier-prep.active .gp-service-price {
+    .gp-service-btn.tier-prep_only .gp-service-price,
+    .gp-service-btn.tier-prep .gp-service-price {
       background: linear-gradient(135deg, #b46cff, var(--purple));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
       color: transparent;
     }
+    .gp-service-btn.tier-prep_only:hover,
+    .gp-service-btn.tier-prep:hover {
+      border-color: rgba(123,47,255,0.45);
+      background: linear-gradient(180deg, rgba(180,108,255,0.07) 0%, rgba(123,47,255,0.03) 100%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.28), 0 0 0 1px rgba(123,47,255,0.12);
+    }
+    .gp-service-btn.tier-prep_only.active,
+    .gp-service-btn.tier-prep.active {
+      border-color: rgba(123,47,255,0.60);
+      background: linear-gradient(135deg, rgba(180,108,255,0.15) 0%, rgba(123,47,255,0.07) 100%);
+      box-shadow: 0 0 0 1px rgba(123,47,255,0.25) inset, 0 0 24px rgba(123,47,255,0.18);
+    }
     .gp-service-btn.tier-prep_only.active .gp-service-price,
     .gp-service-btn.tier-prep.active .gp-service-price {
-      filter: drop-shadow(0 0 12px rgba(123,47,255,0.32));
+      filter: drop-shadow(0 0 14px rgba(123,47,255,0.40));
     }
 
     /* Service total — clearly labeled footer total. */
