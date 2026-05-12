@@ -1102,63 +1102,157 @@
     .bulk-floor-note p:first-child { font-size: 14px; color: rgba(255,255,255,0.96); }
     .bulk-floor-note strong { color: rgba(255,255,255,0.96); font-weight: 700; }
 
-    .bulk-table { width: 100%; border-collapse: collapse; }
-    .bulk-table th, .bulk-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-    .bulk-table th {
-      font-family: 'Inter',sans-serif; font-size: 11px; font-weight: 700;
-      color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase;
+    /* ── "Card Type" selector — premium tile redesign ──
+       Wraps the bulk-rates table in an elevated frame with a faint ambient
+       orange wash, gives each row a soft layered tile surface, and replaces
+       the harsh browser-focus outline with a soft orange edge-glow active
+       state. Intentional, layered — references collectible aesthetics
+       without literal card-frame chrome. */
+    .bulk-table-frame {
+      position: relative;
+      padding: 18px 16px 14px;
+      border-radius: 22px;
+      background:
+        radial-gradient(120% 70% at 50% 0%, rgba(255,106,0,0.06), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.024), rgba(255,255,255,0.008));
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        inset 0 0 50px rgba(255,106,0,0.04),
+        0 12px 36px rgba(0,0,0,0.40);
     }
-    .bulk-table td strong { color: var(--text); font-size: 14px; }
-    .bulk-table .buy-price { color: var(--orange); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
-    .bulk-table .credit-price { color: var(--cyan); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
-    .bulk-table .line-total { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Inter',sans-serif; font-variant-numeric: tabular-nums; font-size: 14px; letter-spacing: 0; }
+    .bulk-table-frame::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 0%, rgba(255,106,0,0.08), transparent 50%);
+      opacity: 0.55;
+      mix-blend-mode: screen;
+    }
 
-    /* Bulk row name + thumbnail + click-to-expand example panel.
-       Each row's first cell becomes a button (no native chrome) so the
-       customer can tap anywhere across the thumbnail / name area to open
-       the example panel. The thumbnail glows orange on hover so it's
-       discoverable as interactive. */
+    .bulk-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;          /* breathing room between tiles */
+      position: relative;
+    }
+    .bulk-table thead th {
+      padding: 4px 16px 14px;
+      text-align: left;
+      font-family: 'Inter',sans-serif; font-size: 11px; font-weight: 700;
+      color: var(--dim); letter-spacing: 1.6px; text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .bulk-table tbody td {
+      padding: 16px 14px;
+      vertical-align: middle;
+      background: linear-gradient(180deg, rgba(255,255,255,0.030), rgba(255,255,255,0.012));
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(0,0,0,0.32);
+      transition: background .20s, box-shadow .20s;
+      position: relative;
+    }
+    .bulk-table tbody td:first-child {
+      padding-left: 16px;
+      border-top-left-radius: 14px;
+      border-bottom-left-radius: 14px;
+      border-left: 1px solid rgba(255,255,255,0.05);
+    }
+    .bulk-table tbody td:last-child {
+      padding-right: 16px;
+      border-top-right-radius: 14px;
+      border-bottom-right-radius: 14px;
+      border-right: 1px solid rgba(0,0,0,0.32);
+    }
+    .bulk-table td strong    { color: var(--text); font-size: 14px; }
+    .bulk-table .buy-price   { color: var(--orange); font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
+    .bulk-table .credit-price{ color: var(--cyan);   font-weight: 600; font-family: 'Inter',sans-serif; font-size: 14px; }
+    .bulk-table .line-total  { text-align: right; color: var(--orange); font-weight: 700; font-family: 'Inter',sans-serif; font-variant-numeric: tabular-nums; font-size: 14px; letter-spacing: 0; }
+
+    /* Hover — subtle elevation + slight orange wash across the tile */
+    .bulk-table tbody tr:hover td {
+      background: linear-gradient(180deg, rgba(255,255,255,0.046), rgba(255,255,255,0.020));
+      box-shadow: inset 0 1px 0 rgba(255,106,0,0.10);
+    }
+    /* Active row — focused via tap or keyboard. Soft orange edge-glow +
+       brighter surface + thin orange accent bar on the left edge. */
+    .bulk-table tbody tr:focus-within td {
+      background: linear-gradient(180deg, rgba(255,106,0,0.11), rgba(255,106,0,0.04));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,106,0,0.38),
+        0 0 24px rgba(255,106,0,0.16);
+    }
+    .bulk-table tbody tr:focus-within td:first-child::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 10px; bottom: 10px;
+      width: 3px;
+      background: linear-gradient(180deg, var(--orange), var(--pink));
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 8px rgba(255,106,0,0.45);
+    }
+
+    /* Card-type button — strip native chrome; row drives the active visual. */
     .bulk-name-btn {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 14px;
       width: 100%;
       padding: 0; margin: 0;
       background: transparent; border: 0; color: inherit;
       text-align: left; cursor: pointer;
       font: inherit;
+      outline: none;
     }
+
+    /* Thumbnail — normalized visual weight (matched border, slight
+       desaturation by default so brighter card art doesn't dominate
+       muted art). Hover/active pops saturation back. */
     .bulk-thumb {
       flex-shrink: 0;
-      width: 44px; height: 60px;
+      width: 48px; height: 67px;
       object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.10);
       background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-      transition: border-color .18s, transform .18s, box-shadow .18s;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        0 2px 8px rgba(0,0,0,0.55);
+      filter: saturate(0.92) brightness(0.96);
+      transition: filter .20s, transform .20s, box-shadow .20s, border-color .20s;
     }
     .bulk-thumb-empty {
       display: flex; align-items: center; justify-content: center;
       color: var(--dim); font-weight: 700; font-size: 18px;
+      filter: none;
     }
     .bulk-name-btn:hover .bulk-thumb,
-    .bulk-name-btn:focus-visible .bulk-thumb,
+    .bulk-table tbody tr:focus-within .bulk-thumb,
     .bulk-name-btn[aria-expanded="true"] .bulk-thumb {
+      filter: saturate(1.0) brightness(1.0);
       border-color: rgba(255,106,0,0.55);
       transform: translateY(-1px) scale(1.04);
-      box-shadow: 0 4px 14px rgba(255,106,0,0.35);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,106,0,0.18),
+        0 6px 18px rgba(255,106,0,0.32);
     }
+
     .bulk-name-text {
-      display: flex; flex-direction: column; gap: 2px;
+      display: flex; flex-direction: column; gap: 4px;
       min-width: 0;
     }
     .bulk-name-btn:hover strong,
-    .bulk-name-btn:focus-visible strong { color: var(--orange); }
+    .bulk-table tbody tr:focus-within strong { color: var(--orange); }
+
     .bulk-hint {
-      font-size: 11px; color: var(--dim);
-      letter-spacing: 0.4px; text-transform: uppercase;
+      font-size: 10.5px;
+      color: var(--dim);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      font-weight: 600;
       transition: color .18s;
     }
     .bulk-name-btn:hover .bulk-hint,
+    .bulk-table tbody tr:focus-within .bulk-hint,
     .bulk-name-btn[aria-expanded="true"] .bulk-hint { color: var(--orange); }
     .bulk-name-btn[aria-expanded="true"] .bulk-hint::before { content: '× '; }
 
@@ -1281,8 +1375,12 @@
       .bulk-modal-body { grid-template-columns: 1fr; gap: 18px; }
       .bulk-modal-img { max-width: 220px; margin: 0 auto; display: block; }
       .bulk-modal-text h4 { font-size: 24px; text-align: center; }
-      .bulk-thumb { width: 38px; height: 52px; }
-      .bulk-hint { font-size: 10px; }
+      .bulk-thumb { width: 42px; height: 59px; }
+      .bulk-hint { font-size: 9.5px; letter-spacing: 1px; }
+      .bulk-table-frame { padding: 14px 12px 10px; border-radius: 18px; }
+      .bulk-table tbody td { padding: 14px 12px; }
+      .bulk-table tbody td:first-child { padding-left: 14px; }
+      .bulk-table tbody td:last-child  { padding-right: 14px; }
     }
 
     /* +/- nudge buttons */
@@ -1619,7 +1717,7 @@
           <p>Try searching it above first. Cards that don't populate individually may still fit these flat-rate categories below.</p>
         </div>
 
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" class="bulk-table-frame">
           <table class="bulk-table">
             <thead>
               <tr>
@@ -3327,7 +3425,7 @@
               ${thumb}
               <span class="bulk-name-text">
                 <strong>${r.name}</strong>
-                <span class="bulk-hint" aria-hidden="true">tap for example</span>
+                <span class="bulk-hint" aria-hidden="true">View example</span>
               </span>
             </button>
           </td>
