@@ -556,7 +556,7 @@ async function fetchPsaPop(setName, number, ctx, env) {
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
-  const popMap = await fetchPikawizPopForCard(slug, number);
+  const popMap = await fetchPikawizPopForCard(slug, number, env);
   const ttl = 86400;  // 24h
   const body = JSON.stringify({
     ok: !!popMap,
@@ -576,24 +576,49 @@ async function fetchPsaPop(setName, number, ctx, env) {
   return response;
 }
 
-async function fetchPikawizPopForCard(slug, number) {
-  const url = `https://www.pikawiz.com/cards/pop-report/${slug}`;
+async function fetchPikawizPopForCard(slug, number, env) {
+  // Pikawiz sits behind Cloudflare's "Just a moment" JS challenge, so a
+  // bare fetch from a Worker always returns the interstitial (HTTP 403).
+  // We route through Cloudflare's Browser Rendering REST API — runs a real
+  // headless browser that solves the challenge and returns rendered HTML.
+  // Requires Workers Paid plan + an API token with "Browser Rendering: Edit"
+  // scope. Token stored as the BROWSER_TOKEN secret; account ID as
+  // CF_ACCOUNT_ID env var.
+  if (!env.CF_ACCOUNT_ID || !env.BROWSER_TOKEN) {
+    return null;  // Browser Rendering not configured — fail closed.
+  }
+  const targetUrl = `https://www.pikawiz.com/cards/pop-report/${slug}`;
+  const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/browser-rendering/content`;
   let res;
   try {
-    res = await fetch(url, {
+    res = await fetch(apiUrl, {
+      method: 'POST',
       headers: {
-        ...BROWSER_HEADERS,
-        Referer: 'https://www.pikawiz.com/',
-        'Sec-Fetch-Site': 'same-origin',
-        'Sec-Fetch-Mode': 'navigate',
+        'Authorization': `Bearer ${env.BROWSER_TOKEN}`,
+        'Content-Type': 'application/json',
       },
-      cf: { cacheTtl: 0, cacheEverything: false },
+      body: JSON.stringify({
+        url: targetUrl,
+        // Give CF's challenge a few seconds to resolve before we capture.
+        waitForTimeout: 4000,
+        // Hint to render the full page (not just visible viewport).
+        viewport: { width: 1280, height: 1800 },
+      }),
     });
   } catch {
     return null;
   }
   if (!res.ok) return null;
-  const html = await res.text();
+  // CF Browser Rendering wraps the result in {success, result: "<html>"}.
+  let payload;
+  try {
+    payload = await res.json();
+  } catch {
+    return null;
+  }
+  if (!payload || payload.success === false) return null;
+  const html = typeof payload.result === 'string' ? payload.result : payload.html;
+  if (!html) return null;
   return parsePikawizPop(html, number);
 }
 
