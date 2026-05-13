@@ -33,7 +33,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 PRICING_CSV = HERE / "pricing.csv"
 EDIT_CSV = HERE / "pricing-edit.csv"
-CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (13).csv")
+CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (14).csv")
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
 
 
