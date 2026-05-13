@@ -92,15 +92,21 @@ def normalize_grade(g: str) -> str:
     return g
 
 
-def build_ebay_keyword(row: dict) -> str:
-    """Construct a focused eBay query: grade + name + number + set."""
-    grade = normalize_grade(row.get("grade", ""))
-    name = (row.get("name") or "").strip()
-    number = (row.get("number") or "").strip()
-    set_field = (row.get("set") or "").strip()
+def build_ebay_keyword_from_cl(cl_row: dict, grade: str) -> str:
+    """Build a focused eBay query from CL fields (Subject + Number + Set).
+    NEVER from pricing.csv.name — that field carries forward pokemontcg.io
+    misidentifications (e.g. cert 113090244 -> 'Sandile', actually a Rowlet/
+    Exeggutor GX). Bad name = wrong eBay results = inflated avg = catastrophe.
+    """
+    subject = (cl_row.get("Subject") or "").strip()
+    # Strip CL's "-Holo", "-Rev.foil", "-Reverse", "-Secret" shorthand suffixes
+    subject = re.sub(r"-(Holo|Rev\.?\s*foil|Reverse|Secret)\b", "",
+                     subject, flags=re.I).strip()
+    number = (cl_row.get("Number") or "").strip()
+    set_field = (cl_row.get("Set") or "").strip()
     set_clean = re.sub(r"^Pokemon\s+(Japanese\s+)?", "", set_field, flags=re.I).strip()
     set_short = " ".join(set_clean.split()[:3])
-    parts = [grade, name]
+    parts = [grade, subject]
     if number:
         parts.append(f"#{number}" if not number.startswith("#") else number)
     if set_short:
@@ -199,7 +205,7 @@ def main():
                 v = vals[col]
                 if isinstance(v, (int, float)) and v > 0:
                     pc_value = float(v)
-        kw = build_ebay_keyword(row)
+        kw = build_ebay_keyword_from_cl(cl_row, normalize_grade(row.get("grade", "")))
         cards.append({
             "cert": cert, "row": row, "cl_row": cl_row,
             "cl_cv": cl_cv, "pc_value": pc_value, "ebay_kw": kw, "skip": False,
@@ -225,14 +231,16 @@ def main():
             report.append({
                 "cert": cert, "name": row.get("name", ""),
                 "current": parse_current_price(row.get("your_price", "")),
-                "cl_cv": "", "pc": "", "ebay_avg": "", "winner": "",
-                "base": "", "new_price": "", "action": "skip",
+                "cl_cv": "", "pc": "", "ebay_avg": "",
+                "ebay_count": 0, "ebay_reject": "", "ebay_kw": "",
+                "winner": "", "base": "", "new_price": "",
+                "action": "skip",
                 "reason": c.get("reason", "manual override"),
             })
             continue
         cl_cv = c["cl_cv"]
         pc_val = c["pc_value"]
-        # eBay average
+        # eBay average — with mandatory guards (per 2026-05-12 incident)
         kw = c["ebay_kw"]
         ebay_items = ebay_results.get(kw, [])
         grade = normalize_grade(row.get("grade", ""))
@@ -243,7 +251,20 @@ def main():
             try: p = float(it.get("totalPrice") or it.get("soldPrice") or 0)
             except (TypeError, ValueError): continue
             if 1 < p < 100000: ebay_prices.append(p)
-        ebay_avg = trimmed_avg(ebay_prices)
+
+        ebay_count = len(ebay_prices)
+        ebay_avg = None
+        ebay_reject = ""
+        # Guard 1: minimum sample size (need >=3 grade-matched comps)
+        if ebay_count < 3:
+            ebay_reject = f"need>=3 (got {ebay_count})"
+        else:
+            raw_avg = trimmed_avg(ebay_prices)
+            # Guard 2: outlier filter — reject if eBay avg > 2x CL CV
+            if raw_avg and cl_cv > 0 and raw_avg > 2 * cl_cv:
+                ebay_reject = f"avg ${raw_avg:.0f} > 2x CL ${cl_cv:.0f}"
+            else:
+                ebay_avg = raw_avg
 
         # Pick max
         sources = [("CL", cl_cv)]
@@ -253,8 +274,12 @@ def main():
         new_price = snap_clean(markup(winner_val))
         cur_price = parse_current_price(row.get("your_price", "")) or 0
 
-        # Policy: never lower an existing sticker — only push if higher
-        if new_price > cur_price:
+        # Policy: never lower an existing sticker — only push if higher.
+        # Guard 3: sanity cap — don't auto-raise more than 2x in a single run.
+        # If the formula proposes a >2x jump, surface for manual review.
+        if cur_price > 0 and new_price > 2 * cur_price:
+            action = "skip-sanity-cap-2x"
+        elif new_price > cur_price:
             action = "raise"
             updates.append((cert, new_price, c))
         elif new_price == cur_price:
@@ -268,7 +293,9 @@ def main():
             "cl_cv":   f"{cl_cv:.2f}" if cl_cv else "",
             "pc":      f"{pc_val:.2f}" if pc_val else "",
             "ebay_avg":f"{ebay_avg:.2f}" if ebay_avg else "",
-            "ebay_count": len(ebay_prices),
+            "ebay_count": ebay_count,
+            "ebay_reject": ebay_reject,
+            "ebay_kw": kw,
             "winner":  winner_name,
             "base":    f"{winner_val:.2f}",
             "new_price": new_price,
