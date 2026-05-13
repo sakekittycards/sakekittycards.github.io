@@ -2539,7 +2539,10 @@
                   variant: r.variant || '',
                   expanded: true,
                 };
-                gpCards.push(cardEntry);
+                // Collapse every existing card so the new one is the only
+                // expanded item, then prepend it at the top of the list.
+                gpCards.forEach(c => { c.expanded = false; });
+                gpCards.unshift(cardEntry);
                 gpSearchEl.value = '';
                 gpResultsEl.classList.remove('open');
                 renderList();
@@ -2648,7 +2651,10 @@
       gpManualAdd.addEventListener('click', () => {
         const name = gpManualName.value.trim();
         if (!name) { gpManualName.focus(); return; }
-        gpCards.push({
+        // Collapse every existing card so the new one is the only expanded
+        // item, then prepend at the top of the list.
+        gpCards.forEach(c => { c.expanded = false; });
+        gpCards.unshift({
           name,
           set:  gpManualSet.value.trim(),
           num:  gpManualNum.value.trim(),
