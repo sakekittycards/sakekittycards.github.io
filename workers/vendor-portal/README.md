@@ -33,7 +33,7 @@ email via Resend.
 4. **KV namespace.**
    ```bash
    cd workers/vendor-portal
-   npx wrangler kv:namespace create VENDOR_KV
+   npx wrangler kv namespace create VENDOR_KV
    ```
    Paste the returned id into `wrangler.toml` (`[[kv_namespaces]] id = "..."`).
 5. **Push secrets.**
