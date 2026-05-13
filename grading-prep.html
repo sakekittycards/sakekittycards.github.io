@@ -14,6 +14,8 @@
   <link rel="canonical" href="https://sakekittycards.com/grading-prep.html" />
   <meta property="og:title" content="Grading Prep — PSA, CGC, BGS Submissions — Sake Kitty Cards" />
   <meta property="og:description" content="Send your cards to Sake Kitty Cards for grading prep and submission to PSA, CGC, or BGS. Sleeve, screen, and submit — all tracked from your phone." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -26,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=131" />
+  <link rel="stylesheet" href="style.css?v=132" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -921,7 +923,7 @@
         <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -1119,7 +1121,7 @@
               <div class="gp-search-icon">
                 <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
               </div>
-              <input type="text" class="gp-search" id="gpSearch" aria-label="Search card name" placeholder="Search card name…" autocomplete="off" />
+              <input type="search" class="gp-search" id="gpSearch" aria-label="Search card name" placeholder="Search card name…" autocomplete="off" enterkeyhint="search" />
               <div class="gp-results" id="gpResults"></div>
             </div>
             <p style="font-size:12px;color:var(--dim);margin:-6px 0 12px;line-height:1.5">
@@ -1206,13 +1208,13 @@
               <div class="gp-contact-label" style="margin-bottom:0">Your Info</div>
 
               <label class="gp-field-label" for="gpName">Full Name<span class="req">*</span></label>
-              <input type="text" id="gpName" class="gp-input" placeholder="Ash Ketchum" required />
+              <input type="text" id="gpName" class="gp-input" placeholder="Ash Ketchum" autocomplete="name" required />
 
               <label class="gp-field-label" for="gpEmail">Email Address<span class="req">*</span></label>
-              <input type="email" id="gpEmail" class="gp-input" placeholder="ash@pokemon.com" required />
+              <input type="email" id="gpEmail" class="gp-input" placeholder="ash@pokemon.com" autocomplete="email" inputmode="email" required />
 
               <label class="gp-field-label" for="gpPhone">Phone or Instagram Handle <span style="color:var(--dim);font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
-              <input type="text" id="gpPhone" class="gp-input" placeholder="(555) 123-4567 · or @yourhandle" />
+              <input type="text" id="gpPhone" class="gp-input" placeholder="(555) 123-4567 · or @yourhandle" autocomplete="tel" />
 
               <label class="gp-field-label">Hand-Off Preference<span class="req">*</span></label>
               <div class="gp-radio-pills" id="gpHandoffPills">
@@ -1290,7 +1292,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54" defer></script>
+  <script src="main.js?v=55" defer></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';

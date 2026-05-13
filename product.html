@@ -14,6 +14,8 @@
   <!-- Social preview -->
   <meta property="og:title" content="Sake Kitty Cards — Shop" />
   <meta property="og:description" content="Pokémon sealed product, graded slabs, apparel, and more from Sake Kitty Cards." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -27,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=131" />
+  <link rel="stylesheet" href="style.css?v=132" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -279,7 +281,7 @@
         <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -376,7 +378,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54" defer></script>
+  <script src="main.js?v=55" defer></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -412,6 +414,47 @@
 
       const item = items.find(i => i.id === id);
       if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
+
+      // Inject Product + BreadcrumbList JSON-LD so search engines + social
+      // unfurls get the price, availability, image, and crumb path.  Built
+      // from the loaded Square data so it always matches what the user sees.
+      (function() {
+        const productUrl = `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`;
+        const productLd = {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": item.name,
+          "description": (item.description || '').slice(0, 500),
+          "image": item.imageUrl ? [item.imageUrl] : undefined,
+          "sku": item.id,
+          "brand": { "@type": "Brand", "name": "Sake Kitty Cards" },
+          "offers": {
+            "@type": "Offer",
+            "url": productUrl,
+            "priceCurrency": item.currency || "USD",
+            "price": typeof item.price === "number" ? item.price.toFixed(2) : item.price,
+            "availability": (item.inStock === false)
+              ? "https://schema.org/OutOfStock"
+              : "https://schema.org/InStock",
+            "seller": { "@type": "Organization", "name": "Sake Kitty Cards" }
+          }
+        };
+        const crumbLd = {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sakekittycards.com/" },
+            { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://sakekittycards.com/shop.html" },
+            { "@type": "ListItem", "position": 3, "name": item.name, "item": productUrl }
+          ]
+        };
+        for (const ld of [productLd, crumbLd]) {
+          const tag = document.createElement('script');
+          tag.type = 'application/ld+json';
+          tag.textContent = JSON.stringify(ld);
+          document.head.appendChild(tag);
+        }
+      })();
 
       const vars = Array.isArray(item.variations) ? item.variations : [];
       const oos  = item.inStock === false;
