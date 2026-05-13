@@ -31,7 +31,6 @@ window.SK_EVENTS = [
   { start: '2026-06-14',                     name: 'Naples Card Show',           loc: 'The White Rose · 2320 Moulder Drive, Naples, FL 34120', hours: '10am–4pm' },
   { start: '2026-06-20', end: '2026-06-21', name: 'Collect-A-Con — Las Vegas',  loc: 'Las Vegas Convention Center · 3150 Paradise Rd, Las Vegas, NV 89109', hours: 'Sat 10am–6pm · Sun 10am–5pm' },
   { start: '2026-06-21',                     name: 'Florida Regional Card Expo', loc: 'Caloosa Sound Convention Center · 1375 Monroe St, Fort Myers, FL 33901', hours: '10am–6pm' },
-  { start: '2026-06-27', end: '2026-06-28', name: 'Rocket Con — Space Coast Card Show', loc: 'Melbourne Auditorium · 625 E Hibiscus Blvd, Melbourne, FL 32901', hours: 'Sat 10am–6pm · Sun 9am–4pm' },
   { start: '2026-06-28',                     name: 'Cardichu — Pompano Beach',   loc: 'D1 · 1401 Green Road, Pompano Beach, FL 33064', hours: '9am–5pm' },
   { start: '2026-06-28',                     name: 'Pokekon',                    loc: 'DoubleTree by Hilton Fort Myers at Bell Tower Shops · Fort Myers, FL' },
   { start: '2026-07-04', end: '2026-07-05', name: 'Ocala TCG Trade N Play',     loc: 'Ocala, FL' },
