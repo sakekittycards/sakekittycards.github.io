@@ -34,7 +34,7 @@ from pathlib import Path
 from _ebay_apify import fetch_or_cache as ebay_fetch, average_last_5 as ebay_avg5
 
 REPO_DIR = Path(__file__).resolve().parents[2]
-CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder.csv")
+CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (12).csv")
 OUT_PATH = Path(__file__).resolve().parent / "_card_ladder_prices.csv"
 PC_GRADED_PATH = REPO_DIR / "assets" / "pc-graded.json"
 ALL_CARDS_PATH = REPO_DIR / "assets" / "all-cards-fallback.json"
