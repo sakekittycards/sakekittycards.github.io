@@ -518,14 +518,15 @@
             if (yearTo   && (!g.year || g.year > yearTo))   return false;
             return true;
           });
-          const cmp = {
+          const sorters = {
             'price-desc': (a, b) => (b.price || 0) - (a.price || 0),
             'price-asc':  (a, b) => (a.price || 0) - (b.price || 0),
             'year-desc':  (a, b) => (b._graded.year || 0) - (a._graded.year || 0),
             'year-asc':   (a, b) => (a._graded.year || 0) - (b._graded.year || 0),
             'grade-desc': (a, b) => (b._graded.grade || 0) - (a._graded.grade || 0),
             'name-asc':   (a, b) => (a.name || '').localeCompare(b.name || ''),
-          }[sort] || cmp['price-desc'];
+          };
+          const cmp = sorters[sort] || sorters['price-desc'];
           list.sort(cmp);
           document.getElementById('shopGridGraded').innerHTML = list.map(renderCard).join('');
           const countEl = document.getElementById('gradedCount');
