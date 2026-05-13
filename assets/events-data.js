@@ -40,6 +40,7 @@ window.SK_EVENTS = [
   { start: '2026-07-26',                     name: 'Card Party S. Florida 4',    loc: 'Broward County Convention Center · 1950 Eisenhower Blvd, Fort Lauderdale, FL 33316' },
   { start: '2026-08-08',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
   { start: '2026-08-09',                     name: 'Cardichu — Pompano Beach',   loc: 'D1 · 1401 Green Road, Pompano Beach, FL 33064', hours: '9am–5pm' },
+  { start: '2026-08-15', end: '2026-08-16', name: 'The Hobby Card Show',        loc: 'Broward County Convention Center — Grand Ballroom, 3rd Floor · 1950 Eisenhower Blvd, Fort Lauderdale, FL 33316', hours: 'Sat & Sun 11am–5pm (VIP early access 10am)' },
   { start: '2026-09-11', end: '2026-09-13', name: 'Southwest Florida Big Show', loc: 'Fort Myers, FL' },
   { start: '2026-09-19',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
   { start: '2026-10-10',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
