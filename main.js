@@ -151,11 +151,14 @@
   }
 })();
 
-// Nav hamburger
+// Nav hamburger — keeps aria-expanded in sync so screen readers announce
+// the menu state correctly.
 const toggle = document.getElementById('navToggle');
 const links  = document.getElementById('navLinks');
-toggle?.addEventListener('click', () => links.classList.toggle('open'));
-links?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+const syncNavExpanded = () => toggle?.setAttribute('aria-expanded', String(links?.classList.contains('open') || false));
+toggle?.addEventListener('click', () => { links.classList.toggle('open'); syncNavExpanded(); });
+links?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { links.classList.remove('open'); syncNavExpanded(); }));
+syncNavExpanded();
 
 // Active nav link
 document.querySelectorAll('.nav-links a').forEach(a => {
@@ -169,12 +172,14 @@ document.querySelectorAll('.nav-links a').forEach(a => {
   }
 });
 
-// FAQ accordion
-document.querySelectorAll('.faq-item').forEach(item => {
-  item.querySelector('.faq-q')?.addEventListener('click', () => {
-    const wasOpen = item.classList.contains('open');
-    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-    if (!wasOpen) item.classList.add('open');
+// FAQ accordion — items are native <details>/<summary> now (faq.html).
+// Single-open behavior: closing the others when one opens, so the page
+// doesn't sprawl after a few clicks.
+document.querySelectorAll('details.faq-item').forEach(item => {
+  item.addEventListener('toggle', () => {
+    if (item.open) {
+      document.querySelectorAll('details.faq-item').forEach(i => { if (i !== item) i.open = false; });
+    }
   });
 });
 

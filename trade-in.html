@@ -14,6 +14,8 @@
   <link rel="canonical" href="https://sakekittycards.com/trade-in.html" />
   <meta property="og:title" content="Sell or Trade Your Pokémon Cards — Sake Kitty Cards" />
   <meta property="og:description" content="Sell or trade your Pokémon cards to Sake Kitty Cards. Up to 85% cash or 100% store credit on singles, sealed, and graded. Quick instant estimates." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -26,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=131" />
+  <link rel="stylesheet" href="style.css?v=132" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -1438,7 +1440,7 @@
         <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -1534,7 +1536,7 @@
             <span class="ti-search-icon">
               <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 0 0 1.48-5.34C15.41 5.53 13.03 3 10.04 3 7.05 3 4.67 5.53 4.67 8.39c0 2.86 2.38 5.39 5.37 5.39a6.5 6.5 0 0 0 3.78-1.23l.27.28v.79l4.25 4.24a1.05 1.05 0 0 0 1.49 0 1.05 1.05 0 0 0 0-1.49L15.5 14z"/></svg>
             </span>
-            <input type="text" class="ti-search" id="searchInput" aria-label="Search cards by name, set, or number" placeholder='Search by name, set, or number (e.g. "170/198", "SWSH001", "242/SV-P")' autocomplete="off" />
+            <input type="search" class="ti-search" id="searchInput" aria-label="Search cards by name, set, or number" placeholder='Search by name, set, or number (e.g. "170/198", "SWSH001", "242/SV-P")' autocomplete="off" enterkeyhint="search" />
             <div class="ti-results" id="searchResults"></div>
           </div>
 
@@ -1680,9 +1682,9 @@
 
           <div class="ti-contact">
             <h4>Your Info</h4>
-            <input type="text" id="custName" class="ti-input" aria-label="Your name (required)" placeholder="Your name *" required />
-            <input type="email" id="custEmail" class="ti-input" aria-label="Email address (required)" placeholder="Email address *" required />
-            <input type="tel" id="custPhone" class="ti-input" aria-label="Phone number (optional)" placeholder="Phone (optional)" />
+            <input type="text" id="custName" class="ti-input" aria-label="Your name (required)" placeholder="Your name *" autocomplete="name" required />
+            <input type="email" id="custEmail" class="ti-input" aria-label="Email address (required)" placeholder="Email address *" autocomplete="email" inputmode="email" required />
+            <input type="tel" id="custPhone" class="ti-input" aria-label="Phone number (optional)" placeholder="Phone (optional)" autocomplete="tel" inputmode="tel" />
 
             <div class="ti-pref-label">Payment Preference</div>
             <div class="ti-pref" id="prefGroup">
@@ -1797,7 +1799,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=54" defer></script>
+  <script src="main.js?v=55" defer></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {

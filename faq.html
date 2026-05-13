@@ -14,6 +14,8 @@
   <link rel="canonical" href="https://sakekittycards.com/faq.html" />
   <meta property="og:title" content="FAQ — Sake Kitty Cards" />
   <meta property="og:description" content="Common questions about shipping, payment, trade-ins, grading prep, and more." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -26,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=131" />
+  <link rel="stylesheet" href="style.css?v=132" />
   <style>
     /* Closing brand strip — confident page-end before global footer.
        Same pattern as shipping.html's
@@ -60,12 +62,12 @@
       font-size: 16px;
       transition: color .15s, padding .18s;
     }
-    .page-faq .faq-item.open .faq-q { padding-bottom: 18px; color: var(--orange); }
+    .page-faq .faq-item[open] .faq-q { padding-bottom: 18px; color: var(--orange); }
     .page-faq .faq-icon {
       width: 24px; height: 24px;
       transition: all .25s ease;
     }
-    .page-faq .faq-item.open .faq-icon {
+    .page-faq .faq-item[open] .faq-icon {
       box-shadow: 0 0 12px rgba(255,106,0,0.35);
     }
     .page-faq .faq-a {
@@ -73,7 +75,7 @@
       line-height: 1.75;
       color: rgba(255,255,255,0.88);
     }
-    .page-faq .faq-item.open .faq-a {
+    .page-faq .faq-item[open] .faq-a {
       max-height: 1000px; padding-bottom: 24px;
     }
     .page-faq .faq-a a { color: var(--orange); font-weight: 600; }
@@ -109,6 +111,239 @@
     .faq-cta .btn { padding: 11px 22px; font-size: 14px; }
 
   </style>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What if my order is out of stock when I check out?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We're local vendors — we sell at card shows around Florida and beyond, and on rare occasions a card or sealed item sells in person before the site can update. Every order is reviewed before we charge or ship. If we can't fulfill an item you ordered, we'll reach out the same day and either refund the order, swap for something comparable, or hold for the next restock — your call. This only applies to graded slabs / sealed / singles. Apparel and merch are print-on-demand and never go out of stock."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What payment methods do you accept?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "At checkout on our shop, we accept credit/debit cards, Apple Pay, and Google Pay (via Square), plus Venmo, PayPal, and Cash App. For direct payments outside the cart, use Venmo (@sakekittycards), PayPal (paypal.biz/sakekittycards), or Cash App ($SakeKittyCards). Orders through our TCGPlayer store accept all major payment methods via their secure checkout."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you ship? What are the rates?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, we ship! All cards go out in penny sleeves, top loaders, and bubble mailers so they arrive safe. Direct orders placed through this site are a flat $5 shipping rate — same rule applies to apparel, merch, or anything else we list direct. Card and sealed packages ship insured at $1 per $100 of card value, added at checkout once the insurable subtotal hits $100 (apparel and merch are not insured). TCGPlayer orders have their own checkout-calculated rates."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do you grade card condition?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We use standard TCG condition grading: Near Mint (NM) — essentially perfect with minimal to no wear; Lightly Played (LP) — minor wear not visible during normal play; Moderately Played (MP) — visible wear but card is still tournament-legal; Heavily Played (HP) — significant wear. Every card is graded conservatively — when in doubt, we grade down. 📄 View the full condition guide (PDF) →"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are all your cards authentic?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We personally inspect every card we sell and do our best to catch any fakes, reprints, or proxies before listing. On the rare chance one slips through, reach out immediately — we'll make it right with a full refund or replacement, no hassle."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is your return/refund policy?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If a card arrives damaged due to shipping, or if it is significantly different from its listed condition, contact us within 3 days of delivery with photos and we'll make it right — either a full refund or replacement. Buyer satisfaction is our priority. For TCGPlayer orders, their standard buyer protection policy applies."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I sell or trade cards to you?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! Check out our Sell / Trade page — you can build a list of singles, sealed, graded, or bulk and get an instant rough estimate. Don't see your card listed? Reach out anyway — we buy many cards not on the list. Contact us via the Contact page or Instagram DM to get started."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you attend events and card shows?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! We attend local card shows, tournaments, and pop-up markets. Check our Events page for upcoming appearances, or follow @sakekittycards on Instagram for announcements."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How can I stay updated on new inventory?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Follow us on Instagram @sakekittycards for new card drops, restocks, and special deals. We post new inventory regularly."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer discounts for bulk purchases?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Possibly! If you're looking to buy multiple cards at once, reach out to us directly before purchasing and we can discuss bundle pricing. We love helping collectors build their collections."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I buy a Sake Kitty Cards gift card?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! Digital gift cards are available at our gift cards page. Pick any amount, get a code emailed instantly. Works at our pop-up booths and the online cart, no expiration, no fees. Great for gifting Pokémon TCG fans, or just stocking up on store credit ahead of an upcoming drop."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I check my gift card / store credit balance?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards. Check your balance any time at the gift cards page — just enter your card code. The same code works at our pop-up booths and online checkout. No expiration, no fees. Lost the code? Email nick@sakekittycards.com from the address that received it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which grading companies do you use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We work with PSA, CGC, and Beckett. We pick the best fit for each card based on value, condition, and turnaround time. More on the Grading Prep page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does screening take?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most screening orders are completed within 2–3 business days after we receive your cards."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if a card doesn't pass screening?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You'll get a pass/fail result by email. Cards that don't pass can be returned right away or held and shipped back with your graded cards — your choice."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you provide notes or feedback on failed cards?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — Detailed Screen orders include written notes and photos explaining why a card didn't pass."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "When do I pay for grading?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We keep the process simple and controlled: You submit your cards for screening. We evaluate each card against grading standards. Cards that pass are approved for submission. We confirm your grading costs before moving forward. Payment is collected before approved cards are submitted. Grading fees apply only to cards you approve for submission — no grading charges on cards that don't pass. If you added Card Prep, that fee is refunded for any card that doesn't pass screening. Cards stay with us until grading fees are paid in full — and you'll see your grades when the cards return to you, not before."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I have to use your grading service?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. You can have us prep your cards and send them back so you can submit them yourself."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What if I choose prep and my card doesn't pass?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The prep fee is fully refunded. We only charge prep on cards we'd actually submit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are my cards returned?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We carefully package and ship everything back once your order's complete. Non-submitted cards can ship right away, or be held and returned together with your graded cards — your call."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I drop off cards in person?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — hand off cards at one of our events. Just submit your request first so we can review and approve it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How long does the full grading process take?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Screening takes 2–3 business days after we receive your cards. Grading at PSA, CGC, or Beckett typically runs 3–8 weeks for standard tiers (express tiers are faster, premium tiers can take longer). We share an estimated timeline before submission and you can follow progress on our order tracker."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who pays for shipping?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You cover inbound shipping (your cards to us) — we strongly recommend insured shipping with tracking and signature required for valuable cards. Once we receive them, we cover all shipping to and from the grading house, including required insurance. Return shipping back to you is included with your service, insured based on declared value with signature required on delivery. Risk of loss transfers to the carrier upon shipment, and we’ll help you file an insurance claim if anything goes wrong in transit."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I know my card is the same one I sent in?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every card is photographed front and back at intake and again before return. Cards graded by PSA, CGC, or Beckett come back in tamper-evident slabs with a unique cert number — you can verify the cert directly on the grading house's website, which independently confirms the card's identity."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What if my card is found to be counterfeit or altered?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "If a grading house determines a card is counterfeit, altered, trimmed, or otherwise can't be authenticated, the card is returned without a grade. The grading house typically refunds its grading fee in this case — we pass any refund through to you. Screening and Card Prep fees are not refunded, since that work was already performed in good faith."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I cancel after screening?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — after you receive screening results, you can choose not to submit any card for grading. Just tell us by email and we'll return your cards according to your shipping preference. Once you authorize a card for submission to PSA, CGC, or Beckett, it's locked in — grading houses don't allow withdrawal mid-grading."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Who decides my card's declared value?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You provide the declared value at submission, and you're responsible for its accuracy. If a grading company determines a card's value is higher and upgrades the service tier, the escalation fee is passed through to you at cost — it becomes part of the grading fees due before return."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens if I don't pay my grading fees?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We'll work with you in good faith to resolve any payment issue first. By submitting cards, you grant Sake Kitty a possessory lien on them for any unpaid amounts. If fees remain unpaid 45 days after invoice, we may sell the cards in a commercially reasonable manner to recover outstanding fees and storage costs. We provide at least 15 days’ notice before any sale, and you can redeem (pay in full) any time prior to sale. Any proceeds in excess of fees and costs are returned to you. Full details in our Grading Prep Terms."
+      }
+    }
+  ]
+}
+  </script>
 </head>
 <body class="page-faq">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -121,7 +356,7 @@
         <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -148,90 +383,90 @@
     <div class="section" style="padding-top:0">
       <div class="faq-list">
 
-        <div class="faq-item">
-          <button class="faq-q">What if my order is out of stock when I check out? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What if my order is out of stock when I check out? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We're <strong>local vendors</strong> — we sell at card shows around Florida and beyond, and on rare occasions a card or sealed item sells in person before the site can update. <strong style="color:var(--orange)">Every order is reviewed before we charge or ship</strong>. If we can't fulfill an item you ordered, we'll reach out the same day and either refund the order, swap for something comparable, or hold for the next restock — your call. This only applies to graded slabs / sealed / singles. Apparel and merch are print-on-demand and never go out of stock.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What payment methods do you accept? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What payment methods do you accept? <span class="faq-icon">+</span></summary>
           <div class="faq-a">At checkout on our <a href="shop.html" style="color:var(--orange)">shop</a>, we accept credit/debit cards, Apple Pay, and Google Pay (via Square), plus Venmo, PayPal, and Cash App. For direct payments outside the cart, use Venmo (@sakekittycards), PayPal (<a href="https://www.paypal.biz/sakekittycards" target="_blank" style="color:var(--orange)">paypal.biz/sakekittycards</a>), or Cash App ($SakeKittyCards). Orders through our TCGPlayer store accept all major payment methods via their secure checkout.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Do you ship? What are the rates? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Do you ship? What are the rates? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes, we ship! All cards go out in penny sleeves, top loaders, and bubble mailers so they arrive safe. Direct orders placed through this site are a <strong style="color:var(--orange)">flat $5</strong> shipping rate — same rule applies to apparel, merch, or anything else we list direct. <strong style="color:var(--orange)">Card and sealed packages ship insured</strong> at $1 per $100 of card value, added at checkout once the insurable subtotal hits $100 (apparel and merch are not insured). TCGPlayer orders have their own checkout-calculated rates.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How do you grade card condition? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How do you grade card condition? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We use standard TCG condition grading: <strong>Near Mint (NM)</strong> — essentially perfect with minimal to no wear; <strong>Lightly Played (LP)</strong> — minor wear not visible during normal play; <strong>Moderately Played (MP)</strong> — visible wear but card is still tournament-legal; <strong>Heavily Played (HP)</strong> — significant wear. Every card is graded conservatively — when in doubt, we grade down. <a href="conditioning-standards.pdf" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--orange);font-weight:600;text-decoration:none">📄 View the full condition guide (PDF) →</a></div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Are all your cards authentic? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Are all your cards authentic? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We personally inspect every card we sell and do our best to catch any fakes, reprints, or proxies before listing. On the rare chance one slips through, reach out immediately — we'll make it right with a full refund or replacement, no hassle.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What is your return/refund policy? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What is your return/refund policy? <span class="faq-icon">+</span></summary>
           <div class="faq-a">If a card arrives damaged due to shipping, or if it is significantly different from its listed condition, contact us within 3 days of delivery with photos and we'll make it right — either a full refund or replacement. Buyer satisfaction is our priority. For TCGPlayer orders, their standard buyer protection policy applies.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Can I sell or trade cards to you? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Can I sell or trade cards to you? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes! Check out our <a href="trade-in.html" style="color:var(--orange)">Sell / Trade</a> page — you can build a list of singles, sealed, graded, or bulk and get an instant rough estimate. Don't see your card listed? Reach out anyway — we buy many cards not on the list. Contact us via the <a href="contact.html" style="color:var(--orange)">Contact page</a> or Instagram DM to get started.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Do you attend events and card shows? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Do you attend events and card shows? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes! We attend local card shows, tournaments, and pop-up markets. Check our <a href="events.html" style="color:var(--orange)">Events page</a> for upcoming appearances, or follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> on Instagram for announcements.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How can I stay updated on new inventory? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How can I stay updated on new inventory? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Follow us on Instagram <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for new card drops, restocks, and special deals. We post new inventory regularly.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Do you offer discounts for bulk purchases? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Do you offer discounts for bulk purchases? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Possibly! If you're looking to buy multiple cards at once, reach out to us directly before purchasing and we can discuss bundle pricing. We love helping collectors build their collections.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Can I buy a Sake Kitty Cards gift card? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Can I buy a Sake Kitty Cards gift card? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes! Digital gift cards are available at <a href="gift-cards.html" style="color:var(--orange)">our gift cards page</a>. Pick any amount, get a code emailed instantly. Works at our pop-up booths and the online cart, no expiration, no fees. Great for gifting Pokémon TCG fans, or just stocking up on store credit ahead of an upcoming drop.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How do I check my gift card / store credit balance? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How do I check my gift card / store credit balance? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Trade-in credit and purchased gift cards are both Sake Kitty Cards Square gift cards. Check your balance any time at <a href="gift-cards.html#balance" style="color:var(--orange)">the gift cards page</a> — just enter your card code. The same code works at our pop-up booths and online checkout. No expiration, no fees. Lost the code? Email <a href="mailto:nick@sakekittycards.com" style="color:var(--orange)">nick@sakekittycards.com</a> from the address that received it.</div>
-        </div>
+        </details>
 
         <h2 class="faq-section-heading">Grading &amp; Card Prep</h2>
 
-        <div class="faq-item">
-          <button class="faq-q">Which grading companies do you use? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Which grading companies do you use? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We work with <strong>PSA, CGC, and Beckett</strong>. We pick the best fit for each card based on value, condition, and turnaround time. More on the <a href="grading-prep.html" style="color:var(--orange)">Grading Prep page</a>.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How long does screening take? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How long does screening take? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Most screening orders are completed within <strong>2–3 business days</strong> after we receive your cards.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What happens if a card doesn't pass screening? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What happens if a card doesn't pass screening? <span class="faq-icon">+</span></summary>
           <div class="faq-a">You'll get a pass/fail result by email. Cards that don't pass can be returned right away or held and shipped back with your graded cards — your choice.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Do you provide notes or feedback on failed cards? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Do you provide notes or feedback on failed cards? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes — <strong>Detailed Screen</strong> orders include written notes and photos explaining why a card didn't pass.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">When do I pay for grading? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">When do I pay for grading? <span class="faq-icon">+</span></summary>
           <div class="faq-a">
             <p style="margin-bottom:10px">We keep the process simple and controlled:</p>
             <ol class="faq-ol">
@@ -244,62 +479,62 @@
             <p style="margin-top:12px">Grading fees apply only to cards you approve for submission — <strong style="color:var(--cyan)">no grading charges on cards that don't pass</strong>. If you added Card Prep, that fee is refunded for any card that doesn't pass screening.</p>
             <p style="margin-top:10px">Cards stay with us until grading fees are <strong>paid in full</strong> — and you'll see your grades when the cards return to you, not before.</p>
           </div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Do I have to use your grading service? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Do I have to use your grading service? <span class="faq-icon">+</span></summary>
           <div class="faq-a">No. You can have us prep your cards and send them back so you can submit them yourself.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What if I choose prep and my card doesn't pass? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What if I choose prep and my card doesn't pass? <span class="faq-icon">+</span></summary>
           <div class="faq-a">The <strong style="color:var(--cyan)">prep fee is fully refunded</strong>. We only charge prep on cards we'd actually submit.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How are my cards returned? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How are my cards returned? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We carefully package and ship everything back once your order's complete. Non-submitted cards can ship right away, or be held and returned together with your graded cards — your call.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Can I drop off cards in person? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Can I drop off cards in person? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes — hand off cards at one of our <a href="events.html" style="color:var(--orange)">events</a>. Just submit your request first so we can review and approve it.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How long does the full grading process take? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How long does the full grading process take? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Screening takes <strong>2–3 business days</strong> after we receive your cards. Grading at PSA, CGC, or Beckett typically runs <strong>3–8 weeks</strong> for standard tiers (express tiers are faster, premium tiers can take longer). We share an estimated timeline before submission and you can follow progress on our <a href="track.html" style="color:var(--orange)">order tracker</a>.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Who pays for shipping? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Who pays for shipping? <span class="faq-icon">+</span></summary>
           <div class="faq-a">You cover inbound shipping (your cards to us) — we strongly recommend insured shipping with tracking and signature required for valuable cards. Once we receive them, <strong>we cover all shipping to and from the grading house</strong>, including required insurance. Return shipping back to you is included with your service, insured based on declared value with signature required on delivery. <strong>Risk of loss transfers to the carrier upon shipment</strong>, and we’ll help you file an insurance claim if anything goes wrong in transit.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">How do I know my card is the same one I sent in? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">How do I know my card is the same one I sent in? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Every card is photographed front and back at intake and again before return. Cards graded by PSA, CGC, or Beckett come back in tamper-evident slabs with a unique <strong>cert number</strong> — you can verify the cert directly on the grading house's website, which independently confirms the card's identity.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What if my card is found to be counterfeit or altered? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What if my card is found to be counterfeit or altered? <span class="faq-icon">+</span></summary>
           <div class="faq-a">If a grading house determines a card is counterfeit, altered, trimmed, or otherwise can't be authenticated, the card is returned without a grade. The grading house typically refunds its grading fee in this case — we pass any refund through to you. Screening and Card Prep fees are not refunded, since that work was already performed in good faith.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Can I cancel after screening? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Can I cancel after screening? <span class="faq-icon">+</span></summary>
           <div class="faq-a">Yes — after you receive screening results, you can choose not to submit any card for grading. Just tell us by email and we'll return your cards according to your shipping preference. <strong>Once you authorize a card for submission to PSA, CGC, or Beckett, it's locked in</strong> — grading houses don't allow withdrawal mid-grading.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">Who decides my card's declared value? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">Who decides my card's declared value? <span class="faq-icon">+</span></summary>
           <div class="faq-a">You provide the declared value at submission, and <strong>you're responsible for its accuracy</strong>. If a grading company determines a card's value is higher and upgrades the service tier, the escalation fee is passed through to you at cost — it becomes part of the grading fees due before return.</div>
-        </div>
+        </details>
 
-        <div class="faq-item">
-          <button class="faq-q">What happens if I don't pay my grading fees? <span class="faq-icon">+</span></button>
+        <details class="faq-item">
+          <summary class="faq-q">What happens if I don't pay my grading fees? <span class="faq-icon">+</span></summary>
           <div class="faq-a">We'll work with you in good faith to resolve any payment issue first. By submitting cards, you grant Sake Kitty a <strong>possessory lien</strong> on them for any unpaid amounts. If fees remain unpaid <strong>45 days after invoice</strong>, we may sell the cards in a commercially reasonable manner to recover outstanding fees and storage costs. We provide at least <strong>15 days’ notice</strong> before any sale, and you can <strong>redeem (pay in full) any time prior to sale</strong>. Any proceeds in excess of fees and costs are returned to you. Full details in our <a href="grading-terms.html" style="color:var(--orange)">Grading Prep Terms</a>.</div>
-        </div>
+        </details>
 
       </div>
 
@@ -344,6 +579,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54" defer></script>
+  <script src="main.js?v=55" defer></script>
 </body>
 </html>

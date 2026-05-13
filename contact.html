@@ -14,6 +14,8 @@
   <link rel="canonical" href="https://sakekittycards.com/contact.html" />
   <meta property="og:title" content="Contact — Sake Kitty Cards" />
   <meta property="og:description" content="Reach Sake Kitty Cards via email, Instagram, TCGPlayer, Whatnot, or YouTube. We respond within 24 hours." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -26,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=131" />
+  <link rel="stylesheet" href="style.css?v=132" />
   <style>
     /* ═══ Contact page polish — promotes the shipping-page neon-accent
        template with bigger hero, premium connect cards, response-time
@@ -395,7 +397,7 @@
         <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
         <span>Sake Kitty Cards</span>
       </a>
-      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links" id="navLinks">
@@ -455,7 +457,7 @@
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
-      <div class="connect-grid">
+      <address class="connect-grid" style="font-style:normal">
         <a href="mailto:nick@sakekittycards.com" class="connect-card tone-orange">
           <div class="connect-icon">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
@@ -500,7 +502,7 @@
           <p>Episodes from shows, breaks, and behind-the-table content.</p>
           <div class="connect-handle">@SakeKittyCards</div>
         </a>
-      </div>
+      </address>
     </div>
 
     <!-- Events CTA -->
@@ -529,11 +531,11 @@
           <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
           <div class="form-group">
             <label for="name">Your Name</label>
-            <input type="text" id="name" name="name" placeholder="Ash Ketchum" required />
+            <input type="text" id="name" name="name" placeholder="Ash Ketchum" autocomplete="name" required />
           </div>
           <div class="form-group">
             <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="ash@pokemon.com" required />
+            <input type="email" id="email" name="email" placeholder="ash@pokemon.com" autocomplete="email" inputmode="email" required />
           </div>
           <div class="form-group">
             <label for="topic">Subject</label>
@@ -602,7 +604,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=54" defer></script>
+  <script src="main.js?v=55" defer></script>
   <script>
     (function () {
       const form = document.getElementById('contactForm');

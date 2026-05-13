@@ -88,6 +88,23 @@ img, video { max-width: 100%; height: auto; }
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
+
+/* Sitewide keyboard-focus indicator — many interactive elements have
+   `outline: none` set elsewhere for mouse aesthetics; this restores the
+   ring ONLY for keyboard users via :focus-visible.  Each component can
+   still override with its own treatment. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 img { max-width: 100%; display: block; }
 a { color: inherit; }
 button { font-family: inherit; }
@@ -1556,6 +1573,13 @@ body.cart-open { overflow: hidden; }
   padding-top: 6px;
   padding-bottom: 8px;  /* Bangers descender clip fix */;
   line-height: 1.25;  /* Bangers descender clip fix */}
+/* FAQ items use native <details>/<summary> so Ctrl+F finds inside closed
+   answers and screen readers get the disclosure semantics for free.  Hide
+   the default marker so our orange + icon stays the only indicator. */
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item summary { list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::marker { content: ''; }
 .faq-q {
   width: 100%; text-align: left; background: none; border: none; color: var(--text);
   font-family: 'Inter',sans-serif; font-size: 16px; font-weight: 600;
@@ -1566,9 +1590,8 @@ body.cart-open { overflow: hidden; }
   flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border);
   display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--dim); transition: all .2s;
 }
-.faq-item.open .faq-icon { background: var(--orange); border-color: var(--orange); color: #fff; transform: rotate(45deg); }
-.faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; font-size: 16px; color: var(--muted); line-height: 1.8; }
-.faq-item.open .faq-a { max-height: 800px; padding-bottom: 20px; }
+.faq-item[open] .faq-icon { background: var(--orange); border-color: var(--orange); color: #fff; transform: rotate(45deg); }
+.faq-a { font-size: 16px; color: var(--muted); line-height: 1.8; padding-bottom: 20px; }
 .faq-ol { list-style: decimal; padding-left: 22px; margin: 0; }
 .faq-ol li { padding-left: 4px; margin-bottom: 4px; }
 .faq-ol li::marker { color: var(--orange); font-weight: 700; }
