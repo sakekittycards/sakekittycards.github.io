@@ -457,7 +457,12 @@
       };
 
       try {
-        const res  = await fetch(`${window.SK.WORKER_BASE}/items`, { method: 'GET' });
+        // main.js is deferred and populates window.SK after HTML parsing,
+        // so on initial page load this inline IIFE may run before window.SK
+        // is defined.  Read the worker URL with a hardcoded fallback so the
+        // shop loads no matter which script wins the race.
+        const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
+        const res  = await fetch(`${WORKER_BASE}/items`, { method: 'GET' });
         if (!res.ok) throw new Error(`worker ${res.status}`);
         const data  = await res.json();
         const items = Array.isArray(data.items) ? data.items : [];

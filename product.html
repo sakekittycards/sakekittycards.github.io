@@ -399,7 +399,9 @@
 
       let items;
       try {
-        const res = await fetch(`${window.SK.WORKER_BASE}/items`);
+        // main.js is deferred — see shop.html comment.  Same race on PDP.
+        const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
+        const res = await fetch(`${WORKER_BASE}/items`);
         if (!res.ok) throw new Error(`worker ${res.status}`);
         const data = await res.json();
         items = Array.isArray(data.items) ? data.items : [];
