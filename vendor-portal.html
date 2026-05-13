@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Vendor Portal — Sake Kitty Cards</title>
+  <meta name="description" content="Private portal for Sake Kitty Cards co-vendors — show schedule, bookings, and payment info." />
+
+  <!-- Don't let search engines crawl this — it's vendor-only. -->
+  <meta name="robots" content="noindex, nofollow" />
+
+  <link rel="canonical" href="https://sakekittycards.com/vendor-portal.html" />
+  <meta property="og:title" content="Vendor Portal — Sake Kitty Cards" />
+  <meta property="og:description" content="Private portal for Sake Kitty Cards co-vendors." />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/vendor-portal.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Vendor Portal — Sake Kitty Cards" />
+  <meta name="twitter:description" content="Private portal for Sake Kitty Cards co-vendors." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=130" />
+
+  <style>
+    /* ── Vendor portal layout ────────────────────────────────────────── */
+    .page-vendor .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-vendor .page-hero { padding-bottom: 28px; }
+    .page-vendor .page-hero h1 { font-size: clamp(40px, 6vw, 56px); }
+    .page-vendor .page-hero > p { font-size: clamp(14px, 1.8vw, 16px); color: rgba(255,255,255,0.78); max-width: 540px; line-height: 1.6; }
+
+    .vp-loading { padding: 80px 20px; text-align: center; color: var(--dim); font-size: 14px; }
+
+    /* ── Login state ── */
+    .vp-auth-card {
+      max-width: 460px;
+      margin: 12px auto 60px;
+      padding: 36px 32px 32px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 6px 24px rgba(0,0,0,0.22);
+    }
+    .vp-auth-card h2 {
+      font-family: 'Bangers', cursive;
+      font-size: 28px; letter-spacing: 0.04em; line-height: 1.25;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin: 0 0 6px; padding-bottom: 4px;
+    }
+    .vp-auth-card .sub {
+      color: rgba(255,255,255,0.65); font-size: 13.5px; line-height: 1.55;
+      margin: 0 0 24px;
+    }
+    .vp-auth-input {
+      width: 100%; padding: 13px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: var(--r-pill);
+      color: var(--text); font-size: 14.5px; font-family: 'Inter', sans-serif;
+      outline: none;
+      box-shadow: 0 0 0 1px rgba(255,106,0,0.04), 0 2px 10px rgba(0,0,0,0.20);
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .vp-auth-input:focus {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,106,0,0.55);
+      box-shadow: 0 0 0 2px rgba(255,106,0,0.12), 0 4px 18px rgba(0,0,0,0.30);
+    }
+    .vp-auth-input::placeholder { color: rgba(255,255,255,0.40); }
+    .vp-auth-submit {
+      margin-top: 14px; width: 100%;
+      padding: 13px 16px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff; font-weight: 800; letter-spacing: 0.4px;
+      border: none; border-radius: var(--r-pill);
+      cursor: pointer; font-size: 14.5px; font-family: 'Inter', sans-serif;
+      box-shadow: 0 6px 22px rgba(255,106,0,0.20);
+      transition: transform .15s, box-shadow .2s, filter .15s;
+    }
+    .vp-auth-submit:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(255,106,0,0.30); }
+    .vp-auth-submit:disabled { opacity: 0.55; cursor: wait; transform: none; }
+    .vp-auth-msg {
+      margin-top: 18px; padding: 12px 14px;
+      background: rgba(80,200,140,0.08);
+      border: 1px solid rgba(80,200,140,0.28);
+      border-radius: 8px;
+      color: #9aeab1; font-size: 13px; line-height: 1.5;
+    }
+    .vp-auth-msg.err {
+      background: rgba(255,107,107,0.08);
+      border-color: rgba(255,107,107,0.30);
+      color: #ff9d9d;
+    }
+
+    /* ── Authenticated state ── */
+    .vp-shell {
+      max-width: 980px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+    .vp-greet {
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+      padding: 16px 22px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.07), rgba(255,0,128,0.04));
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: 12px;
+    }
+    .vp-greet-text {
+      font-size: 14px; color: rgba(255,255,255,0.86);
+    }
+    .vp-greet-text strong { color: #fff; font-weight: 700; }
+    .vp-logout {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.68);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .vp-logout:hover { color: #ff7878; border-color: rgba(255,120,120,0.40); background: rgba(255,120,120,0.06); }
+
+    .vp-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 24px 26px;
+    }
+    .vp-section h2 {
+      font-family: 'Bangers', cursive;
+      font-size: 24px; letter-spacing: 0.04em; line-height: 1.25;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin: 0 0 4px; padding-bottom: 4px;
+    }
+    .vp-section .vp-sub {
+      color: rgba(255,255,255,0.58); font-size: 13px; margin: 0 0 18px;
+    }
+
+    /* Bookings table */
+    .vp-bookings {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .vp-booking-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 16px; align-items: center;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      transition: border-color .15s, background .15s;
+    }
+    .vp-booking-row:hover { border-color: rgba(255,106,0,0.22); background: rgba(255,255,255,0.04); }
+    .vp-booking-event {
+      font-size: 14.5px; font-weight: 700; color: rgba(255,255,255,0.92);
+      margin-bottom: 2px;
+    }
+    .vp-booking-meta {
+      font-size: 12px; color: rgba(255,255,255,0.55);
+      letter-spacing: 0.15px;
+    }
+    .vp-booking-amount {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800; font-variant-numeric: tabular-nums;
+      font-size: 17px; letter-spacing: -0.3px;
+      color: rgba(255,255,255,0.78);
+    }
+    .vp-booking-status {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 6px;
+    }
+    .vp-booking-status.paid {
+      background: rgba(80,200,140,0.10);
+      border: 1px solid rgba(80,200,140,0.30);
+      color: #5fe39b;
+    }
+    .vp-booking-status.owed {
+      background: rgba(255,122,60,0.10);
+      border: 1px solid rgba(255,122,60,0.32);
+      color: #ff9d70;
+    }
+    .vp-bookings-empty {
+      padding: 22px 16px;
+      text-align: center;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px; font-style: italic;
+    }
+
+    /* Schedule list */
+    .vp-month-group { margin-bottom: 18px; }
+    .vp-month-group:last-child { margin-bottom: 0; }
+    .vp-month-label {
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .vp-event {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      gap: 16px; align-items: baseline;
+      padding: 10px 12px;
+      border-radius: 8px;
+      transition: background .15s;
+    }
+    .vp-event:hover { background: rgba(255,255,255,0.025); }
+    .vp-event-date {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800; font-variant-numeric: tabular-nums;
+      font-size: 14px; letter-spacing: -0.2px;
+      color: rgba(255,255,255,0.85);
+    }
+    .vp-event-date .day-num { font-size: 18px; display: block; line-height: 1.05; color: #fff; }
+    .vp-event-date .dow { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.55); font-weight: 700; }
+    .vp-event-info h4 {
+      font-size: 14px; font-weight: 700;
+      color: rgba(255,255,255,0.94);
+      margin: 0 0 3px;
+    }
+    .vp-event-info .loc {
+      font-size: 12.5px; color: rgba(255,255,255,0.58);
+      line-height: 1.45;
+    }
+    .vp-event-info .hours {
+      font-size: 12px; color: rgba(255,255,255,0.45);
+      margin-top: 3px;
+    }
+    .vp-event.is-yours {
+      background: linear-gradient(135deg, rgba(255,106,0,0.08), rgba(255,0,128,0.04));
+      border: 1px solid rgba(255,106,0,0.25);
+      padding: 12px 14px;
+    }
+    .vp-event.is-yours .vp-event-info h4::after {
+      content: 'YOU\'RE BOOKED';
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 1.2px;
+      margin-left: 10px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      vertical-align: 2px;
+    }
+
+    /* Payment info */
+    .vp-payment-methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0 16px;
+    }
+    @media (max-width: 540px) {
+      .vp-payment-methods { grid-template-columns: 1fr; }
+    }
+    .vp-pay-method {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      text-align: center;
+    }
+    .vp-pay-method strong {
+      display: block; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+      color: rgba(255,255,255,0.86); margin-bottom: 4px;
+    }
+    .vp-pay-method span { font-size: 12.5px; color: rgba(255,255,255,0.55); }
+    .vp-pay-note {
+      padding: 14px 16px;
+      background: rgba(0,212,255,0.06);
+      border: 1px solid rgba(0,212,255,0.22);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.86);
+      font-size: 13px; line-height: 1.6;
+    }
+    .vp-pay-note strong { color: #4dd9ff; }
+    .vp-pay-zelle {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: rgba(255,107,107,0.06);
+      border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.78);
+      font-size: 12.5px;
+    }
+    .vp-pay-zelle strong { color: #ff9d9d; }
+
+    @media (max-width: 640px) {
+      .vp-greet { flex-direction: column; align-items: flex-start; }
+      .vp-booking-row { grid-template-columns: 1fr; gap: 8px; }
+      .vp-booking-row > * { text-align: left !important; }
+    }
+  </style>
+</head>
+<body class="page-vendor">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <div class="page-hero">
+      <h1>Vendor Portal</h1>
+      <p>Schedule, bookings, and payment info for Sake Kitty co-vendors.</p>
+    </div>
+
+    <!-- Loading flash while we check the session -->
+    <div id="vp-loading" class="vp-loading">Loading…</div>
+
+    <!-- Login form (no session yet) -->
+    <div id="vp-login" class="vp-auth-card" hidden>
+      <h2>Log in</h2>
+      <p class="sub">Enter the email on file with us. We'll send you a one-time login link — no password needed.</p>
+      <form id="vp-login-form" novalidate>
+        <input id="vp-email" class="vp-auth-input" type="email" autocomplete="email" required placeholder="your@email.com" />
+        <button class="vp-auth-submit" type="submit">Send login link</button>
+      </form>
+      <div id="vp-login-msg" class="vp-auth-msg" hidden></div>
+    </div>
+
+    <!-- Authenticated portal -->
+    <div id="vp-shell" class="vp-shell" hidden>
+      <div class="vp-greet">
+        <div class="vp-greet-text">
+          Logged in as <strong id="vp-name">vendor</strong>
+          <span style="color:rgba(255,255,255,0.45);margin-left:6px">· <span id="vp-email-display"></span></span>
+        </div>
+        <button class="vp-logout" id="vp-logout">Log out</button>
+      </div>
+
+      <!-- Your bookings -->
+      <div class="vp-section">
+        <h2>Your Bookings</h2>
+        <p class="vp-sub">Where you're booked alongside Nick + what's owed.</p>
+        <div id="vp-bookings" class="vp-bookings"></div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="vp-section">
+        <h2>Show Schedule</h2>
+        <p class="vp-sub">Every Sake Kitty event coming up. Your booked shows are highlighted.</p>
+        <div id="vp-schedule"></div>
+      </div>
+
+      <!-- Payment info -->
+      <div class="vp-section">
+        <h2>Payment Info</h2>
+        <p class="vp-sub">Settle up before the show. Three accepted methods — no Zelle.</p>
+        <div class="vp-payment-methods">
+          <div class="vp-pay-method"><strong>Venmo</strong><span>@SakeKittyCards</span></div>
+          <div class="vp-pay-method"><strong>PayPal</strong><span>nick@sakekittycards.com</span></div>
+          <div class="vp-pay-method"><strong>Cash App</strong><span>$SakeKittyCards</span></div>
+        </div>
+        <div class="vp-pay-note">
+          <strong>Add this to the payment note / description:</strong> <em>Venue · # of tables · Event name</em>
+          <br><span style="color:rgba(255,255,255,0.65);font-size:12.5px">e.g. "BCCC · 1 table · Card Party 7/26" — makes it 10× faster to reconcile.</span>
+        </div>
+        <div class="vp-pay-zelle"><strong>Heads up:</strong> Zelle is not an option. We only accept Venmo, PayPal, or Cash App.</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=54" defer></script>
+  <script src="assets/events-data.js?v=1"></script>
+  <script>
+    // ── Vendor portal frontend ───────────────────────────────────────────
+    // Auth flow: load → check ?auth=<token> → /vendor/verify → cookie set
+    //            no token → call /vendor/me → render login or portal
+    //
+    // All worker calls use `credentials: 'include'` so the session cookie
+    // flows back from sakekitty-vendor.workers.dev to this page.
+    const WORKER_BASE = 'https://sakekitty-vendor.nwilliams23999.workers.dev';
+
+    const els = {
+      loading:    document.getElementById('vp-loading'),
+      login:      document.getElementById('vp-login'),
+      loginForm:  document.getElementById('vp-login-form'),
+      loginEmail: document.getElementById('vp-email'),
+      loginMsg:   document.getElementById('vp-login-msg'),
+      shell:      document.getElementById('vp-shell'),
+      name:       document.getElementById('vp-name'),
+      emailDisp:  document.getElementById('vp-email-display'),
+      logout:     document.getElementById('vp-logout'),
+      bookings:   document.getElementById('vp-bookings'),
+      schedule:   document.getElementById('vp-schedule'),
+    };
+
+    function show(node) { node.hidden = false; }
+    function hide(node) { node.hidden = true; }
+    function showOnly(node) {
+      [els.loading, els.login, els.shell].forEach(hide);
+      show(node);
+    }
+
+    async function workerFetch(path, opts = {}) {
+      return fetch(WORKER_BASE + path, {
+        ...opts,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+      });
+    }
+
+    // Format helpers
+    const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    function parseISODate(s) {
+      // 'YYYY-MM-DD' → Date in local time
+      const [y, m, d] = s.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    function todayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function fmtMoney(n) {
+      return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    // ── Bookings ─────────────────────────────────────────────────────────
+    function renderBookings(bookings) {
+      if (!bookings || !bookings.length) {
+        els.bookings.innerHTML = `<div class="vp-bookings-empty">No bookings on file yet — once Nick adds you to a show, you'll see it here.</div>`;
+        return;
+      }
+      // Sort by date
+      const sorted = bookings.slice().sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''));
+      els.bookings.innerHTML = sorted.map(b => {
+        const range = b.endDate ? `${b.startDate} – ${b.endDate}` : b.startDate;
+        const status = b.paid
+          ? `<span class="vp-booking-status paid">Paid</span>`
+          : `<span class="vp-booking-status owed">Owed</span>`;
+        const amount = b.paid
+          ? `<span class="vp-booking-amount" style="color:#5fe39b">$${fmtMoney(b.owed)}</span>`
+          : `<span class="vp-booking-amount" style="color:#ff9d70">$${fmtMoney(b.owed)}</span>`;
+        return `
+          <div class="vp-booking-row">
+            <div>
+              <div class="vp-booking-event">${escapeHtml(b.event)}</div>
+              <div class="vp-booking-meta">${range}</div>
+            </div>
+            ${amount}
+            ${status}
+          </div>`;
+      }).join('');
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+
+    // ── Schedule ─────────────────────────────────────────────────────────
+    function renderSchedule(yourEventKeys) {
+      const today = todayISO();
+      const upcoming = (window.SK_EVENTS || []).filter(e => (e.end || e.start) >= today)
+        .sort((a, b) => a.start.localeCompare(b.start));
+      if (!upcoming.length) {
+        els.schedule.innerHTML = `<div class="vp-bookings-empty">No upcoming events on the calendar.</div>`;
+        return;
+      }
+      // Group by month
+      const groups = {};
+      upcoming.forEach(e => {
+        const d = parseISODate(e.start);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        (groups[key] = groups[key] || { label: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`, events: [] }).events.push(e);
+      });
+      const html = Object.values(groups).map(g => `
+        <div class="vp-month-group">
+          <div class="vp-month-label">${g.label}</div>
+          ${g.events.map(e => renderEvent(e, yourEventKeys)).join('')}
+        </div>
+      `).join('');
+      els.schedule.innerHTML = html;
+    }
+    function renderEvent(e, yourKeys) {
+      const start = parseISODate(e.start);
+      const end = e.end ? parseISODate(e.end) : null;
+      const dayNum = end && end.getDate() !== start.getDate()
+        ? `${start.getDate()}–${end.getDate()}`
+        : `${start.getDate()}`;
+      const dow = DOW[start.getDay()];
+      const key = bookingKey(e.name, e.start);
+      const isYours = yourKeys.has(key);
+      const hoursHtml = e.hours ? `<div class="hours">${escapeHtml(e.hours)}</div>` : '';
+      return `
+        <div class="vp-event${isYours ? ' is-yours' : ''}">
+          <div class="vp-event-date">
+            <span class="day-num">${dayNum}</span>
+            <span class="dow">${dow}</span>
+          </div>
+          <div class="vp-event-info">
+            <h4>${escapeHtml(e.name)}</h4>
+            <div class="loc">${escapeHtml(e.loc)}</div>
+            ${hoursHtml}
+          </div>
+        </div>`;
+    }
+    function bookingKey(eventName, startDate) {
+      // Loose key — vendors' booking event names won't perfectly match the
+      // events.html titles, so compare on normalized name + start date.
+      return `${(eventName || '').toLowerCase().replace(/[^a-z0-9]+/g, '')}|${startDate}`;
+    }
+
+    // ── Auth state ───────────────────────────────────────────────────────
+    async function renderPortal(vendor) {
+      els.name.textContent = vendor?.name || 'vendor';
+      els.emailDisp.textContent = vendor?.email || '';
+      renderBookings(vendor?.bookings);
+      const yourKeys = new Set((vendor?.bookings || []).map(b => bookingKey(b.event, b.startDate)));
+      renderSchedule(yourKeys);
+      showOnly(els.shell);
+    }
+
+    async function showLogin(prefill) {
+      if (prefill) els.loginEmail.value = prefill;
+      showOnly(els.login);
+    }
+
+    async function init() {
+      const url = new URL(location.href);
+      const token = url.searchParams.get('auth');
+
+      // Magic-link callback — exchange token for session
+      if (token) {
+        try {
+          const r = await workerFetch('/vendor/verify?token=' + encodeURIComponent(token));
+          const data = await r.json();
+          if (!r.ok) throw new Error(data.error || 'verify failed');
+          // Strip the token from the URL so it doesn't get reused / shared
+          history.replaceState(null, '', location.pathname);
+        } catch (e) {
+          showLogin();
+          els.loginMsg.className = 'vp-auth-msg err';
+          els.loginMsg.textContent = 'Login link is invalid or expired. Request a new one below.';
+          show(els.loginMsg);
+          return;
+        }
+      }
+
+      // Check session
+      try {
+        const r = await workerFetch('/vendor/me');
+        const data = await r.json();
+        if (data.authenticated) {
+          await renderPortal(data.vendor);
+        } else {
+          showLogin();
+        }
+      } catch (e) {
+        showLogin();
+        els.loginMsg.className = 'vp-auth-msg err';
+        els.loginMsg.textContent = 'Couldn\'t reach the server. Check your connection and try again.';
+        show(els.loginMsg);
+      }
+    }
+
+    // ── Form handlers ────────────────────────────────────────────────────
+    els.loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = els.loginEmail.value.trim();
+      if (!email) return;
+      const submitBtn = els.loginForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+      hide(els.loginMsg);
+      try {
+        const r = await workerFetch('/vendor/login', {
+          method: 'POST',
+          body: JSON.stringify({ email }),
+        });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          throw new Error(data.error || 'login failed');
+        }
+        els.loginMsg.className = 'vp-auth-msg';
+        els.loginMsg.innerHTML = `Check <strong>${escapeHtml(email)}</strong> for a login link. (Expires in 1 hour. Single use.)`;
+        show(els.loginMsg);
+      } catch (e) {
+        els.loginMsg.className = 'vp-auth-msg err';
+        els.loginMsg.textContent = 'Something went wrong sending the link. Try again, or email Nick directly at nick@sakekittycards.com.';
+        show(els.loginMsg);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send login link';
+      }
+    });
+
+    els.logout.addEventListener('click', async () => {
+      try { await workerFetch('/vendor/logout', { method: 'POST' }); } catch {}
+      location.reload();
+    });
+
+    init();
+  </script>
+</body>
+</html>
