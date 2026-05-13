@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=130" />
+  <link rel="stylesheet" href="style.css?v=131" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -84,7 +84,7 @@
       0%,100% { opacity:0.7; transform:scale(1); }
       50%     { opacity:1.0; transform:scale(1.10); }
     }
-    .gp-empty h5 {
+    .gp-empty-title {
       font-family:'Bangers',cursive;
       font-size:18px; letter-spacing:0.04em;
       background:linear-gradient(135deg,var(--orange),var(--pink));
@@ -1156,7 +1156,7 @@
                     </defs>
                   </svg>
                 </div>
-                <h5>Your list is empty</h5>
+                <div class="gp-empty-title">Your list is empty</div>
                 <div>Search for a card above — or click <strong style="color:var(--orange)">add it manually</strong> if it's not coming up.</div>
               </div>
             </div>
@@ -2084,7 +2084,7 @@
                 <span class="gp-empty-glyph gg-2">◆</span>
                 <span class="gp-empty-glyph gg-3">●</span>
               </div>
-              <h5>Your list is empty</h5>
+              <div class="gp-empty-title">Your list is empty</div>
               <div>Search for a card above to add it to your list.</div>
             </div>`;
           recalc();

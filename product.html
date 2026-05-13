@@ -27,7 +27,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=130" />
+  <link rel="stylesheet" href="style.css?v=131" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -322,7 +322,7 @@
   <div class="pay-modal" id="offerModal" aria-hidden="true">
     <div class="pay-modal-panel" role="dialog" aria-labelledby="offerModalTitle">
       <button class="pay-modal-close" id="offerModalClose" aria-label="Close">×</button>
-      <h3 id="offerModalTitle">Make an Offer</h3>
+      <h2 id="offerModalTitle">Make an Offer</h2>
       <p class="pay-modal-sub">
         Submit an offer for <strong id="offerCardName">this card</strong>.
         Asking <strong id="offerAsking">—</strong>. Nick reviews offers and replies by email — usually within 24 hours.
@@ -390,7 +390,7 @@
       const renderError = (title, msg) => {
         statusEl.innerHTML = `
           <div class="shop-empty-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></div>
-          <h3>${esc(title)}</h3>
+          <h2>${esc(title)}</h2>
           <p>${msg}</p>
           <p style="margin-top:14px"><a href="shop.html">← Back to shop</a></p>`;
       };

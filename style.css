@@ -1584,7 +1584,7 @@ body.cart-open { overflow: hidden; }
 .values-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
 .value-card { padding: 22px; text-align: center; }
 .value-icon { font-size: 30px; margin-bottom: 8px; }
-.value-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.value-card h3 { font-size: 15px; font-weight: 700; margin: 0 0 5px; }
 .value-card p { font-size: 14px; color: var(--dim); line-height: 1.6; }
 
 /* ── Contact ── */

@@ -26,7 +26,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=130" />
+  <link rel="stylesheet" href="style.css?v=131" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -297,7 +297,7 @@
       0%, 100% { opacity: 0.7; transform: scale(1); }
       50%      { opacity: 1.0; transform: scale(1.10); }
     }
-    .ti-empty h5, .gp-empty h5 {
+    .ti-empty-title, .gp-empty-title {
       font-family: 'Bangers', cursive;
       font-size: 18px; letter-spacing: 0.04em;
       background: linear-gradient(135deg, var(--orange), var(--pink));
@@ -3351,7 +3351,7 @@
               <span class="ti-empty-glyph tg-2">◆</span>
               <span class="ti-empty-glyph tg-3">●</span>
             </div>
-            <h5>Your list is empty</h5>
+            <div class="ti-empty-title">Your list is empty</div>
             <div>Search above or add a sealed product to get started.</div>
           </div>`;
         updateTotals();
