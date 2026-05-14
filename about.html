@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=136" />
+  <link rel="stylesheet" href="style.css?v=137" />
   <style>
     /* About-page eyebrow under H1 — matches the shipping page's tagline rhythm. */
     .about-tagline {
@@ -72,11 +72,39 @@
       color: rgba(255,255,255,0.88);
       max-width: 600px;
     }
-    /* Tighter logo glow — was unbounded, now sharper bloom for premium feel */
+    /* Match the homepage hero-logo treatment — bigger frame + 4-color
+       neon-ring outline so the about logo reads with the same brand
+       weight as the index hero (was a small 340px floating PNG with a
+       soft glow). */
+    .page-about .about-img-wrap {
+      position: relative;
+      display: inline-block;
+      animation: floatImg 5s ease-in-out infinite;
+      max-width: 480px;
+    }
+    .page-about .about-img-wrap::after {
+      content: ''; position: absolute; inset: -8px; border-radius: 28px;
+      background: linear-gradient(135deg, #ff6a00, #ff0080, #7b2fff, #00d4ff);
+      z-index: 0;
+      filter: blur(2px) opacity(0.85);
+      animation: glowPulseAbout 3.5s ease-in-out infinite;
+    }
     .page-about .about-img {
-      filter:
-        drop-shadow(0 0 24px rgba(255,106,0,0.28))
-        drop-shadow(0 0 8px rgba(255,0,128,0.22));
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 22px;
+      box-shadow: 0 14px 42px rgba(255,106,0,0.24), 0 0 50px rgba(123,47,255,0.18);
+      animation: none;  /* float lives on the wrapper now */
+      margin: 0;
+    }
+    @keyframes glowPulseAbout {
+      0%, 100% { opacity: 0.55; }
+      50%      { opacity: 0.85; }
+    }
+    @media (max-width: 760px) {
+      .page-about .about-img-wrap { max-width: 320px; }
     }
 
     /* Our Story section — slightly tighter pacing + better typography */
