@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=132" />
+  <link rel="stylesheet" href="style.css?v=137" />
   <style>
     /* ── Grading Prep card intake form ── */
     .gp-layout { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
@@ -628,7 +628,7 @@
     .gp-input:hover, .gp-textarea:hover { background:rgba(255,255,255,.11); border-color:rgba(255,106,0,.55); }
     .gp-input:focus, .gp-textarea:focus { background:rgba(255,255,255,.12); border-color:rgba(255,106,0,.75); box-shadow:0 0 0 3px rgba(255,106,0,.18),0 4px 18px rgba(255,106,0,.18); }
     .gp-input::placeholder, .gp-textarea::placeholder { color:var(--muted); }
-    .gp-textarea { resize:vertical; min-height:60px; }
+    .gp-textarea { resize:vertical; min-height:110px; padding:14px 14px; line-height:1.55; }
     .gp-disclaimer { font-size:13px; color:var(--dim); line-height:1.6; margin-top:12px; }
 
     /* ── Preferred turnaround selector ── */
@@ -907,6 +907,13 @@
     .page-grading .gp-search-icon { left: 18px; width: 19px; height: 19px; }
     /* Calmer service cards — pad up a touch so they read less "dashboard". */
     .page-grading .service-card { padding: 26px 24px; }
+    /* Standard + Detailed Screen card pair — 2-up on desktop/tablet,
+       drop to 1-col on phones so titles + body don't cramp into a
+       half-width column. */
+    .gp-service-pair { grid-template-columns: repeat(2, 1fr) !important; }
+    @media (max-width: 760px) {
+      .gp-service-pair { grid-template-columns: 1fr !important; }
+    }
     /* Tighter pacing between major sections so the page doesn't read like
        a stack of equal-weight panels. */
     .page-grading .section + .section { margin-top: 12px; }
@@ -955,7 +962,11 @@
         <div class="divider" style="margin:10px auto 0"></div>
       </div>
 
-      <div class="service-grid" style="grid-template-columns:repeat(2,1fr)">
+      <!-- 2-col grid on desktop; stacks to 1-col under 760px via the
+           global .service-grid media query in style.css.  Was inline
+           grid-template-columns:repeat(2,1fr) which overrode the mobile
+           breakpoint and forced two cramped half-width cards on phones. -->
+      <div class="service-grid gp-service-pair">
 
         <!-- Standard Screen -->
         <div class="service-card tone-cyan">
