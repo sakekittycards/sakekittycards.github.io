@@ -335,8 +335,26 @@ button { font-family: inherit; }
   box-shadow: 0 2px 14px rgba(255,106,0,0.35);
 }
 .nav-cta:hover { opacity: .9; transform: translateY(-1px); }
-.nav-toggle { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
-.nav-toggle span { display: block; width: 22px; height: 2px; background: var(--muted); border-radius: 2px; transition: all .2s; }
+/* Hamburger toggle — matches the .nav-cart box (40x40, same border + radius)
+   so the two icons sit as a visually consistent pair on mobile.  Was a
+   borderless 22x?? stack of stripes which looked off-axis next to the
+   cart button. */
+.nav-toggle {
+  display: none;
+  width: 40px; height: 40px;
+  flex-direction: column; gap: 5px;
+  align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer; padding: 0;
+  transition: background .15s, border-color .15s;
+  flex-shrink: 0;
+}
+.nav-toggle:hover { background: rgba(255,106,0,0.18); border-color: var(--orange); }
+.nav-toggle span { display: block; width: 18px; height: 2px; background: var(--muted); border-radius: 2px; transition: all .2s; }
+.nav-toggle:hover span { background: var(--text); }
 
 /* ── Cart icon in nav ── */
 .nav-cart {
@@ -1676,7 +1694,19 @@ body.cart-open { overflow: hidden; }
   pointer-events: none;
 }
 .footer-inner { max-width: var(--max-w); margin: 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center; margin-bottom: 40px; }
-.footer-brand { display: flex; flex-direction: row; align-items: center; gap: 18px; flex-wrap: wrap; }
+/* Footer brand: logo on the left, IG + YT handles stacked vertically
+   to the right of the logo.  Was a flex-row that wrap-broke into an
+   awkward "logo + IG / YT alone" layout on phones — locked into a
+   tidy two-column inner block (logo | handles-stack) instead. */
+.footer-brand {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px 18px;
+  row-gap: 6px;
+}
+.footer-brand .footer-logo-img { grid-row: 1 / span 2; }
+.footer-ig, .footer-yt { grid-column: 2; }
 .footer-logo-img { width: 68px; height: 68px; border-radius: 14px; object-fit: cover; }
 .footer-ig, .footer-yt { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; transition: color .15s; }
 .footer-ig:hover, .footer-yt:hover { color: var(--orange); }
@@ -1806,9 +1836,11 @@ body.drip-unlocked { position: relative; }
 @media (max-width: 768px) {
   .nav-toggle { display: flex; order: 3; }
   .nav-cart { order: 2; margin-left: auto; }  /* cart sits between logo and hamburger */
-  .nav-links { display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: rgba(6,6,8,.96); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); flex-direction: column; padding: 16px; gap: 2px; margin-left: 0; }
+  .nav-links { display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: rgba(6,6,8,.96); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); flex-direction: column; padding: 18px; gap: 4px; margin-left: 0; }
   .nav-links.open { display: flex; }
-  .nav-links a { padding: 11px 16px; }
+  /* Bigger tap targets + more readable text on the mobile menu drawer.
+     Was 13px (inherited) which read tiny when the drawer is full-width. */
+  .nav-links a { padding: 14px 18px; font-size: 17px; }
   .tcg-banner { flex-direction: column; text-align: center; padding: 28px 24px; }
   .about-split { grid-template-columns: 1fr; }
   .about-img { margin: 0 auto; }

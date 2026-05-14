@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=132" />
+  <link rel="stylesheet" href="style.css?v=135" />
   <style>
     /* Easter egg: 69 clicks on Jonathan's avatar grows an animated mustache */
     .vendor-avatar-wrap {
@@ -88,11 +88,16 @@
     .page-team .bg-blob { opacity: 0.06; filter: blur(140px); }
     /* page-hero + section inherit sitewide --max-w (1440px) — drift removed. */
 
-    /* Wider grid + bigger gap so the cards feel anchored, not floating. */
+    /* Wider grid + bigger gap so the cards feel anchored, not floating.
+       On mobile, drop to 1-up — 2-up at phone width cramped the bio
+       column so paragraphs wrapped to 2-word lines, looked horrible. */
     .page-team .vendors-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 28px;
       max-width: 980px;
+    }
+    @media (max-width: 760px) {
+      .page-team .vendors-grid { grid-template-columns: 1fr; gap: 20px; }
     }
 
     /* Vendor cards — uniform padding all sides (no asymmetric bottom that
