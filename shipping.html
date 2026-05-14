@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=132" />
+  <link rel="stylesheet" href="style.css?v=133" />
   <style>
     /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
@@ -128,14 +128,15 @@
     /* Small uppercase tag above the title — names what kind of shipment
        this tier is so cards aren't visually anonymous before reading. */
     .tier-label {
-      display: inline-block;
+      display: block;
+      width: fit-content;
       font-family: 'Inter', sans-serif;
       font-size: 10px; font-weight: 800;
       letter-spacing: 1.8px;
       text-transform: uppercase;
       padding: 5px 10px 5px 11px;
       border-radius: 4px;
-      margin: 2px 0 12px;
+      margin: 2px auto 14px;
       background: rgba(255,255,255,0.04);
     }
     .tone-pink   .tier-label { color: #ff66a0; border: 1px solid rgba(255,0,128,0.32); box-shadow: inset 0 0 14px rgba(255,0,128,0.06); }
@@ -384,18 +385,18 @@
       background: linear-gradient(90deg, #ffd24d 0%, #ff9d00 100%);
       box-shadow: 0 0 14px rgba(255,157,0,0.55), 0 0 4px rgba(255,210,77,0.85);
     }
-    .tipbox h4 {
+    .tipbox h3 {
       display: flex; align-items: center; gap: 12px;
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
       font-size: 25px; line-height: 1.2; padding: 4px 0 4px;
       margin: 4px 0 16px;
       color: #fff;
     }
-    .tipbox.tone-blue  h4 { text-shadow: 0 0 16px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.40); }
-    .tipbox.tone-amber h4 { text-shadow: 0 0 16px rgba(255,157,0,0.55), 0 0 4px rgba(255,157,0,0.40); }
-    .tipbox h4 svg { width: 22px; height: 22px; flex: 0 0 22px; }
-    .tipbox.tone-blue  h4 svg path { stroke: #00d4ff; fill: none; }
-    .tipbox.tone-amber h4 svg path { stroke: #ffd24d; fill: none; }
+    .tipbox.tone-blue h3 { text-shadow: 0 0 16px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.40); }
+    .tipbox.tone-amber h3 { text-shadow: 0 0 16px rgba(255,157,0,0.55), 0 0 4px rgba(255,157,0,0.40); }
+    .tipbox h3 svg { width: 22px; height: 22px; flex: 0 0 22px; }
+    .tipbox.tone-blue h3 svg path { stroke: #00d4ff; fill: none; }
+    .tipbox.tone-amber h3 svg path { stroke: #ffd24d; fill: none; }
     .tipbox ul { list-style: none; padding: 0; margin: 0; }
     .tipbox li {
       font-size: 15px; line-height: 1.7; padding: 9px 0 9px 24px; position: relative;
