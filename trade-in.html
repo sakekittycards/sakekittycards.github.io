@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=134" />
+  <link rel="stylesheet" href="style.css?v=135" />
   <style>
     /* Trade-in specific styles */
     .trade-layout {
@@ -551,9 +551,8 @@
        a subtle cyan tint to mark the +2-5pt slab bonus. Type labels
        stack on the left with color-coded indicator stripes. */
     .ti-rate-matrix {
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
+      max-width: 920px;
+      margin: 14px auto 24px;
     }
     /* Collapsed-by-default summary banner — replaces the always-visible
        "Payout Tiers" header.  Click to reveal the matrix.  Closed state
@@ -1533,6 +1532,62 @@
     </div>
     <p class="ti-hr-sub">Tiered by item type and value — see the full <strong>Payout Tiers</strong> panel below for the per-tier breakdown.</p>
 
+    <details class="ti-rate-matrix">
+      <summary class="trm-summary">
+        <span class="trm-summary-text">
+          <span class="trm-summary-eyebrow">My Buy Rates</span>
+          <span class="trm-summary-hint">Up to 85% cash · 100% trade credit — tap for the per-tier matrix</span>
+        </span>
+        <span class="trm-chevron" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </summary>
+      <div class="trm-title-row" style="margin-top:18px;">
+        <div class="trm-key" aria-label="Color key: orange numbers are cash, cyan numbers are trade credit">
+          <span class="trm-key-item trm-key-cash"><span class="trm-key-dot" aria-hidden="true"></span>Cash</span>
+          <span class="trm-key-sep">·</span>
+          <span class="trm-key-item trm-key-credit"><span class="trm-key-dot" aria-hidden="true"></span>Trade Credit</span>
+        </div>
+      </div>
+      <p class="trm-sub">Up to these rates per item, by type and market value. Cash / Trade Credit.</p>
+
+      <div class="trm-grid">
+        <!-- Header row -->
+        <div class="trm-th trm-th-corner"></div>
+        <div class="trm-th">&lt;$100</div>
+        <div class="trm-th">$100–$499</div>
+        <div class="trm-th">$500–$999</div>
+        <div class="trm-th trm-th-top">≥$1,000</div>
+
+        <!-- Singles row -->
+        <div class="trm-row-label trm-singles">Singles</div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">65</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+        <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
+
+        <!-- Sealed row -->
+        <div class="trm-row-label trm-sealed">Sealed</div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">65</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+        <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
+
+        <!-- Graded row -->
+        <div class="trm-row-label trm-graded">Graded</div>
+        <div class="trm-cell trm-cell-na" aria-label="Graded under $100 not accepted">&times;</div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+        <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
+      </div>
+      <ul class="trm-fineprint">
+        <li><strong>Cash / Trade Credit</strong> per item.</li>
+        <li>Rates based on recent verified market sales and liquidity.</li>
+        <li>Premium rates reserved for highly liquid inventory.</li>
+        <li>Graded cards under $100 not accepted.</li>
+      </ul>
+    </details>
+
     <div class="section" style="padding-top:0">
 
       <!-- Cash vs. Store Credit explainer -->
@@ -1591,25 +1646,29 @@
             <div class="ti-results" id="searchResults"></div>
           </div>
 
-          <p style="font-size:12px;color:var(--dim);margin-top:12px;line-height:1.6">
-            Search covers singles <strong style="color:var(--muted)">and sealed product</strong> (booster boxes, ETBs, bundles, tins, etc.) — try something like <em>"Obsidian Flames ETB"</em> or <em>"Evolving Skies Booster Box"</em>.
-            You can also search just by the number printed on the card — <em>"170/198"</em>, <em>"170"</em>, English promo IDs like <em>"SWSH001"</em>, <em>"BW17"</em>, <em>"TG01"</em>, <em>"GG70"</em>, <em>"SV01"</em>, or Japanese promo numbers like <em>"242/SV-P"</em>, <em>"001/S-P"</em>, <em>"024/SM-P"</em>.
-          </p>
-
-          <!-- Heads-up disclosure — collapsed by default to keep the search
-               area clean. Customers who tap it get the same full notice. -->
+          <!-- Search tips + heads-up disclosure — collapsed by default so
+               the search area stays clean. Tap the lightbulb to see how
+               search works (singles vs sealed, set/number/promo shortcuts)
+               and the price-adjustment notes for mismatched variants. -->
           <details class="ti-heads-up">
             <summary>
               <span class="ti-hu-icon">💡</span>
-              <span class="ti-hu-label"><strong>Heads up:</strong> tool is a work in progress + how mismatched variants get repriced</span>
+              <span class="ti-hu-label"><strong>Search tips + heads-up:</strong> how the search works, mismatched-variant repricing</span>
               <span class="ti-hu-chev" aria-hidden="true">▾</span>
             </summary>
             <div class="ti-hu-body">
-              This tool is a work in progress. If the search doesn't find a card, or the price looks off,
-              <a href="contact.html">reach out to us</a> and we'll help directly.
-              We also recommend <strong>photographing your cards before shipping</strong> — it helps us verify everything on intake.
-              If a card ends up being a different variant than what was selected (say Unlimited vs 1st Edition Charizard), pricing will be adjusted to the correct current market value.
-              Final pricing is always based on actual condition and variant at inspection.
+              <p style="margin:0 0 10px;">
+                <strong style="color:var(--text)">What's covered:</strong>
+                Search covers singles <strong style="color:var(--muted)">and sealed product</strong> (booster boxes, ETBs, bundles, tins, etc.) — try something like <em>"Obsidian Flames ETB"</em> or <em>"Evolving Skies Booster Box"</em>.
+                You can also search just by the number printed on the card — <em>"170/198"</em>, <em>"170"</em>, English promo IDs like <em>"SWSH001"</em>, <em>"BW17"</em>, <em>"TG01"</em>, <em>"GG70"</em>, <em>"SV01"</em>, or Japanese promo numbers like <em>"242/SV-P"</em>, <em>"001/S-P"</em>, <em>"024/SM-P"</em>.
+              </p>
+              <p style="margin:0;">
+                <strong style="color:var(--text)">Tool's a work in progress.</strong>
+                If the search doesn't find a card, or the price looks off, <a href="contact.html">reach out to us</a> and we'll help directly.
+                We also recommend <strong>photographing your cards before shipping</strong> — it helps us verify everything on intake.
+                If a card ends up being a different variant than what was selected (say Unlimited vs 1st Edition Charizard), pricing will be adjusted to the correct current market value.
+                Final pricing is always based on actual condition and variant at inspection.
+              </p>
             </div>
           </details>
 
@@ -1683,61 +1742,6 @@
                understand rates aren't a guarantee — final offers depend on
                liquidity, condition, desirability. Top column (≥$1k) gets
                a brand-orange highlight so the headline rate is glanceable. -->
-          <details class="ti-rate-matrix">
-            <summary class="trm-summary">
-              <span class="trm-summary-text">
-                <span class="trm-summary-eyebrow">My Buy Rates</span>
-                <span class="trm-summary-hint">Up to 85% cash · 100% trade credit — tap for the per-tier matrix</span>
-              </span>
-              <span class="trm-chevron" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </span>
-            </summary>
-            <div class="trm-title-row" style="margin-top:18px;">
-              <div class="trm-key" aria-label="Color key: orange numbers are cash, cyan numbers are trade credit">
-                <span class="trm-key-item trm-key-cash"><span class="trm-key-dot" aria-hidden="true"></span>Cash</span>
-                <span class="trm-key-sep">·</span>
-                <span class="trm-key-item trm-key-credit"><span class="trm-key-dot" aria-hidden="true"></span>Trade Credit</span>
-              </div>
-            </div>
-            <p class="trm-sub">Up to these rates per item, by type and market value. Cash / Trade Credit.</p>
-
-            <div class="trm-grid">
-              <!-- Header row -->
-              <div class="trm-th trm-th-corner"></div>
-              <div class="trm-th">&lt;$100</div>
-              <div class="trm-th">$100–$499</div>
-              <div class="trm-th">$500–$999</div>
-              <div class="trm-th trm-th-top">≥$1,000</div>
-
-              <!-- Singles row -->
-              <div class="trm-row-label trm-singles">Singles</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">65</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
-
-              <!-- Sealed row -->
-              <div class="trm-row-label trm-sealed">Sealed</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">65</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
-
-              <!-- Graded row -->
-              <div class="trm-row-label trm-graded">Graded</div>
-              <div class="trm-cell trm-cell-na" aria-label="Graded under $100 not accepted">&times;</div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">75</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
-              <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
-              <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
-            </div>
-            <ul class="trm-fineprint">
-              <li><strong>Cash / Trade Credit</strong> per item.</li>
-              <li>Rates based on recent verified market sales and liquidity.</li>
-              <li>Premium rates reserved for highly liquid inventory.</li>
-              <li>Graded cards under $100 not accepted.</li>
-            </ul>
-          </details>
 
           <div class="ti-contact">
             <h4>Your Info</h4>
