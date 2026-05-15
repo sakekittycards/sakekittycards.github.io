@@ -35,7 +35,7 @@ from _ebay_apify import fetch_apify
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (14).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (17).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -276,12 +276,27 @@ def main():
 
         # Policy: never lower an existing sticker — only push if higher.
         # Guard 3: sanity cap — don't auto-raise more than 2x in a single run.
-        # If the formula proposes a >2x jump, surface for manual review.
+        # Guard 4 (added 2026-05-15): tier-based raise threshold. A 2% bump on
+        # a $3000 sticker reads as "chasing the market" to buyers even though
+        # the dollars are noise. Require a meaningful move at higher tiers
+        # before pushing a raise.
+        #   under $200   -> raise on any formula bump
+        #   $200..$999   -> need formula > current * 1.05
+        #   $1000+       -> need formula > current * 1.10
         if cur_price > 0 and new_price > 2 * cur_price:
             action = "skip-sanity-cap-2x"
         elif new_price > cur_price:
-            action = "raise"
-            updates.append((cert, new_price, c))
+            if cur_price >= 1000:
+                threshold = cur_price * 1.10
+            elif cur_price >= 200:
+                threshold = cur_price * 1.05
+            else:
+                threshold = cur_price  # any raise OK in tier 1
+            if new_price > threshold:
+                action = "raise"
+                updates.append((cert, new_price, c))
+            else:
+                action = "skip-below-tier-threshold"
         elif new_price == cur_price:
             action = "no-change"
         else:
