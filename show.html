@@ -390,7 +390,7 @@
         <div class="code-card">
           <p class="code-card-eyebrow">Your Show Code</p>
           <p class="promo-code" id="promoCode" title="Tap to copy">MAYSHOW25</p>
-          <p class="promo-expires">Expires <strong>June 14, 2026</strong></p>
+          <p class="promo-expires">Expires <strong>June 12, 2026</strong></p>
           <p class="copy-hint">Tap the code to copy</p>
         </div>
       </div>
@@ -402,7 +402,7 @@
           <div class="divider" style="margin:10px auto 0"></div>
         </div>
         <div class="offers-grid">
-          <a href="shop.html" class="offer-card tone-orange">
+          <a href="shop.html?promo=MAYSHOW25" class="offer-card tone-orange">
             <div class="offer-icon" aria-hidden="true">🛒</div>
             <h3>Buyer</h3>
             <p class="offer-headline">$10 off any $100+ purchase</p>
@@ -537,7 +537,7 @@
           }
         } catch (err) {
           status.style.color = '#ff7a96';
-          status.textContent = 'Couldn\'t save your email — your code is MAYSHOW25, expires June 14. Show it at the booth.';
+          status.textContent = 'Couldn\'t save your email — your code is MAYSHOW25, expires June 12. Show it at the booth.';
           // Still reveal the code so the customer isn't blocked on a network error at a show.
           setTimeout(showReveal, 800);
         }
