@@ -371,6 +371,12 @@ function summonDancingBeaver() {
 const SK_CART_KEY        = 'sk_cart_v1';
 const SK_SHIP_STATE_KEY  = 'sk_ship_state_v1';
 const SK_SHIP_FLAT_FEE   = 5;
+// Free shipping kicks in when the cart subtotal crosses this threshold.
+// High-value orders absorb their own ship cost without the customer
+// feeling it; cheap orders still pay the flat fee.  Locked at $50
+// 2026-05-15 after the bake-into-everything vs. threshold trade-off
+// discussion (a flat bake-in under-priced heavy sealed orders).
+const SK_FREE_SHIP_THRESHOLD = 50;
 // Mandatory shipping insurance on graded / raw / sealed orders. $1 per
 // $100 of insurable value (rounded up to the next $100), only when the
 // insurable subtotal hits SK_INSURANCE_THRESHOLD. Merch is not insured.
@@ -476,6 +482,7 @@ function skInsuranceCost(insurableSubtotal) {
 }
 function skShippingCost(subtotal) {
   if (subtotal <= 0) return 0;
+  if (subtotal >= SK_FREE_SHIP_THRESHOLD) return 0;
   return SK_SHIP_FLAT_FEE;
 }
 
@@ -490,6 +497,7 @@ window.SK = {
   getSubtotal:    skCartSubtotal,
   getShipping:    skShippingCost,
   getInsurance:   () => skInsuranceCost(skInsurableSubtotal()),
+  FREE_SHIP_THRESHOLD: SK_FREE_SHIP_THRESHOLD,
   WORKER_BASE:    SK_WORKER_BASE,
   onCartChange(fn) { skCartListeners.add(fn); return () => skCartListeners.delete(fn); },
   openDrawer()     { document.getElementById('navCart')?.click(); },
@@ -609,7 +617,7 @@ window.SK = {
 
           <!-- Utility / trust chips. -->
           <ul class="cart-empty-trust">
-            <li><strong>Flat $5 shipping</strong> · cards & sealed ship insured at $1 per $100</li>
+            <li><strong>Free shipping over $${SK_FREE_SHIP_THRESHOLD}</strong> · flat $5 under · cards & sealed ship insured at $1 per $100</li>
             <li><strong>★ Gold Star Seller</strong> on TCGPlayer · 99%+ feedback</li>
             <li>Local-vendor heads up — every order reviewed before we charge</li>
           </ul>
@@ -702,7 +710,10 @@ window.SK = {
       </label>
 
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-      <div class="cart-totals-row"><span>Shipping</span><span>${fmt(shipping)}</span></div>
+      <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 && subtotal >= SK_FREE_SHIP_THRESHOLD ? '<strong style="color:#4ade80">FREE</strong>' : fmt(shipping)}</span></div>
+      ${shipping > 0 && subtotal < SK_FREE_SHIP_THRESHOLD
+        ? `<div class="cart-free-ship-hint" style="font-size:12px;color:var(--orange);margin:-4px 0 6px;line-height:1.4">📦 Add ${fmt(SK_FREE_SHIP_THRESHOLD - subtotal)} more for free shipping</div>`
+        : ''}
       ${insurance > 0
         ? `<div class="cart-totals-row"><span>Shipping insurance</span><span>${fmt(insurance)}</span></div>`
         : ''}
