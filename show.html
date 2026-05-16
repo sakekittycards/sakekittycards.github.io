@@ -389,28 +389,42 @@
       <div class="section" style="padding-top:0;padding-bottom:8px">
         <div class="code-card">
           <p class="code-card-eyebrow">Your Show Code</p>
-          <p class="promo-code" id="promoCode" title="Tap to copy">MAYSHOW25</p>
+          <p class="promo-code" id="promoCode" title="Tap to copy">···</p>
           <p class="promo-expires">Expires <strong>June 14, 2026</strong></p>
           <p class="copy-hint">Tap the code to copy</p>
         </div>
       </div>
 
-      <!-- Offer -->
+      <!-- Offers -->
       <div class="section" style="padding-top:6px;padding-bottom:8px">
         <div class="section-header" style="text-align:center;margin-bottom:8px">
-          <h2 class="section-title" style="display:inline-block">Your Offer</h2>
+          <h2 class="section-title" style="display:inline-block">Pick Your Path</h2>
           <div class="divider" style="margin:10px auto 0"></div>
         </div>
-        <div class="offers-grid" style="grid-template-columns:1fr;max-width:540px">
+        <div class="offers-grid">
           <a href="shop.html" class="offer-card tone-orange">
             <div class="offer-icon" aria-hidden="true">🛒</div>
-            <h3>$10 Off Your Order</h3>
-            <p class="offer-headline">Any purchase of $100 or more</p>
-            <p class="offer-body">Singles, sealed, slabs, or merch. Enter your code at checkout online or mention it at the booth.</p>
+            <h3>Buyer</h3>
+            <p class="offer-headline">$10 off any $100+ purchase</p>
+            <p class="offer-body">Singles, sealed, slabs, or merch. Mention your code at the booth or enter at checkout online.</p>
             <div class="offer-cta">Browse Shop →</div>
           </a>
+          <a href="trade-in.html" class="offer-card tone-pink">
+            <div class="offer-icon" aria-hidden="true">🤝</div>
+            <h3>Seller</h3>
+            <p class="offer-headline">+5% trade credit on any $100+ buylist</p>
+            <p class="offer-body">Bumps you up a tier on the published credit schedule. Cash payouts and the 100% credit cap still apply.</p>
+            <div class="offer-cta">Get a Quote →</div>
+          </a>
+          <a href="grading-prep.html" class="offer-card tone-cyan">
+            <div class="offer-icon" aria-hidden="true">🛡️</div>
+            <h3>Grader</h3>
+            <p class="offer-headline">10% off your first Grading Prep order</p>
+            <p class="offer-body">PSA, CGC, or Beckett — pre-screened and packed by us. Discount stacks across however many cards you submit.</p>
+            <div class="offer-cta">Submit for Prep →</div>
+          </a>
         </div>
-        <p class="terms-note">One offer per customer · Single-use code · Excludes bulk lots. Enter your code at checkout on <a href="shop.html" style="color:var(--cyan);text-decoration:underline">sakekittycards.com/shop</a> or show it at the booth.</p>
+        <p class="terms-note">One offer per customer · Single-use code. Buyer offer applies automatically at checkout. Trade-in &amp; Grading Prep: include your code in the form notes and we'll apply the offer to your quote. Buylist credit bump is on top of standard tier rates — total credit still capped at 100% of Market.</p>
       </div>
 
       <!-- Locations recap -->
@@ -504,27 +518,65 @@
         }
       }
 
+      const WORKER_BASE = 'https://sakekitty-square.nwilliams23999.workers.dev';
+
+      // Pull a unique code from D1 for this email.
+      async function claimCode(email) {
+        try {
+          const res = await fetch(`${WORKER_BASE}/promo/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (data.ok && data.code) return { ok: true, code: data.code, repeat: !!data.already_assigned };
+          if (data.reason === 'pool_exhausted') return { ok: false, reason: 'pool_exhausted' };
+          return { ok: false, reason: data.reason || 'claim_failed' };
+        } catch (err) {
+          return { ok: false, reason: 'network' };
+        }
+      }
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         btn.disabled = true;
         btn.textContent = 'Unlocking…';
         status.style.color = 'var(--muted)';
         status.textContent = '';
-        try {
-          const fd = new FormData(form);
-          const res = await fetch('https://api.web3forms.com/submit', {
-            method: 'POST', body: fd
-          });
-          const data = await res.json();
-          if (data && data.success) {
-            showReveal();
-          } else {
-            throw new Error(data && data.message ? data.message : 'Submission failed');
+
+        const fd = new FormData(form);
+        const email = (fd.get('email') || '').toString().trim().toLowerCase();
+
+        // Fire both in parallel: Web3Forms for the email-list backup, and
+        // /promo/claim for the unique-code assignment. Code-claim is the
+        // one the customer actually needs to see; the email-list save is
+        // best-effort and silently retried by Nick later if it fails.
+        const [w3Res, claimRes] = await Promise.allSettled([
+          fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd }),
+          claimCode(email),
+        ]);
+
+        const claim = claimRes.status === 'fulfilled' ? claimRes.value : { ok: false, reason: 'network' };
+
+        if (claim.ok) {
+          // Substitute the customer's unique code into the reveal block.
+          if (code) code.textContent = claim.code;
+          if (claim.repeat) {
+            status.style.color = 'var(--muted)';
+            status.textContent = 'Welcome back — same code as before.';
           }
-        } catch (err) {
+          showReveal();
+        } else if (claim.reason === 'pool_exhausted') {
+          // No codes left in the pool. Fall back to manual at-booth redemption.
+          status.style.color = '#ffb84d';
+          status.textContent = 'Show offer is at capacity — come find us at the booth and we\'ll take care of you.';
+          if (code) code.textContent = 'SEE NICK AT BOOTH';
+          setTimeout(showReveal, 800);
+        } else {
+          // Network or generic failure — fall back so the customer isn\'t blocked.
           status.style.color = '#ff7a96';
-          status.textContent = 'Couldn\'t save your email — your code is MAYSHOW25, expires June 14. Show it at the booth.';
-          // Still reveal the code so the customer isn't blocked on a network error at a show.
+          status.textContent = 'Couldn\'t reach our system — show this page to Nick at the booth and we\'ll honor the offer.';
+          if (code) code.textContent = 'ASK AT BOOTH';
           setTimeout(showReveal, 800);
         }
       });
