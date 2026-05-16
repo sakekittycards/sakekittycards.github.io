@@ -173,6 +173,25 @@
         0 0 32px rgba(255,106,0,0.20),
         0 0 0 1px rgba(255,255,255,0.06) inset;
       text-align: center;
+      animation: codeCardPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes codeCardPulse {
+      0%, 100% {
+        border-color: rgba(255,106,0,0.55);
+        box-shadow:
+          0 0 32px rgba(255,106,0,0.20),
+          0 0 0 1px rgba(255,255,255,0.06) inset;
+      }
+      50% {
+        border-color: rgba(255,106,0,1);
+        box-shadow:
+          0 0 60px rgba(255,106,0,0.55),
+          0 0 100px rgba(255,0,128,0.35),
+          0 0 0 1px rgba(255,255,255,0.10) inset;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .code-card { animation: none; }
     }
     .code-card-eyebrow {
       font-family: 'Inter', sans-serif; font-weight: 700;
