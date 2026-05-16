@@ -21,7 +21,7 @@ AIRTABLE_TABLE_ID     = "tbldRJdVmABVQskRY"
 [[d1_databases]]
 binding       = "PROMO_DB"
 database_name = "sk-promo-codes"
-database_id   = "REPLACE_WITH_D1_UUID_AFTER_CREATE"
+database_id   = "1c8c6137-c0e5-4d40-969c-e08f6389f709"
 
 # When flipping to production:
 #   1. wrangler secret put SQUARE_ACCESS_TOKEN       (paste the PRODUCTION token)
