@@ -68,7 +68,17 @@ export default {
 
       if (path === '/checkout' && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
-        return await createCheckout(body, base, squareHeaders, env, url);
+        return await createCheckout(body, base, squareHeaders, env, url, request);
+      }
+
+      // Promo code endpoints — D1-backed, single-use, atomic
+      if (path === '/promo/validate' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await validatePromoCode(body, env, request);
+      }
+      if (path === '/promo/redeem' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await redeemPromoCode(body, env, request);
       }
 
       if (path === '/grading/submit' && request.method === 'POST') {
@@ -370,7 +380,7 @@ const SALES_TAX_BY_STATE = {
   FL: { name: 'Florida Sales Tax', percentage: '6.0' },
 };
 
-async function createCheckout(body, base, headers, env, reqUrl) {
+async function createCheckout(body, base, headers, env, reqUrl, request) {
   const items         = Array.isArray(body.items) ? body.items : [];
   const shippingCost  = Number(body.shippingCost) || 0;
   // Mandatory shipping insurance, computed on the client side per the
@@ -378,6 +388,8 @@ async function createCheckout(body, base, headers, env, reqUrl) {
   // older client that doesn't send it.
   const insuranceCost = Number(body.insuranceCost) || 0;
   const buyerNote     = typeof body.note === 'string' ? body.note.slice(0, 500) : '';
+  const promoCode     = normalizePromoCode(body.promo_code);
+  const buyerEmail    = (body.email || '').trim().toLowerCase().slice(0, 200) || null;
   const returnUrl    = typeof body.returnUrl === 'string' && body.returnUrl.startsWith('http')
     ? body.returnUrl
     : 'https://sakekittycards.com/order-confirmation.html';
@@ -422,6 +434,39 @@ async function createCheckout(body, base, headers, env, reqUrl) {
     });
   }
 
+  // ── Promo code: atomically redeem against D1 before generating the
+  // Square Payment Link. If the code is invalid/used/below_min, the
+  // checkout fails BEFORE we touch Square. If it succeeds, we attach an
+  // ORDER-scoped FIXED_AMOUNT discount so Square reflects it on the
+  // hosted-checkout page.
+  let promoApplied = null;  // { code, discount_cents, discount_kind }
+  if (promoCode) {
+    if (!env.PROMO_DB) {
+      return json({ error: 'promo_disabled', detail: 'D1 not configured on worker' }, 503);
+    }
+    // Compute the cart subtotal we'll send to the redeem call. This is
+    // the sum of line item base prices * quantities, EXCLUDING shipping +
+    // insurance. (Promo's min_subtotal applies to merch, not to shipping.)
+    let cartSubtotalCents = 0;
+    for (const li of items) {
+      const q = Math.max(1, parseInt(li.quantity, 10) || 1);
+      const p = Math.round(Number(li.price) * 100);
+      if (Number.isFinite(p) && p > 0) cartSubtotalCents += p * q;
+    }
+    const redeemRes = await redeemPromoCode(
+      { code: promoCode, cart_subtotal: cartSubtotalCents, email: buyerEmail, channel: 'site' },
+      env,
+      request,
+    );
+    const redeemBody = await redeemRes.json();
+    if (!redeemBody.ok) {
+      // Bubble the failure reason up to the cart UI so it can show a
+      // helpful message ("code already redeemed", "$100 minimum", etc.)
+      return json({ error: 'promo_failed', reason: redeemBody.reason, detail: redeemBody }, 400);
+    }
+    promoApplied = redeemBody;
+  }
+
   const order = {
     location_id: env.SQUARE_LOCATION_ID,
     line_items:  lineItems,
@@ -447,6 +492,18 @@ async function createCheckout(body, base, headers, env, reqUrl) {
       type:       'ADDITIVE',
       percentage: taxRule.percentage,
       scope:      'ORDER',
+    }];
+  }
+
+  if (promoApplied) {
+    // ORDER-scoped FIXED_AMOUNT discount. Square subtracts this from the
+    // total on the hosted-checkout page and shows the line as "<code>".
+    order.discounts = [{
+      uid:                 'sk-promo',
+      name:                `Promo ${promoApplied.code}`,
+      type:                'FIXED_AMOUNT',
+      amount_money:        { amount: promoApplied.discount_cents, currency: 'USD' },
+      scope:               'ORDER',
     }];
   }
 
@@ -1519,5 +1576,208 @@ function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+}
+
+// ─── Promo code redemption ────────────────────────────────────────────────
+// D1-backed single-use codes. Validation is read-only; redemption is an
+// atomic UPDATE that locks the code in one operation so concurrent requests
+// can't double-spend.
+
+function normalizePromoCode(raw) {
+  return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+async function logPromoAttempt(env, fields) {
+  if (!env.PROMO_DB) return;
+  try {
+    await env.PROMO_DB.prepare(
+      `INSERT INTO promo_attempts (code, outcome, cart_subtotal, email, channel, ip_hash, ua_hash)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      fields.code || '',
+      fields.outcome || 'unknown',
+      fields.cart_subtotal ?? null,
+      fields.email || null,
+      fields.channel || 'site',
+      fields.ip_hash || null,
+      fields.ua_hash || null,
+    ).run();
+  } catch (e) {
+    // Logging must never break the user's checkout
+    console.error('promo_attempts insert failed', e);
+  }
+}
+
+async function shortHash(s) {
+  if (!s) return null;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).slice(0, 6)
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Validate a promo code against current cart state. Does NOT mark used.
+ * Returns { valid, discount_cents, reason, code, offer_type }
+ */
+async function validatePromoCode(body, env, request) {
+  const code = normalizePromoCode(body.code);
+  const cartSubtotal = Math.round(Number(body.cart_subtotal) || 0);  // cents
+  const email = (body.email || '').trim().toLowerCase().slice(0, 200) || null;
+
+  if (!env.PROMO_DB) return json({ valid: false, reason: 'promo_disabled' }, 503);
+  if (!code) return json({ valid: false, reason: 'missing_code' }, 400);
+
+  const ipHash = await shortHash(request.headers.get('CF-Connecting-IP') || '');
+  const uaHash = await shortHash(request.headers.get('User-Agent') || '');
+
+  const row = await env.PROMO_DB.prepare(
+    `SELECT code, offer_type, discount_kind, discount_value, min_subtotal,
+            expires_at, status FROM promo_codes WHERE code = ?`
+  ).bind(code).first();
+
+  if (!row) {
+    await logPromoAttempt(env, { code, outcome: 'not_found', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ valid: false, reason: 'not_found' });
+  }
+
+  if (row.status === 'used') {
+    await logPromoAttempt(env, { code, outcome: 'used', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ valid: false, reason: 'already_redeemed' });
+  }
+  if (row.status === 'disabled') {
+    await logPromoAttempt(env, { code, outcome: 'disabled', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ valid: false, reason: 'disabled' });
+  }
+
+  // Expiration — compare to today's UTC date (YYYY-MM-DD).
+  if (row.expires_at) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (today > row.expires_at) {
+      await logPromoAttempt(env, { code, outcome: 'expired', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+      return json({ valid: false, reason: 'expired' });
+    }
+  }
+
+  // Minimum subtotal
+  if (cartSubtotal < (row.min_subtotal || 0)) {
+    await logPromoAttempt(env, { code, outcome: 'below_min', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+    return json({
+      valid: false,
+      reason: 'below_min',
+      min_subtotal: row.min_subtotal,
+      cart_subtotal: cartSubtotal,
+    });
+  }
+
+  // Compute discount
+  let discount = 0;
+  if (row.discount_kind === 'fixed_amount') {
+    discount = row.discount_value;
+  } else if (row.discount_kind === 'percent') {
+    // discount_value is basis points (1000 = 10%)
+    discount = Math.round((cartSubtotal * row.discount_value) / 10000);
+  }
+  // Never discount more than the subtotal
+  discount = Math.min(discount, cartSubtotal);
+
+  await logPromoAttempt(env, { code, outcome: 'valid', cart_subtotal: cartSubtotal, email, ip_hash: ipHash, ua_hash: uaHash });
+
+  return json({
+    valid: true,
+    code,
+    offer_type: row.offer_type,
+    discount_kind: row.discount_kind,
+    discount_value: row.discount_value,
+    discount_cents: discount,
+    min_subtotal: row.min_subtotal,
+  });
+}
+
+/**
+ * Atomically mark a code redeemed and return the discount to apply.
+ * Returns { ok, discount_cents, reason } — the caller (createCheckout)
+ * uses discount_cents to build the Square order discount.
+ *
+ * Race-safety: UPDATE ... WHERE status='active' guarantees only one
+ * request can flip the row. The .meta.changes count tells us if our
+ * UPDATE actually changed a row.
+ */
+async function redeemPromoCode(body, env, request) {
+  const code = normalizePromoCode(body.code);
+  const cartSubtotal = Math.round(Number(body.cart_subtotal) || 0);
+  const email = (body.email || '').trim().toLowerCase().slice(0, 200) || null;
+  const orderId = (body.order_id || '').toString().slice(0, 100) || null;
+  const channel = (body.channel || 'site').toString().slice(0, 32);
+
+  if (!env.PROMO_DB) return json({ ok: false, reason: 'promo_disabled' }, 503);
+  if (!code) return json({ ok: false, reason: 'missing_code' }, 400);
+
+  const ipHash = await shortHash(request?.headers?.get('CF-Connecting-IP') || '');
+  const uaHash = await shortHash(request?.headers?.get('User-Agent') || '');
+
+  // Read current state first so we can return the right reason on failure.
+  const row = await env.PROMO_DB.prepare(
+    `SELECT code, offer_type, discount_kind, discount_value, min_subtotal,
+            expires_at, status FROM promo_codes WHERE code = ?`
+  ).bind(code).first();
+
+  if (!row) {
+    await logPromoAttempt(env, { code, outcome: 'not_found', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ ok: false, reason: 'not_found' });
+  }
+  if (row.status === 'used') {
+    await logPromoAttempt(env, { code, outcome: 'used', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ ok: false, reason: 'already_redeemed' });
+  }
+  if (row.status === 'disabled') {
+    await logPromoAttempt(env, { code, outcome: 'disabled', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ ok: false, reason: 'disabled' });
+  }
+  if (row.expires_at) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (today > row.expires_at) {
+      await logPromoAttempt(env, { code, outcome: 'expired', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+      return json({ ok: false, reason: 'expired' });
+    }
+  }
+  if (cartSubtotal < (row.min_subtotal || 0)) {
+    await logPromoAttempt(env, { code, outcome: 'below_min', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ ok: false, reason: 'below_min', min_subtotal: row.min_subtotal, cart_subtotal: cartSubtotal });
+  }
+
+  // Compute discount
+  let discount = 0;
+  if (row.discount_kind === 'fixed_amount') discount = row.discount_value;
+  else if (row.discount_kind === 'percent') discount = Math.round((cartSubtotal * row.discount_value) / 10000);
+  discount = Math.min(discount, cartSubtotal);
+
+  // Atomic flip: only succeeds if status is still 'active'.
+  const update = await env.PROMO_DB.prepare(
+    `UPDATE promo_codes
+        SET status = 'used',
+            used_at = datetime('now'),
+            used_by_email = ?,
+            used_amount = ?,
+            used_order_id = ?,
+            used_channel = ?
+      WHERE code = ? AND status = 'active'`
+  ).bind(email, cartSubtotal, orderId, channel, code).run();
+
+  if (!update.meta || update.meta.changes !== 1) {
+    // Race lost — someone else redeemed between our SELECT and UPDATE.
+    await logPromoAttempt(env, { code, outcome: 'race_lost', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+    return json({ ok: false, reason: 'already_redeemed' });
+  }
+
+  await logPromoAttempt(env, { code, outcome: 'redeemed', cart_subtotal: cartSubtotal, email, channel, ip_hash: ipHash, ua_hash: uaHash });
+
+  return json({
+    ok: true,
+    code,
+    discount_cents: discount,
+    discount_kind: row.discount_kind,
+    discount_value: row.discount_value,
+    offer_type: row.offer_type,
   });
 }

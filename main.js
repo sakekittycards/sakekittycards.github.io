@@ -584,6 +584,115 @@ window.SK = {
     badge.hidden = count === 0;
   }
 
+  // ─── Promo code state ─────────────────────────────────────────────────────
+  // Persisted in localStorage so the discount survives drawer close/reopen
+  // and page navigation. Shape: { code, status: 'valid'|'invalid'|'pending',
+  // discount, reason, validatedAt, validatedSubtotal }.
+  const SK_PROMO_KEY = 'sk_promo_v1';
+
+  function skGetPromoState() {
+    try { return JSON.parse(localStorage.getItem(SK_PROMO_KEY) || 'null'); }
+    catch { return null; }
+  }
+  function skSetPromoState(state) {
+    if (!state) { localStorage.removeItem(SK_PROMO_KEY); return; }
+    try { localStorage.setItem(SK_PROMO_KEY, JSON.stringify(state)); } catch {}
+  }
+  // Return the promo state ONLY if it's valid for the current subtotal,
+  // otherwise null. (Subtotal might've changed since validation — e.g.
+  // user removed an item dropping below $100 — so we re-check the floor.)
+  function skGetValidPromo(currentSubtotalDollars) {
+    const p = skGetPromoState();
+    if (!p || p.status !== 'valid' || !p.code) return null;
+    const minCents = p.minSubtotal || 0;
+    if (Math.round(currentSubtotalDollars * 100) < minCents) return null;
+    return p;
+  }
+  function renderPromoRow(promo, subtotal) {
+    if (promo && promo.status === 'valid') {
+      return `<div class="cart-totals-row" style="color:#4ade80"><span>Promo <code style="background:rgba(74,222,128,0.12);padding:1px 6px;border-radius:4px;font-family:'Courier New',monospace">${promo.code}</code></span><span>−${fmt(promo.discount)}</span></div>`;
+    }
+    return ''; // input lives below the totals; nothing to show inline yet
+  }
+
+  // Promo input box below totals — collapsed by default unless they have
+  // an active code or are mid-validation.
+  function renderPromoInput(promo, subtotal) {
+    const stored = skGetPromoState();
+    // If currently valid, show "Remove code" affordance instead of input.
+    if (promo && promo.status === 'valid') {
+      return `
+        <div class="cart-promo-applied" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid rgba(74,222,128,0.35);border-radius:8px;background:rgba(74,222,128,0.05);margin:8px 0">
+          <span style="font-size:13px;color:#4ade80;flex:1">✓ <strong>${promo.code}</strong> applied — ${fmt(promo.discount)} off</span>
+          <button type="button" id="cartPromoRemove" class="btn-link" style="background:none;border:none;color:var(--dim);font-size:12px;cursor:pointer;text-decoration:underline">Remove</button>
+        </div>
+      `;
+    }
+    // If stored but invalid (e.g., subtotal dropped below min), show the error.
+    const status = stored?.status;
+    const reason = stored?.reason;
+    const reasonText = {
+      not_found:        'Code not found.',
+      already_redeemed: 'Code already used.',
+      below_min:        `Spend $${((stored?.minSubtotal||0)/100).toFixed(0)}+ to use this code.`,
+      expired:          'Code expired.',
+      disabled:         'Code is no longer active.',
+      network:          'Could not check code — try again.',
+    }[reason] || (status === 'invalid' ? 'Code invalid.' : '');
+    const prefillValue = stored?.code && status !== 'invalid' ? stored.code : '';
+
+    return `
+      <div class="cart-promo" style="margin:8px 0">
+        <label for="cartPromoInput" style="display:block;font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px">Promo code</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="cartPromoInput" placeholder="ABCD" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                 value="${prefillValue}"
+                 style="flex:1;background:rgba(0,0,0,0.25);border:1.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;font-size:16px;font-family:'Courier New',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--text)" />
+          <button type="button" id="cartPromoApply" class="btn btn-outline" style="padding:0 18px;font-size:13px;letter-spacing:0.06em">Apply</button>
+        </div>
+        ${reasonText ? `<p style="font-size:12px;color:#ff7a96;margin:6px 0 0">${reasonText}</p>` : ''}
+        <p style="font-size:11px;color:var(--dim);margin:4px 0 0">Show code from your business card? Enter it here.</p>
+      </div>
+    `;
+  }
+
+  // Hit the worker to validate a code against the current subtotal.
+  async function applyPromoCode(rawCode) {
+    const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!code) return;
+    const subtotalCents = Math.round(skCartSubtotal() * 100);
+    // Optimistic loading state
+    skSetPromoState({ code, status: 'pending' });
+    renderDrawer();
+
+    try {
+      const res = await fetch(`${SK_WORKER_BASE}/promo/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, cart_subtotal: subtotalCents }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        skSetPromoState({
+          code:              data.code,
+          status:            'valid',
+          discount:          (data.discount_cents || 0) / 100,   // store in dollars for total math
+          discountCents:     data.discount_cents,
+          discountKind:      data.discount_kind,
+          discountValue:     data.discount_value,
+          minSubtotal:       data.min_subtotal,
+          offerType:         data.offer_type,
+          validatedSubtotal: subtotalCents,
+        });
+      } else {
+        skSetPromoState({ code, status: 'invalid', reason: data.reason, minSubtotal: data.min_subtotal });
+      }
+    } catch (err) {
+      skSetPromoState({ code, status: 'invalid', reason: 'network' });
+    }
+    renderDrawer();
+  }
+
   function renderDrawer() {
     const body   = document.getElementById('cartBody');
     const footer = document.getElementById('cartFooter');
@@ -670,7 +779,10 @@ window.SK = {
     const insurance = skInsuranceCost(insurable);
     const shipState = skGetShipState();
     const tax       = skTaxAmount(subtotal, shipping, shipState, insurance);
-    const total     = subtotal + shipping + insurance + tax;
+    // Promo discount applied? skPromoState() returns { code, discount, status, reason } or null.
+    const promo     = skGetValidPromo(subtotal);
+    const discount  = promo ? promo.discount : 0;
+    const total     = Math.max(0, subtotal - discount + shipping + insurance + tax);
 
     // US state options. FL flagged so we can show a small "+7% tax" hint.
     const STATES = [
@@ -710,6 +822,7 @@ window.SK = {
       </label>
 
       <div class="cart-totals-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+      ${renderPromoRow(promo, subtotal)}
       <div class="cart-totals-row"><span>Shipping</span><span>${shipping === 0 && subtotal >= SK_FREE_SHIP_THRESHOLD ? '<strong style="color:#4ade80">FREE</strong>' : fmt(shipping)}</span></div>
       ${shipping > 0 && subtotal < SK_FREE_SHIP_THRESHOLD
         ? `<div class="cart-free-ship-hint" style="font-size:12px;color:var(--orange);margin:-4px 0 6px;line-height:1.4">📦 Add ${fmt(SK_FREE_SHIP_THRESHOLD - subtotal)} more for free shipping</div>`
@@ -720,6 +833,8 @@ window.SK = {
       ${taxRow}
       <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
       <p class="cart-insurance-note">All card and sealed packages ship insured (${fmt(SK_INSURANCE_RATE_PER_100)} per ${fmt(100)} of card value).</p>
+
+      ${renderPromoInput(promo, subtotal)}
 
       <div class="cart-pay-options">
         <button type="button" class="btn btn-primary cart-pay-btn" id="payWithSquare"${checkoutDisabled ? ' disabled' : ''}>
@@ -752,6 +867,23 @@ window.SK = {
       document.getElementById('payWithVenmo')?.addEventListener('click',  () => openCustomerInfoModal('venmo', cart, subtotal, shipping, total, tax, insurance));
       document.getElementById('payWithPaypal')?.addEventListener('click', () => openCustomerInfoModal('paypal', cart, subtotal, shipping, total, tax, insurance));
     }
+
+    // Promo: apply / remove handlers
+    const promoApplyBtn = document.getElementById('cartPromoApply');
+    const promoInput    = document.getElementById('cartPromoInput');
+    const promoRemove   = document.getElementById('cartPromoRemove');
+    if (promoApplyBtn && promoInput) {
+      promoApplyBtn.addEventListener('click', () => applyPromoCode(promoInput.value));
+      promoInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); applyPromoCode(promoInput.value); }
+      });
+    }
+    if (promoRemove) {
+      promoRemove.addEventListener('click', () => {
+        skSetPromoState(null);
+        renderDrawer();
+      });
+    }
   }
 
   // ─── Square: redirect to hosted checkout ──────────────────────────────────
@@ -763,6 +895,7 @@ window.SK = {
     btn.innerHTML = '<span class="pay-label">Connecting to Square…</span>';
 
     try {
+      const promo = skGetValidPromo(skCartSubtotal());
       const res = await fetch(`${SK_WORKER_BASE}/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -776,13 +909,34 @@ window.SK = {
           shippingCost:  shipping,
           insuranceCost: insurance,
           shippingState: shippingState || '',
+          promo_code:    promo ? promo.code : undefined,
           returnUrl: `${window.location.origin}/order-confirmation.html?from=square`,
         }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
+        // If the failure is specifically about the promo code, surface that
+        // and clear the stored promo so the user can re-enter or remove.
+        if (data.error === 'promo_failed') {
+          const reasonMsg = {
+            already_redeemed: 'This code has already been used. Removing it from your cart.',
+            below_min:        'Your subtotal dropped below the code minimum. Removing it.',
+            expired:          'This code has expired. Removing it.',
+            not_found:        'Code not found. Removing it.',
+            disabled:         'This code is no longer active. Removing it.',
+          }[data.reason] || 'Promo code issue — removed from cart. Try again or proceed without.';
+          skSetPromoState(null);
+          renderDrawer();
+          alert(reasonMsg);
+          btn.disabled = false;
+          btn.innerHTML = originalHTML;
+          return;
+        }
         throw new Error(data.error || 'Could not reach Square');
       }
+      // On success, the code is now used in D1. Clear local state so the
+      // user can't try to use it again from the same browser.
+      skSetPromoState(null);
       window.location.assign(data.url);
     } catch (err) {
       console.error('Square checkout failed:', err);

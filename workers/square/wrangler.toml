@@ -13,6 +13,16 @@ PRINTFUL_STORE_ID     = "18064906"
 AIRTABLE_BASE_ID      = "appG9mKWxmwq9ZbTq"
 AIRTABLE_TABLE_ID     = "tbldRJdVmABVQskRY"
 
+# Promo code D1 database. Create via:
+#   wrangler d1 create sk-promo-codes
+# Then replace database_id with the returned UUID and run:
+#   wrangler d1 execute sk-promo-codes --file=migrations/0001_promo_codes.sql --remote
+#   wrangler d1 execute sk-promo-codes --file=migrations/0002_seed_promo_codes.sql --remote
+[[d1_databases]]
+binding       = "PROMO_DB"
+database_name = "sk-promo-codes"
+database_id   = "1c8c6137-c0e5-4d40-969c-e08f6389f709"
+
 # When flipping to production:
 #   1. wrangler secret put SQUARE_ACCESS_TOKEN       (paste the PRODUCTION token)
 #   2. Update SQUARE_APPLICATION_ID to production app ID (no "sandbox-" prefix)
