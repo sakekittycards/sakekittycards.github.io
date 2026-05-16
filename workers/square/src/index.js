@@ -80,6 +80,10 @@ export default {
         const body = await request.json().catch(() => ({}));
         return await redeemPromoCode(body, env, request);
       }
+      if (path === '/promo/claim' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await claimPromoCode(body, env, request);
+      }
 
       if (path === '/grading/submit' && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
@@ -1780,4 +1784,60 @@ async function redeemPromoCode(body, env, request) {
     discount_value: row.discount_value,
     offer_type: row.offer_type,
   });
+}
+
+/**
+ * Atomically assign an unused code to an email. If the email already has
+ * a code (repeat scan / refresh), return that same code so the customer
+ * sees the same one. Otherwise pop the first active+unassigned code and
+ * lock it to this email.
+ *
+ * Returns { ok: true, code, already_assigned? } on success
+ *      or { ok: false, reason: 'pool_exhausted' | 'race_exhausted' | 'missing_email' }
+ */
+async function claimPromoCode(body, env, request) {
+  const email = (body.email || '').trim().toLowerCase().slice(0, 200);
+  const campaign = (body.campaign || 'may-2026-shows').toString().slice(0, 100);
+
+  if (!env.PROMO_DB) return json({ ok: false, reason: 'promo_disabled' }, 503);
+  if (!email || !email.includes('@')) return json({ ok: false, reason: 'missing_email' }, 400);
+
+  // Already claimed? Return the same code so refresh/re-scan is idempotent.
+  const existing = await env.PROMO_DB.prepare(
+    `SELECT code FROM promo_codes
+      WHERE assigned_to_email = ? AND campaign = ?
+      ORDER BY assigned_at DESC LIMIT 1`
+  ).bind(email, campaign).first();
+  if (existing) {
+    return json({ ok: true, code: existing.code, already_assigned: true });
+  }
+
+  // Otherwise atomically pop the first unassigned active code.
+  // SELECT a candidate, then UPDATE with a WHERE clause that re-checks
+  // assignment so concurrent claims can't double-assign the same code.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const pick = await env.PROMO_DB.prepare(
+      `SELECT code FROM promo_codes
+        WHERE assigned_to_email IS NULL
+          AND status = 'active'
+          AND campaign = ?
+        ORDER BY code
+        LIMIT 1`
+    ).bind(campaign).first();
+    if (!pick) {
+      return json({ ok: false, reason: 'pool_exhausted' });
+    }
+    const upd = await env.PROMO_DB.prepare(
+      `UPDATE promo_codes
+          SET assigned_to_email = ?, assigned_at = datetime('now')
+        WHERE code = ?
+          AND assigned_to_email IS NULL
+          AND status = 'active'`
+    ).bind(email, pick.code).run();
+    if (upd.meta && upd.meta.changes === 1) {
+      return json({ ok: true, code: pick.code, already_assigned: false });
+    }
+    // Race lost — another claim grabbed it. Try again.
+  }
+  return json({ ok: false, reason: 'race_exhausted' });
 }

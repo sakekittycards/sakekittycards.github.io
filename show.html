@@ -389,7 +389,7 @@
       <div class="section" style="padding-top:0;padding-bottom:8px">
         <div class="code-card">
           <p class="code-card-eyebrow">Your Show Code</p>
-          <p class="promo-code" id="promoCode" title="Tap to copy">MAYSHOW25</p>
+          <p class="promo-code" id="promoCode" title="Tap to copy">···</p>
           <p class="promo-expires">Expires <strong>June 14, 2026</strong></p>
           <p class="copy-hint">Tap the code to copy</p>
         </div>
@@ -424,7 +424,7 @@
             <div class="offer-cta">Submit for Prep →</div>
           </a>
         </div>
-        <p class="terms-note">One offer per customer. Excludes bulk lots. Buylist credit bump is on top of standard tier rates — total credit still capped at 100% of Market. Show your code at the booth or enter <code style="color:var(--cyan)">MAYSHOW25</code> at checkout online.</p>
+        <p class="terms-note">One offer per customer · Single-use code. Buyer offer applies automatically at checkout. Trade-in &amp; Grading Prep: include your code in the form notes and we'll apply the offer to your quote. Buylist credit bump is on top of standard tier rates — total credit still capped at 100% of Market.</p>
       </div>
 
       <!-- Locations recap -->
@@ -518,27 +518,65 @@
         }
       }
 
+      const WORKER_BASE = 'https://sakekitty-square.nwilliams23999.workers.dev';
+
+      // Pull a unique code from D1 for this email.
+      async function claimCode(email) {
+        try {
+          const res = await fetch(`${WORKER_BASE}/promo/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (data.ok && data.code) return { ok: true, code: data.code, repeat: !!data.already_assigned };
+          if (data.reason === 'pool_exhausted') return { ok: false, reason: 'pool_exhausted' };
+          return { ok: false, reason: data.reason || 'claim_failed' };
+        } catch (err) {
+          return { ok: false, reason: 'network' };
+        }
+      }
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         btn.disabled = true;
         btn.textContent = 'Unlocking…';
         status.style.color = 'var(--muted)';
         status.textContent = '';
-        try {
-          const fd = new FormData(form);
-          const res = await fetch('https://api.web3forms.com/submit', {
-            method: 'POST', body: fd
-          });
-          const data = await res.json();
-          if (data && data.success) {
-            showReveal();
-          } else {
-            throw new Error(data && data.message ? data.message : 'Submission failed');
+
+        const fd = new FormData(form);
+        const email = (fd.get('email') || '').toString().trim().toLowerCase();
+
+        // Fire both in parallel: Web3Forms for the email-list backup, and
+        // /promo/claim for the unique-code assignment. Code-claim is the
+        // one the customer actually needs to see; the email-list save is
+        // best-effort and silently retried by Nick later if it fails.
+        const [w3Res, claimRes] = await Promise.allSettled([
+          fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd }),
+          claimCode(email),
+        ]);
+
+        const claim = claimRes.status === 'fulfilled' ? claimRes.value : { ok: false, reason: 'network' };
+
+        if (claim.ok) {
+          // Substitute the customer's unique code into the reveal block.
+          if (code) code.textContent = claim.code;
+          if (claim.repeat) {
+            status.style.color = 'var(--muted)';
+            status.textContent = 'Welcome back — same code as before.';
           }
-        } catch (err) {
+          showReveal();
+        } else if (claim.reason === 'pool_exhausted') {
+          // No codes left in the pool. Fall back to manual at-booth redemption.
+          status.style.color = '#ffb84d';
+          status.textContent = 'Show offer is at capacity — come find us at the booth and we\'ll take care of you.';
+          if (code) code.textContent = 'SEE NICK AT BOOTH';
+          setTimeout(showReveal, 800);
+        } else {
+          // Network or generic failure — fall back so the customer isn\'t blocked.
           status.style.color = '#ff7a96';
-          status.textContent = 'Couldn\'t save your email — your code is MAYSHOW25, expires June 14. Show it at the booth.';
-          // Still reveal the code so the customer isn't blocked on a network error at a show.
+          status.textContent = 'Couldn\'t reach our system — show this page to Nick at the booth and we\'ll honor the offer.';
+          if (code) code.textContent = 'ASK AT BOOTH';
           setTimeout(showReveal, 800);
         }
       });
