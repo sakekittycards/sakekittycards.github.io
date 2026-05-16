@@ -1,0 +1,56 @@
+Querying eBay (Apify) for: 2022 Pikachu VSTAR Universe Full Art #205 PSA 10
+Keywords: ['pikachu vstar universe full art 205 psa 10', 'pikachu vstar universe 205 psa 10', 'pikachu full art vstar universe psa 10 japanese']
+
+[ebay] 3 keywords -> 1 parallel runs (max 6/run)
+[ebay] started run 1/1 (GvH4lOHbNMb4DFoQx) with 3 kw
+[ebay] 15s: 0/1 runs done
+[ebay] 30s: 0/1 runs done
+[ebay] 45s: 1/1 runs done
+[ebay] aggregated dataset items across all runs: 24
+
+Total unique items returned: 14
+After PSA 10 title filter: 14
+After Pikachu + VSTAR-Universe relevance filter: 12
+
+ #  endedAt                  total  title
+----------------------------------------------------------------------------------------------------------------------------------
+   1  2026-05-15T00:00:00.000Z $   850  PSA 10 GEM MINT Pikachu VSTAR Universe 205/172 AR Full Art Holo Pokemon Card
+   2  2026-05-15T00:00:00.000Z $  2015  PSA 10 Vstar Universe AR Pikachu 205/172 Pokemon Card Japanese SEQ 9 Set
+   3  2026-05-13T00:00:00.000Z $   750  Pokemon Card Game Pikachu AR 205/172 VSTAR Universe PSA 10 Japanese
+   4  2026-05-11T00:00:00.000Z $   881  PSA 10 Pikachu AR 205/172 S12a VSTAR Universe Japanese Pokemon Card
+   5  2026-05-10T00:00:00.000Z $   696  2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #205 FULL ART/PIKACHU PSA 10
+   6  2026-05-10T00:00:00.000Z $   781  Pokemon PSA 10 Pikachu #205 Art Rare Vstar Universe 2022 Japanese
+   7  2026-05-09T00:00:00.000Z $   706  2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #205 FULL ART/PIKACHU PSA 10
+   8  2026-05-08T00:00:00.000Z $   655  2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #205 FULL ART/PIKACHU PSA 10
+   9  2026-04-25T00:00:00.000Z $   676  2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #205 FULL ART/PIKACHU PSA 10
+  10  2026-04-24T00:00:00.000Z $    86  2022 POKEMON JAPANESE SWORD & SHIELD VSTAR UNIVERSE #205 FULL ART/PIKACHU PSA 10
+  11  2026-04-20T00:00:00.000Z $   795  Pikachu 205/172 VSTAR Universe 2022 Japanese Pokemon Card PSA 10
+  12  2026-04-14T00:00:00.000Z $   707  2022 Pokemon PIKACHU #205/172 VSTAR Universe Art Rare Holo Japanese PSA 10
+
+============================================================
+TREND ANALYSIS
+============================================================
+Sample size: 12 sold listings
+Min  $86
+Max  $2,015
+Mean $800
+Median $729
+
+Recent half (6 sales): avg $995  median $815
+Older half  (6 sales): avg $604  median $691
+Trend: +64.8% (recent vs older)
+
+Trimmed mean (drop high+low): $750
+
+Last 5 sold avg: $1,038
+
+============================================================
+FORMULA APPLIED
+============================================================
+  CL CV:           $730.52
+  PC PSA 10:       $667.50
+  eBay last-5 avg: $1038.45
+  -> max anchor:   $1038.45
+  -> markup:       $1121.53
+  -> sticker:      $1120
+  -> floor:        $1030

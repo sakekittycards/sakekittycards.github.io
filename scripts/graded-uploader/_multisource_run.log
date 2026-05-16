@@ -1,0 +1,32 @@
+[ms] Loaded: 53 CL rows, 53 pricing rows, 47,020 PC entries
+[ms] Fetching eBay sold for 52 keywords (~5-15 min) ...
+[ebay] 52 keywords -> 9 parallel runs (max 6/run)
+[ebay] started run 1/9 (b2mhbcbh5LUrRcDNl) with 6 kw
+[ebay] started run 2/9 (ryiJ24JVb1EB1hsEL) with 6 kw
+[ebay] started run 3/9 (lxbKRisY8qSqYZK9r) with 6 kw
+[ebay] started run 4/9 (1poB5Kgizad8tLYQV) with 6 kw
+[ebay] started run 5/9 (UeiJhHG4U3qIUcUTC) with 6 kw
+[ebay] started run 6/9 (WXAwO0d4AwDW04sf7) with 6 kw
+[ebay] started run 7/9 (0ZQNwhw4Ez90Y3MuH) with 6 kw
+[ebay] started run 8/9 (MEFZ4Kg1gGoYzWRaM) with 6 kw
+[ebay] started run 9/9 (y3eNC49QQ2KcgqHLu) with 4 kw
+[ebay] 15s: 0/9 runs done
+[ebay] 30s: 1/9 runs done
+[ebay] 45s: 7/9 runs done
+[ebay] 60s: 9/9 runs done
+[ebay] aggregated dataset items across all runs: 416
+[ms] eBay results: 49 keywords returned data
+[ms] Report -> C:\Users\lunar\OneDrive\Desktop\sake-kitty-cards-site\scripts\graded-uploader\_multisource_report_2026-05-15.csv
+[ms] Plan: {'raise': 10, 'skip-not-lowering': 36, 'no-change': 6, 'skip': 1}
+[ms] Pushing 10 sticker raises to Square ...
+   1/10 OK  cert 102607615  $3475
+   2/10 OK  cert 107496657  $560
+   3/10 OK  cert 115079776  $505
+   4/10 OK  cert 131611480  $1055
+   5/10 OK  cert 146746311  $415
+   6/10 OK  cert 3914522049  $190
+   7/10 OK  cert 94676138  $3475
+   8/10 OK  cert 143516232  $1780
+   9/10 OK  cert 156593992  $1780
+  10/10 OK  cert 104313026  $70
+[ms] pricing.csv updated. 10 pushed, 0 failed.
