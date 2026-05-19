@@ -30,12 +30,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from _ebay_apify import fetch_apify
+from _ebay_apify import fetch_apify, fetch_or_cache as _ebay_cached
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (17).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (19).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -92,35 +92,129 @@ def normalize_grade(g: str) -> str:
     return g
 
 
-def build_ebay_keyword_from_cl(cl_row: dict, grade: str) -> str:
-    """Build a focused eBay query from CL fields (Subject + Number + Set).
-    NEVER from pricing.csv.name — that field carries forward pokemontcg.io
-    misidentifications (e.g. cert 113090244 -> 'Sandile', actually a Rowlet/
-    Exeggutor GX). Bad name = wrong eBay results = inflated avg = catastrophe.
-    """
-    subject = (cl_row.get("Subject") or "").strip()
+# CL's internal set-name prefixes that don't appear in eBay titles
+# (e.g. "Obf En-Obsidian Flames" -> "Obsidian Flames").
+CL_SET_PREFIXES = re.compile(
+    r"\b(?:Obf|Wht|Sv\d+(?:pt\d+|[a-z]+)?|Pre|Meg|Asc|Blk|Paf|Svp|Sv\da?|Wsv|Bsv)"
+    r"\s+(?:En|Jp|Sc)\s*-\s*", re.I
+)
+
+
+def _clean_set(s: str) -> str:
+    s = re.sub(r"^Pokemon\s+(Japanese\s+)?", "", s, flags=re.I)
+    s = CL_SET_PREFIXES.sub("", s)
+    return " ".join(s.replace(":", " ").split())
+
+
+def _clean_subject(s: str) -> str:
+    # Expand CL's "Fa /" prefix -> "Full Art" (matches eBay seller convention)
+    s = re.sub(r"^(FA|Fa|Full\s*Art)\s*/\s*", "Full Art ", s)
     # Strip CL's "-Holo", "-Rev.foil", "-Reverse", "-Secret" shorthand suffixes
-    subject = re.sub(r"-(Holo|Rev\.?\s*foil|Reverse|Secret)\b", "",
-                     subject, flags=re.I).strip()
-    number = (cl_row.get("Number") or "").strip()
-    set_field = (cl_row.get("Set") or "").strip()
-    set_clean = re.sub(r"^Pokemon\s+(Japanese\s+)?", "", set_field, flags=re.I).strip()
-    set_short = " ".join(set_clean.split()[:3])
-    parts = [grade, subject]
-    if number:
-        parts.append(f"#{number}" if not number.startswith("#") else number)
-    if set_short:
-        parts.append(set_short)
-    return " ".join(p for p in parts if p)
+    s = re.sub(r"-(Holo|Rev\.?\s*foil|Reverse|Secret)\b", "", s, flags=re.I)
+    return " ".join(s.replace("/", " ").replace(":", "").split())
+
+
+def _clean_variation(v: str) -> str:
+    # Drop set-name duplicates that CL sometimes puts in Variation
+    if not v: return ""
+    v = v.replace(":", " ")
+    if re.match(r"^(Vmax|Sword|Shield|Scarlet|Violet|Sun|Moon)\s*", v, re.I):
+        if any(t in v for t in ("Climax", "Voltage", "Skies", "Strike", "Bolt", "Flare")):
+            return ""
+    return " ".join(v.split())
+
+
+def _short_number(n: str) -> str:
+    # "202/165" -> "202"; "062/SV-P" -> "062"
+    n = (n or "").strip().lstrip("#")
+    return n.split("/", 1)[0] if "/" in n else n
+
+
+def _grade_for_query(g: str) -> str:
+    g = (g or "").strip()
+    if re.match(r"^CGC\s*10\s*Pristine$", g, re.I):
+        return "CGC Pristine 10"
+    return g
+
+
+def build_ebay_keyword_from_cl(cl_row: dict, grade: str) -> str:
+    """Build an eBay sold-listings query from CL fields, mirroring how a real
+    collector would search eBay. v2 (2026-05-18): pulls Year + Subject +
+    Variation + Number + Set + Grade so the query disambiguates Art Rare vs
+    regular vs SIR vs FA Secret.
+
+    NEVER from pricing.csv.name — that field carries forward pokemontcg.io
+    misidentifications. CL is the truth source for graded card identity.
+    """
+    parts: list[str] = []
+    year = (cl_row.get("Year") or "").strip()
+    if year:
+        parts.append(year)
+    subj = _clean_subject(cl_row.get("Subject") or "")
+    if subj:
+        parts.append(subj)
+    var = _clean_variation(cl_row.get("Variation") or "")
+    if var:
+        parts.append(var)
+    num = _short_number(cl_row.get("Number") or "")
+    if num:
+        parts.append(f"#{num}")
+    set_clean = _clean_set(cl_row.get("Set") or "")
+    if set_clean:
+        parts.append(set_clean)
+    # Grade comes last so eBay's relevance ranking weights the card name first
+    g = _grade_for_query(grade or cl_row.get("Condition") or "")
+    if g:
+        parts.append(g)
+    return " ".join(parts)
+
+
+def ebay_sold_url(keyword: str) -> str:
+    """Build a clickable eBay sold-listings URL for manual validation."""
+    import urllib.parse
+    return (f"https://www.ebay.com/sch/i.html?_nkw={urllib.parse.quote_plus(keyword)}"
+            f"&LH_Sold=1&LH_Complete=1&_ipg=120")
 
 
 def grade_matches_title(title: str, grade: str) -> bool:
+    """LOOSE grade check (compat, retained for callers).
+    For strict pricing we use title_passes() below.
+    Handles both seller orderings: 'CGC PRISTINE 10' (eBay seller-style) AND
+    'CGC 10 Pristine' (CL-style)."""
     t = (title or "").upper().replace(".", "").replace(" ", "")
     g = grade.upper().replace(".", "").replace(" ", "")
     if g in t: return True
     if g == "PSA10" and ("GEMMT10" in t or "GEMMINT10" in t): return True
-    if g.startswith("CGC10") and "CGC10" in t and "PRISTINE" in t: return True
+    # CGC Pristine 10 written either order
+    g_has_cgc_pristine = ("CGC" in g and "PRISTINE" in g and "10" in g)
+    t_has_cgc_pristine = ("CGC" in t and "PRISTINE" in t and "10" in t)
+    if g_has_cgc_pristine and t_has_cgc_pristine: return True
     return False
+
+
+def title_passes(title: str, subject: str, number: str, grade: str) -> bool:
+    """STRICT eBay listing filter (added 2026-05-18 to fix wrong-card matches).
+    A listing's title must contain:
+      1. The grade (with CGC/PSA equivalencies)
+      2. The first significant word of the cleaned subject (>=4 chars)
+      3. The short number (2+ digits)
+    Drops the wrong-card noise that produced 'avg $4116 > 2x CL $855' style
+    outlier rejections — those rejections were doing the right thing, but a
+    cleaner filter lets the real comps survive instead of falling through.
+    """
+    if not grade_matches_title(title, grade):
+        return False
+    t = title.upper().replace(".", "").replace("-", " ")
+    # Subject: first meaningful word must appear
+    subj_word = (_clean_subject(subject).split() or [""])[0].upper()
+    if len(subj_word) >= 4 and subj_word not in t:
+        return False
+    # Number: must appear when it's 2+ digits (single-digit numbers are
+    # too noisy to enforce — too many random matches)
+    n_short = _short_number(number)
+    if n_short and len(n_short) >= 2 and n_short not in t:
+        return False
+    return True
 
 
 def trimmed_avg(values: list[float], drop_pct: float = 0.1) -> float | None:
@@ -181,6 +275,7 @@ def main():
     # First pass: build per-cert PC price + ebay keyword list
     cards: list[dict] = []
     keywords: list[str] = []
+    cert_to_kw: dict[str, str] = {}
     for row in pricing_rows:
         cert = (row.get("cert") or "").strip()
         if not cert: continue
@@ -211,11 +306,13 @@ def main():
             "cl_cv": cl_cv, "pc_value": pc_value, "ebay_kw": kw, "skip": False,
         })
         keywords.append(kw)
+        cert_to_kw[cert] = kw
 
-    # Fetch eBay sold via Apify in batches
-    print(f"[ms] Fetching eBay sold for {len(keywords)} keywords (~5-15 min) ...")
-    ebay_results = fetch_apify(keywords) if keywords else {}
-    print(f"[ms] eBay results: {len(ebay_results)} keywords returned data")
+    # Fetch eBay sold via Apify in batches — use the per-cert cache so we
+    # don't burn Apify quota re-fetching cards we already priced this week.
+    print(f"[ms] Fetching eBay sold for {len(cert_to_kw)} certs (cache + Apify) ...")
+    ebay_by_cert = _ebay_cached(cert_to_kw) if cert_to_kw else {}
+    print(f"[ms] eBay results: {sum(1 for v in ebay_by_cert.values() if v)} certs returned data")
 
     # Build final pricing
     token = get_token()
@@ -233,6 +330,7 @@ def main():
                 "current": parse_current_price(row.get("your_price", "")),
                 "cl_cv": "", "pc": "", "ebay_avg": "",
                 "ebay_count": 0, "ebay_reject": "", "ebay_kw": "",
+                "ebay_url": "",
                 "winner": "", "base": "", "new_price": "",
                 "action": "skip",
                 "reason": c.get("reason", "manual override"),
@@ -242,12 +340,17 @@ def main():
         pc_val = c["pc_value"]
         # eBay average — with mandatory guards (per 2026-05-12 incident)
         kw = c["ebay_kw"]
-        ebay_items = ebay_results.get(kw, [])
+        ebay_items = ebay_by_cert.get(cert, [])
         grade = normalize_grade(row.get("grade", ""))
+        # STRICT post-filter (added 2026-05-18): listings must mention grade
+        # AND card subject AND number — drops wrong-card noise that produced
+        # the 'avg $4116 > 2x CL $855' outlier rejections.
+        subj = c["cl_row"].get("Subject", "") if c.get("cl_row") else ""
+        num = c["cl_row"].get("Number", "") if c.get("cl_row") else ""
         ebay_prices = []
         for it in ebay_items:
             title = it.get("title", "")
-            if not grade_matches_title(title, grade): continue
+            if not title_passes(title, subj, num, grade): continue
             try: p = float(it.get("totalPrice") or it.get("soldPrice") or 0)
             except (TypeError, ValueError): continue
             if 1 < p < 100000: ebay_prices.append(p)
@@ -311,6 +414,7 @@ def main():
             "ebay_count": ebay_count,
             "ebay_reject": ebay_reject,
             "ebay_kw": kw,
+            "ebay_url": ebay_sold_url(kw),
             "winner":  winner_name,
             "base":    f"{winner_val:.2f}",
             "new_price": new_price,
