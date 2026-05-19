@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Thank You Insert — TCGplayer Order — 9-up letter sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ─────────────────────────────────────────────
+     9-up thank-you inserts on US-Letter (8.5×11).
+     3 columns × 3 rows.  Each card ~2.57 × 3.4 in.
+     ───────────────────────────────────────────── */
+  @page { size: letter; margin: 0.25in; }
+
+  :root {
+    --orange: #ff6a00;
+    --pink:   #e6196b;
+    --purple: #7b2fff;
+    --cyan:   #21d4ff;
+    --ink:    #f4f4fb;
+    --muted:  rgba(244,244,251,0.82);
+    --dim:    rgba(244,244,251,0.55);
+  }
+
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { margin: 0; padding: 0; background: #2a2a30; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    padding: 0.25in;     /* matches @page margin so screen ≈ print */
+  }
+
+  .sheet {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows:    repeat(3, 1fr);
+    gap: 0.12in;
+    width: 8.00in;        /* 8.5in - 0.25in margins */
+    height: 10.50in;      /* 11in  - 0.25in margins */
+  }
+
+  .card {
+    position: relative;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(255,106,0,0.24), transparent 55%),
+      radial-gradient(circle at 85% 90%, rgba(123,47,255,0.22), transparent 55%),
+      radial-gradient(circle at 50% 50%, rgba(230,25,107,0.10), transparent 60%),
+      linear-gradient(160deg, #0a0a14 0%, #06060a 60%, #0a0a14 100%);
+    color: var(--ink);
+    overflow: hidden;
+    border-radius: 8px;
+    padding: 0.14in 0.12in 0.10in;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border: 1px solid rgba(255,106,0,0.40);
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 14px rgba(255,106,0,0.14),
+      inset 0 0 36px rgba(123,47,255,0.10);
+  }
+
+  .eyebrow {
+    font-size: 5.2pt;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    font-weight: 700;
+    margin: 0 0 0.02in;
+  }
+
+  h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 22pt;
+    line-height: 0.95;
+    letter-spacing: 0.03em;
+    margin: 0 0 0.05in;
+    padding: 1px 0 3px;
+    background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 50%, #7b2fff 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter:
+      drop-shadow(0 0 6px rgba(255,106,0,0.32))
+      drop-shadow(0 0 12px rgba(123,47,255,0.18));
+  }
+
+  .note {
+    font-size: 6.2pt;
+    line-height: 1.35;
+    color: var(--muted);
+    margin: 0 0 0.06in;
+    max-width: 2.2in;
+  }
+  .note strong { color: #fff; }
+
+  .qr-wrap {
+    background: #fff;
+    padding: 0.05in;
+    border-radius: 5px;
+    box-shadow:
+      0 0 0 1.2px rgba(255,106,0,0.55),
+      0 0 10px rgba(255,106,0,0.35),
+      0 0 22px rgba(230,25,107,0.22);
+    margin: 0 0 0.06in;
+  }
+  .qr-wrap img {
+    width: 1.05in; height: 1.05in;
+    display: block;
+  }
+
+  .qr-caption {
+    font-family: 'Bangers', cursive;
+    font-size: 10.5pt;
+    letter-spacing: 0.04em;
+    line-height: 1.0;
+    padding: 1px 0 3px;
+    margin: 0 0 0.01in;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .qr-sub {
+    font-size: 5.8pt;
+    color: var(--muted);
+    line-height: 1.3;
+    margin: 0 0 0.04in;
+  }
+  .qr-sub strong { color: #fff; }
+
+  .foot {
+    margin-top: auto;
+    width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 5.4pt;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+    padding-top: 0.04in;
+    border-top: 1px solid rgba(255,255,255,0.10);
+  }
+  .foot .site { color: #fff; font-weight: 700; }
+  .foot .ig   { color: var(--cyan); font-weight: 600; }
+
+  @media print {
+    html, body { background: #fff; padding: 0; }
+    .sheet { width: 8.00in; height: 10.50in; }
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+    <div class="card"><p class="eyebrow">Sake Kitty Cards</p><h1>Thank You!</h1><p class="note">Your TCGplayer order is packed with love. <strong>We appreciate you.</strong></p><div class="qr-wrap"><img src="promo-qr-show.png" alt="" /></div><p class="qr-caption">Scan for a Gift</p><p class="qr-sub"><strong>sakekittycards.com/show</strong></p><div class="foot"><span class="site">sakekittycards.com</span><span class="ig">@sakekittycards</span></div></div>
+  </div>
+</body>
+</html>

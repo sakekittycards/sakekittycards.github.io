@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Thanks for your TCGplayer order — Sake Kitty Cards</title>
+  <meta name="description" content="A thank-you offer from Sake Kitty Cards for your TCGplayer order. Drop your email to unlock your code." />
+
+  <!-- Insert-card landing: keep out of search index -->
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link rel="canonical" href="https://sakekittycards.com/tcg-thanks.html" />
+  <meta property="og:title" content="Thanks for your TCGplayer order — Sake Kitty Cards" />
+  <meta property="og:description" content="A thank-you offer from Sake Kitty Cards for your TCGplayer order." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/tcg-thanks.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Thanks for your TCGplayer order — Sake Kitty Cards" />
+  <meta name="twitter:description" content="A thank-you offer from Sake Kitty Cards for your TCGplayer order." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=138" />
+
+  <style>
+    /* ═══ Show landing — email-gated promo reveal.
+       Scoped under .page-show so nothing leaks into the global stylesheet. ═══ */
+
+    .page-show .page-hero { padding-bottom: 18px; }
+    .page-show .page-hero h1 {
+      font-size: clamp(38px, 7.5vw, 68px);
+      background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 50%, #7b2fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter:
+        drop-shadow(0 0 18px rgba(255,106,0,0.30))
+        drop-shadow(0 0 48px rgba(255,0,128,0.18));
+      padding: 2px 0 8px;
+      line-height: 1.18;
+      margin-bottom: 10px;
+    }
+    .show-eyebrow {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(12px, 2vw, 14px); letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin: 0 0 10px;
+    }
+    .show-hero-sub {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.55;
+      color: rgba(229,229,247,0.85);
+      max-width: 620px;
+      margin: 8px auto 0;
+    }
+    .show-hero-sub strong { color: #fff; }
+
+    /* ── Capture card (email → reveal) ── */
+    .show-capture {
+      max-width: 540px; margin: 0 auto;
+      padding: 32px 28px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,106,0,0.30);
+      border-radius: var(--r);
+      box-shadow:
+        0 0 0 1px rgba(255,106,0,0.08) inset,
+        0 0 36px rgba(255,106,0,0.06);
+      text-align: center;
+    }
+    @media (max-width: 540px) {
+      .show-capture { padding: 24px 18px; }
+    }
+    .show-capture h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(24px, 4vw, 32px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.20));
+      padding: 2px 0 6px;
+      line-height: 1.25;
+      margin: 0 0 6px;
+    }
+    .show-capture p.lede {
+      font-size: 14px; color: var(--muted); line-height: 1.55;
+      margin: 0 0 18px;
+    }
+    .show-capture label {
+      display: block;
+      font-size: 12.5px; font-weight: 700;
+      color: rgba(255,255,255,0.78);
+      letter-spacing: 1.4px; text-transform: uppercase;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+    .show-capture input[type="email"] {
+      width: 100%; box-sizing: border-box;
+      background: rgba(0,0,0,0.25);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 16px;            /* 16px = no iOS zoom */
+      font-family: inherit;
+      color: var(--text);
+      min-height: 48px;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .show-capture input[type="email"]:focus {
+      outline: none;
+      border-color: rgba(255,106,0,0.65);
+      background: rgba(0,0,0,0.40);
+      box-shadow: 0 0 0 3px rgba(255,106,0,0.14), 0 3px 14px rgba(255,106,0,0.12);
+    }
+    .show-cta {
+      width: 100%;
+      margin-top: 14px;
+      padding: 18px 16px 12px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.10em;
+      cursor: pointer;
+      min-height: 52px;
+      box-shadow:
+        0 6px 22px rgba(255,106,0,0.32),
+        0 0 0 1px rgba(255,255,255,0.06) inset;
+      line-height: 1.2;
+      transition: transform .15s, box-shadow .15s, filter .15s;
+    }
+    .show-cta:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow:
+        0 10px 28px rgba(255,106,0,0.42),
+        0 0 0 1px rgba(255,255,255,0.10) inset;
+      filter: brightness(1.05);
+    }
+    .show-cta:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .show-fine {
+      font-size: 12px; color: var(--dim);
+      margin: 10px 0 0;
+    }
+    .show-status {
+      margin: 12px 0 0;
+      font-size: 13.5px; line-height: 1.5;
+      color: var(--muted); min-height: 18px;
+      text-align: center;
+    }
+
+    /* ── Reveal block (hidden until form succeeds) ── */
+    .show-reveal { display: none; }
+    .show-reveal.is-visible { display: block; }
+
+    .code-card {
+      max-width: 540px; margin: 0 auto;
+      padding: 28px 24px 22px;
+      background:
+        radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,106,0,0.10), transparent 70%),
+        var(--bg-card);
+      border: 2px solid rgba(255,106,0,0.55);
+      border-radius: var(--r);
+      box-shadow:
+        0 0 32px rgba(255,106,0,0.20),
+        0 0 0 1px rgba(255,255,255,0.06) inset;
+      text-align: center;
+      animation: codeCardPulse 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    }
+    @keyframes codeCardPulse {
+      0%, 100% {
+        border-color: rgba(255,106,0,0.85);
+        box-shadow:
+          0 0 25px rgba(255,106,0,0.30),
+          0 0 50px rgba(255,0,128,0.10),
+          0 0 0 1px rgba(255,255,255,0.06) inset;
+      }
+      50% {
+        border-color: rgba(255,106,0,1);
+        box-shadow:
+          0 0 60px rgba(255,106,0,0.55),
+          0 0 120px rgba(255,0,128,0.40),
+          0 0 200px rgba(123,47,255,0.22),
+          0 0 0 1px rgba(255,255,255,0.10) inset;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .code-card { animation: none; }
+    }
+    .code-card-eyebrow {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 12px; letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.70);
+      margin: 0 0 8px;
+    }
+    .promo-code {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(36px, 8vw, 56px);
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--cyan), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 14px rgba(0,212,255,0.30));
+      padding: 4px 0 10px;
+      line-height: 1.1;
+      margin: 0;
+      cursor: pointer;
+      user-select: all;
+    }
+    .promo-expires {
+      font-size: 13px; color: var(--muted);
+      margin: 4px 0 0;
+    }
+    .copy-hint {
+      font-size: 11.5px; color: var(--dim);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin: 8px 0 0;
+    }
+
+    /* ── Offer grid ── */
+    .offers-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 1080px; margin: 28px auto 0;
+    }
+    @media (max-width: 820px) { .offers-grid { grid-template-columns: 1fr; max-width: 540px; } }
+    .offer-card {
+      display: flex; flex-direction: column;
+      padding: 24px 22px 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      text-decoration: none; color: var(--text);
+      transition: transform .25s ease, border-color .2s, box-shadow .25s;
+    }
+    .offer-card.tone-orange { box-shadow: inset 0 5px 0 0 #ff6a00, 0 0 24px rgba(255,106,0,0.08); }
+    .offer-card.tone-pink   { box-shadow: inset 0 5px 0 0 #ff0080, 0 0 24px rgba(255,0,128,0.08); }
+    .offer-card.tone-cyan   { box-shadow: inset 0 5px 0 0 #00d4ff, 0 0 24px rgba(0,212,255,0.08); }
+    .offer-card:hover { transform: translateY(-3px); }
+    .offer-card.tone-orange:hover { border-color: rgba(255,106,0,0.55); box-shadow: inset 0 5px 0 0 #ff6a00, 0 8px 32px rgba(255,106,0,0.20); }
+    .offer-card.tone-pink:hover   { border-color: rgba(255,0,128,0.55); box-shadow: inset 0 5px 0 0 #ff0080, 0 8px 32px rgba(255,0,128,0.20); }
+    .offer-card.tone-cyan:hover   { border-color: rgba(0,212,255,0.55); box-shadow: inset 0 5px 0 0 #00d4ff, 0 8px 32px rgba(0,212,255,0.20); }
+    .offer-icon {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-size: 26px;
+    }
+    .offer-card.tone-orange .offer-icon { background: linear-gradient(135deg, #ffb84d, #ff6a00); }
+    .offer-card.tone-pink   .offer-icon { background: linear-gradient(135deg, #ff7ab2, #ff0080); }
+    .offer-card.tone-cyan   .offer-icon { background: linear-gradient(135deg, #66e6ff, #00b8e6); }
+    .offer-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 24px; letter-spacing: 0.04em;
+      margin: 0 0 6px;
+      padding: 2px 0 4px;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .offer-card .offer-headline {
+      font-size: 16px; font-weight: 700;
+      color: #fff;
+      margin: 0 0 8px;
+      line-height: 1.35;
+    }
+    .offer-card p.offer-body {
+      font-size: 13.5px; color: rgba(229,229,247,0.78); line-height: 1.55;
+      margin: 0 0 14px;
+      flex: 1;
+    }
+    .offer-cta {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .offer-card.tone-orange .offer-cta { color: #ffc36e; }
+    .offer-card.tone-pink   .offer-cta { color: #ff7ab2; }
+    .offer-card.tone-cyan   .offer-cta { color: #4ddfff; }
+
+    /* ── Show locations recap ── */
+    .show-locs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      max-width: 920px;
+      margin: 28px auto 0;
+    }
+    @media (max-width: 720px) { .show-locs { grid-template-columns: 1fr; } }
+    .loc-card {
+      display: block;
+      padding: 18px 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      text-decoration: none; color: var(--text);
+      transition: transform .15s, border-color .15s;
+    }
+    .loc-card:hover { transform: translateY(-1px); border-color: rgba(123,47,255,0.55); }
+    .loc-card .loc-day {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--cyan);
+      margin: 0 0 4px;
+    }
+    .loc-card h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.04em;
+      margin: 0 0 4px;
+      padding: 2px 0 4px;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .loc-card .loc-meta {
+      font-size: 13px; color: var(--muted); line-height: 1.5;
+      margin: 0;
+    }
+    .loc-card .loc-cta {
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: #c69aff;
+      margin-top: 8px;
+    }
+
+    .terms-note {
+      font-size: 12px; color: var(--dim); line-height: 1.5;
+      text-align: center;
+      max-width: 620px; margin: 22px auto 0;
+    }
+
+    /* Calm background blobs on this single-purpose page */
+    .page-show .bg-blob { opacity: 0.06; filter: blur(140px); }
+  </style>
+</head>
+<body class="page-show">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <!-- Hero -->
+    <div class="page-hero">
+      <p class="show-eyebrow">A Gift With Your TCGplayer Order</p>
+      <h1>Thanks For Ordering With Us.</h1>
+      <p class="show-hero-sub">
+        You found the little card in your package. Drop your email below and we'll lock
+        <strong>your unique single-use code</strong> to your inbox —
+        <strong>$10 off</strong> your next $100+ order direct from us.
+      </p>
+    </div>
+
+    <!-- Capture form -->
+    <div class="section" id="captureSection" style="padding-top:0;padding-bottom:18px">
+      <div class="show-capture">
+        <h2>Unlock Your Offer</h2>
+        <p class="lede">One code, three ways to use it — buy direct, sell to us, or send cards in for grading prep.</p>
+        <form id="showForm" novalidate>
+          <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
+          <input type="hidden" name="subject" value="TCGplayer Insert Signup" />
+          <input type="hidden" name="from_name" value="Sake Kitty TCG Insert" />
+          <input type="hidden" name="source" value="tcgplayer-insert" />
+          <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none" />
+          <label for="email">Your Email</label>
+          <input type="email" id="email" name="email" placeholder="ash@pokemon.com" autocomplete="email" inputmode="email" required />
+          <button type="submit" class="show-cta" id="showSubmit">Reveal My Offer</button>
+          <p class="show-fine">No spam. We'll only email you again if you opt in for restocks or future offers.</p>
+          <p class="show-status" id="showStatus" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Reveal block (hidden until form succeeds) -->
+    <div class="show-reveal" id="showReveal" aria-hidden="true">
+      <!-- Code card -->
+      <div class="section" style="padding-top:0;padding-bottom:8px">
+        <div class="code-card">
+          <p class="code-card-eyebrow">Your Thank-You Code</p>
+          <p class="promo-code" id="promoCode" title="Tap to copy">···</p>
+          <p class="promo-expires">Expires <strong>June 14, 2026</strong></p>
+          <p class="copy-hint">Tap the code to copy</p>
+        </div>
+      </div>
+
+      <!-- Offers -->
+      <div class="section" style="padding-top:6px;padding-bottom:8px">
+        <div class="section-header" style="text-align:center;margin-bottom:8px">
+          <h2 class="section-title" style="display:inline-block">Pick Your Path</h2>
+          <div class="divider" style="margin:10px auto 0"></div>
+        </div>
+        <div class="offers-grid">
+          <a href="shop.html" class="offer-card tone-orange">
+            <div class="offer-icon" aria-hidden="true">🛒</div>
+            <h3>Buyer</h3>
+            <p class="offer-headline">$10 off any $100+ purchase</p>
+            <p class="offer-body">Sealed product, slabs, apparel, and merch — direct from us, enter your code at checkout.</p>
+            <div class="offer-cta">Browse Shop →</div>
+          </a>
+          <a href="trade-in.html" class="offer-card tone-pink">
+            <div class="offer-icon" aria-hidden="true">🤝</div>
+            <h3>Seller</h3>
+            <p class="offer-headline">+5% trade credit on any $100+ buylist</p>
+            <p class="offer-body">Bumps you up a tier on the published credit schedule. Cash payouts and the 100% credit cap still apply.</p>
+            <div class="offer-cta">Get a Quote →</div>
+          </a>
+          <a href="grading-prep.html" class="offer-card tone-cyan">
+            <div class="offer-icon" aria-hidden="true">🛡️</div>
+            <h3>Grader</h3>
+            <p class="offer-headline">10% off your first Grading Prep order</p>
+            <p class="offer-body">PSA, CGC, or Beckett — pre-screened and packed by us. Discount stacks across however many cards you submit.</p>
+            <div class="offer-cta">Submit for Prep →</div>
+          </a>
+        </div>
+        <p class="terms-note">One offer per customer · Single-use code. Buyer offer applies automatically at checkout. Trade-in &amp; Grading Prep: include your code in the form notes and we'll apply the offer to your quote. Buylist credit bump is on top of standard tier rates — total credit still capped at 100% of Market.</p>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=57" defer></script>
+  <script>
+    (function () {
+      const form = document.getElementById('showForm');
+      if (!form) return;
+      const btn = document.getElementById('showSubmit');
+      const status = document.getElementById('showStatus');
+      const capture = document.getElementById('captureSection');
+      const reveal = document.getElementById('showReveal');
+      const code = document.getElementById('promoCode');
+
+      // Tap-to-copy on the promo code
+      if (code) {
+        code.addEventListener('click', () => {
+          const txt = code.textContent.trim();
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(txt).then(() => {
+              const orig = code.getAttribute('title') || '';
+              code.setAttribute('title', 'Copied!');
+              setTimeout(() => code.setAttribute('title', orig), 1400);
+            }).catch(() => { /* clipboard blocked — selection still works */ });
+          }
+        });
+      }
+
+      function showReveal() {
+        if (capture) capture.style.display = 'none';
+        if (reveal) {
+          reveal.classList.add('is-visible');
+          reveal.setAttribute('aria-hidden', 'false');
+          // Scroll the code card into view on small screens
+          setTimeout(() => {
+            reveal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 80);
+        }
+      }
+
+      const WORKER_BASE = 'https://sakekitty-square.nwilliams23999.workers.dev';
+
+      // Pull a unique code from D1 for this email.
+      async function claimCode(email) {
+        try {
+          const res = await fetch(`${WORKER_BASE}/promo/claim`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (data.ok && data.code) return { ok: true, code: data.code, repeat: !!data.already_assigned };
+          if (data.reason === 'pool_exhausted') return { ok: false, reason: 'pool_exhausted' };
+          return { ok: false, reason: data.reason || 'claim_failed' };
+        } catch (err) {
+          return { ok: false, reason: 'network' };
+        }
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        btn.disabled = true;
+        btn.textContent = 'Unlocking…';
+        status.style.color = 'var(--muted)';
+        status.textContent = '';
+
+        const fd = new FormData(form);
+        const email = (fd.get('email') || '').toString().trim().toLowerCase();
+
+        // Fire both in parallel: Web3Forms for the email-list backup, and
+        // /promo/claim for the unique-code assignment. Code-claim is the
+        // one the customer actually needs to see; the email-list save is
+        // best-effort and silently retried by Nick later if it fails.
+        const [w3Res, claimRes] = await Promise.allSettled([
+          fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd }),
+          claimCode(email),
+        ]);
+
+        const claim = claimRes.status === 'fulfilled' ? claimRes.value : { ok: false, reason: 'network' };
+
+        if (claim.ok) {
+          // Substitute the customer's unique code into the reveal block.
+          if (code) code.textContent = claim.code;
+          if (claim.repeat) {
+            status.style.color = 'var(--muted)';
+            status.textContent = 'Welcome back — same code as before.';
+          }
+          showReveal();
+        } else if (claim.reason === 'pool_exhausted') {
+          // No codes left in the pool. Fall back to manual at-booth redemption.
+          status.style.color = '#ffb84d';
+          status.textContent = 'Offer is at capacity — email nick@sakekittycards.com with your TCGplayer order number and we\'ll honor it manually.';
+          if (code) code.textContent = 'EMAIL NICK';
+          setTimeout(showReveal, 800);
+        } else {
+          // Network or generic failure — fall back so the customer isn\'t blocked.
+          status.style.color = '#ff7a96';
+          status.textContent = 'Couldn\'t reach our system — email nick@sakekittycards.com with your TCGplayer order number and we\'ll honor the offer.';
+          if (code) code.textContent = 'EMAIL NICK';
+          setTimeout(showReveal, 800);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
