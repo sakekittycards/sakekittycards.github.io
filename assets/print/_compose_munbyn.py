@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import sys, pathlib, glob, os
 
-URL_LINE = "A code waits at sakekittycards.com/tcg-thanks"
+URL_LINE = "Scan or visit sakekittycards.com/tcg-thanks"
 
 # Pick the most recent ChatGPT image from Downloads
 DL = r"C:\Users\lunar\Downloads"
