@@ -381,7 +381,8 @@
       <p class="show-hero-sub">
         You found the little card in your package. Drop your email below and we'll lock
         <strong>your unique single-use code</strong> to your inbox —
-        <strong>$10 off</strong> your next $100+ order direct from us.
+        <strong>$10 off</strong> your next $100+ order at <strong>sakekittycards.com</strong>.
+        Site only — not redeemable on TCGplayer.
       </p>
     </div>
 
@@ -389,7 +390,7 @@
     <div class="section" id="captureSection" style="padding-top:0;padding-bottom:18px">
       <div class="show-capture">
         <h2>Unlock Your Offer</h2>
-        <p class="lede">One code, three ways to use it — buy direct, sell to us, or send cards in for grading prep.</p>
+        <p class="lede">One code, three ways to use it — shop on sakekittycards.com, sell to us, or send cards in for grading prep.</p>
         <form id="showForm" novalidate>
           <input type="hidden" name="access_key" value="d42c7cee-c136-4450-989f-6ec666f79d3a" />
           <input type="hidden" name="subject" value="TCGplayer Insert Signup" />
@@ -428,7 +429,7 @@
             <div class="offer-icon" aria-hidden="true">🛒</div>
             <h3>Buyer</h3>
             <p class="offer-headline">$10 off any $100+ purchase</p>
-            <p class="offer-body">Sealed product, slabs, apparel, and merch — direct from us, enter your code at checkout.</p>
+            <p class="offer-body">Sealed, slabs, apparel, and merch on <strong>sakekittycards.com</strong> — enter your code at checkout. Site only, not redeemable on TCGplayer.</p>
             <div class="offer-cta">Browse Shop →</div>
           </a>
           <a href="trade-in.html" class="offer-card tone-pink">
@@ -527,7 +528,7 @@
           const res = await fetch(`${WORKER_BASE}/promo/claim`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, campaign: 'tcg-insert-2026' }),
           });
           const data = await res.json();
           if (data.ok && data.code) return { ok: true, code: data.code, repeat: !!data.already_assigned };
