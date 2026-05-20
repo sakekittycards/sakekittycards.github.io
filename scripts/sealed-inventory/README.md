@@ -170,6 +170,8 @@ This is what's encoded in `_initial_import.csv`. Source: your strategic brief.
   ```
 
   Workflow: this CSV updates `Total Quantity` on existing TCGplayer listings. Match it against your TCGplayer Seller Hub current-listings download, copy quantities across, re-upload. Or upload as-is if the columns match.
+
+- **Day 2c (DONE 2026-05-20)**: Sync now attaches the official TCGplayer stock image as the primary product photo on Square. Fetched from `https://tcgplayer-cdn.tcgplayer.com/product/{pid}_in_1000x1000.jpg` (the same image visible on every TCGplayer product page). Best-effort: image fetch/upload failure does not fail the row. Only attaches if the Square item has no existing images, so manual uploads in Square dashboard are preserved.
 - **Day 3**: Wire Square webhook `order.created` → Worker → Airtable decrement (atomic on_hand + website_alloc).
 - **Day 4**: Build `GET /export/tcgplayer.csv` — streams TCGplayer Direct upload CSV from Airtable rows where `published=true` + `tcgplayer_alloc>0`. Manual download → upload to TCGplayer Seller Hub.
 - **Day 5**: Build `POST /ingest/tcgplayer-sales` — accepts TCGplayer's daily sales-export CSV, decrements `on_hand` + `tcgplayer_alloc` per row.
