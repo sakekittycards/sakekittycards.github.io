@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=144" />
+  <link rel="stylesheet" href="style.css?v=145" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -414,14 +414,11 @@
       const EAGER_LIMIT = 8;  // first ~2 rows render with priority
 
       // Route Square's full-resolution images (5+ MB JPEGs from /original.jpeg)
-      // through wsrv.nl to get a properly sized WebP thumbnail. Square doesn't
-      // expose smaller variants on the S3 path, so this is the cheapest fix.
-      // PDP (product.html) keeps the original URL for full-detail viewing.
+      // through wsrv.nl to get a properly sized WebP thumbnail. PDP keeps
+      // the original URL for full-detail viewing.
       //
-      // Graded slabs are TALL portraits (5:8) — `fit=cover` at 400x400 was
-      // chopping the PSA label off the top. We now request the proper aspect
-      // box with `fit=inside` so the entire slab fits without crop, and serve
-      // a srcset for retina screens.
+      // Graded slabs are TALL portraits (5:8). `fit=cover` was cropping PSA
+      // labels off the top — `fit=inside` preserves the full slab uncropped.
       const thumbProxy = (url, isGraded) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
         if (isGraded) {
@@ -429,35 +426,27 @@
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
-      const thumbProxy2x = (url, isGraded) => {
-        if (!url || !/^https?:\/\//.test(url)) return null;
-        if (isGraded) {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=640&h=1024&fit=inside&output=webp&q=78`;
-        }
-        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&h=800&fit=cover&output=webp&q=80`;
-      };
 
       const renderCard = (item) => {
         const oos = item.inStock === false;
         const isGraded = GRADER_RX.test(item.name || '');
         const eager = _eagerCount < EAGER_LIMIT;
         _eagerCount++;
-        // First N: eager + fetchpriority="high" so above-fold renders
-        // immediately. Remaining: lazy + low priority — they fill in
-        // progressively as the user scrolls. img-loading/img-loaded
-        // classes drive a quick CSS fade-in so partial-bytes images
-        // don't flash in.
         const loadAttrs = eager
           ? 'loading="eager" decoding="async" fetchpriority="high"'
           : 'loading="lazy" decoding="async" fetchpriority="low"';
-        const imgUrl = thumbProxy(item.imageUrl, isGraded);
-        const imgUrl2x = thumbProxy2x(item.imageUrl, isGraded);
-        const srcset = imgUrl2x ? ` srcset="${esc(imgUrl)} 1x, ${esc(imgUrl2x)} 2x"` : '';
-        // Width/height attrs use the THUMBPROXY dimensions so the browser can
-        // reserve correct layout space (prevents CLS) — graded gets 5:8 portrait.
+        // Safe fallback chain: try the wsrv-optimized thumb first; if that
+        // fails (proxy down, rate-limited, etc.) fall back to the ORIGINAL
+        // Square URL; only then show the placeholder. Stored on the img as
+        // a data-attr so the onerror handler can step through.
+        const thumbUrl = thumbProxy(item.imageUrl, isGraded);
+        const originalUrl = item.imageUrl || '';
         const wh = isGraded ? 'width="320" height="512"' : 'width="320" height="320"';
+        const onerr = originalUrl && originalUrl !== thumbUrl
+          ? `if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='${esc(originalUrl)}';}else{this.outerHTML='<div class=&quot;product-img&quot;>📦</div>';}`
+          : `this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'`;
         const imgBlock = item.imageUrl
-          ? `<img src="${esc(imgUrl)}"${srcset} alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} ${wh} onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          ? `<img src="${esc(thumbUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} ${wh} onload="this.classList.replace('img-loading','img-loaded')" onerror="${onerr}" />`
           : `<div class="product-img">📦</div>`;
         const desc = item.description
           ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
