@@ -283,8 +283,12 @@
           <p class="graded-count" id="gradedCount" hidden></p>
           <div class="product-grid" id="shopGridGraded"></div>
         </section>
+        <section class="shop-section" id="shopSectionSealed" hidden>
+          <h3 class="shop-section-title">Sealed <span class="shop-section-sub">booster boxes, ETBs, packs, tins, collection boxes</span></h3>
+          <div class="product-grid" id="shopGridSealed"></div>
+        </section>
         <section class="shop-section" id="shopSectionSingles" hidden>
-          <h3 class="shop-section-title">Singles &amp; Sealed <span class="shop-section-sub">raw singles, booster packs, ETBs</span></h3>
+          <h3 class="shop-section-title">Singles <span class="shop-section-sub">raw singles</span></h3>
           <div class="product-grid" id="shopGridSingles"></div>
         </section>
         <section class="shop-section" id="shopSectionMerch" hidden>
@@ -360,14 +364,15 @@
       const esc    = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const fmt    = n => `$${n.toFixed(2)}`;
 
-      // Categorize an item into one of three buckets the shop renders:
+      // Categorize an item into one of four buckets the shop renders:
       //   graded  — slabbed singles from any major grading service. Title
       //             format leads with the grader: "PSA 10 ...", "BGS 9.5
       //             ...", "CGC 10 ...", etc.
-      //   singles — raw singles or sealed product. Detected by sealed
-      //             keywords (booster, pack, ETB, etc.) — raw cards
-      //             without a sealed keyword need to start with the
-      //             year (e.g. "1999 Charizard Holo") to land here.
+      //   sealed  — booster boxes, ETBs, packs, tins, collection boxes,
+      //             bundles, decks. Matched by sealed-product keywords.
+      //   singles — raw single cards. Detected by year prefix
+      //             ("1999 Charizard Holo") since they don't carry
+      //             sealed keywords or grader prefixes.
       //   merch   — anything else: apparel, mouse pads, etc.
       //             Default bucket — accessories without size axes
       //             (mouse pads) would otherwise misfile as singles.
@@ -376,7 +381,7 @@
       const categorize = (item) => {
         const name = item.name || '';
         if (GRADER_RX.test(name)) return 'graded';
-        if (SEALED_RX.test(name)) return 'singles';
+        if (SEALED_RX.test(name)) return 'sealed';
         // Raw singles convention: lead with the year (e.g., "1999 …").
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
         return 'merch';
@@ -479,7 +484,7 @@
           return;
         }
 
-        const buckets = { graded: [], singles: [], merch: [] };
+        const buckets = { graded: [], sealed: [], singles: [], merch: [] };
         for (const item of items) buckets[categorize(item)].push(item);
 
         // Graded-at-show: drop graded items from the page (data stays in
@@ -490,17 +495,20 @@
           document.getElementById('gradedAtShowBanner').hidden = false;
         }
 
-        // Inventory-paused (partial): drop both card buckets and suppress
-        // the graded-at-show banner — the restocking poster carries the
-        // broader messaging. Merch stays live.
+        // Inventory-paused (partial): drop all physical-inventory buckets
+        // (graded slabs, sealed product, raw singles) and suppress the
+        // graded-at-show banner — the restocking poster carries the
+        // broader messaging. Merch (Printful POD) stays live.
         if (SK_INVENTORY_PAUSED) {
           buckets.graded = [];
+          buckets.sealed = [];
           buckets.singles = [];
           document.getElementById('gradedAtShowBanner').hidden = true;
         }
 
         const sectionMap = {
           graded:  ['shopSectionGraded',  'shopGridGraded'],
+          sealed:  ['shopSectionSealed',  'shopGridSealed'],
           singles: ['shopSectionSingles', 'shopGridSingles'],
           merch:   ['shopSectionMerch',   'shopGridMerch'],
         };
@@ -577,7 +585,8 @@
         const catNav = document.getElementById('shopCatNav');
         const catOrder = [
           { key: 'graded',  label: 'Graded Cards',     sec: 'shopSectionGraded'  },
-          { key: 'singles', label: 'Singles & Sealed', sec: 'shopSectionSingles' },
+          { key: 'sealed',  label: 'Sealed',           sec: 'shopSectionSealed'  },
+          { key: 'singles', label: 'Singles',          sec: 'shopSectionSingles' },
           { key: 'merch',   label: 'Apparel & Merch',  sec: 'shopSectionMerch'   },
         ];
         const visibleCats = catOrder.filter(c => buckets[c.key].length > 0);
