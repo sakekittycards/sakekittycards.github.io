@@ -127,6 +127,10 @@ export default {
         return await exportTcgplayerCsv(request, env);
       }
 
+      if (path === '/admin/fix-sealed-images' && (request.method === 'POST' || request.method === 'GET')) {
+        return await fixSealedImages(request, base, squareHeaders, env);
+      }
+
       // Public endpoint — let the gift-cards page check a balance from
       // a customer-typed code without redirecting to Square.
       if (path === '/gift-card/balance' && request.method === 'POST') {
@@ -1557,8 +1561,16 @@ async function exportTcgplayerCsv(request, env) {
 // catalog ITEM as its primary image. Best-effort: returns a result object,
 // never throws. Skips silently if the TCGplayer CDN can't serve the image
 // (e.g., new product not yet imaged).
-async function attachTcgImageToItem(itemId, productId, base, squareHeaders) {
-  // 1000x1000 is the largest stable variant; Square downsizes for thumbnails.
+//
+// IMPORTANT: Square's POST /v2/catalog/images with `object_id` sets the
+// back-reference (image -> item) but does NOT populate the item's forward-
+// reference (item.image_data.image_ids). Without the forward reference the
+// image is orphaned and never renders on the product. So this function does
+// TWO calls: (1) upload image, (2) UPSERT item with updated image_ids.
+//
+// If `existingItemObj` is passed (from a prior GET), we skip the duplicate
+// GET to save a subrequest.
+async function attachTcgImageToItem(itemId, productId, base, squareHeaders, existingItemObj) {
   const cdnUrl = `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg`;
   let imgRes;
   try {
@@ -1577,14 +1589,11 @@ async function attachTcgImageToItem(itemId, productId, base, squareHeaders) {
     image: {
       type: 'IMAGE',
       id: '#sk-tcg-img',
-      image_data: { name: `tcgplayer-${productId}`, caption: `TCGplayer stock image` },
+      image_data: { name: `tcgplayer-${productId}`, caption: 'TCGplayer stock image' },
     },
     is_primary: true,
   }));
   form.append('image_file', new Blob([imgBytes], { type: 'image/jpeg' }), `${productId}.jpg`);
-
-  // Multipart upload — do NOT set Content-Type manually; let FormData set it
-  // with the right multipart boundary.
   const uploadHeaders = {
     'Square-Version': squareHeaders['Square-Version'],
     'Authorization':  squareHeaders['Authorization'],
@@ -1594,8 +1603,119 @@ async function attachTcgImageToItem(itemId, productId, base, squareHeaders) {
   });
   const upData = await upRes.json().catch(() => ({}));
   if (!upRes.ok) return { error: upData };
-  return { image_id: upData?.image?.id, url: upData?.image?.image_data?.url };
+  const newImageId = upData?.image?.id;
+  if (!newImageId) return { error: 'no_image_id_returned' };
+
+  // Now do step 2: PATCH the ITEM to include this image_id in image_ids.
+  // Need the item's current version + existing image_ids array.
+  let itemObj = existingItemObj;
+  if (!itemObj) {
+    const getRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(itemId)}`,
+      { headers: squareHeaders });
+    if (!getRes.ok) {
+      return { image_id: newImageId, warning: 'item_get_failed_link_skipped' };
+    }
+    const getData = await getRes.json();
+    itemObj = getData?.object;
+  }
+  if (!itemObj?.id) {
+    return { image_id: newImageId, warning: 'item_obj_missing' };
+  }
+  const existingIds = itemObj.item_data?.image_ids || [];
+  const patchPayload = {
+    idempotency_key: crypto.randomUUID(),
+    object: {
+      ...itemObj,
+      item_data: {
+        ...(itemObj.item_data || {}),
+        image_ids: [newImageId, ...existingIds],
+      },
+    },
+  };
+  const patchRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST', headers: squareHeaders, body: JSON.stringify(patchPayload),
+  });
+  if (!patchRes.ok) {
+    const detail = await patchRes.json().catch(() => ({}));
+    return { image_id: newImageId, link_error: detail };
+  }
+  return { image_id: newImageId, url: upData?.image?.image_data?.url, linked: true };
 }
+
+
+// Admin: walks all Airtable rows that have a square_item_id + tcgplayer_product_id
+// and attaches a TCGplayer image to any item whose image_ids array is empty.
+// Lighter than a full sync — does GET + image upload + item patch (4 subrequests
+// per missing row). Use this to repair items that synced before the image-link
+// bug was fixed. Supports `?limit=N` to bound per-invocation subrequest cost.
+async function fixSealedImages(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  const url = new URL(request.url);
+  const limit = Math.max(1, Math.min(20, Number(url.searchParams.get('limit') || '8')));
+
+  const baseId = env.AIRTABLE_BASE_ID;
+  const tableId = env.SEALED_INVENTORY_TABLE_ID;
+  if (!env.AIRTABLE_TOKEN || !baseId || !tableId) {
+    return json({ error: 'airtable_not_configured' }, 500);
+  }
+  const airHeaders = { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` };
+
+  const filter = 'AND({square_item_id}, {tcgplayer_product_id})';
+  const params = new URLSearchParams({ filterByFormula: filter, pageSize: '100' });
+  const r = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}?${params.toString()}`, { headers: airHeaders });
+  if (!r.ok) {
+    const detail = await r.json().catch(() => ({}));
+    return json({ error: 'airtable_read_failed', detail }, r.status);
+  }
+  const rows = (await r.json()).records || [];
+
+  const report = { scanned: 0, missing: 0, attached: 0, skipped: 0, errors: 0, hit_limit: false, rows: [] };
+  for (const rec of rows) {
+    if (report.attached + report.skipped + report.errors >= limit) { report.hit_limit = true; break; }
+    const f = rec.fields || {};
+    const itemId = (f.square_item_id || '').trim();
+    const pid    = Number(f.tcgplayer_product_id || 0);
+    const sku    = f.sku || rec.id;
+    if (!itemId || !pid) continue;
+    report.scanned++;
+
+    // 1. GET item to check if image_ids is already populated
+    const getRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(itemId)}`,
+      { headers: squareHeaders });
+    if (!getRes.ok) {
+      report.errors++;
+      report.rows.push({ sku, action: 'error-get', status: getRes.status });
+      continue;
+    }
+    const getData = await getRes.json();
+    const itemObj = getData?.object;
+    const imageIds = itemObj?.item_data?.image_ids || [];
+    if (imageIds.length > 0) {
+      report.skipped++;
+      report.rows.push({ sku, action: 'already-has-image', image_ids: imageIds });
+      continue;
+    }
+    report.missing++;
+
+    // 2. Attach image (function does image upload + item patch)
+    const res = await attachTcgImageToItem(itemId, pid, base, squareHeaders, itemObj);
+    if (res.linked) {
+      report.attached++;
+      report.rows.push({ sku, action: 'attached', image_id: res.image_id });
+    } else {
+      report.errors++;
+      report.rows.push({ sku, action: 'attach-failed', detail: res });
+    }
+  }
+  return json(report);
+}
+
+
+// Admin: sync sealed inventory from the Airtable Sealed Inventory table
+// to Square Catalog. Reads rows where `published=true` and `website_alloc > 0`,
 
 
 // Admin: sync sealed inventory from the Airtable Sealed Inventory table
