@@ -1,0 +1,14 @@
+sku,product_name,set,language,product_type,on_hand,website_alloc,tcgplayer_alloc,show_reserve,cost_basis,tcg_market_price,liquidity_tier,platform_assignment,is_homepage_featured,target_roi_pct,manual_price_override,location,received_date,notes,published
+SEAL-ASCH-ETB,Ascended Heroes Elite Trainer Box,Ascended Heroes,EN,ETB,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief. Set on_hand + website_alloc from physical count.",false
+SEAL-DR-ETB,Destined Rivals Elite Trainer Box,Destined Rivals,EN,ETB,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief. Set on_hand + website_alloc from physical count.",false
+SEAL-M2INF-BB,Mega Evolution M2 Inferno X Booster Box,Mega Evolution M2 (Japanese),JP,BoosterBox,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief. Set on_hand + website_alloc from physical count.",false
+SEAL-NINJA-BB,Ninja Spinner Booster Box,Ninja Spinner (Japanese),JP,BoosterBox,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief. Confirm exact set name in Airtable.",false
+SEAL-KAMI-BB,Adventure on Kami's Island Booster Box,Adventure on Kami's Island (Japanese),JP,BoosterBox,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief.",false
+SEAL-151-MTIN,151 Mini Tin,Pokemon 151,EN,Tin,,,,0,,,Low,Website,false,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief.",false
+SEAL-MFERA-BOX,Mega Feraligatr ex Box,Mega Evolution,EN,CollectionBox,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief.",false
+SEAL-MDIANCIE-DECK,Mega Battle Deck (Mega Diancie ex),Mega Evolution,EN,Deck,,,,0,,,Collector,Website,true,25,,Storage A,2026-05-20,"ALL on-hand goes to website per brief.",false
+SEAL-PRE-ETB,Prismatic Evolutions Elite Trainer Box,Prismatic Evolutions,EN,ETB,15,10,5,0,,,Medium,Both,true,25,,Storage A,2026-05-20,"Split allocation per brief: 8-10 web / 4-6 tcg. Defaulted to 10/5. Adjust if real on-hand differs.",false
+SEAL-FP-PACK,First Partner Pack,Pokemon First Partner Collection,EN,Pack,44,22,22,0,,,Medium,Both,false,25,,Storage A,2026-05-20,"Split allocation per brief: 20-25 web / 20-25 tcg. Defaulted to 22/22 (44 total). Adjust to real on-hand.",false
+SEAL-FS-BLISTER,Fusion Strike Blister Pack,Fusion Strike,EN,Blister,,,,0,,,High,TCGplayer,false,15,,Storage A,2026-05-20,"ALL on-hand goes to TCGplayer per brief. Commodity liquidity SKU.",false
+SEAL-151-BUND,151 Booster Bundle,Pokemon 151,EN,Bundle,8,0,8,0,,,High,TCGplayer,false,15,,Storage A,2026-05-20,"7-8 booster bundles per brief; defaulted to 8. TCGplayer-only.",false
+SEAL-DR-BB,Destined Rivals Booster Box,Destined Rivals,EN,BoosterBox,2,0,2,0,,,High,TCGplayer,false,15,,Storage A,2026-05-20,"Exactly 2 per brief. TCGplayer-only for liquidity (ETBs of same set stay website-only).",false
