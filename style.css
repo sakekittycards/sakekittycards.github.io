@@ -1435,7 +1435,7 @@ body.cart-open { overflow: hidden; }
    transition from image-white to dark tile is a clean inset. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
-  aspect-ratio: 5/8;
+  aspect-ratio: 1/2;
 }
 .product-card.graded .product-img-real {
   object-fit: contain;
