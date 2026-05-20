@@ -1427,12 +1427,12 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
-/* Graded slabs are now portrait photo crops with a tilted slab and no extra
-   padding — the rotated image is ~2:3. Match the thumbnail aspect so the
-   full tilted slab fits edge-to-edge with no letterbox or crop. */
+/* Graded slabs are deskewed-straight portrait photos with the slab filling
+   most of the frame (no padding canvas). Aspect ~5:8 — narrower thumbnail,
+   taller cell — matches the slab's natural shape and avoids any crop. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
-  aspect-ratio: 2/3;
+  aspect-ratio: 5/8;
 }
 .product-card.graded .product-img-real {
   object-fit: cover;
