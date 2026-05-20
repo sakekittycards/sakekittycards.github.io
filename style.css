@@ -1427,17 +1427,19 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
-/* Graded slabs are deskewed-straight portrait photos. The aspect varies a
-   little per card (~5/8) so we use object-fit:contain to guarantee the
-   FULL slab is always visible — never crop, just letterbox the tiny aspect
-   mismatch with white. */
+/* Graded slabs are portrait photos with the slab on a white background.
+   object-fit:contain guarantees the FULL slab is always visible top-to-
+   bottom, never cropped. The tile background uses the site's dark surface
+   tone so the small white letterbox blends with the page instead of glaring.
+   Source images bake a white frame around the slab already, so the
+   transition from image-white to dark tile is a clean inset. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
   aspect-ratio: 5/8;
 }
 .product-card.graded .product-img-real {
   object-fit: contain;
-  background: #fff;
+  background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
 }
 
 /* ── Shop loading/empty/error states ── */
