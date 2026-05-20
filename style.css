@@ -1427,15 +1427,16 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
-/* Graded slabs are square 4096x4096 with brand-color framing baked into
-   the image. Override the 5/7 portrait crop so the full slab renders
-   edge-to-edge — same look the product detail page shows. */
+/* Graded slabs are now portrait photo crops with a tilted slab on a white
+   background. The default 5/7 aspect with object-fit:contain shows the full
+   slab edge-to-edge without cropping the tilt corners. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
-  aspect-ratio: 1/1;
+  aspect-ratio: 5/7;
 }
 .product-card.graded .product-img-real {
-  object-fit: cover;
+  object-fit: contain;
+  background: #fff;
 }
 
 /* ── Shop loading/empty/error states ── */

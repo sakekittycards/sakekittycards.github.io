@@ -1,0 +1,16 @@
+[run]  cert 156593992 -> reshiram-ex-black-white-rare/
+    upscaled (1888, 3255) -> (7552, 13020) (x4)
+    palette: [(249, 37, 87), (33, 67, 217), (217, 33, 207)]
+  IMG_0001.png -> reshiram-ex-black-white-rare-cert156593992-front.jpg  (crop (7552, 13020), out (4096, 4096))
+    upscaled (1790, 3250) -> (7160, 13000) (x4)
+    palette: [(249, 37, 87), (33, 67, 217), (217, 33, 207)]
+  IMG_0002.png -> reshiram-ex-black-white-rare-cert156593992-back.jpg  (crop (7160, 13000), out (4096, 4096))
+[run]  cert 104313026 -> palafin-illustration-rare/
+    upscaled (1888, 3242) -> (7552, 12968) (x4)
+    palette: [(251, 2, 69), (33, 154, 217), (33, 217, 155)]
+  IMG_0003.png -> palafin-illustration-rare-cert104313026-front.jpg  (crop (7552, 12968), out (4096, 4096))
+    upscaled (1817, 3260) -> (7268, 13040) (x4)
+    palette: [(251, 2, 69), (33, 154, 217), (33, 217, 155)]
+  IMG_0004.png -> palafin-illustration-rare-cert104313026-back.jpg  (crop (7268, 13040), out (4096, 4096))
+
+[done] pricing.csv now has 53 rows.

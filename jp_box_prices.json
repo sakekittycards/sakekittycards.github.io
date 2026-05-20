@@ -1,0 +1,86 @@
+[
+  {
+    "set": "SV2a 151",
+    "name": "Pokemon Card 151 Booster Box",
+    "pid": 565243,
+    "market": 365.16,
+    "lastsold": null
+  },
+  {
+    "set": "S12a VSTAR Universe",
+    "name": "VSTAR Universe Booster Box",
+    "pid": 565252,
+    "market": 227.55,
+    "lastsold": null
+  },
+  {
+    "set": "SV4a Shiny Treasure ex",
+    "name": "Shiny Treasure ex High Class Booster Box",
+    "pid": 565232,
+    "market": 137.53,
+    "lastsold": null
+  },
+  {
+    "set": "SV6 Transformation Mask",
+    "name": "Transformation Mask Booster Box",
+    "pid": 565221,
+    "market": 94.49,
+    "lastsold": null
+  },
+  {
+    "set": "SV8 Super Electric Breaker",
+    "name": "Super Electric Breaker Booster Box",
+    "pid": 587728,
+    "market": 160.07,
+    "lastsold": null
+  },
+  {
+    "set": "SV9 Battle Partners",
+    "name": "Battle Partners Booster Box",
+    "pid": 614707,
+    "market": 88.76,
+    "lastsold": null
+  },
+  {
+    "set": "SV7 Stellar Miracle",
+    "name": "Stellar Miracle Booster Box",
+    "pid": 565217,
+    "market": 81.29,
+    "lastsold": null
+  },
+  {
+    "set": "SV7a Paradise Dragona",
+    "name": "Paradise Dragona Booster Box",
+    "pid": 580709,
+    "market": 92.33,
+    "lastsold": null
+  },
+  {
+    "set": "SV5K Wild Force",
+    "name": "Wild Force Booster Box",
+    "pid": 565225,
+    "market": 91.59,
+    "lastsold": null
+  },
+  {
+    "set": "SV5M Cyber Judge",
+    "name": "Cyber Judge Booster Box",
+    "pid": 565222,
+    "market": 81.22,
+    "lastsold": null
+  },
+  {
+    "set": "SV5a Crimson Haze",
+    "name": "Crimson Haze Booster Box",
+    "pid": 565226,
+    "market": 103,
+    "lastsold": null
+  },
+  {
+    "set": "S6a Eevee Heroes",
+    "name": "Eevee Heroes Booster Box",
+    "pid": 565351,
+    "market": 670.64,
+    "lastsold": null
+  }
+]

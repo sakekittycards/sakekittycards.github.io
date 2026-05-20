@@ -1,0 +1,31 @@
+Inbox:    C:\Users\lunar\OneDrive\Desktop\sake-kitty-cards-site\scripts\graded-uploader\inbox
+Finished: C:\Users\lunar\OneDrive\Desktop\sake-kitty-cards-site\scripts\graded-uploader\finished
+CSV:      C:\Users\lunar\OneDrive\Desktop\sake-kitty-cards-site\scripts\graded-uploader\pricing.csv
+Files to OCR: 4
+
+Loading RapidOCR (first run downloads ~10MB of ONNX models)...
+
+=== Pass 1: OCR + classify ===
+  [  1/4] IMG_0001.png                   front cert=156593992 (9.8s)
+  [  2/4] IMG_0002.png                   NO CERT detected (6.5s)
+  [  3/4] IMG_0003.png                   front cert=104313026 (5.9s)
+  [  4/4] IMG_0004.png                   NO CERT detected (5.7s)
+
+=== Pass 2: pair + process ===
+  cert 156593992: front-only, no back found - leaving in inbox
+  cert 104313026: front-only, no back found - leaving in inbox
+
+=== Summary ===
+  paired:      0
+  front-only:  2
+  back-only:   0
+  weird:       0
+  no cert read:2
+
+  Files where OCR didn't find a cert number:
+    IMG_0002.png
+    IMG_0004.png
+
+  -> Try rescanning these (cards may be misaligned, glare on hologram, or scan resolution too low - bump to 600 dpi if 300 isn't enough).
+
+Done. Edit C:\Users\lunar\OneDrive\Desktop\sake-kitty-cards-site\scripts\graded-uploader\pricing.csv to fill in your_price for each card, then run upload_to_square.py.
