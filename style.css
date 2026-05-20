@@ -1427,15 +1427,16 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
-/* Graded slabs are deskewed-straight portrait photos with the slab filling
-   most of the frame (no padding canvas). Aspect ~5:8 — narrower thumbnail,
-   taller cell — matches the slab's natural shape and avoids any crop. */
+/* Graded slabs are deskewed-straight portrait photos. The aspect varies a
+   little per card (~5/8) so we use object-fit:contain to guarantee the
+   FULL slab is always visible — never crop, just letterbox the tiny aspect
+   mismatch with white. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
   aspect-ratio: 5/8;
 }
 .product-card.graded .product-img-real {
-  object-fit: cover;
+  object-fit: contain;
   background: #fff;
 }
 
