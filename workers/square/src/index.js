@@ -123,6 +123,10 @@ export default {
         return await syncSealedInventory(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/export-tcgplayer-csv' && request.method === 'GET') {
+        return await exportTcgplayerCsv(request, env);
+      }
+
       // Public endpoint — let the gift-cards page check a balance from
       // a customer-typed code without redirecting to Square.
       if (path === '/gift-card/balance' && request.method === 'POST') {
@@ -1463,6 +1467,88 @@ async function checkGiftCardBalance(request, base, squareHeaders, env) {
     currency:      d.gift_card.balance_money?.currency || 'USD',
     state:         d.gift_card.state,
     last4:         gan.slice(-4),
+  });
+}
+
+
+// Admin: export a TCGplayer-quantity CSV from the Airtable Sealed Inventory
+// table. Streams rows where `published=true`, `tcgplayer_alloc > 0`, and
+// `tcgplayer_product_id` is set. CSV columns: TCGplayer Id, SKU, Product Name,
+// Set, Total Quantity. Quantity only — Nick's separate TCG repricer owns
+// the price column on upload to TCGplayer Seller Hub.
+//
+// Usage:
+//   GET /admin/export-tcgplayer-csv          -> text/csv attachment (downloads)
+//   GET /admin/export-tcgplayer-csv?json=1   -> JSON preview (browser-friendly)
+async function exportTcgplayerCsv(request, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  const url = new URL(request.url);
+  const asJson = url.searchParams.get('json') === '1';
+
+  const baseId = env.AIRTABLE_BASE_ID;
+  const tableId = env.SEALED_INVENTORY_TABLE_ID;
+  if (!env.AIRTABLE_TOKEN || !baseId || !tableId) {
+    return json({ error: 'airtable_not_configured' }, 500);
+  }
+  const airHeaders = { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` };
+
+  // Collector tier is website-only; the filter excludes it implicitly via
+  // tcgplayer_alloc>0 (Collector rows shouldn't have a tcgplayer_alloc set).
+  const filter = 'AND({published}=1, {tcgplayer_alloc}>0, {tcgplayer_product_id})';
+  const params = new URLSearchParams({ filterByFormula: filter, pageSize: '100' });
+  const rows = [];
+  let offset = '';
+  while (true) {
+    const q = offset ? `${params.toString()}&offset=${encodeURIComponent(offset)}` : params.toString();
+    const r = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}?${q}`, { headers: airHeaders });
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({}));
+      return json({ error: 'airtable_read_failed', detail }, r.status);
+    }
+    const data = await r.json();
+    rows.push(...(data.records || []));
+    offset = data.offset || '';
+    if (!offset) break;
+  }
+
+  // Build CSV. Standard TCGplayer-friendly column names.
+  const HEAD = ['TCGplayer Id', 'SKU', 'Product Name', 'Set', 'Total Quantity'];
+  const csvEscape = (s) => {
+    const str = String(s ?? '');
+    return /[",\n\r]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+  };
+  const lines = [HEAD.join(',')];
+  const preview = [];
+  for (const rec of rows) {
+    const f = rec.fields || {};
+    const tcgId = f.tcgplayer_product_id;
+    const qty   = Number(f.tcgplayer_alloc || 0);
+    if (!tcgId || qty <= 0) continue;
+    const row = [tcgId, f.sku || rec.id, f.product_name || '', f.set || '', qty];
+    lines.push(row.map(csvEscape).join(','));
+    preview.push({
+      tcgplayer_id: tcgId, sku: f.sku, product_name: f.product_name,
+      set: f.set, total_quantity: qty,
+    });
+  }
+  const csv = lines.join('\r\n') + '\r\n';
+
+  if (asJson) {
+    return json({ generated_at: new Date().toISOString(), row_count: preview.length, rows: preview });
+  }
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  return new Response(csv, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="sealed-tcgplayer-qty-${stamp}.csv"`,
+      'Cache-Control': 'no-store',
+      ...CORS_HEADERS,
+    },
   });
 }
 
