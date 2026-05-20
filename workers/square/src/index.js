@@ -1553,6 +1553,51 @@ async function exportTcgplayerCsv(request, env) {
 }
 
 
+// Fetch the official TCGplayer product image and attach to the given Square
+// catalog ITEM as its primary image. Best-effort: returns a result object,
+// never throws. Skips silently if the TCGplayer CDN can't serve the image
+// (e.g., new product not yet imaged).
+async function attachTcgImageToItem(itemId, productId, base, squareHeaders) {
+  // 1000x1000 is the largest stable variant; Square downsizes for thumbnails.
+  const cdnUrl = `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg`;
+  let imgRes;
+  try {
+    imgRes = await fetch(cdnUrl, { headers: { 'User-Agent': 'Mozilla/5.0 SakeKittyCards/1.0' } });
+  } catch (e) {
+    return { skipped: 'cdn_fetch_failed', detail: String(e) };
+  }
+  if (!imgRes.ok) return { skipped: 'cdn_not_found', status: imgRes.status };
+  const imgBytes = await imgRes.arrayBuffer();
+  if (imgBytes.byteLength < 500) return { skipped: 'cdn_returned_empty' };
+
+  const form = new FormData();
+  form.append('request', JSON.stringify({
+    idempotency_key: crypto.randomUUID(),
+    object_id: itemId,
+    image: {
+      type: 'IMAGE',
+      id: '#sk-tcg-img',
+      image_data: { name: `tcgplayer-${productId}`, caption: `TCGplayer stock image` },
+    },
+    is_primary: true,
+  }));
+  form.append('image_file', new Blob([imgBytes], { type: 'image/jpeg' }), `${productId}.jpg`);
+
+  // Multipart upload — do NOT set Content-Type manually; let FormData set it
+  // with the right multipart boundary.
+  const uploadHeaders = {
+    'Square-Version': squareHeaders['Square-Version'],
+    'Authorization':  squareHeaders['Authorization'],
+  };
+  const upRes = await fetch(`${base}/v2/catalog/images`, {
+    method: 'POST', headers: uploadHeaders, body: form,
+  });
+  const upData = await upRes.json().catch(() => ({}));
+  if (!upRes.ok) return { error: upData };
+  return { image_id: upData?.image?.id, url: upData?.image?.image_data?.url };
+}
+
+
 // Admin: sync sealed inventory from the Airtable Sealed Inventory table
 // to Square Catalog. Reads rows where `published=true` and `website_alloc > 0`,
 // upserts each as a Square ITEM with one ITEM_VARIATION at `website_price`,
@@ -1677,15 +1722,17 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
         },
       };
       // If updating an existing item we need the current version. Fetch it first.
+      // Also capture existing image_ids so we know whether to attach an image.
+      let hasExistingImages = false;
       if (existingItemId) {
         const get = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(existingItemId)}`,
           { headers: squareHeaders });
         if (get.ok) {
           const gd = await get.json();
           if (gd?.object?.version) payload.object.version = gd.object.version;
-          // Also use the same variation version to avoid stale-write rejection.
           const v = gd?.object?.item_data?.variations?.find(v => v.id === existingVarId);
           if (v?.version) payload.object.item_data.variations[0].version = v.version;
+          if ((gd?.object?.item_data?.image_ids || []).length > 0) hasExistingImages = true;
         }
       }
 
@@ -1729,7 +1776,15 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
         rowReport.inventory_warning = invData;
       }
 
-      // 4. Write Square IDs back to Airtable (first-sync rows only)
+      // 4. Attach TCGplayer stock image as the primary image (best-effort).
+      // Only attempt for new items OR existing items without any image yet.
+      const tcgPid = Number(f.tcgplayer_product_id || 0);
+      if (tcgPid > 0 && (!existingItemId || !hasExistingImages)) {
+        const imgResult = await attachTcgImageToItem(itemId, tcgPid, base, squareHeaders);
+        rowReport.image = imgResult;
+      }
+
+      // 5. Write Square IDs back to Airtable (first-sync rows only)
       if (!existingItemId || !existingVarId) {
         const patch = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`,
           { method: 'PATCH', headers: airHeaders,
