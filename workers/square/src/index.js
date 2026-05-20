@@ -119,6 +119,10 @@ export default {
         return await adminDeleteItem(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/sync-sealed-inventory' && (request.method === 'POST' || request.method === 'GET')) {
+        return await syncSealedInventory(request, base, squareHeaders, env);
+      }
+
       // Public endpoint — let the gift-cards page check a balance from
       // a customer-typed code without redirecting to Square.
       if (path === '/gift-card/balance' && request.method === 'POST') {
@@ -1460,6 +1464,211 @@ async function checkGiftCardBalance(request, base, squareHeaders, env) {
     state:         d.gift_card.state,
     last4:         gan.slice(-4),
   });
+}
+
+
+// Admin: sync sealed inventory from the Airtable Sealed Inventory table
+// to Square Catalog. Reads rows where `published=true` and `website_alloc > 0`,
+// upserts each as a Square ITEM with one ITEM_VARIATION at `website_price`,
+// then sets the inventory count to `website_alloc`. Stores the resulting
+// Square IDs back on the Airtable row so re-runs update instead of duplicate.
+//
+// Auth: X-Sake-Admin-Token header. Pass ?dry_run=1 to preview.
+//
+// IMPORTANT: This function reads the MASTER ledger (Airtable) and writes to
+// Square. TCGplayer pricing/listing is handled by Nick's separate marketplace
+// pipeline — this endpoint does NOT touch it.
+async function syncSealedInventory(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  const url = new URL(request.url);
+  const dryRun = url.searchParams.get('dry_run') === '1';
+
+  const baseId = env.AIRTABLE_BASE_ID;
+  const tableId = env.SEALED_INVENTORY_TABLE_ID;
+  const airHeaders = {
+    'Authorization': `Bearer ${env.AIRTABLE_TOKEN}`,
+    'Content-Type': 'application/json',
+  };
+  if (!env.AIRTABLE_TOKEN || !baseId || !tableId) {
+    return json({ error: 'airtable_not_configured', need: ['AIRTABLE_TOKEN', 'AIRTABLE_BASE_ID', 'SEALED_INVENTORY_TABLE_ID'] }, 500);
+  }
+
+  // 1. Page through Airtable rows
+  const filter = "AND({published}=1, {website_alloc}>0)";
+  const params = new URLSearchParams({ filterByFormula: filter, pageSize: '100' });
+  const rows = [];
+  let offset = '';
+  while (true) {
+    const q = offset ? `${params.toString()}&offset=${encodeURIComponent(offset)}` : params.toString();
+    const r = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}?${q}`, { headers: airHeaders });
+    if (!r.ok) {
+      const detail = await r.json().catch(() => ({}));
+      return json({ error: 'airtable_read_failed', detail }, r.status);
+    }
+    const data = await r.json();
+    rows.push(...(data.records || []));
+    offset = data.offset || '';
+    if (!offset) break;
+  }
+
+  const report = { dry_run: dryRun, total_published: rows.length, created: 0, updated: 0, skipped: 0, errors: 0, rows: [] };
+
+  for (const rec of rows) {
+    const f = rec.fields || {};
+    const sku = f.sku || rec.id;
+    const name = (f.product_name || '').trim();
+    const websiteAlloc = Number(f.website_alloc || 0);
+    const websitePrice = Number(f.website_price || 0);
+    const setName = (f.set || '').trim();
+    const language = (f.language || '').trim();
+    const productType = (f.product_type || '').trim();
+    const existingItemId = (f.square_item_id || '').trim();
+    const existingVarId = (f.square_variation_id || '').trim();
+
+    const rowReport = { sku, name, website_alloc: websiteAlloc, website_price: websitePrice };
+
+    if (!name || !websitePrice || websitePrice <= 0) {
+      rowReport.action = 'skip-no-price-or-name';
+      report.skipped++;
+      report.rows.push(rowReport);
+      continue;
+    }
+
+    // Title: product_name + language tag if JP (sets visual differentiation)
+    const titleParts = [name];
+    if (language === 'JP' && !/\bjapan/i.test(name)) titleParts.push('(JP)');
+    const title = titleParts.join(' ').slice(0, 255);
+
+    const descLines = [];
+    if (setName) descLines.push(`Set: ${setName}`);
+    if (productType) descLines.push(`Type: ${productType}`);
+    descLines.push(`SKU: ${sku}`);
+    const description = descLines.join('\n').slice(0, 4096);
+
+    const priceCents = Math.round(websitePrice * 100);
+
+    if (dryRun) {
+      rowReport.action = existingItemId ? 'would-update' : 'would-create';
+      rowReport.title = title;
+      report.rows.push(rowReport);
+      continue;
+    }
+
+    // 2. Upsert catalog object
+    let itemId = existingItemId;
+    let variationId = existingVarId;
+    try {
+      const itemPlaceholder = existingItemId || `#sk-sealed-${sku}`;
+      const varPlaceholder  = existingVarId  || `#sk-sealed-var-${sku}`;
+      const payload = {
+        idempotency_key: crypto.randomUUID(),
+        object: {
+          type: 'ITEM',
+          id: itemPlaceholder,
+          ...(existingItemId ? { version: rec.fields.__version || undefined } : {}),
+          item_data: {
+            name: title,
+            description,
+            is_taxable: true,
+            variations: [{
+              type: 'ITEM_VARIATION',
+              id: varPlaceholder,
+              item_variation_data: {
+                item_id: itemPlaceholder,
+                name: 'Sealed',
+                sku: sku,
+                pricing_type: 'FIXED_PRICING',
+                price_money: { amount: priceCents, currency: 'USD' },
+                track_inventory: true,
+                sellable: true,
+                stockable: true,
+              },
+            }],
+          },
+        },
+      };
+      // If updating an existing item we need the current version. Fetch it first.
+      if (existingItemId) {
+        const get = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(existingItemId)}`,
+          { headers: squareHeaders });
+        if (get.ok) {
+          const gd = await get.json();
+          if (gd?.object?.version) payload.object.version = gd.object.version;
+          // Also use the same variation version to avoid stale-write rejection.
+          const v = gd?.object?.item_data?.variations?.find(v => v.id === existingVarId);
+          if (v?.version) payload.object.item_data.variations[0].version = v.version;
+        }
+      }
+
+      const upRes = await fetch(`${base}/v2/catalog/object`, {
+        method: 'POST', headers: squareHeaders, body: JSON.stringify(payload),
+      });
+      const upData = await upRes.json();
+      if (!upRes.ok) {
+        rowReport.action = 'error-square-upsert';
+        rowReport.error = upData;
+        report.errors++;
+        report.rows.push(rowReport);
+        continue;
+      }
+      const obj = upData.catalog_object;
+      const newVar = obj?.item_data?.variations?.[0];
+      itemId = obj?.id || itemId;
+      variationId = newVar?.id || variationId;
+      rowReport.action = existingItemId ? 'updated' : 'created';
+      if (existingItemId) report.updated++; else report.created++;
+
+      // 3. Set inventory count = website_alloc (absolute)
+      const invRes = await fetch(`${base}/v2/inventory/changes/batch-create`, {
+        method: 'POST', headers: squareHeaders,
+        body: JSON.stringify({
+          idempotency_key: crypto.randomUUID(),
+          changes: [{
+            type: 'PHYSICAL_COUNT',
+            physical_count: {
+              catalog_object_id: variationId,
+              state: 'IN_STOCK',
+              location_id: env.SQUARE_LOCATION_ID,
+              quantity: String(websiteAlloc),
+              occurred_at: new Date().toISOString(),
+            },
+          }],
+        }),
+      });
+      if (!invRes.ok) {
+        const invData = await invRes.json().catch(() => ({}));
+        rowReport.inventory_warning = invData;
+      }
+
+      // 4. Write Square IDs back to Airtable (first-sync rows only)
+      if (!existingItemId || !existingVarId) {
+        const patch = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}`,
+          { method: 'PATCH', headers: airHeaders,
+            body: JSON.stringify({
+              records: [{ id: rec.id, fields: {
+                square_item_id: itemId, square_variation_id: variationId,
+              }}],
+              typecast: true,
+            }) });
+        if (!patch.ok) {
+          rowReport.airtable_patch_warning = await patch.json().catch(() => ({}));
+        }
+      }
+
+      rowReport.square_item_id = itemId;
+      rowReport.square_variation_id = variationId;
+    } catch (err) {
+      rowReport.action = 'error-exception';
+      rowReport.error = err.message || String(err);
+      report.errors++;
+    }
+    report.rows.push(rowReport);
+  }
+
+  return json(report);
 }
 
 

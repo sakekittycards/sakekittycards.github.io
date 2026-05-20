@@ -12,6 +12,9 @@ SQUARE_ENV            = "production"
 PRINTFUL_STORE_ID     = "18064906"
 AIRTABLE_BASE_ID      = "appG9mKWxmwq9ZbTq"
 AIRTABLE_TABLE_ID     = "tbldRJdVmABVQskRY"
+# Sealed inventory master ledger. Same base as grading. See
+# scripts/sealed-inventory/README.md.
+SEALED_INVENTORY_TABLE_ID = "tblBj9IL9cmrmUCoP"
 
 # Promo code D1 database. Create via:
 #   wrangler d1 create sk-promo-codes

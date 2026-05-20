@@ -148,7 +148,11 @@ This is what's encoded in `_initial_import.csv`. Source: your strategic brief.
 
 ## What's next (Day 2+)
 
-- **Day 2**: Build `sakekitty-inventory` Cloudflare Worker with `POST /sync/square` — reads Airtable rows where `published=true` + `website_alloc>0`, upserts into Square Catalog with absolute inventory count via `BatchChangeInventory`. Cron every 15 min.
+- **Day 2 (DONE 2026-05-20)**: Added `POST /admin/sync-sealed-inventory` to the existing `sakekitty-square` worker (cleaner than a parallel worker — Square + Airtable plumbing already exists). Reads Airtable rows where `published=true` + `website_alloc>0`, upserts each as a Square ITEM with one ITEM_VARIATION at `website_price`, sets inventory count to `website_alloc`, writes `square_item_id` + `square_variation_id` back to Airtable for stable re-syncs.
+
+  Test (dry-run): `curl -X GET -H "X-Sake-Admin-Token: $TOKEN" "https://sakekitty-square.nwilliams23999.workers.dev/admin/sync-sealed-inventory?dry_run=1"`
+
+  Real sync: same URL, POST, drop `dry_run=1`.
 - **Day 3**: Wire Square webhook `order.created` → Worker → Airtable decrement (atomic on_hand + website_alloc).
 - **Day 4**: Build `GET /export/tcgplayer.csv` — streams TCGplayer Direct upload CSV from Airtable rows where `published=true` + `tcgplayer_alloc>0`. Manual download → upload to TCGplayer Seller Hub.
 - **Day 5**: Build `POST /ingest/tcgplayer-sales` — accepts TCGplayer's daily sales-export CSV, decrements `on_hand` + `tcgplayer_alloc` per row.
