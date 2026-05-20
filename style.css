@@ -1412,6 +1412,11 @@ body.cart-open { overflow: hidden; }
   overflow: hidden;
   isolation: isolate;     /* contain the skeleton-glow ::before stacking context */
   transition: border-color .2s, transform .2s;
+  /* Perf: skip rendering + animations on offscreen cards. Browser still
+     reserves layout space via contain-intrinsic-size. Cuts CPU on long
+     shop pages — graded section can render 40+ cards. */
+  content-visibility: auto;
+  contain-intrinsic-size: 320px 540px;
 }
 .product-card:hover { border-color: rgba(255,106,0,.4); transform: translateY(-5px); }
 .product-img {

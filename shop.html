@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=143" />
+  <link rel="stylesheet" href="style.css?v=144" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -414,14 +414,27 @@
       const EAGER_LIMIT = 8;  // first ~2 rows render with priority
 
       // Route Square's full-resolution images (5+ MB JPEGs from /original.jpeg)
-      // through wsrv.nl to get a 400px WebP thumbnail (~15 KB). Square doesn't
+      // through wsrv.nl to get a properly sized WebP thumbnail. Square doesn't
       // expose smaller variants on the S3 path, so this is the cheapest fix.
       // PDP (product.html) keeps the original URL for full-detail viewing.
-      // Skip the proxy for assets we already control (logo, etc.) — only
-      // applies to remote images (Square + Printful).
-      const thumbProxy = (url) => {
+      //
+      // Graded slabs are TALL portraits (5:8) — `fit=cover` at 400x400 was
+      // chopping the PSA label off the top. We now request the proper aspect
+      // box with `fit=inside` so the entire slab fits without crop, and serve
+      // a srcset for retina screens.
+      const thumbProxy = (url, isGraded) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
+        if (isGraded) {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=inside&output=webp&q=78`;
+        }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
+      };
+      const thumbProxy2x = (url, isGraded) => {
+        if (!url || !/^https?:\/\//.test(url)) return null;
+        if (isGraded) {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=640&h=1024&fit=inside&output=webp&q=78`;
+        }
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=800&h=800&fit=cover&output=webp&q=80`;
       };
 
       const renderCard = (item) => {
@@ -437,9 +450,14 @@
         const loadAttrs = eager
           ? 'loading="eager" decoding="async" fetchpriority="high"'
           : 'loading="lazy" decoding="async" fetchpriority="low"';
-        const imgUrl = thumbProxy(item.imageUrl);
+        const imgUrl = thumbProxy(item.imageUrl, isGraded);
+        const imgUrl2x = thumbProxy2x(item.imageUrl, isGraded);
+        const srcset = imgUrl2x ? ` srcset="${esc(imgUrl)} 1x, ${esc(imgUrl2x)} 2x"` : '';
+        // Width/height attrs use the THUMBPROXY dimensions so the browser can
+        // reserve correct layout space (prevents CLS) — graded gets 5:8 portrait.
+        const wh = isGraded ? 'width="320" height="512"' : 'width="320" height="320"';
         const imgBlock = item.imageUrl
-          ? `<img src="${esc(imgUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} width="320" height="320" onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
+          ? `<img src="${esc(imgUrl)}"${srcset} alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} ${wh} onload="this.classList.replace('img-loading','img-loaded')" onerror="this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'" />`
           : `<div class="product-img">📦</div>`;
         const desc = item.description
           ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
