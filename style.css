@@ -1427,15 +1427,15 @@ body.cart-open { overflow: hidden; }
   display: block;
 }
 
-/* Graded slabs are now portrait photo crops with a tilted slab on a white
-   background. The default 5/7 aspect with object-fit:contain shows the full
-   slab edge-to-edge without cropping the tilt corners. */
+/* Graded slabs are now portrait photo crops with a tilted slab and no extra
+   padding — the rotated image is ~2:3. Match the thumbnail aspect so the
+   full tilted slab fits edge-to-edge with no letterbox or crop. */
 .product-card.graded .product-img,
 .product-card.graded .product-img-real {
-  aspect-ratio: 5/7;
+  aspect-ratio: 2/3;
 }
 .product-card.graded .product-img-real {
-  object-fit: contain;
+  object-fit: cover;
   background: #fff;
 }
 
