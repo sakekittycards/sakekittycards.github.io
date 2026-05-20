@@ -153,6 +153,23 @@ This is what's encoded in `_initial_import.csv`. Source: your strategic brief.
   Test (dry-run): `curl -X GET -H "X-Sake-Admin-Token: $TOKEN" "https://sakekitty-square.nwilliams23999.workers.dev/admin/sync-sealed-inventory?dry_run=1"`
 
   Real sync: same URL, POST, drop `dry_run=1`.
+
+- **Day 2b (DONE 2026-05-20)**: Added `GET /admin/export-tcgplayer-csv` to the same worker. Streams a CSV of every `published=true` row with `tcgplayer_alloc>0` and `tcgplayer_product_id` set. Columns: `TCGplayer Id, SKU, Product Name, Set, Total Quantity`. **Quantity only — pricing is handled by your separate TCG marketplace pipeline.**
+
+  Download the CSV:
+  ```
+  curl -H "X-Sake-Admin-Token: $TOKEN" \
+    "https://sakekitty-square.nwilliams23999.workers.dev/admin/export-tcgplayer-csv" \
+    -o sealed-tcgplayer-qty-$(date +%Y-%m-%d).csv
+  ```
+
+  Browser-friendly JSON preview:
+  ```
+  curl -H "X-Sake-Admin-Token: $TOKEN" \
+    "https://sakekitty-square.nwilliams23999.workers.dev/admin/export-tcgplayer-csv?json=1"
+  ```
+
+  Workflow: this CSV updates `Total Quantity` on existing TCGplayer listings. Match it against your TCGplayer Seller Hub current-listings download, copy quantities across, re-upload. Or upload as-is if the columns match.
 - **Day 3**: Wire Square webhook `order.created` → Worker → Airtable decrement (atomic on_hand + website_alloc).
 - **Day 4**: Build `GET /export/tcgplayer.csv` — streams TCGplayer Direct upload CSV from Airtable rows where `published=true` + `tcgplayer_alloc>0`. Manual download → upload to TCGplayer Seller Hub.
 - **Day 5**: Build `POST /ingest/tcgplayer-sales` — accepts TCGplayer's daily sales-export CSV, decrements `on_hand` + `tcgplayer_alloc` per row.
