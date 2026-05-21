@@ -477,7 +477,16 @@
           : `<div class="product-img">📦</div>`;
         // Description intentionally omitted from grid card — name + price only
         // on the listing. Full description lives on product.html (PDP).
-        const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
+        // Scarcity badge: "Only N left" when stock is low but not sold out.
+        // Skip for graded (always qty 1 — would always trigger and be noise).
+        const stock = typeof item.stock === 'number' ? item.stock : null;
+        const LOW_STOCK_THRESHOLD = 5;
+        let badge = '';
+        if (oos) {
+          badge = `<div class="sold-out-badge">Sold Out</div>`;
+        } else if (!isGraded && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD) {
+          badge = `<div class="low-stock-badge">Only ${stock} left</div>`;
+        }
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cardClasses = ['product-card'];
         if (oos) cardClasses.push('sold-out');

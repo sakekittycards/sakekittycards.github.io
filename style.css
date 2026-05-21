@@ -1641,6 +1641,19 @@ body.cart-open { overflow: hidden; }
   font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15);
 }
+/* Scarcity badge — appears on cards where in-stock count is at or below
+   the low-stock threshold (5 by default, set in shop.html renderCard).
+   Same position + shape as sold-out, but in the brand orange so it reads
+   as a "buy now" signal rather than a "you missed it" signal. */
+.low-stock-badge {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  color: #fff;
+  padding: 5px 11px; border-radius: var(--r-pill);
+  font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 2px 12px rgba(255,106,0,0.35);
+}
 .btn-disabled {
   background: rgba(255,255,255,0.05); color: var(--dim);
   border: 1.5px solid var(--border); cursor: not-allowed;
