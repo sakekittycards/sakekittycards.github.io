@@ -1644,7 +1644,11 @@ body.cart-open { overflow: hidden; }
 .product-card.sealed .product-img-real {
   object-fit: contain;
   background: #fff;          /* white breathing room around the product */
-  padding: 8% 8%;            /* small margin — product remains the focus */
+  padding: 14% 14%;          /* extra margin — normalizes visual size across
+                                products with different native crop ratios
+                                (Premium Checklane Blisters render too big
+                                otherwise, Single Pack Blisters vary wildly
+                                depending on TCGplayer's stock photo padding) */
 }
 
 /* ── Shop loading/empty/error states ── */
