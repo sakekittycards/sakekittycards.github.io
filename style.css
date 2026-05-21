@@ -1164,7 +1164,9 @@ body.cart-open { overflow: hidden; }
 }
 .inventory-paused-note strong { color: var(--orange); }
 
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(230px,1fr)); gap: 26px; }
+/* Horizontal product cards — image on left, name + price + CTA on right.
+   2 cards per row on desktop (>=900px), 1 per row on mobile/narrow. */
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(440px,1fr)); gap: 22px; }
 
 /* Graded cards filter + sort controls */
 .graded-controls {
@@ -1482,7 +1484,46 @@ body.cart-open { overflow: hidden; }
   overflow: hidden;
   isolation: isolate;     /* contain the skeleton-glow ::before stacking context */
   transition: border-color .25s, transform .25s, box-shadow .3s;
+  /* Horizontal layout: image on the left, name/price/CTA on the right. */
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
 }
+/* Image takes the LEFT 45% of the card; info fills the rest */
+.product-card .product-img,
+.product-card .product-img-real {
+  width: 45%;
+  flex-shrink: 0;
+}
+.product-card .product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 18px 18px 20px;
+  min-width: 0;
+}
+.product-card .product-cta {
+  display: inline-block;
+  align-self: flex-start;
+  margin-top: 14px;
+  padding: 9px 16px;
+  background: linear-gradient(135deg, var(--orange), #ff3d8c);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 999px;
+  letter-spacing: 0.2px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity .22s ease, transform .22s ease;
+  pointer-events: none;
+}
+.product-card:hover .product-cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* On mobile, stack one card per row (handled at grid level) */
 .product-card:hover {
   border-color: rgba(255,106,0,.5);
   transform: translateY(-5px);
@@ -1960,7 +2001,8 @@ body.drip-unlocked { position: relative; }
 }
 @media (max-width: 480px) {
   .buylist-steps { grid-template-columns: 1fr; }
-  .product-grid { grid-template-columns: repeat(2,1fr); gap: 14px; }
+  /* Horizontal cards: one per row on mobile */
+  .product-grid { grid-template-columns: 1fr; gap: 14px; }
   .vendors-grid { grid-template-columns: 1fr; }
   .prep-steps { grid-template-columns: 1fr; }
 }
