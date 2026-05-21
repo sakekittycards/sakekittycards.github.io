@@ -115,6 +115,10 @@ export default {
         return await replaceGradedImages(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/clear-graded-images' && request.method === 'POST') {
+        return await clearGradedImages(request, base, squareHeaders, env);
+      }
+
       if (path === '/admin/delete-item' && request.method === 'POST') {
         return await adminDeleteItem(request, base, squareHeaders, env);
       }
@@ -1313,6 +1317,60 @@ async function updateGradedPrice(request, base, squareHeaders, env) {
 // were already pushed to Square. Looks up the item by "Cert #: <cert>" in
 // description, deletes its existing image objects, then attaches the new
 // front (is_primary: true) and back (is_primary: false).
+async function clearGradedImages(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+  const cert = String(body.cert || '').trim();
+  if (!cert) return json({ error: 'missing_cert' }, 400);
+
+  // Find the item by cert (same approach as replace-graded-images).
+  let cursor = '';
+  let foundItem = null;
+  for (let page = 0; page < 20; page++) {
+    const listUrl = `${base}/v2/catalog/list?types=ITEM${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const r = await fetch(listUrl, { headers: squareHeaders });
+    const d = await r.json();
+    if (!r.ok) return json({ error: 'square_list_failed', detail: d }, r.status);
+    const objs = d.objects || [];
+    const match = objs.find(o =>
+      o.type === 'ITEM' &&
+      (o.item_data?.description || '').includes(`Cert #: ${cert}`)
+    );
+    if (match) { foundItem = match; break; }
+    cursor = d.cursor || '';
+    if (!cursor) break;
+  }
+  if (!foundItem) return json({ error: 'item_not_found_for_cert', cert }, 404);
+
+  // Delete each image object referenced by this item.
+  const oldImageIds = foundItem.item_data?.image_ids || [];
+  const deleted = [];
+  const failed = [];
+  for (const imgId of oldImageIds) {
+    try {
+      const delRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(imgId)}`, {
+        method: 'DELETE', headers: squareHeaders,
+      });
+      if (delRes.ok) deleted.push(imgId);
+      else failed.push({ id: imgId, status: delRes.status });
+    } catch (e) {
+      failed.push({ id: imgId, error: String(e) });
+    }
+  }
+
+  return json({
+    ok: true,
+    item_id: foundItem.id,
+    deleted_image_ids: deleted,
+    failed_deletions: failed,
+  });
+}
+
+
 async function replaceGradedImages(request, base, squareHeaders, env) {
   const provided = request.headers.get('X-Sake-Admin-Token') || '';
   if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
@@ -1649,6 +1707,47 @@ async function attachTcgImageToItem(itemId, productId, base, squareHeaders, exis
 }
 
 
+// Build a consistent customer-facing description for any sealed product
+// using the Airtable row data (set + language + product_type) and a small
+// product-type lookup. TCGplayer is the source of truth for the SKU itself
+// (productId resolved by _apply_tcg_pricing.py + market price pulled live
+// via the sakekitty-prices worker), so the description here mirrors how a
+// TCGplayer product listing reads: lead with what the product IS, then set,
+// language, what's inside, and authenticity assurance.
+function buildSealedDescription(f) {
+  const productType = f.product_type || '';
+  const setName = (f.set || '').replace(/^Pokemon\s+/i, '').trim();
+  const language = f.language || 'EN';
+  const langWord = language === 'JP' ? 'Japanese' : 'English';
+
+  // Lead sentence per product type. Kept generic enough that pack counts
+  // (which vary by set + region) aren't hardcoded — the SET field carries
+  // the specifics customers need.
+  const leads = {
+    BoosterBox:    `Sealed ${langWord} booster box. Factory-sealed, never opened — ready to open, display, or hold.`,
+    ETB:           `Sealed ${langWord} Elite Trainer Box. Factory-sealed with booster packs, energy cards, dice, condition markers, sleeves, a player's guide, and the deck box.`,
+    Bundle:        `Sealed ${langWord} Booster Bundle. Factory-sealed booster packs in original retail packaging.`,
+    Blister:       `Sealed ${langWord} blister pack. Factory-sealed booster pack(s) plus a featured promo card in retail blister packaging.`,
+    Tin:           `Sealed ${langWord} Mini Tin. Factory-sealed booster packs plus a featured-artwork coin in collectible tin packaging.`,
+    Pack:          `Sealed ${langWord} booster pack. Factory-sealed single pack in original packaging — perfect for openers, sleeved-pack collectors, and gifts.`,
+    Deck:          `Sealed ${langWord} 60-card preconstructed deck. Factory-sealed, ready to play out of the box with damage counters, status markers, and a deck box.`,
+    CollectionBox: `Sealed ${langWord} collection box. Factory-sealed promo collectible with included booster packs and featured foil card(s).`,
+    Promo:         `Sealed ${langWord} promo product. Factory-sealed.`,
+    Accessory:     `${langWord} Pokémon TCG accessory. New in retail packaging.`,
+  };
+  const lead = leads[productType] || `Sealed ${langWord} ${productType || 'product'}. Factory-sealed.`;
+
+  const lines = [lead, ''];
+  if (setName) lines.push(`Set: ${setName}`);
+  lines.push(`Language: ${langWord}`);
+  if (productType) lines.push(`Product type: ${productType}`);
+  lines.push('');
+  lines.push('Ships from Florida in a padded mailer or rigid box, tracked. Inventory is reviewed against in-person booth sales before fulfillment — if a unit just sold at a show, you\'ll get an immediate refund or hold offer.');
+
+  return lines.join('\n').slice(0, 4096);
+}
+
+
 // Admin: walks all Airtable rows that have a square_item_id + tcgplayer_product_id
 // and attaches a TCGplayer image to any item whose image_ids array is empty.
 // Lighter than a full sync — does GET + image upload + item patch (4 subrequests
@@ -1801,11 +1900,13 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
     if (language === 'JP' && !/\bjapan/i.test(name)) titleParts.push('(JP)');
     const title = titleParts.join(' ').slice(0, 255);
 
-    const descLines = [];
-    if (setName) descLines.push(`Set: ${setName}`);
-    if (productType) descLines.push(`Type: ${productType}`);
-    descLines.push(`SKU: ${sku}`);
-    const description = descLines.join('\n').slice(0, 4096);
+    const description = buildSealedDescription({
+      product_type: productType,
+      set: setName,
+      language,
+      product_name: name,
+      tcgplayer_product_id: f.tcgplayer_product_id,
+    });
 
     const priceCents = Math.round(websitePrice * 100);
 
