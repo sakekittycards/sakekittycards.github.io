@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=154" />
+  <link rel="stylesheet" href="style.css?v=155" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -428,7 +428,7 @@
       };
 
       let _eagerCount = 0;
-      const EAGER_LIMIT = 8;  // first ~2 rows render with priority
+      const EAGER_LIMIT = 999;  // load all images up-front; lazy-load was causing offscreen tiles to sit on dark placeholders in full-page screenshots
 
       // Route Square's full-resolution images (5+ MB JPEGs from /original.jpeg)
       // through wsrv.nl to get a properly sized WebP thumbnail. PDP keeps
