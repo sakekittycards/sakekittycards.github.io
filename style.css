@@ -1458,6 +1458,20 @@ body.cart-open { overflow: hidden; }
   margin-right: 4px;
   align-self: center;
 }
+/* Sub-sections within a category (e.g., Sealed -> English / Japanese).
+   Lighter weight than the main section title — it's a group separator,
+   not a top-level heading. */
+.shop-subsection { margin-top: 28px; }
+.shop-subsection:first-child { margin-top: 4px; }
+.shop-subsection-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
 .shop-section-sub {
   font-family: 'Inter', sans-serif;
   font-size: 12px; font-weight: 500;
@@ -1467,9 +1481,17 @@ body.cart-open { overflow: hidden; }
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r);
   overflow: hidden;
   isolation: isolate;     /* contain the skeleton-glow ::before stacking context */
-  transition: border-color .2s, transform .2s;
+  transition: border-color .25s, transform .25s, box-shadow .3s;
 }
-.product-card:hover { border-color: rgba(255,106,0,.4); transform: translateY(-5px); }
+.product-card:hover {
+  border-color: rgba(255,106,0,.5);
+  transform: translateY(-5px);
+  /* Sitewide hover glow — soft orange halo on every product tile */
+  box-shadow:
+    0 0 0 1px rgba(255,106,0,0.25),
+    0 8px 28px rgba(255,106,0,0.22),
+    0 0 40px rgba(255,106,0,0.10);
+}
 .product-img {
   aspect-ratio: 5/7; display: flex; align-items: center; justify-content: center;
   font-size: 52px; position: relative; overflow: hidden;
