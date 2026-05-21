@@ -413,7 +413,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=61" defer></script>
+  <script src="main.js?v=62" defer></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -651,7 +651,7 @@
             <div class="pdp-price" id="pdpPrice">
               ${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
             </div>
-            ${(!oos && typeof item.stock === 'number')
+            ${(!oos && !isGradedItem && typeof item.stock === 'number')
               ? `<div class="pdp-stock${item.stock <= 5 ? ' low' : ''}" id="pdpStock">${item.stock} in stock${item.stock <= 5 ? ' — selling fast' : ''}</div>`
               : ''}
 
