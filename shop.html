@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=153" />
+  <link rel="stylesheet" href="style.css?v=154" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -484,7 +484,7 @@
         if (isGraded) cardClasses.push('graded');
         if (isSealed) cardClasses.push('sealed');
         return `
-          <a href="${href}" class="${cardClasses.join(' ')}" style="position:relative;display:block;color:inherit;text-decoration:none">
+          <a href="${href}" class="${cardClasses.join(' ')}" style="position:relative;color:inherit;text-decoration:none">
             ${badge}
             ${imgBlock}
             <div class="product-info">
@@ -492,6 +492,7 @@
               <div class="product-footer">
                 <span class="product-price">${fmt(item.price)}</span>
               </div>
+              <div class="product-cta">More Details →</div>
             </div>
           </a>`;
       };
