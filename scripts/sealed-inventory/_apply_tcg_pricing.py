@@ -43,13 +43,16 @@ PRODUCT_NAME_PATTERNS = {
 # (categoryId, group_name_match_lower).
 SKU_HINTS = {
     "SEAL-ASCH-ETB":      (3,  "ascended heroes"),
+    "SEAL-ASCH-BUND":     (3,  "ascended heroes"),  # added 2026-05-20
     "SEAL-DR-ETB":        (3,  "destined rivals"),
     "SEAL-DR-BB":         (3,  "destined rivals"),
     "SEAL-PRE-ETB":       (3,  "prismatic evolutions"),
+    "SEAL-PRE-MTIN":      (3,  "prismatic evolutions"),  # added 2026-05-20
     "SEAL-FS-BLISTER":    (3,  "fusion strike"),
     "SEAL-151-BUND":      (3,  "151"),  # picks "Scarlet & Violet 151"
     "SEAL-151-MTIN":      (3,  "151"),
     "SEAL-FP-PACK":       (3,  "first partner pack"),
+    "SEAL-PHANT-BB":      (3,  "phantasmal flames"),  # added 2026-05-20
     "SEAL-M2INF-BB":      (85, "inferno"),         # M2 / Mega Evolution Inferno X
     "SEAL-NINJA-BB":      (85, "ninja"),
 }
