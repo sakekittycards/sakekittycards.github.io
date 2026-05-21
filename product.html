@@ -45,11 +45,26 @@
     .pdp-main-img-wrap {
       aspect-ratio: 1/1;
       background: var(--bg-card);
-      border: 1px solid var(--border);
+      /* Sake Kitty hover-glow framing — matches the shop tile hover state
+         but kept on permanently here since the PDP is the product's
+         spotlight. Subtle by default, intensifies on hover. */
+      border: 1px solid rgba(255,106,0,0.40);
+      box-shadow:
+        0 0 0 1px rgba(255,106,0,0.18),
+        0 8px 28px rgba(255,106,0,0.18),
+        0 0 40px rgba(255,106,0,0.08);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
       border-radius: var(--r);
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       position: relative;
+    }
+    .pdp-main-img-wrap:hover {
+      border-color: rgba(255,106,0,0.60);
+      box-shadow:
+        0 0 0 1px rgba(255,106,0,0.30),
+        0 12px 36px rgba(255,106,0,0.28),
+        0 0 52px rgba(255,106,0,0.14);
     }
     .pdp-main-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .pdp-main-placeholder { font-size: 72px; opacity: 0.3; }
@@ -398,7 +413,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=60" defer></script>
+  <script src="main.js?v=61" defer></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -434,6 +449,13 @@
 
       const item = items.find(i => i.id === id);
       if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
+
+      // Graded slabs (PSA/BGS/CGC/SGC) are 1-of-1 by cert. Detect early so
+      // the stock indicator + add-to-cart cap can hard-cap qty at 1 even
+      // if Square's inventory data is missing on legacy listings.
+      const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
+      const isGradedItem = GRADER_RX.test(String(item.name || ''));
+      if (isGradedItem) item.stock = 1;
 
       // Inject Product + BreadcrumbList JSON-LD so search engines + social
       // unfurls get the price, availability, image, and crumb path.  Built
@@ -967,10 +989,13 @@
         });
       });
 
-      // Add to cart. Tag category so the cart can decide insurance:
-      // 'merch' = apparel/Printful (has size or color variant axes);
-      // 'card' = single-SKU cards / sealed (insurance applies).
-      const productCategory = (showSizes || showColors) ? 'merch' : 'card';
+      // Add to cart. Tag category so the cart can decide insurance + qty cap:
+      // 'merch'  = apparel/Printful (variant-bearing, insurance-exempt);
+      // 'graded' = PSA/BGS/CGC/SGC slab — unique cert, qty hard-capped at 1;
+      // 'card'   = single-SKU cards / sealed (insurance applies, normal stock cap).
+      const productCategory = (showSizes || showColors)
+        ? 'merch'
+        : (isGradedItem ? 'graded' : 'card');
       const addBtn = document.getElementById('pdpAddBtn');
       addBtn?.addEventListener('click', () => {
         const v = findVariant(selectedColor, selectedSize);
@@ -978,8 +1003,10 @@
         // Single-SKU products (sealed/graded) use item.stock; variant products
         // use the variation's stock (which we'd need plumbed through /items —
         // for now fall back to item.stock for merch).
-        const stockCount = (v && typeof v.stock === 'number') ? v.stock
-                         : (typeof item.stock === 'number' ? item.stock : null);
+        // Graded slabs are always qty 1 regardless of what Square reports.
+        let stockCount = (v && typeof v.stock === 'number') ? v.stock
+                       : (typeof item.stock === 'number' ? item.stock : null);
+        if (isGradedItem) stockCount = 1;
         let cartItem = { ...item, category: productCategory, stock: stockCount };
         if (v) {
           cartItem = {

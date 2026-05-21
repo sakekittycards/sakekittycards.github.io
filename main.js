@@ -454,8 +454,12 @@ function skAddToCart(product) {
   if (!product || !product.id) return;
   const cart = skGetCart();
   const existing = cart.find(item => item.id === product.id);
-  const stockCap = (typeof product.stock === 'number' && product.stock > 0)
+  // Graded slabs are 1-of-1 by cert. Hard-cap at 1 even if Square's
+  // inventory data is missing (legacy listings without track_inventory).
+  const isGraded = product.category === 'graded';
+  let stockCap = (typeof product.stock === 'number' && product.stock > 0)
     ? product.stock : null;
+  if (isGraded) stockCap = 1;
   if (existing) {
     const target = existing.quantity + 1;
     if (stockCap !== null && target > stockCap) {
@@ -493,8 +497,11 @@ function skUpdateQuantity(id, qty) {
   if (qty <= 0) {
     skSaveCart(cart.filter(i => i.id !== id));
   } else {
-    const stockCap = (typeof item.stock === 'number' && item.stock > 0)
+    let stockCap = (typeof item.stock === 'number' && item.stock > 0)
       ? item.stock : null;
+    // Graded slabs are always 1-of-1 — applies even to legacy cart rows
+    // saved before the per-item stock field was plumbed through.
+    if (item.category === 'graded') stockCap = 1;
     if (stockCap !== null && qty > stockCap) {
       skToast(`Only ${stockCap} in stock`);
       item.quantity = Math.min(99, stockCap);
@@ -789,9 +796,14 @@ window.SK = {
       const thumb = item.imageUrl
         ? `<img src="${item.imageUrl}" alt="" class="cart-item-img" onerror="this.style.visibility='hidden'" />`
         : `<div class="cart-item-img placeholder">📦</div>`;
-      const atCap = typeof item.stock === 'number' && item.quantity >= item.stock;
-      const stockHint = typeof item.stock === 'number'
-        ? `<div class="cart-item-stock${atCap ? ' at-cap' : ''}">${atCap ? `Max ${item.stock} available` : `${item.stock} in stock`}</div>`
+      // Graded slabs are 1-of-1 by cert — show a cap of 1 even if the cart
+      // row was saved before stock plumbing existed.
+      const effectiveStock = item.category === 'graded'
+        ? 1
+        : (typeof item.stock === 'number' ? item.stock : null);
+      const atCap = effectiveStock !== null && item.quantity >= effectiveStock;
+      const stockHint = effectiveStock !== null
+        ? `<div class="cart-item-stock${atCap ? ' at-cap' : ''}">${atCap ? `Max ${effectiveStock} available` : `${effectiveStock} in stock`}</div>`
         : '';
       return `
         <div class="cart-item" data-id="${item.id}">
