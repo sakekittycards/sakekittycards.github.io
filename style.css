@@ -1498,6 +1498,20 @@ body.cart-open { overflow: hidden; }
   background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
 }
 
+/* Sealed products are mixed aspect ratios (tall booster boxes, wide ETBs,
+   square tins, tall packs). object-fit:contain on a square frame keeps
+   every product fully visible — no cropping of pack art or product names.
+   The dark tile background fills the letterbox cleanly. */
+.product-card.sealed .product-img,
+.product-card.sealed .product-img-real {
+  aspect-ratio: 1/1;
+}
+.product-card.sealed .product-img-real {
+  object-fit: contain;
+  background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
+  padding: 8px;  /* tiny breathing room so products don't kiss the frame */
+}
+
 /* ── Shop loading/empty/error states ── */
 .shop-status {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
