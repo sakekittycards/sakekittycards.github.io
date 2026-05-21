@@ -113,7 +113,7 @@ def measure(text, font):
 
 # Pre-measure everything so we can vertically center the whole stack
 title       = 'SAKE KITTY CARDS'
-sub_text    = 'Collecting, Done Right.'
+sub_text    = 'Built by Collectors.'
 tag_text    = 'Singles  ·  Sealed  ·  Trade-Ins  ·  Live Events'
 handle_text = 'sakekittycards.com   ·   @sakekittycards'
 
