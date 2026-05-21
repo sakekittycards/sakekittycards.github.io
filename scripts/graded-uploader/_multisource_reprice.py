@@ -35,7 +35,7 @@ from _ebay_apify import fetch_apify, fetch_or_cache as _ebay_cached
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (24).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (27).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -67,9 +67,13 @@ def get_token() -> str | None:
 
 
 def markup(base: float) -> float:
-    if base < 200: return base * 1.15 + 3
-    if base < 1000: return base * 1.10 + 10
-    return base * 1.08
+    """Margin-based pricing (replaces the old aggressive headroom tiers):
+      cost          = base * 0.90       (we buy at 90% of base value)
+      sell price P  -> net = 0.97*P - 6 (after 3% fees + $6 shipping)
+      profit goal:   net - cost = 0.10 * cost  (10% margin on cost)
+      -> P = (0.99 * base + 6) / 0.97
+    """
+    return (base * 0.99 + 6) / 0.97
 
 
 def snap_clean(price: float) -> int:
@@ -386,6 +390,7 @@ def main():
         #   under $200   -> raise on any formula bump
         #   $200..$999   -> need formula > current * 1.05
         #   $1000+       -> need formula > current * 1.10
+        allow_lower = os.environ.get("ALLOW_LOWER") == "1"
         if cur_price > 0 and new_price > 2 * cur_price:
             action = "skip-sanity-cap-2x"
         elif new_price > cur_price:
@@ -402,6 +407,9 @@ def main():
                 action = "skip-below-tier-threshold"
         elif new_price == cur_price:
             action = "no-change"
+        elif allow_lower:
+            action = "lower"
+            updates.append((cert, new_price, c))
         else:
             action = "skip-not-lowering"
 
