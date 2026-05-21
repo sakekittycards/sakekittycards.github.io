@@ -448,9 +448,8 @@
         const imgBlock = item.imageUrl
           ? `<img src="${esc(thumbUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" ${loadAttrs} ${wh} onload="this.classList.replace('img-loading','img-loaded')" onerror="${onerr}" />`
           : `<div class="product-img">📦</div>`;
-        const desc = item.description
-          ? `<div class="product-set">${esc(item.description).slice(0, 80)}${item.description.length > 80 ? '…' : ''}</div>`
-          : '';
+        // Description intentionally omitted from grid card — name + price only
+        // on the listing. Full description lives on product.html (PDP).
         const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cardClasses = ['product-card'];
@@ -462,7 +461,6 @@
             ${imgBlock}
             <div class="product-info">
               <div class="product-name">${esc(item.name)}</div>
-              ${desc}
               <div class="product-footer">
                 <span class="product-price">${fmt(item.price)}</span>
               </div>
