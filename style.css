@@ -1501,7 +1501,12 @@ body.cart-open { overflow: hidden; }
 /* Sealed products are mixed aspect ratios (tall booster boxes, wide ETBs,
    square tins, tall packs). object-fit:contain on a square frame keeps
    every product fully visible — no cropping of pack art or product names.
-   The dark tile background fills the letterbox cleanly. */
+   The dark tile background fills the letterbox cleanly.
+
+   Generous padding pulls the product back from the frame edges so it
+   reads as a product thumbnail with deliberate breathing room, not a
+   full-bleed catalog photo. Without this, the wsrv-returned image
+   fills the card edge-to-edge and feels zoomed in. */
 .product-card.sealed .product-img,
 .product-card.sealed .product-img-real {
   aspect-ratio: 1/1;
@@ -1509,7 +1514,12 @@ body.cart-open { overflow: hidden; }
 .product-card.sealed .product-img-real {
   object-fit: contain;
   background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
-  padding: 8px;  /* tiny breathing room so products don't kiss the frame */
+  padding: 14% 14%;  /* product fills ~72% of frame width/height */
+}
+@media (max-width: 720px) {
+  /* On mobile cards are smaller — less padding so the product is still
+     readable at a glance without becoming a tiny postage stamp. */
+  .product-card.sealed .product-img-real { padding: 8% 8%; }
 }
 
 /* ── Shop loading/empty/error states ── */
