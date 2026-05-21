@@ -261,11 +261,13 @@ async function listItems(base, headers, locationId, env) {
           // image in Square (rare), then to null.
           const printfulImg = printfulMockups[v.id] || null;
           const squareVarImg = vd?.image_ids?.[0] ? (images[vd.image_ids[0]] || null) : null;
+          const stock = v.id in stockCounts ? stockCounts[v.id] : null;
           return {
             id:       v.id,
             name:     vd?.name || '',
             price:    cents / 100,
-            inStock:  !(v.id in stockCounts) || stockCounts[v.id] > 0,
+            inStock:  stock === null || stock > 0,
+            stock,
             imageUrl: printfulImg || squareVarImg || null,
           };
         })
@@ -287,6 +289,14 @@ async function listItems(base, headers, locationId, env) {
       // so the grid shows the default color's printed shot.
       const imageUrl = primary.imageUrl || squareHero;
 
+      // Total in-stock units across all variations. Used by the shop grid
+      // to show "Only N left" scarcity badges on low-stock items. Counts
+      // only the tracked variations (null stock = untracked = excluded).
+      const totalStock = variations.reduce(
+        (sum, v) => sum + (typeof v.stock === 'number' ? v.stock : 0), 0,
+      );
+      const hasTrackedStock = variations.some(v => typeof v.stock === 'number');
+
       return {
         id:          o.id,
         variationId: primary.id,
@@ -298,6 +308,7 @@ async function listItems(base, headers, locationId, env) {
         imageUrls,
         categoryId:  o.item_data?.category_id || null,
         inStock:     variations.some(v => v.inStock),
+        stock:       hasTrackedStock ? totalStock : null,
         variations,
       };
     })
