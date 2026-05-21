@@ -1889,6 +1889,9 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
   }
   const url = new URL(request.url);
   const dryRun = url.searchParams.get('dry_run') === '1';
+  // Optional ?sku=X filter — process only that one row. Useful for retrying
+  // a single SKU when the catalog-wide sync hits the worker subrequest cap.
+  const onlySku = (url.searchParams.get('sku') || '').trim();
 
   const baseId = env.AIRTABLE_BASE_ID;
   const tableId = env.SEALED_INVENTORY_TABLE_ID;
@@ -1923,6 +1926,7 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
   for (const rec of rows) {
     const f = rec.fields || {};
     const sku = f.sku || rec.id;
+    if (onlySku && sku !== onlySku) continue;
     const name = (f.product_name || '').trim();
     const websiteAlloc = Number(f.website_alloc || 0);
     const websitePrice = Number(f.website_price || 0);
