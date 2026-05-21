@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=146" />
+  <link rel="stylesheet" href="style.css?v=147" />
   <style>
     .gc-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
@@ -203,7 +203,15 @@
       </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html">Home</a></li>
-        <li><a href="shop.html">Shop</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
         <li><a href="events.html">Events</a></li>
         <li><a href="team.html">Our Team</a></li>
         <li><a href="trade-in.html">Sell / Trade</a></li>
@@ -305,7 +313,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=57" defer></script>
+  <script src="main.js?v=58" defer></script>
   <script>
     // Buy flow — pick amount, then redirect to Square's gift-card order
     // page (PCI compliance forces the actual checkout to land on Square).

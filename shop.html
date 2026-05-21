@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=146" />
+  <link rel="stylesheet" href="style.css?v=147" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -128,7 +128,15 @@
       </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html">Home</a></li>
-        <li><a href="shop.html">Shop</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
         <li><a href="events.html">Events</a></li>
         <li><a href="team.html">Our Team</a></li>
         <li><a href="trade-in.html">Sell / Trade</a></li>
@@ -333,7 +341,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=57" defer></script>
+  <script src="main.js?v=58" defer></script>
   <script>
     (async function loadShop() {
       // === FEATURE FLAG: card inventory paused (restocking) ===
@@ -377,7 +385,9 @@
       //             Default bucket — accessories without size axes
       //             (mouse pads) would otherwise misfile as singles.
       const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
-      const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection\s*box|bundle|deck|case|box)\b/i;
+      // Added "collection" as a standalone token (was "collection box" only) so
+      // First Partner Illustration Collection and similar SKUs bucket as sealed.
+      const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
         const name = item.name || '';
         if (GRADER_RX.test(name)) return 'graded';
@@ -386,6 +396,13 @@
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
         return 'merch';
       };
+
+      // Optional ?cat= URL filter — when set, hide all other category sections
+      // and the multi-pill nav. Used by the nav-dropdown links so each category
+      // gets its own deep-linkable URL (shop.html?cat=sealed etc.).
+      const FILTER_CAT = (new URLSearchParams(location.search).get('cat') || '').toLowerCase();
+      const ALLOWED_CATS = ['graded','sealed','singles','merch'];
+      const activeCat = ALLOWED_CATS.includes(FILTER_CAT) ? FILTER_CAT : null;
 
       // Parse a graded card title for filter/sort. Format we render to:
       //   "<GRADER> <GRADE> <YEAR> <SET> <NAME> #<NUMBER>"
@@ -491,6 +508,14 @@
 
         const buckets = { graded: [], sealed: [], singles: [], merch: [] };
         for (const item of items) buckets[categorize(item)].push(item);
+
+        // Honor ?cat= filter — zero out every bucket except the active one,
+        // then suppress the multi-section category nav for a focused page.
+        if (activeCat) {
+          for (const k of Object.keys(buckets)) {
+            if (k !== activeCat) buckets[k] = [];
+          }
+        }
 
         // Graded-at-show: drop graded items from the page (data stays in
         // Square; we just don't render anything for them) and show the
@@ -599,7 +624,7 @@
           .map(c => `<a href="#${c.sec}" class="shop-cat-pill" data-cat="${c.key}">${c.label}<span class="shop-cat-count">${buckets[c.key].length}</span></a>`)
           .join('');
 
-        if (pillsHtml) {
+        if (pillsHtml && !activeCat) {
           catNav.innerHTML = pillsHtml;
           catNav.hidden = false;
 
