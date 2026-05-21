@@ -70,6 +70,39 @@
     .hero .wip-badge { margin-bottom: 0; }
     .hero-logo-outer { margin-bottom: 4px; }
 
+    /* Buy / Sell / Trade — primary action row, sits directly under the logo
+       so the first thing customers see is "what can I do here?". Each button
+       gets its own accent color so they're glanceable instead of melting into
+       a single orange wash. Inline on desktop, stacked on mobile. */
+    .hero-actions {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 14px;
+      animation: fadeUp 0.6s ease both 0.25s;
+    }
+    .hero-actions .btn { min-width: 168px; justify-content: center; }
+    .hero-actions .btn-buy {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      box-shadow: 0 3px 14px rgba(255,106,0,0.22);
+    }
+    .hero-actions .btn-buy:hover { box-shadow: 0 6px 22px rgba(255,106,0,0.34); }
+    .hero-actions .btn-sell {
+      background: linear-gradient(135deg, #00d4ff, #3a8dff);
+      color: #fff;
+      box-shadow: 0 3px 14px rgba(0,212,255,0.22);
+    }
+    .hero-actions .btn-sell:hover { box-shadow: 0 6px 22px rgba(0,212,255,0.34); }
+    .hero-actions .btn-trade {
+      background: linear-gradient(135deg, #7b2fff, #ff0080);
+      color: #fff;
+      box-shadow: 0 3px 14px rgba(123,47,255,0.22);
+    }
+    .hero-actions .btn-trade:hover { box-shadow: 0 6px 22px rgba(123,47,255,0.34); }
+    @media (max-width: 580px) {
+      .hero-actions { flex-direction: column; width: 100%; max-width: 320px; }
+      .hero-actions .btn { width: 100%; }
+    }
+
     /* Work-in-progress badge */
     .wip-badge {
       display: inline-flex;
@@ -632,6 +665,11 @@
           </div>
         </div>
       </div>
+      <div class="hero-actions">
+        <a href="shop.html" class="btn btn-buy btn-lg">Buy</a>
+        <a href="trade-in.html" class="btn btn-sell btn-lg">Sell</a>
+        <a href="trade-in.html" class="btn btn-trade btn-lg">Trade</a>
+      </div>
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <filter id="logo-goo">
@@ -645,10 +683,6 @@
       </svg>
       <h1 class="hero-title">Collecting, Done Right.</h1>
       <p class="hero-tagline">Trusted sealed product, graded slabs, and more from collectors who love the hobby as much as you do.</p>
-      <div class="hero-ctas">
-        <a href="shop.html" class="btn btn-primary btn-lg">Shop Cards</a>
-        <a href="events.html" class="btn btn-outline btn-lg">Upcoming Events →</a>
-      </div>
     </section>
 
     <!-- Features strip -->

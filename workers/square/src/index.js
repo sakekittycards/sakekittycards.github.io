@@ -309,6 +309,8 @@ async function listItems(base, headers, locationId, env) {
         categoryId:  o.item_data?.category_id || null,
         inStock:     variations.some(v => v.inStock),
         stock:       hasTrackedStock ? totalStock : null,
+        createdAt:   o.created_at || null,
+        updatedAt:   o.updated_at || null,
         variations,
       };
     })
