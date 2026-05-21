@@ -714,6 +714,7 @@
       root.hidden = false;
 
       const mainImg     = document.getElementById('pdpMainImg');
+      const mainWrap    = document.querySelector('.pdp-main-img-wrap');
       const priceEl     = document.getElementById('pdpPrice');
       const thumbsEl    = document.getElementById('pdpThumbs');
       const colorsEl    = document.getElementById('pdpColors');
@@ -721,13 +722,74 @@
       const colorValEl  = document.getElementById('pdpColorVal');
       const sizeValEl   = document.getElementById('pdpSizeVal');
 
+      // Dominant-color extraction for the wrapper glow. Loads a separate
+      // crossOrigin=anonymous copy of the image so we can read pixels via
+      // canvas without tainting the visible <img>. Skips white/black/grey
+      // pixels (slab letterbox, sealed white frame, dark page bg) and
+      // averages the most-populated saturated hue bucket. Silently falls
+      // back to the default orange if anything goes wrong (CORS denied,
+      // monochrome image, etc.).
+      const _extractDominantColor = (srcUrl) => new Promise(resolve => {
+        if (!srcUrl) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const w = 80, h = 80;
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(img, 0, 0, w, h);
+            const data = ctx.getImageData(0, 0, w, h).data;
+            const buckets = new Map();
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+              if (a < 128) continue;
+              if (r > 230 && g > 230 && b > 230) continue; // near-white
+              if (r < 25  && g < 25  && b < 25)  continue; // near-black
+              const max = Math.max(r, g, b), min = Math.min(r, g, b);
+              if (max - min < 30) continue;                // low-saturation greys
+              const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+              const ex = buckets.get(key) || { r: 0, g: 0, b: 0, c: 0 };
+              ex.r += r; ex.g += g; ex.b += b; ex.c += 1;
+              buckets.set(key, ex);
+            }
+            let best = null;
+            for (const v of buckets.values()) {
+              if (!best || v.c > best.c) best = v;
+            }
+            if (!best) return resolve(null);
+            resolve([
+              Math.round(best.r / best.c),
+              Math.round(best.g / best.c),
+              Math.round(best.b / best.c),
+            ]);
+          } catch (e) { resolve(null); }
+        };
+        img.onerror = () => resolve(null);
+        img.src = srcUrl;
+      });
+      const _paintGlow = async (url) => {
+        if (!mainWrap || !url) return;
+        const color = await _extractDominantColor(url);
+        if (!color) return; // keep default orange
+        mainWrap.style.setProperty('--glow-r', color[0]);
+        mainWrap.style.setProperty('--glow-g', color[1]);
+        mainWrap.style.setProperty('--glow-b', color[2]);
+      };
+
       const setMainImage = (url) => {
         if (!mainImg || !url) return;
         mainImg.src = url;
         thumbsEl?.querySelectorAll('.pdp-thumb').forEach(t => {
           t.classList.toggle('active', t.dataset.url === url);
         });
+        _paintGlow(url);
       };
+
+      // Initial paint for the image rendered into the HTML (setMainImage
+      // doesn't fire for the first image since it's already in the DOM).
+      if (mainImg?.src) _paintGlow(mainImg.src);
 
       // Click-to-zoom: tap main image -> fullscreen lightbox with pinch/wheel
       // zoom + drag-to-pan. Works on desktop (mouse + wheel) and mobile (touch).
