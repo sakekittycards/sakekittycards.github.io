@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Resources — Sake Kitty Cards</title>
+  <meta name="description" content="Guides and explainers for collectors — how we price cards, when to grade, how to pack and ship, and a glossary of Pokémon collecting terms." />
+
+  <!-- Canonical + Social preview -->
+  <link rel="canonical" href="https://sakekittycards.com/resources.html" />
+  <meta property="og:title" content="Resources — Sake Kitty Cards" />
+  <meta property="og:description" content="Guides for collectors — how we price cards, when to grade, packing, and a Pokémon collecting glossary." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/resources.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Resources — Sake Kitty Cards" />
+  <meta name="twitter:description" content="Guides for collectors — how we price cards, when to grade, packing, and a Pokémon collecting glossary." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=156" />
+  <style>
+    /* ── Resources hub page polish — scoped under .page-resources. ── */
+    .page-resources .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-resources .page-hero { padding-bottom: 24px; }
+    .page-resources .page-hero > p {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.55;
+      color: rgba(255,255,255,0.85);
+      max-width: 640px;
+    }
+
+    /* Tile grid linking to existing pages */
+    .res-tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      max-width: 1100px; margin: 18px auto 50px;
+    }
+    .res-tile {
+      display: flex; flex-direction: column; gap: 8px;
+      padding: 22px 22px 20px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .res-tile:hover {
+      border-color: rgba(255,106,0,0.5);
+      transform: translateY(-3px);
+      background: rgba(255,106,0,0.04);
+      box-shadow: 0 8px 24px rgba(255,106,0,0.14);
+    }
+    .res-tile-icon {
+      font-size: 28px; line-height: 1;
+      margin-bottom: 4px;
+    }
+    .res-tile-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px; font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.1px;
+      line-height: 1.25;
+    }
+    .res-tile-sub {
+      font-size: 13.5px; line-height: 1.55;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Inline article cards — same patient explainer voice as the
+       "How we price" section on trade-in.html. */
+    .res-article-section {
+      max-width: 880px; margin: 0 auto;
+    }
+    .res-article {
+      padding: 28px 30px;
+      margin-bottom: 22px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.05), rgba(109,211,255,0.04));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+    }
+    .res-article h2 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(22px, 3vw, 30px); line-height: 1.2;
+      padding: 2px 0 6px;
+      margin: 0 0 12px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .res-article p {
+      font-size: 15px; line-height: 1.7;
+      color: rgba(255,255,255,0.85);
+      margin: 0 0 14px;
+    }
+    .res-article p:last-child { margin-bottom: 0; }
+    .res-article strong { color: rgba(255,255,255,0.96); }
+    .res-article a { color: var(--orange); font-weight: 600; text-decoration: none; }
+    .res-article a:hover { text-decoration: underline; }
+    .res-article ul {
+      margin: 0 0 14px; padding-left: 22px;
+      color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.7;
+    }
+    .res-article ul li { margin-bottom: 6px; }
+    .res-article-eyebrow {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.8px; text-transform: uppercase;
+      color: rgba(109,211,255,0.85);
+      margin: 0 0 10px;
+    }
+
+    /* Closing CTA — mirror the FAQ page's "Still have a question?" pattern */
+    .res-cta {
+      max-width: 880px; margin: 32px auto 60px;
+      padding: 28px 32px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.06), rgba(255,0,128,0.05));
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: 16px;
+      text-align: center;
+    }
+    .res-cta h2 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(20px, 3vw, 26px); line-height: 1.25;
+      padding: 2px 0 4px;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .res-cta p {
+      color: rgba(255,255,255,0.82);
+      font-size: 14.5px; line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .res-cta .res-cta-row {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+    .res-cta a {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #06060a;
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+      transition: filter 0.15s, transform 0.15s;
+    }
+    .res-cta a:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .res-cta a.secondary {
+      background: transparent;
+      color: var(--orange);
+      border: 1.5px solid rgba(255,106,0,0.6);
+    }
+
+    .res-section-heading {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(22px, 3vw, 30px); line-height: 1.2;
+      padding: 2px 0 6px;
+      margin: 36px auto 14px;
+      max-width: 880px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+  </style>
+</head>
+<body class="page-resources">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- Lava-lamp goo + nav blobs are injected by main.js — keeps every page identical -->
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="reviews.html">Reviews</a></li>
+        <li class="nav-dropdown">
+          <a href="resources.html">Resources</a>
+          <ul class="nav-dropdown-menu" aria-label="Resources">
+            <li><a href="shipping.html">Shipping &amp; Packing</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <div class="page-hero">
+      <h1>Resources</h1>
+      <p>Guides, explainers, and how-tos for collectors. Built so you can show up to a trade-in or grading-prep request already knowing what you have.</p>
+    </div>
+
+    <!-- Tile grid linking to existing dedicated pages -->
+    <div class="res-tile-grid">
+      <a class="res-tile" href="shipping.html">
+        <span class="res-tile-icon">📦</span>
+        <span class="res-tile-title">Shipping &amp; Packing Guide</span>
+        <span class="res-tile-sub">Four packing tiers from 1 card up to 20+ — toploaders, sleeves, and what NOT to do.</span>
+      </a>
+      <a class="res-tile" href="trade-in.html">
+        <span class="res-tile-icon">💰</span>
+        <span class="res-tile-title">Sell / Trade Your Cards</span>
+        <span class="res-tile-sub">Live pricing on every card you list. Cash or store credit. Offer within 48 hours.</span>
+      </a>
+      <a class="res-tile" href="grading-prep.html">
+        <span class="res-tile-icon">🏆</span>
+        <span class="res-tile-title">Grading Prep Service</span>
+        <span class="res-tile-sub">Screening + submission to PSA, CGC, or Beckett. Profit-margin panel per card.</span>
+      </a>
+      <a class="res-tile" href="faq.html">
+        <span class="res-tile-icon">❓</span>
+        <span class="res-tile-title">FAQ</span>
+        <span class="res-tile-sub">Shipping, payments, returns, conditioning, and policies for everything we sell or buy.</span>
+      </a>
+      <a class="res-tile" href="track.html">
+        <span class="res-tile-icon">🔍</span>
+        <span class="res-tile-title">Track a Grading Order</span>
+        <span class="res-tile-sub">Eight-stage status tracker for any SK-YYYY-XXXXXX order. PSA cert numbers appear once graded.</span>
+      </a>
+      <a class="res-tile" href="events.html">
+        <span class="res-tile-icon">📍</span>
+        <span class="res-tile-title">Where to Find Us in Person</span>
+        <span class="res-tile-sub">Upcoming Florida card shows, conventions, and Whatnot streams. Hand-off lots in person if you're local.</span>
+      </a>
+    </div>
+
+    <!-- Inline explainer articles — patient educational tone (the
+         playbook we learned from studying competitors like Just Collect).
+         Each is short enough to scan in 60 seconds. -->
+    <h2 class="res-section-heading">Guides &amp; Explainers</h2>
+    <div class="res-article-section">
+
+      <article class="res-article">
+        <p class="res-article-eyebrow">Pricing</p>
+        <h2>How we price your cards</h2>
+        <p>
+          Our offer isn't a guess. For every raw card you submit, we check up to four live sources and use whichever has the freshest data:
+        </p>
+        <ul>
+          <li><strong>pokemontcg.io Market Price</strong> — daily refresh from TCGplayer, the primary anchor.</li>
+          <li><strong>TCG CSV</strong> by set and number — fills gaps pokemontcg.io misses (newer promos, oddball SKUs).</li>
+          <li><strong>TCGplayer Market Price</strong> via our worker — the published Market Price you see on TCGplayer product pages.</li>
+          <li><strong>TCGplayer Last-Sold Average</strong> — trimmed mean of the most recent sold transactions, dropping outliers.</li>
+        </ul>
+        <p>
+          For <strong>graded slabs</strong>, we add a fifth source: <strong>PriceCharting</strong> grade-aware lookups, which let us match against PSA 8 / 9 / 10 (and CGC, BGS) comparable sales. We never anchor a graded offer to raw-card data.
+        </p>
+        <p>
+          We then apply a condition discount (NM 1.0× / LP 0.85× / MP 0.70× / HP 0.50× / DMG 0.30×) and your tier rate from the <a href="trade-in.html">payout matrix</a>. The number you see is what we'd pay <em>today</em> — not a placeholder we'll renegotiate later.
+        </p>
+      </article>
+
+      <article class="res-article">
+        <p class="res-article-eyebrow">Grading</p>
+        <h2>Should you grade your Pokémon card?</h2>
+        <p>
+          The honest answer most shops won't say out loud: <strong>most cards aren't worth grading.</strong> Submission costs $25–$30 round-trip at PSA Value Plus, plus our $5 Card Prep, plus shipping. A graded card has to clear roughly <strong>$60 in resale</strong> just to break even.
+        </p>
+        <p>
+          We grade a card when at least one of these is true:
+        </p>
+        <ul>
+          <li>It's a <strong>vintage holo or 1st Edition card</strong> from 1999–2003 in clean condition.</li>
+          <li>It's a <strong>modern chase card</strong> (alt art, SAR, IR, secret rare) where PSA 10 trades at 3–5× raw NM.</li>
+          <li>The raw card is already worth <strong>$40+</strong>, so a successful PSA 9 or 10 clears the fee floor with room to spare.</li>
+          <li>The card has <strong>sentimental value</strong> and you want it in a slab regardless of profit math.</li>
+        </ul>
+        <p>
+          When you submit to <a href="grading-prep.html">our Grading Prep</a>, every card you add gets a live profit-margin panel showing exactly which grades would clear the $30+ fee floor — so you can yank cards out of the order before paying for a submission that breaks even at best.
+        </p>
+      </article>
+
+      <article class="res-article">
+        <p class="res-article-eyebrow">Conditioning</p>
+        <h2>How to read your own cards before shipping them</h2>
+        <p>
+          Customers consistently grade their own cards too high — usually by one full step. The card you think is "Near Mint" because you got it out of a pack last week probably has a faint corner wear or a 60/40 centering issue. Here's the working scale we use, TCGplayer-aligned:
+        </p>
+        <ul>
+          <li><strong>Near Mint (NM)</strong> — pack-fresh or sleeved-since-pull. No whitening on the back edges. Sharp corners. Centering within 60/40 on every side.</li>
+          <li><strong>Lightly Played (LP)</strong> — minor edge wear, faint corner whitening, or a single small scratch. Card still presents clean from 2 feet away.</li>
+          <li><strong>Moderately Played (MP)</strong> — visible whitening on edges and corners. Small surface scratches. Maybe a faint print line. Still totally playable, not pretty.</li>
+          <li><strong>Heavily Played (HP)</strong> — heavy whitening, scuffs, possibly a soft crease or a clouded surface. The card is recognizable but rough.</li>
+          <li><strong>Damaged (DMG)</strong> — bends, water damage, ink marks, hard creases, missing layers. We still buy these at the bulk floor.</li>
+        </ul>
+        <p>
+          When in doubt, drop down a grade. We'd rather you under-grade and we pay you more than over-grade and we have to revise your offer.
+        </p>
+      </article>
+
+      <article class="res-article">
+        <p class="res-article-eyebrow">Local</p>
+        <h2>Selling to a Florida-local shop vs. a national buyer</h2>
+        <p>
+          We're not the biggest buyer in the country — the national players like Just Collect or PWCC can move bigger collections faster than we can. But here's where we beat them for Florida collectors:
+        </p>
+        <ul>
+          <li><strong>You can hand off in person.</strong> We vend at Collect-A-Con Orlando, Florida Card Show, Boca shows, and the regular show circuit. <a href="events.html">Check the schedule</a>, bring the cards, walk out with a check or store credit the same day. No insured FedEx label, no anxiety about high-value mail.</li>
+          <li><strong>Same-day handoff for high-value lots.</strong> If you've got a $5,000+ collection and you're within driving distance of central Florida, DM us — we'll come to you or set up a meet at a public location.</li>
+          <li><strong>Live published pricing.</strong> Most national buyers won't tell you their formula. We do — every source we use is listed above, and every offer is itemized on your trade-in request so you can sanity-check it against TCGplayer or eBay before saying yes.</li>
+        </ul>
+      </article>
+
+      <article class="res-article">
+        <p class="res-article-eyebrow">Inventory</p>
+        <h2>Why a card on our site sometimes sells before checkout</h2>
+        <p>
+          We're local vendors. We sell at Florida card shows <em>and</em> on the site. If a slab or sealed product is sitting on our shop page, there's a small chance it just sold at a booth and our Square inventory hasn't synced yet (usually within an hour, sometimes longer at a busy show).
+        </p>
+        <p>
+          <strong>Every order is reviewed before we charge.</strong> If something sold in person between when you ordered and when we packed it, we offer same-day: full refund, swap for a similar product, or a hold for the next batch. Apparel and merch are print-on-demand through Printful so they never go out of stock — only graded, sealed, and singles can lag.
+        </p>
+      </article>
+
+    </div>
+
+    <div class="res-cta">
+      <h2>Have a question we didn't cover?</h2>
+      <p>Anything we can clarify — pricing on a specific card, whether something is worth grading, how to pack a fragile slab — just ask.</p>
+      <div class="res-cta-row">
+        <a href="contact.html">Contact Us</a>
+        <a href="faq.html" class="secondary">Read the FAQ</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="siteFooter">
+    <div class="footer-inner">
+      <a href="index.html" class="footer-logo">
+        <img width="40" height="40" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <p class="footer-blurb">Pokémon cards, graded slabs, sealed product, and apparel — direct from a Florida-based shop.</p>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="resources.html">Resources</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=156"></script>
+</body>
+</html>

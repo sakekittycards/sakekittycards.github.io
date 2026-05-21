@@ -73,6 +73,85 @@
       color: rgba(255,255,255,0.86);
       max-width: 720px;
     }
+
+    /* Trust-signal strip — sits under hero copy, signals fast turnaround
+       and the FL-local advantage before the customer even scrolls. */
+    .page-tradein .ti-trust-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin: 16px 0 0;
+    }
+    .page-tradein .ti-trust-pill {
+      font-size: 13.5px; font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,106,0,0.08);
+      border: 1px solid rgba(255,106,0,0.30);
+      color: rgba(255,255,255,0.92);
+      line-height: 1.4;
+    }
+    .page-tradein .ti-trust-pill-local {
+      background: rgba(109,211,255,0.08);
+      border-color: rgba(109,211,255,0.30);
+    }
+    .page-tradein .ti-trust-pill a {
+      color: var(--orange);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .page-tradein .ti-trust-pill-local a { color: var(--cyan, #6dd3ff); }
+    .page-tradein .ti-trust-pill a:hover { text-decoration: underline; }
+
+    /* "How We Price" educational block — adopts the patient, explainer
+       voice (mirrors the way Just Collect frames their resources). Sits
+       under the rate matrix so customers see "what they get" before
+       "why these numbers". Three-pillar grid keeps it scannable. */
+    .page-tradein .ti-how-we-price {
+      max-width: 980px; margin: 36px auto 0;
+      padding: 28px 30px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.05), rgba(109,211,255,0.04));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+    }
+    .page-tradein .ti-how-we-price h2 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(22px, 3vw, 30px); line-height: 1.2;
+      padding: 2px 0 6px;
+      margin: 0 0 6px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-tradein .ti-how-we-price > p.intro {
+      font-size: 15px; line-height: 1.65;
+      color: rgba(255,255,255,0.85);
+      margin: 0 0 24px;
+      max-width: 720px;
+    }
+    .page-tradein .ti-hwp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+    @media (max-width: 760px) {
+      .page-tradein .ti-hwp-grid { grid-template-columns: 1fr; gap: 14px; }
+    }
+    .page-tradein .ti-hwp-card {
+      padding: 18px 18px 16px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+    }
+    .page-tradein .ti-hwp-card h3 {
+      font-size: 15px; font-weight: 700;
+      color: var(--orange);
+      margin: 0 0 8px;
+      letter-spacing: 0.2px;
+    }
+    .page-tradein .ti-hwp-card p {
+      font-size: 14px; line-height: 1.6;
+      color: rgba(255,255,255,0.82);
+      margin: 0;
+    }
+    .page-tradein .ti-hwp-card strong { color: rgba(255,255,255,0.95); }
     /* Search field on the tradein page — slightly larger than the shared
        baseline but no longer dominant (toned down 2026-05-12 to feel less
        like a CTA, more like a search input). */
@@ -1590,8 +1669,13 @@
         <li><a href="team.html">Our Team</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="reviews.html">Reviews</a></li>
-        <li><a href="shipping.html">Shipping Guide</a></li>
-        <li><a href="faq.html">FAQ</a></li>
+        <li class="nav-dropdown">
+          <a href="resources.html">Resources</a>
+          <ul class="nav-dropdown-menu" aria-label="Resources">
+            <li><a href="shipping.html">Shipping &amp; Packing</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
       </ul>
     </div>
@@ -1601,6 +1685,15 @@
     <div class="page-hero">
       <h1>Sell / Trade</h1>
       <p>Sell bulk, singles, sealed, or graded — cash or store credit, your choice. Build a list below and we'll get back with a quote. <strong style="color:var(--orange)">English &amp; Japanese Pokémon cards only · no jumbo / oversized cards.</strong></p>
+      <!-- Trust-signal strip — concrete promises customers care about when
+           weighing us vs. national buyers (Just Collect, PWCC, etc.).
+           48-hour offer turnaround is faster than the industry norm (~72h).
+           Florida-local angle converts collectors who'd rather hand off
+           in-person than mail a high-value collection. -->
+      <div class="ti-trust-row">
+        <span class="ti-trust-pill ti-trust-pill-fast">⚡ Offer within 48 hours</span>
+        <span class="ti-trust-pill ti-trust-pill-local">📍 Florida-based — bring it to a show or <a href="contact.html">DM us for an in-person buyout</a></span>
+      </div>
     </div>
     <h2 class="visually-hidden">Rates, lookup tools, and submission</h2>
 
@@ -1717,6 +1810,40 @@
           </p>
         </div>
       </details>
+
+      <!-- "How We Price" educational block — explains the offer in plain
+           language so the rate matrix above doesn't feel like a black box.
+           Three pillars: multi-source pricing, condition multipliers,
+           why our number is fair. Adopts patient explainer voice. -->
+      <section class="ti-how-we-price" aria-labelledby="howWePriceHeading">
+        <h2 id="howWePriceHeading">How we price your cards</h2>
+        <p class="intro">
+          Our offer isn't a guess. Every card you submit gets a fresh quote from up to four pricing sources, then a condition discount, then matched to your tier on the rate matrix above. Here's the work behind the number you see.
+        </p>
+        <div class="ti-hwp-grid">
+          <div class="ti-hwp-card">
+            <h3>1. We check live market data</h3>
+            <p>
+              For each card, we pull <strong>pokemontcg.io</strong> Market Price, <strong>TCG CSV</strong> for sets the first source misses, and our <strong>TCGplayer worker</strong> for the published Market Price plus recent sold-listing average. Graded slabs add a <strong>PriceCharting</strong> grade-aware lookup. Whichever source has the freshest data wins.
+            </p>
+          </div>
+          <div class="ti-hwp-card">
+            <h3>2. We apply a condition multiplier</h3>
+            <p>
+              NM gets the full market value. LP runs at <strong>0.85×</strong>, MP at <strong>0.70×</strong>, HP at <strong>0.50×</strong>, DMG at <strong>0.30×</strong>. Graded cards skip this step — the slab grade already encodes condition, so we anchor to grade-specific sold comps instead.
+            </p>
+          </div>
+          <div class="ti-hwp-card">
+            <h3>3. We apply your tier rate</h3>
+            <p>
+              Then we multiply by your buy rate from the matrix — <strong>up to 85% cash</strong> or <strong>100% trade credit</strong> at the top tier. Bigger totals unlock higher percentages, so a $1,200 collection earns a better rate per card than a $90 lot.
+            </p>
+          </div>
+        </div>
+        <p class="intro" style="margin-top:22px;margin-bottom:0;">
+          <strong style="color:rgba(255,255,255,0.95)">Why we publish this:</strong> most national buyers (PWCC, Just Collect) won't tell you their formula — you mail your cards, they make an offer, you decide. We'd rather you see the math up front and bring us a list you already know the rough value of. If our number isn't fair, the matrix tells you where we'd land — so you can walk to TCGplayer or eBay with a clean comparison.
+        </p>
+      </section>
 
       <!-- Jump to flat-rate quick-add categories — makes the section impossible to miss -->
       <a href="#bulkSection" class="bulk-jump-banner">
@@ -1959,6 +2086,7 @@
         <a href="trade-in.html">Sell / Trade</a>
         <a href="grading-prep.html">Grading Prep</a>
         <a href="reviews.html">Reviews</a>
+        <a href="resources.html">Resources</a>
         <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
