@@ -1570,26 +1570,32 @@ async function exportTcgplayerCsv(request, env) {
 //
 // If `existingItemObj` is passed (from a prior GET), we skip the duplicate
 // GET to save a subrequest.
-async function attachTcgImageToItem(itemId, productId, base, squareHeaders, existingItemObj) {
-  const cdnUrl = `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg`;
+async function attachTcgImageToItem(itemId, productId, base, squareHeaders, existingItemObj, overrideUrl) {
+  // overrideUrl wins if present — used for products TCGplayer doesn't carry
+  // (e.g., Walmart-exclusive decks). Falls back to TCGplayer CDN by productId.
+  const cdnUrl = overrideUrl ||
+    (productId ? `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg` : null);
+  if (!cdnUrl) return { skipped: 'no_image_source' };
   let imgRes;
   try {
     imgRes = await fetch(cdnUrl, { headers: { 'User-Agent': 'Mozilla/5.0 SakeKittyCards/1.0' } });
   } catch (e) {
-    return { skipped: 'cdn_fetch_failed', detail: String(e) };
+    return { skipped: 'image_fetch_failed', detail: String(e) };
   }
-  if (!imgRes.ok) return { skipped: 'cdn_not_found', status: imgRes.status };
+  if (!imgRes.ok) return { skipped: 'image_not_found', status: imgRes.status };
   const imgBytes = await imgRes.arrayBuffer();
-  if (imgBytes.byteLength < 500) return { skipped: 'cdn_returned_empty' };
+  if (imgBytes.byteLength < 500) return { skipped: 'image_too_small' };
 
   const form = new FormData();
+  const captionLabel = overrideUrl ? 'manual stock image' : 'TCGplayer stock image';
+  const nameLabel = overrideUrl ? `manual-${itemId}` : `tcgplayer-${productId}`;
   form.append('request', JSON.stringify({
     idempotency_key: crypto.randomUUID(),
     object_id: itemId,
     image: {
       type: 'IMAGE',
       id: '#sk-tcg-img',
-      image_data: { name: `tcgplayer-${productId}`, caption: 'TCGplayer stock image' },
+      image_data: { name: nameLabel, caption: captionLabel },
     },
     is_primary: true,
   }));
@@ -1663,7 +1669,8 @@ async function fixSealedImages(request, base, squareHeaders, env) {
   }
   const airHeaders = { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` };
 
-  const filter = 'AND({square_item_id}, {tcgplayer_product_id})';
+  // Include rows with EITHER a tcgplayer_product_id OR a manual_image_url.
+  const filter = 'AND({square_item_id}, OR({tcgplayer_product_id}, {manual_image_url}))';
   const params = new URLSearchParams({ filterByFormula: filter, pageSize: '100' });
   const r = await fetch(`https://api.airtable.com/v0/${baseId}/${tableId}?${params.toString()}`, { headers: airHeaders });
   if (!r.ok) {
@@ -1678,8 +1685,9 @@ async function fixSealedImages(request, base, squareHeaders, env) {
     const f = rec.fields || {};
     const itemId = (f.square_item_id || '').trim();
     const pid    = Number(f.tcgplayer_product_id || 0);
+    const overrideUrl = (f.manual_image_url || '').trim();
     const sku    = f.sku || rec.id;
-    if (!itemId || !pid) continue;
+    if (!itemId || (!pid && !overrideUrl)) continue;
     report.scanned++;
 
     // 1. GET item to check if image_ids is already populated
@@ -1701,10 +1709,10 @@ async function fixSealedImages(request, base, squareHeaders, env) {
     report.missing++;
 
     // 2. Attach image (function does image upload + item patch)
-    const res = await attachTcgImageToItem(itemId, pid, base, squareHeaders, itemObj);
+    const res = await attachTcgImageToItem(itemId, pid, base, squareHeaders, itemObj, overrideUrl);
     if (res.linked) {
       report.attached++;
-      report.rows.push({ sku, action: 'attached', image_id: res.image_id });
+      report.rows.push({ sku, action: 'attached', source: overrideUrl ? 'manual' : 'tcgplayer', image_id: res.image_id });
     } else {
       report.errors++;
       report.rows.push({ sku, action: 'attach-failed', detail: res });
@@ -1898,9 +1906,11 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
 
       // 4. Attach TCGplayer stock image as the primary image (best-effort).
       // Only attempt for new items OR existing items without any image yet.
+      // Prefer manual_image_url if set (for products TCGplayer doesn't carry).
       const tcgPid = Number(f.tcgplayer_product_id || 0);
-      if (tcgPid > 0 && (!existingItemId || !hasExistingImages)) {
-        const imgResult = await attachTcgImageToItem(itemId, tcgPid, base, squareHeaders);
+      const manualUrl = (f.manual_image_url || '').trim();
+      if ((tcgPid > 0 || manualUrl) && (!existingItemId || !hasExistingImages)) {
+        const imgResult = await attachTcgImageToItem(itemId, tcgPid, base, squareHeaders, null, manualUrl);
         rowReport.image = imgResult;
       }
 
