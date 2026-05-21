@@ -319,6 +319,55 @@
       animation: fadeUp 0.6s ease both 0.75s;
     }
 
+    /* Just Listed — fresh-arrivals strip under the hero. Pulls the newest
+       items from the Square catalog (sorted by createdAt desc) so the
+       front door always shows "what's new" before any sitewide trust
+       signals. Same card chrome as shop.html for visual consistency.
+       4-up on desktop, collapses to 2-up tablets / 1-up mobile. */
+    .just-listed {
+      max-width: var(--max-w); margin: 0 auto;
+      padding: 24px 24px 8px;
+    }
+    .just-listed-header {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+    }
+    .just-listed-header h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(28px, 4.4vw, 40px);
+      letter-spacing: 0.03em; line-height: 1.15;
+      padding-bottom: 4px;
+      background: linear-gradient(135deg, #ff6a00 0%, #ff0080 55%, #7b2fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.22));
+      margin: 0;
+    }
+    .just-listed-header .just-listed-sub {
+      font-size: 14px; color: var(--dim); margin: 4px 0 0;
+    }
+    .just-listed-header a.see-all { margin: 0; }
+    .just-listed-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+    }
+    @media (max-width: 1100px) {
+      .just-listed-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .just-listed-grid { grid-template-columns: 1fr; gap: 14px; }
+    }
+    .just-listed .product-card .product-img,
+    .just-listed .product-card .product-img-real { aspect-ratio: 1/1; }
+    .just-listed-status {
+      text-align: center; color: var(--dim); font-size: 14px;
+      padding: 28px 0;
+    }
+    .just-listed-status.error { color: rgba(255,106,0,0.8); }
+    /* Hide entirely when we have nothing to show (no items, error, or worker
+       offline) — empty state is worse than missing on a home-page strip. */
+    .just-listed.is-empty { display: none; }
+
     /* Trust row — premium scanning. Bigger icons, stronger headings,
        intentionally short supporting copy so the row reads as quick trust
        signals instead of a feature dump. Bumped 2026-05-07 per CD review:
@@ -685,6 +734,21 @@
       <p class="hero-tagline">Trusted sealed product, graded slabs, and more from collectors who love the hobby as much as you do.</p>
     </section>
 
+    <!-- Just Listed — newest arrivals from the Square catalog. Populated
+         client-side by /items (sorted by createdAt desc, top 4 in-stock).
+         Section hides itself if the worker is offline or returns no items. -->
+    <section class="just-listed" id="justListed" aria-labelledby="just-listed-heading">
+      <div class="just-listed-header">
+        <div>
+          <h2 id="just-listed-heading">Just Listed</h2>
+          <p class="just-listed-sub">Fresh from the showcase — first dibs go to the homepage.</p>
+        </div>
+        <a href="shop.html" class="see-all">Shop everything →</a>
+      </div>
+      <div class="just-listed-status" id="justListedStatus">Loading newest arrivals…</div>
+      <div class="just-listed-grid" id="justListedGrid" hidden></div>
+    </section>
+
     <!-- Features strip -->
     <section class="features" aria-labelledby="features-heading">
       <h2 id="features-heading" class="visually-hidden">Why collectors trust us</h2>
@@ -693,63 +757,6 @@
         <div class="feature-item"><div class="feature-icon"><svg class="lc lc-xl lc-cyan"><use href="#lc-badge-check"/></svg></div><h3>Honest Condition</h3><p>Graded conservatively.</p></div>
         <div class="feature-item"><div class="feature-icon"><svg class="lc lc-xl lc-purple"><use href="#lc-package"/></svg></div><h3>Safe Shipping</h3><p>Sleeved · top-loaded · insured.</p></div>
         <div class="feature-item"><div class="feature-icon"><svg class="lc lc-xl lc-pink"><use href="#lc-headphones"/></svg></div><h3>Fast Support</h3><p>DMs open. Replies under 24h.</p></div>
-      </div>
-    </section>
-
-    <!-- Upcoming events preview -->
-    <section class="section">
-      <div class="center-heading">
-        <h2 class="section-title">Catch Us Live</h2>
-        <div class="divider"></div>
-        <p class="section-sub">We're on the road — come find our table at these upcoming shows.</p>
-      </div>
-      <!-- Next 3 upcoming events. Manually updated as shows pass — keep in
-           sync with events.html EVENTS array. (Refactor to shared data file
-           if this gets out of date often.) -->
-      <div class="events-preview-grid">
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy" style="font-size:14px">9–10</span></div>
-          <div class="event-preview-info"><h4>Collect-A-Con</h4><p>Cleveland, OH</p></div>
-        </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">10</span></div>
-          <div class="event-preview-info"><h4>Naples Card Show</h4><p>Naples, FL</p></div>
-        </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">16</span></div>
-          <div class="event-preview-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
-        </div>
-      </div>
-      <div class="see-all-wrap"><a href="events.html" class="see-all">View all events →</a></div>
-    </section>
-
-    <!-- Vendors preview -->
-    <section class="section" style="padding-top:0">
-      <div class="center-heading">
-        <h2 class="section-title">Meet the Team</h2>
-        <div class="divider"></div>
-      </div>
-      <div class="vendors-preview">
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img width="280" height="280" src="nick.jpg" alt="Nick Williams" class="vendor-mini-avatar" loading="lazy" decoding="async" />
-          <h3>Nick Williams</h3>
-          <p>Founder & Owner</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img width="280" height="280" src="jonathan.jpg" alt="Jonathan Delia" class="vendor-mini-avatar" loading="lazy" decoding="async" />
-          <h3>Jonathan Delia</h3>
-          <p>Vendor</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img width="280" height="280" src="joshua.jpg" alt="Joshua Noplis" class="vendor-mini-avatar" loading="lazy" decoding="async" />
-          <h3>Joshua Noplis</h3>
-          <p>Vendor</p>
-        </a>
-        <a href="team.html" class="card vendor-mini" style="text-decoration:none;color:inherit;display:block">
-          <img width="280" height="280" src="andrew-grace.jpg" alt="Andrew &amp; Grace Williams" class="vendor-mini-avatar" loading="lazy" decoding="async" />
-          <h3>Andrew &amp; Grace Williams</h3>
-          <p>Vendors · Whatnot Streams</p>
-        </a>
       </div>
     </section>
 
@@ -829,6 +836,35 @@
       </div>
     </section>
 
+    <!-- Upcoming events preview — moved to bottom of the page so the
+         commerce + social-proof sections lead, with shows as a closing
+         "catch us in person" beat. -->
+    <section class="section" style="padding-top:0">
+      <div class="center-heading">
+        <h2 class="section-title">Catch Us Live</h2>
+        <div class="divider"></div>
+        <p class="section-sub">We're on the road — come find our table at these upcoming shows.</p>
+      </div>
+      <!-- Next 3 upcoming events. Manually updated as shows pass — keep in
+           sync with events.html EVENTS array. (Refactor to shared data file
+           if this gets out of date often.) -->
+      <div class="events-preview-grid">
+        <div class="card event-preview">
+          <div class="event-date"><span class="mo">May</span><span class="dy" style="font-size:14px">9–10</span></div>
+          <div class="event-preview-info"><h4>Collect-A-Con</h4><p>Cleveland, OH</p></div>
+        </div>
+        <div class="card event-preview">
+          <div class="event-date"><span class="mo">May</span><span class="dy">10</span></div>
+          <div class="event-preview-info"><h4>Naples Card Show</h4><p>Naples, FL</p></div>
+        </div>
+        <div class="card event-preview">
+          <div class="event-date"><span class="mo">May</span><span class="dy">16</span></div>
+          <div class="event-preview-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
+        </div>
+      </div>
+      <div class="see-all-wrap"><a href="events.html" class="see-all">View all events →</a></div>
+    </section>
+
   </main>
 
   <footer class="site-footer">
@@ -893,6 +929,80 @@
         badge.classList.add('is-hidden');
         try { localStorage.setItem('sk_wip_dismissed', '1'); } catch (_) {}
       });
+    })();
+
+    // Just Listed — fetch the newest in-stock products from the Square
+    // catalog via the worker, sort by createdAt desc, show the top 4 as
+    // product cards. Hides the whole section on failure / empty (better
+    // than rendering an empty strip on the homepage). Mirrors the card
+    // markup pattern used by shop.html so visuals stay in lockstep.
+    (function loadJustListed() {
+      const section = document.getElementById('justListed');
+      const status  = document.getElementById('justListedStatus');
+      const grid    = document.getElementById('justListedGrid');
+      if (!section || !status || !grid) return;
+
+      const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const fmt = n => `$${Number(n).toFixed(2)}`;
+      const thumb = (url) => {
+        if (!url || !/^https?:\/\//.test(url)) return url;
+        return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
+      };
+
+      const renderCard = (item) => {
+        const oos = item.inStock === false;
+        const thumbUrl = thumb(item.imageUrl);
+        const original = item.imageUrl || '';
+        const onerr = original && original !== thumbUrl
+          ? `if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='${esc(original)}';}else{this.outerHTML='<div class=&quot;product-img&quot;>📦</div>';}`
+          : `this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'`;
+        const imgBlock = item.imageUrl
+          ? `<img src="${esc(thumbUrl)}" alt="${esc(item.name)}" class="product-img-real img-loading" loading="lazy" decoding="async" width="320" height="320" onload="this.classList.replace('img-loading','img-loaded')" onerror="${onerr}" />`
+          : `<div class="product-img">📦</div>`;
+        const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
+        const href  = `product.html?id=${encodeURIComponent(item.id)}`;
+        const cls   = ['product-card'];
+        if (oos) cls.push('sold-out');
+        return `
+          <a href="${href}" class="${cls.join(' ')}" style="position:relative;color:inherit;text-decoration:none">
+            ${badge}
+            ${imgBlock}
+            <div class="product-info">
+              <div class="product-name">${esc(item.name)}</div>
+              <div class="product-footer">
+                <span class="product-price">${fmt(item.price)}</span>
+              </div>
+              <div class="product-cta">More Details →</div>
+            </div>
+          </a>`;
+      };
+
+      fetch(`${WORKER_BASE}/items`, { method: 'GET' })
+        .then(r => { if (!r.ok) throw new Error(`worker ${r.status}`); return r.json(); })
+        .then(data => {
+          const items = Array.isArray(data.items) ? data.items.slice() : [];
+          // Newest first. Items without createdAt fall to the bottom so a
+          // pre-redeploy worker (no timestamps) just renders catalog order
+          // instead of breaking the section.
+          items.sort((a, b) => {
+            const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
+            const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
+            return tb - ta;
+          });
+          const inStock = items.filter(it => it.inStock !== false).slice(0, 4);
+          if (!inStock.length) {
+            section.classList.add('is-empty');
+            return;
+          }
+          grid.innerHTML = inStock.map(renderCard).join('');
+          status.hidden = true;
+          grid.hidden = false;
+        })
+        .catch(err => {
+          console.warn('Just Listed load failed:', err);
+          section.classList.add('is-empty');
+        });
     })();
 
     // Particle system

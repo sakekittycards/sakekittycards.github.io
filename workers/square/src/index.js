@@ -95,6 +95,15 @@ export default {
         return await trackGradingRequest(order, env);
       }
 
+      if (path === '/reviews/submit' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await submitReview(body, env);
+      }
+
+      if (path === '/reviews/list' && request.method === 'GET') {
+        return await listReviews(env);
+      }
+
       if (path === '/webhooks/square' && request.method === 'POST') {
         return await handleSquareWebhook(request, base, squareHeaders, env);
       }
@@ -770,6 +779,103 @@ async function trackGradingRequest(order, env) {
     psaCerts:     certs,
     createdTime:  record.createdTime,
   });
+}
+
+// ─── Customer reviews: Airtable-backed submit + approved-only list ────────
+//
+// Customers submit through reviews.html. Submissions land in the Airtable
+// `Reviews` table with Approved=false; Nick checks the box in Airtable to
+// publish. listReviews returns only approved rows so unmoderated content
+// never reaches the public page.
+//
+// Required env: AIRTABLE_TOKEN (already set for grading), AIRTABLE_BASE_ID
+//               (same base as grading), AIRTABLE_REVIEWS_TABLE_ID (new —
+//               point at a separate Reviews table in the same base).
+//
+// Airtable schema (Reviews table):
+//   Name              — single-line text (required)
+//   Stars             — number 1-5 (required)
+//   Review            — long text (required)
+//   Email             — single-line text (optional, for follow-up only,
+//                       never exposed by /reviews/list)
+//   Approved          — checkbox (defaults unchecked — Nick toggles to
+//                       publish)
+//   Submitted At      — created time (Airtable built-in)
+async function submitReview(body, env) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !env.AIRTABLE_REVIEWS_TABLE_ID) {
+    return json({ error: 'reviews_store_not_configured' }, 500);
+  }
+
+  const name   = String(body.name   || '').trim();
+  const review = String(body.review || '').trim();
+  const stars  = Number(body.stars);
+  const email  = String(body.email  || '').trim();
+
+  if (!name)   return json({ error: 'name_required' },   400);
+  if (!review) return json({ error: 'review_required' }, 400);
+  if (!Number.isFinite(stars) || stars < 1 || stars > 5) {
+    return json({ error: 'stars_must_be_1_to_5' }, 400);
+  }
+  // Sanity caps to keep abuse + bloat off the table.
+  if (name.length   > 120)  return json({ error: 'name_too_long' },   400);
+  if (review.length > 2000) return json({ error: 'review_too_long' }, 400);
+  if (email && email.length > 200) return json({ error: 'email_too_long' }, 400);
+
+  const fields = {
+    'Name':     name,
+    'Stars':    Math.round(stars),
+    'Review':   review,
+    'Approved': false,
+  };
+  if (email) fields['Email'] = email;
+
+  const res = await fetch(
+    `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_REVIEWS_TABLE_ID}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.AIRTABLE_TOKEN}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({ fields }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return json({ error: 'airtable_error', detail: data }, res.status);
+  }
+
+  return json({ ok: true, status: 'pending_approval' });
+}
+
+async function listReviews(env) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !env.AIRTABLE_REVIEWS_TABLE_ID) {
+    return json({ error: 'reviews_store_not_configured' }, 500);
+  }
+
+  // Approved rows only; newest first; cap so a deluge can't blow up the page.
+  const filter = encodeURIComponent('{Approved} = TRUE()');
+  const sort   = 'sort[0][field]=Submitted%20At&sort[0][direction]=desc';
+  const url    = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.AIRTABLE_REVIEWS_TABLE_ID}?filterByFormula=${filter}&${sort}&maxRecords=50`;
+
+  const res = await fetch(url, {
+    headers: { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return json({ error: 'airtable_error', detail: data }, res.status);
+  }
+
+  // Strip email from the public payload — internal-use only.
+  const reviews = (data.records || []).map(r => ({
+    id:        r.id,
+    name:      r.fields?.Name   || '',
+    stars:     Number(r.fields?.Stars) || 0,
+    review:    r.fields?.Review || '',
+    createdAt: r.createdTime    || null,
+  }));
+
+  return json({ reviews });
 }
 
 // ─── Square → Printful order relay (via webhook) ──────────────────────────
