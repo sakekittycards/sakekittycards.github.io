@@ -1514,12 +1514,12 @@ body.cart-open { overflow: hidden; }
 .product-card.sealed .product-img-real {
   object-fit: contain;
   background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
-  padding: 14% 14%;  /* product fills ~72% of frame width/height */
+  padding: 24% 24%;  /* product fills ~52% of frame — pulled well back */
 }
 @media (max-width: 720px) {
   /* On mobile cards are smaller — less padding so the product is still
      readable at a glance without becoming a tiny postage stamp. */
-  .product-card.sealed .product-img-real { padding: 8% 8%; }
+  .product-card.sealed .product-img-real { padding: 16% 16%; }
 }
 
 /* ── Shop loading/empty/error states ── */
