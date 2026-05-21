@@ -426,12 +426,45 @@ function skSaveCart(cart) {
   try { localStorage.setItem(SK_CART_KEY, JSON.stringify(cart)); } catch {}
   skCartListeners.forEach(fn => { try { fn(cart); } catch {} });
 }
+// Lightweight ephemeral toast for inventory-cap messages. No CSS dependency
+// beyond what's already in the cart drawer styles.
+function skToast(message) {
+  let el = document.getElementById('sk-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sk-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.style.cssText = 'position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:rgba(10,10,18,0.96);border:1px solid rgba(255,106,0,0.45);color:#fff;padding:12px 18px;border-radius:10px;font:600 13.5px Inter,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,0.5);opacity:0;transition:opacity .18s,transform .18s;z-index:10000;pointer-events:none;max-width:88%';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  clearTimeout(skToast._t);
+  skToast._t = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 2400);
+}
+
 function skAddToCart(product) {
   if (!product || !product.id) return;
   const cart = skGetCart();
   const existing = cart.find(item => item.id === product.id);
+  const stockCap = (typeof product.stock === 'number' && product.stock > 0)
+    ? product.stock : null;
   if (existing) {
-    existing.quantity = Math.min(99, existing.quantity + 1);
+    const target = existing.quantity + 1;
+    if (stockCap !== null && target > stockCap) {
+      skToast(`Only ${stockCap} in stock`);
+      return;
+    }
+    existing.quantity = Math.min(99, target);
+    // Refresh stock if it changed since last add (newer data wins)
+    if (stockCap !== null) existing.stock = stockCap;
   } else {
     cart.push({
       id:          product.id,
@@ -444,6 +477,7 @@ function skAddToCart(product) {
       // insurable. The shop pages tag this when adding; we default to
       // 'card' so legacy carts still apply insurance correctly.
       category:    product.category === 'merch' ? 'merch' : 'card',
+      stock:       stockCap,
       quantity:    1,
     });
   }
@@ -459,7 +493,14 @@ function skUpdateQuantity(id, qty) {
   if (qty <= 0) {
     skSaveCart(cart.filter(i => i.id !== id));
   } else {
-    item.quantity = Math.min(99, qty);
+    const stockCap = (typeof item.stock === 'number' && item.stock > 0)
+      ? item.stock : null;
+    if (stockCap !== null && qty > stockCap) {
+      skToast(`Only ${stockCap} in stock`);
+      item.quantity = Math.min(99, stockCap);
+    } else {
+      item.quantity = Math.min(99, qty);
+    }
     skSaveCart(cart);
   }
 }
@@ -748,17 +789,22 @@ window.SK = {
       const thumb = item.imageUrl
         ? `<img src="${item.imageUrl}" alt="" class="cart-item-img" onerror="this.style.visibility='hidden'" />`
         : `<div class="cart-item-img placeholder">📦</div>`;
+      const atCap = typeof item.stock === 'number' && item.quantity >= item.stock;
+      const stockHint = typeof item.stock === 'number'
+        ? `<div class="cart-item-stock${atCap ? ' at-cap' : ''}">${atCap ? `Max ${item.stock} available` : `${item.stock} in stock`}</div>`
+        : '';
       return `
         <div class="cart-item" data-id="${item.id}">
           ${thumb}
           <div class="cart-item-info">
             <h5>${item.name}</h5>
             <div class="cart-item-price">${fmt(item.price)} each</div>
+            ${stockHint}
             <div class="cart-item-controls">
               <div class="cart-qty-group">
                 <button type="button" class="cart-qty-btn" data-action="dec" aria-label="Decrease">−</button>
                 <span class="cart-qty-num">${item.quantity}</span>
-                <button type="button" class="cart-qty-btn" data-action="inc" aria-label="Increase">+</button>
+                <button type="button" class="cart-qty-btn" data-action="inc" aria-label="Increase"${atCap ? ' disabled' : ''}>+</button>
               </div>
               <button type="button" class="cart-item-remove" data-action="remove">Remove</button>
             </div>

@@ -119,6 +119,18 @@
       padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
       vertical-align: middle;
     }
+    /* Stock indicator under the price. Low-stock variant pops in orange. */
+    .pdp-stock {
+      font-family: 'Inter',sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,0.62);
+      margin: -12px 0 18px;
+      letter-spacing: 0.2px;
+    }
+    .pdp-stock.low {
+      color: var(--orange);
+      filter: drop-shadow(0 0 8px rgba(255,106,0,0.22));
+    }
 
     .pdp-section-label {
       font-size: 11px; font-weight: 700;
@@ -386,7 +398,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=59" defer></script>
+  <script src="main.js?v=60" defer></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -617,6 +629,9 @@
             <div class="pdp-price" id="pdpPrice">
               ${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
             </div>
+            ${(!oos && typeof item.stock === 'number')
+              ? `<div class="pdp-stock${item.stock <= 5 ? ' low' : ''}" id="pdpStock">${item.stock} in stock${item.stock <= 5 ? ' — selling fast' : ''}</div>`
+              : ''}
 
             ${showColors ? `
               <div class="pdp-section-label">Color<span class="pdp-section-val" id="pdpColorVal"> — ${esc(selectedColor)}</span></div>
@@ -959,7 +974,13 @@
       const addBtn = document.getElementById('pdpAddBtn');
       addBtn?.addEventListener('click', () => {
         const v = findVariant(selectedColor, selectedSize);
-        let cartItem = { ...item, category: productCategory };
+        // Pass `stock` through so the cart drawer can cap qty increments.
+        // Single-SKU products (sealed/graded) use item.stock; variant products
+        // use the variation's stock (which we'd need plumbed through /items —
+        // for now fall back to item.stock for merch).
+        const stockCount = (v && typeof v.stock === 'number') ? v.stock
+                         : (typeof item.stock === 'number' ? item.stock : null);
+        let cartItem = { ...item, category: productCategory, stock: stockCount };
         if (v) {
           cartItem = {
             id:          item.id + '__' + v.id,
@@ -968,6 +989,7 @@
             price:       v.price != null ? v.price : item.price,
             imageUrl:    v.imageUrl || item.imageUrl,
             inStock:     v.inStock,
+            stock:       stockCount,
             category:    productCategory,
           };
         }
