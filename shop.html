@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=147" />
+  <link rel="stylesheet" href="style.css?v=148" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -436,17 +436,26 @@
       //
       // Graded slabs are TALL portraits (5:8). `fit=cover` was cropping PSA
       // labels off the top — `fit=inside` preserves the full slab uncropped.
-      const thumbProxy = (url, isGraded) => {
+      //
+      // Sealed products (booster boxes, ETBs, tins, packs) have wildly varying
+      // aspect ratios. `fit=cover` was cropping booster boxes / tall packs.
+      // `fit=inside` letterboxes the full product visible at the card edges.
+      const thumbProxy = (url, kind) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
-        if (isGraded) {
+        if (kind === 'graded') {
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=inside&output=webp&q=78`;
+        }
+        if (kind === 'sealed') {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=inside&output=webp&q=80`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
 
       const renderCard = (item) => {
         const oos = item.inStock === false;
-        const isGraded = GRADER_RX.test(item.name || '');
+        const cat = categorize(item);
+        const isGraded = cat === 'graded';
+        const isSealed = cat === 'sealed';
         const eager = _eagerCount < EAGER_LIMIT;
         _eagerCount++;
         const loadAttrs = eager
@@ -456,7 +465,8 @@
         // fails (proxy down, rate-limited, etc.) fall back to the ORIGINAL
         // Square URL; only then show the placeholder. Stored on the img as
         // a data-attr so the onerror handler can step through.
-        const thumbUrl = thumbProxy(item.imageUrl, isGraded);
+        const thumbKind = isGraded ? 'graded' : (isSealed ? 'sealed' : 'default');
+        const thumbUrl = thumbProxy(item.imageUrl, thumbKind);
         const originalUrl = item.imageUrl || '';
         const wh = isGraded ? 'width="320" height="512"' : 'width="320" height="320"';
         const onerr = originalUrl && originalUrl !== thumbUrl
@@ -472,6 +482,7 @@
         const cardClasses = ['product-card'];
         if (oos) cardClasses.push('sold-out');
         if (isGraded) cardClasses.push('graded');
+        if (isSealed) cardClasses.push('sealed');
         return `
           <a href="${href}" class="${cardClasses.join(' ')}" style="position:relative;display:block;color:inherit;text-decoration:none">
             ${badge}
