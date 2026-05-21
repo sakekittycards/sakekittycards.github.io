@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Reviews — Sake Kitty Cards</title>
+  <meta name="description" content="Customer reviews of Sake Kitty Cards — read what collectors are saying and leave your own review of your experience." />
+
+  <!-- Canonical + Social preview -->
+  <link rel="canonical" href="https://sakekittycards.com/reviews.html" />
+  <meta property="og:title" content="Reviews — Sake Kitty Cards" />
+  <meta property="og:description" content="Read collector reviews of Sake Kitty Cards and share your experience." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/reviews.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Reviews — Sake Kitty Cards" />
+  <meta name="twitter:description" content="Read collector reviews of Sake Kitty Cards and share your experience." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=155" />
+
+  <style>
+    /* Reviews page — two halves: customer-submitted reviews (top) and a
+       "leave a review" form (bottom). Submissions land in Airtable with
+       Approved=false and only render on this page once Nick approves them.
+       Scoped under .page-reviews so styles don't leak. */
+
+    .page-reviews .page-hero h1 {
+      font-size: clamp(38px, 7vw, 64px);
+      background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 50%, #7b2fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 18px rgba(255,106,0,0.30));
+      margin-bottom: 14px;
+      padding-bottom: 4px;
+    }
+    .page-reviews .page-hero > p {
+      font-size: clamp(15px, 2vw, 17px);
+      line-height: 1.55;
+      color: rgba(229,229,247,0.85);
+      max-width: 580px;
+    }
+
+    /* Aggregate score pill — only renders when reviews exist. Read at-a-glance:
+       big average, star bar, count. */
+    .reviews-summary {
+      display: inline-flex; align-items: center; gap: 18px;
+      padding: 14px 22px;
+      margin: 22px 0 0;
+      background: linear-gradient(135deg, rgba(255,106,0,0.08), rgba(255,0,128,0.06));
+      border: 1px solid rgba(255,106,0,0.30);
+      border-radius: 100px;
+    }
+    .reviews-summary-score {
+      font-family: 'Bangers', cursive;
+      font-size: 32px; line-height: 1;
+      color: #ffcc00;
+      text-shadow: 0 0 14px rgba(255,204,0,0.45);
+    }
+    .reviews-summary-stars { color: #ffcc00; font-size: 18px; letter-spacing: 3px; line-height: 1; }
+    .reviews-summary-count {
+      font-size: 13px; color: var(--muted);
+      letter-spacing: 0.4px;
+    }
+
+    /* Reviews list — adapted from the homepage testimonial-card pattern so
+       customer-submitted reviews visually match curated TCGPlayer ones. */
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 22px;
+      margin-top: 8px;
+    }
+    .review-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 26px 26px 22px;
+      display: flex; flex-direction: column; gap: 14px;
+      min-height: 180px;
+      transition: border-color .2s, transform .2s;
+    }
+    .review-card:hover {
+      border-color: rgba(255, 106, 0, 0.35);
+      transform: translateY(-2px);
+    }
+    .review-stars { color: var(--orange); font-size: 18px; letter-spacing: 3px; line-height: 1; }
+    .review-text {
+      font-size: 14.5px; color: rgba(255,255,255,0.92);
+      line-height: 1.7; flex: 1; margin: 0;
+    }
+    .review-attr {
+      font-size: 12.5px; color: var(--dim);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 12px;
+    }
+    .review-attr .review-name { color: rgba(255,255,255,0.85); font-weight: 600; }
+    .review-attr .review-date { font-size: 11.5px; }
+
+    .reviews-status {
+      text-align: center; color: var(--dim);
+      padding: 36px 0; font-size: 14.5px;
+    }
+    .reviews-status.error { color: rgba(255,106,0,0.85); }
+
+    /* Form section — distinct treatment from the reviews list so the page
+       reads as two clear halves. Mirrors the contact-form pattern but
+       carries its own primary-action gradient. */
+    .leave-review {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 36px 32px;
+      background:
+        radial-gradient(ellipse 60% 80% at 50% 0%, rgba(255,106,0,0.06), transparent 70%),
+        var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--r);
+    }
+    .leave-review h2 {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(28px, 4vw, 38px);
+      letter-spacing: 0.04em;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(255,106,0,0.22));
+      padding-bottom: 6px; line-height: 1.2;
+      margin: 0 0 8px; text-align: center;
+    }
+    .leave-review-intro {
+      font-size: 14.5px; line-height: 1.6;
+      color: rgba(229,229,247,0.80);
+      text-align: center;
+      margin: 0 auto 24px; max-width: 480px;
+    }
+
+    .review-form .form-group { margin-bottom: 18px; }
+    .review-form label {
+      display: block;
+      font-size: 12.5px; font-weight: 700;
+      color: rgba(255,255,255,0.78);
+      letter-spacing: 1.4px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .review-form .label-optional {
+      text-transform: none; letter-spacing: 0;
+      font-size: 11.5px; color: var(--dim);
+      font-weight: 500;
+      margin-left: 6px;
+    }
+    .review-form input,
+    .review-form textarea {
+      width: 100%; box-sizing: border-box;
+      background: rgba(0,0,0,0.25);
+      border: 1.5px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text);
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .review-form input::placeholder,
+    .review-form textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .review-form input:focus,
+    .review-form textarea:focus {
+      outline: none;
+      border-color: rgba(255,106,0,0.65);
+      background: rgba(0,0,0,0.40);
+      box-shadow: 0 0 0 3px rgba(255,106,0,0.14), 0 3px 14px rgba(255,106,0,0.12);
+    }
+    .review-form textarea { min-height: 140px; resize: vertical; line-height: 1.55; }
+
+    /* Star rating picker — five buttons, click to set value. Hover state
+       previews the rating; selected state persists after click. */
+    .star-picker {
+      display: inline-flex; gap: 4px;
+      padding: 4px 0;
+    }
+    .star-picker button {
+      background: none; border: none; cursor: pointer;
+      font-size: 34px; line-height: 1;
+      color: rgba(255,255,255,0.16);
+      padding: 0 2px;
+      transition: color .15s, transform .1s;
+    }
+    .star-picker button:hover { transform: scale(1.08); }
+    .star-picker button:focus-visible {
+      outline: 2px solid rgba(255,204,0,0.65);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .star-picker button.is-lit { color: #ffcc00; text-shadow: 0 0 12px rgba(255,204,0,0.5); }
+    .star-picker-hint {
+      display: inline-block;
+      margin-left: 10px;
+      font-size: 13px; color: var(--muted);
+      vertical-align: middle;
+    }
+
+    .review-form-cta {
+      width: 100%;
+      padding: 17px 16px 13px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'Bangers', cursive;
+      font-size: 22px; letter-spacing: 0.10em;
+      cursor: pointer;
+      box-shadow: 0 6px 22px rgba(255,106,0,0.32), 0 0 0 1px rgba(255,255,255,0.06) inset;
+      line-height: 1.2;
+      transition: transform .15s, box-shadow .15s, filter .15s;
+      margin-top: 6px;
+    }
+    .review-form-cta:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(255,106,0,0.42), 0 0 0 1px rgba(255,255,255,0.10) inset;
+      filter: brightness(1.05);
+    }
+    .review-form-cta:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .review-form-status {
+      margin: 14px 0 0;
+      font-size: 13.5px; line-height: 1.55;
+      color: var(--muted); min-height: 18px;
+      text-align: center;
+    }
+    .review-form-status.ok    { color: var(--cyan); }
+    .review-form-status.error { color: var(--orange); }
+
+    .moderation-note {
+      margin: 22px 0 0;
+      text-align: center;
+      font-size: 12.5px; color: var(--dim);
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body class="page-reviews">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="reviews.html" aria-current="page">Reviews</a></li>
+        <li><a href="shipping.html">Shipping Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <div class="page-hero">
+      <h1>Reviews</h1>
+      <p>What collectors are saying about Sake Kitty Cards — and a spot for you to add your own.</p>
+      <div id="reviewsSummary" class="reviews-summary" hidden>
+        <span class="reviews-summary-score" id="reviewsAvg">—</span>
+        <span class="reviews-summary-stars" id="reviewsAvgStars">★★★★★</span>
+        <span class="reviews-summary-count" id="reviewsCount">0 reviews</span>
+      </div>
+    </div>
+
+    <!-- Approved reviews from the worker -->
+    <section class="section" style="padding-top:24px">
+      <div id="reviewsStatus" class="reviews-status">Loading reviews…</div>
+      <div id="reviewsGrid" class="reviews-grid" hidden></div>
+    </section>
+
+    <!-- Leave a review form -->
+    <section class="section" style="padding-top:8px" aria-labelledby="leave-review-heading">
+      <div class="leave-review">
+        <h2 id="leave-review-heading">Leave a Review</h2>
+        <p class="leave-review-intro">Bought from us, traded with us, met us at a show? We'd love to hear about it. Reviews are checked before they appear — keep it real.</p>
+
+        <form class="review-form" id="reviewForm" novalidate>
+          <div class="form-group">
+            <label for="reviewName">Your name</label>
+            <input id="reviewName" name="name" type="text" placeholder="First name + last initial works great" maxlength="120" required />
+          </div>
+
+          <div class="form-group">
+            <label for="reviewStars">Rating</label>
+            <div id="reviewStars" class="star-picker" role="radiogroup" aria-label="Star rating">
+              <button type="button" role="radio" aria-checked="false" data-value="1" aria-label="1 star">★</button>
+              <button type="button" role="radio" aria-checked="false" data-value="2" aria-label="2 stars">★</button>
+              <button type="button" role="radio" aria-checked="false" data-value="3" aria-label="3 stars">★</button>
+              <button type="button" role="radio" aria-checked="false" data-value="4" aria-label="4 stars">★</button>
+              <button type="button" role="radio" aria-checked="false" data-value="5" aria-label="5 stars">★</button>
+            </div>
+            <span class="star-picker-hint" id="reviewStarsHint">Tap a star</span>
+            <input type="hidden" id="reviewStarsValue" name="stars" value="" />
+          </div>
+
+          <div class="form-group">
+            <label for="reviewText">Your review</label>
+            <textarea id="reviewText" name="review" placeholder="What was your experience like?" maxlength="2000" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="reviewEmail">Email <span class="label-optional">(optional — for follow-up only, never shown)</span></label>
+            <input id="reviewEmail" name="email" type="email" placeholder="you@example.com" maxlength="200" />
+          </div>
+
+          <button type="submit" class="review-form-cta" id="reviewSubmitBtn">Submit Review</button>
+          <p class="review-form-status" id="reviewFormStatus" role="status" aria-live="polite"></p>
+        </form>
+
+        <p class="moderation-note">Reviews land in our queue and go live after a quick read — usually within a day.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=59" defer></script>
+  <script>
+    // Reviews list + submission form.
+    //
+    // - GET /reviews/list  → approved reviews, newest first (max 50).
+    // - POST /reviews/submit → save with Approved=false; Nick toggles in
+    //   Airtable to publish.
+    // Hides the reviews-list section if the worker is offline or returns
+    // nothing (better than an awkward "no reviews yet" stub on a page
+    // designed around showing them).
+    (function () {
+      const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
+      const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const fmtDate = (iso) => {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return '';
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      };
+      const starString = (n) => '★'.repeat(Math.max(0, Math.min(5, n))) + '☆'.repeat(5 - Math.max(0, Math.min(5, n)));
+
+      // ─── Load approved reviews ─────────────────────────────────────
+      const grid    = document.getElementById('reviewsGrid');
+      const status  = document.getElementById('reviewsStatus');
+      const summary = document.getElementById('reviewsSummary');
+      const avgEl   = document.getElementById('reviewsAvg');
+      const avgStarsEl = document.getElementById('reviewsAvgStars');
+      const countEl    = document.getElementById('reviewsCount');
+
+      fetch(`${WORKER_BASE}/reviews/list`, { method: 'GET' })
+        .then(r => { if (!r.ok) throw new Error(`worker ${r.status}`); return r.json(); })
+        .then(data => {
+          const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+          if (!reviews.length) {
+            status.innerHTML = `Be the first to share your experience — drop a review below.`;
+            return;
+          }
+          const total = reviews.reduce((s, r) => s + (Number(r.stars) || 0), 0);
+          const avg   = total / reviews.length;
+          const avgRounded = Math.round(avg);
+          avgEl.textContent      = avg.toFixed(1);
+          avgStarsEl.textContent = starString(avgRounded);
+          countEl.textContent    = `${reviews.length} review${reviews.length === 1 ? '' : 's'}`;
+          summary.hidden = false;
+
+          grid.innerHTML = reviews.map(r => {
+            const stars = Math.max(0, Math.min(5, Number(r.stars) || 0));
+            return `
+              <div class="review-card">
+                <div class="review-stars" aria-label="${stars} of 5 stars">${'★'.repeat(stars)}${'<span style=\"opacity:0.18\">' + '★'.repeat(5 - stars) + '</span>'}</div>
+                <p class="review-text">${esc(r.review)}</p>
+                <div class="review-attr">
+                  <span class="review-name">${esc(r.name)}</span>
+                  <span class="review-date">${esc(fmtDate(r.createdAt))}</span>
+                </div>
+              </div>`;
+          }).join('');
+          status.hidden = true;
+          grid.hidden = false;
+        })
+        .catch(err => {
+          console.warn('Reviews load failed:', err);
+          status.classList.add('error');
+          status.textContent = "Couldn't load reviews right now. Try refreshing — or leave a fresh one below.";
+        });
+
+      // ─── Star-rating picker ────────────────────────────────────────
+      const picker = document.getElementById('reviewStars');
+      const hint   = document.getElementById('reviewStarsHint');
+      const valEl  = document.getElementById('reviewStarsValue');
+      const HINTS  = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Great', 5: 'Excellent' };
+      let current = 0;
+
+      const paint = (n) => {
+        for (const b of picker.querySelectorAll('button')) {
+          const v = Number(b.dataset.value);
+          b.classList.toggle('is-lit', v <= n);
+          b.setAttribute('aria-checked', String(v === current));
+        }
+      };
+      picker.addEventListener('mouseover', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        paint(Number(b.dataset.value));
+      });
+      picker.addEventListener('mouseleave', () => paint(current));
+      picker.addEventListener('click', e => {
+        const b = e.target.closest('button'); if (!b) return;
+        current = Number(b.dataset.value);
+        valEl.value = String(current);
+        hint.textContent = HINTS[current] || '';
+        paint(current);
+      });
+      // Keyboard: left/right arrows move selection, enter/space confirm focus
+      picker.addEventListener('keydown', e => {
+        const btns = [...picker.querySelectorAll('button')];
+        const idx = btns.indexOf(document.activeElement);
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const next = btns[Math.min(btns.length - 1, idx + 1)] || btns[0];
+          next.focus();
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const prev = btns[Math.max(0, idx - 1)] || btns[0];
+          prev.focus();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (idx >= 0) btns[idx].click();
+        }
+      });
+
+      // ─── Submit handler ────────────────────────────────────────────
+      const form     = document.getElementById('reviewForm');
+      const submitBtn = document.getElementById('reviewSubmitBtn');
+      const formStatus = document.getElementById('reviewFormStatus');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        formStatus.classList.remove('ok', 'error');
+        formStatus.textContent = '';
+
+        const name   = document.getElementById('reviewName').value.trim();
+        const review = document.getElementById('reviewText').value.trim();
+        const stars  = Number(valEl.value);
+        const email  = document.getElementById('reviewEmail').value.trim();
+
+        if (!name)   { formStatus.classList.add('error'); formStatus.textContent = 'Please add your name.'; return; }
+        if (!stars)  { formStatus.classList.add('error'); formStatus.textContent = 'Please pick a star rating.'; return; }
+        if (!review) { formStatus.classList.add('error'); formStatus.textContent = 'Please write a quick note about your experience.'; return; }
+
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Submitting…';
+
+        try {
+          const res = await fetch(`${WORKER_BASE}/reviews/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, stars, review, email: email || undefined }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || `worker ${res.status}`);
+
+          formStatus.classList.add('ok');
+          formStatus.textContent = 'Thanks! Your review is in our queue and will appear here once approved.';
+          form.reset();
+          current = 0;
+          valEl.value = '';
+          hint.textContent = 'Tap a star';
+          paint(0);
+        } catch (err) {
+          console.error('Review submit failed:', err);
+          formStatus.classList.add('error');
+          formStatus.textContent = "Couldn't submit right now. Try again in a moment, or DM us on Instagram.";
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
