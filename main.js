@@ -370,17 +370,18 @@ function summonDancingBeaver() {
 
 const SK_CART_KEY        = 'sk_cart_v1';
 const SK_SHIP_STATE_KEY  = 'sk_ship_state_v1';
+const SK_INSURANCE_OPTED_KEY = 'sk_insurance_opted_v1';
 const SK_SHIP_FLAT_FEE   = 5;
 // Free shipping kicks in when the cart subtotal crosses this threshold.
-// High-value orders absorb their own ship cost without the customer
-// feeling it; cheap orders still pay the flat fee.  Locked at $50
-// 2026-05-15 after the bake-into-everything vs. threshold trade-off
-// discussion (a flat bake-in under-priced heavy sealed orders).
-const SK_FREE_SHIP_THRESHOLD = 50;
-// Mandatory shipping insurance on graded / raw / sealed orders. $1 per
-// $100 of insurable value (rounded up to the next $100), only when the
-// insurable subtotal hits SK_INSURANCE_THRESHOLD. Merch is not insured.
-const SK_INSURANCE_RATE_PER_100 = 1;
+// Bumped to $100 (2026-05-21) so heavier orders absorb their own ship
+// cost without the customer feeling it; small orders still pay the flat
+// fee. The pricing formula already bakes the absorbed-ship cost into
+// stickers for items where the per-item ship cost would exceed $5.
+const SK_FREE_SHIP_THRESHOLD = 100;
+// OPTIONAL shipping insurance on graded / raw / sealed orders. $1.50 per
+// $100 of insurable value (rounded up to the next $100). Customer opts in
+// via the cart-drawer checkbox — defaults OFF. Merch is never insured.
+const SK_INSURANCE_RATE_PER_100 = 1.50;
 const SK_INSURANCE_THRESHOLD    = 100;
 const SK_WORKER_BASE     = 'https://sakekitty-square.nwilliams23999.workers.dev';
 const SK_VENMO_HANDLE    = 'sakekittycards';
@@ -476,7 +477,14 @@ function skInsurableSubtotal() {
     .filter(i => i.category !== 'merch')
     .reduce((s, i) => s + (i.price * i.quantity), 0);
 }
+function skGetInsuranceOpted() {
+  try { return localStorage.getItem(SK_INSURANCE_OPTED_KEY) === '1'; } catch { return false; }
+}
+function skSetInsuranceOpted(opted) {
+  try { localStorage.setItem(SK_INSURANCE_OPTED_KEY, opted ? '1' : '0'); } catch {}
+}
 function skInsuranceCost(insurableSubtotal) {
+  if (!skGetInsuranceOpted()) return 0;
   if (insurableSubtotal < SK_INSURANCE_THRESHOLD) return 0;
   return Math.ceil(insurableSubtotal / 100) * SK_INSURANCE_RATE_PER_100;
 }
@@ -827,12 +835,21 @@ window.SK = {
       ${shipping > 0 && subtotal < SK_FREE_SHIP_THRESHOLD
         ? `<div class="cart-free-ship-hint" style="font-size:12px;color:var(--orange);margin:-4px 0 6px;line-height:1.4">📦 Add ${fmt(SK_FREE_SHIP_THRESHOLD - subtotal)} more for free shipping</div>`
         : ''}
+      ${insurable >= SK_INSURANCE_THRESHOLD
+        ? `<label class="cart-insurance-toggle">
+             <input type="checkbox" id="cartInsuranceOptIn"${skGetInsuranceOpted() ? ' checked' : ''} />
+             <span class="cart-insurance-toggle-text">
+               Add shipping insurance
+               <span class="cart-insurance-toggle-detail">${fmt(SK_INSURANCE_RATE_PER_100)} per ${fmt(100)} of card value${insurance > 0 ? ` · adds ${fmt(insurance)}` : ''}</span>
+             </span>
+           </label>`
+        : ''}
       ${insurance > 0
         ? `<div class="cart-totals-row"><span>Shipping insurance</span><span>${fmt(insurance)}</span></div>`
         : ''}
       ${taxRow}
       <div class="cart-totals-row grand"><span>Total</span><span>${fmt(total)}</span></div>
-      <p class="cart-insurance-note">All card and sealed packages ship insured (${fmt(SK_INSURANCE_RATE_PER_100)} per ${fmt(100)} of card value).</p>
+      <p class="cart-insurance-note">Shipping insurance is optional — recommended on high-value cards and sealed. Free shipping on orders over ${fmt(SK_FREE_SHIP_THRESHOLD)}.</p>
 
       ${renderPromoInput(promo, subtotal)}
 
@@ -859,6 +876,11 @@ window.SK = {
 
     document.getElementById('cartShipState')?.addEventListener('change', (e) => {
       skSaveShipState(e.target.value);
+      renderDrawer();
+    });
+
+    document.getElementById('cartInsuranceOptIn')?.addEventListener('change', (e) => {
+      skSetInsuranceOpted(e.target.checked);
       renderDrawer();
     });
 
