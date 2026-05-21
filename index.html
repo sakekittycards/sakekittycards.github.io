@@ -954,14 +954,37 @@
       const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
       const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const fmt = n => `$${Number(n).toFixed(2)}`;
-      const thumb = (url) => {
+
+      // Same regexes shop.html uses to categorize — keeps Just Listed
+      // visuals in lockstep (white-bg contain for sealed, dark contain for
+      // graded slabs, default cover for everything else).
+      const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
+      const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
+      const categorize = (item) => {
+        const name = item.name || '';
+        if (GRADER_RX.test(name)) return 'graded';
+        if (SEALED_RX.test(name)) return 'sealed';
+        return 'default';
+      };
+
+      // wsrv URL — graded + sealed use fit=inside so the FULL product
+      // shows (cropping a booster box or a slab is the "zoom looks weird"
+      // bug). Default (apparel/merch) keeps fit=cover for tight tile fit.
+      const thumb = (url, cat) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
+        if (cat === 'graded') {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=inside&output=webp&q=78`;
+        }
+        if (cat === 'sealed') {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=inside&output=webp&q=80`;
+        }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
 
       const renderCard = (item) => {
         const oos = item.inStock === false;
-        const thumbUrl = thumb(item.imageUrl);
+        const cat = categorize(item);
+        const thumbUrl = thumb(item.imageUrl, cat);
         const original = item.imageUrl || '';
         const onerr = original && original !== thumbUrl
           ? `if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='${esc(original)}';}else{this.outerHTML='<div class=&quot;product-img&quot;>📦</div>';}`
@@ -972,6 +995,8 @@
         const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cls   = ['product-card'];
+        if (cat === 'graded') cls.push('graded');
+        if (cat === 'sealed') cls.push('sealed');
         if (oos) cls.push('sold-out');
         return `
           <a href="${href}" class="${cls.join(' ')}" style="position:relative;color:inherit;text-decoration:none">

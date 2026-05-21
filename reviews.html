@@ -75,14 +75,20 @@
     }
 
     /* Reviews list — adapted from the homepage testimonial-card pattern so
-       customer-submitted reviews visually match curated TCGPlayer ones. */
+       customer-submitted reviews visually match curated TCGPlayer ones.
+       Flexbox (not grid) so the trailing partial row centers cleanly
+       instead of left-aligning into empty space — same fix as the
+       resources.html tile grid. */
     .reviews-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 22px;
       margin-top: 8px;
     }
     .review-card {
+      flex: 1 1 300px;
+      max-width: 340px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--r);
