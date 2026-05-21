@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=151" />
+  <link rel="stylesheet" href="style.css?v=152" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -72,14 +72,7 @@
 
     /* Product grid — slightly more breathing */
     .page-shop .product-grid { gap: 30px; }
-    .page-shop .product-card {
-      transition: border-color .25s, transform .25s ease, box-shadow .3s;
-    }
-    .page-shop .product-card:hover {
-      border-color: rgba(255,106,0,0.50);
-      transform: translateY(-4px);
-      box-shadow: 0 10px 32px rgba(255,106,0,0.14);
-    }
+    /* .product-card hover glow lives in sitewide style.css */
     .page-shop .product-info { padding: 16px 16px 18px; }
     .page-shop .product-name {
       font-size: 15px; font-weight: 700; line-height: 1.35;
@@ -293,7 +286,14 @@
         </section>
         <section class="shop-section" id="shopSectionSealed" hidden>
           <h3 class="shop-section-title">Sealed <span class="shop-section-sub">booster boxes, ETBs, packs, tins, collection boxes</span></h3>
-          <div class="product-grid" id="shopGridSealed"></div>
+          <div class="shop-subsection" id="shopSubsectionSealedEn" hidden>
+            <h4 class="shop-subsection-title">English</h4>
+            <div class="product-grid" id="shopGridSealedEn"></div>
+          </div>
+          <div class="shop-subsection" id="shopSubsectionSealedJp" hidden>
+            <h4 class="shop-subsection-title">Japanese</h4>
+            <div class="product-grid" id="shopGridSealedJp"></div>
+          </div>
         </section>
         <section class="shop-section" id="shopSectionSingles" hidden>
           <h3 class="shop-section-title">Singles <span class="shop-section-sub">raw singles</span></h3>
@@ -590,6 +590,12 @@
           countEl.hidden = false;
         };
 
+        // Detect Japanese sealed by name suffix " (JP)" — the sync writes that
+        // suffix on every Airtable row where language=JP. Falls back to a
+        // looser "Japanese" word match for older items written before the
+        // (JP) convention was locked in.
+        const isJp = (name) => /\(JP\)|\bJapanese\b/i.test(name || '');
+
         for (const [key, [secId, gridId]] of Object.entries(sectionMap)) {
           const list = buckets[key];
           if (!list.length) continue;
@@ -608,6 +614,18 @@
               document.getElementById('gradedSort').value = 'price-desc';
               renderGraded();
             });
+          } else if (key === 'sealed') {
+            // Split sealed into EN + JP subsections within the single Sealed page.
+            const en = list.filter(it => !isJp(it.name));
+            const jp = list.filter(it =>  isJp(it.name));
+            if (en.length) {
+              document.getElementById('shopSubsectionSealedEn').hidden = false;
+              document.getElementById('shopGridSealedEn').innerHTML = en.map(renderCard).join('');
+            }
+            if (jp.length) {
+              document.getElementById('shopSubsectionSealedJp').hidden = false;
+              document.getElementById('shopGridSealedJp').innerHTML = jp.map(renderCard).join('');
+            }
           } else {
             document.getElementById(gridId).innerHTML = list.map(renderCard).join('');
           }
