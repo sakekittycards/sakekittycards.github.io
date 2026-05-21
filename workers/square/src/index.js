@@ -926,6 +926,12 @@ async function handleSquareWebhook(request, base, headers, env) {
                 (order.net_amount_due_money?.amount ?? 1) === 0);
   if (!paid) return new Response('not paid yet', { status: 200 });
 
+  // Day 3 — auto-decrement Airtable Sealed Inventory for any sold sealed SKUs.
+  // Best-effort, independent of the Printful relay below (merch/POD doesn't
+  // touch sealed inventory). Failures are logged but don't break the webhook.
+  try { await decrementSealedInventory(order, env); }
+  catch (e) { console.log('SEALED_DECREMENT_ERROR', e.message || String(e)); }
+
   const shipment = (order.fulfillments || []).find(f => f.type === 'SHIPMENT');
   const recipient = shipment?.shipment_details?.recipient;
   if (!recipient?.address) return new Response('no shipping address', { status: 200 });
@@ -990,6 +996,79 @@ async function handleSquareWebhook(request, base, headers, env) {
   console.log('PRINTFUL_ORDER_OK', squareOrderId, '→ printful#' + (pfData.result?.id || '?'));
   return new Response('ok', { status: 200 });
 }
+
+// When a Square order completes, decrement Airtable Sealed Inventory for any
+// line items that match a sealed row (matched by square_variation_id).
+// Both on_hand and website_alloc go down by the sold quantity, clamped at 0.
+//
+// NOT idempotent — if Square retries the webhook for the same order we will
+// double-decrement. For v1 this is acceptable since Square fires payment
+// completion exactly once in the normal flow; double-fires are rare and
+// recoverable by editing the row. v2 should add a "processed_order_ids"
+// log to dedupe properly.
+async function decrementSealedInventory(order, env) {
+  if (!env.AIRTABLE_TOKEN || !env.AIRTABLE_BASE_ID || !env.SEALED_INVENTORY_TABLE_ID) return;
+
+  // Sum quantities by variation_id (handles same SKU appearing twice in cart).
+  const variationQty = {};
+  for (const li of (order.line_items || [])) {
+    const varId = li.catalog_object_id;
+    if (!varId) continue;  // shipping/tax lines have no catalog id
+    const qty = parseInt(li.quantity, 10) || 1;
+    variationQty[varId] = (variationQty[varId] || 0) + qty;
+  }
+  const variationIds = Object.keys(variationQty);
+  if (variationIds.length === 0) return;
+
+  // Look up matching sealed rows by square_variation_id.
+  const filter = 'OR(' + variationIds.map(v => `{square_variation_id}='${v.replace(/'/g, "\\'")}'`).join(',') + ')';
+  const url = `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.SEALED_INVENTORY_TABLE_ID}?filterByFormula=${encodeURIComponent(filter)}`;
+  const headers = { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` };
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    console.log('SEALED_DECREMENT_READ_FAIL', res.status);
+    return;
+  }
+  const data = await res.json();
+  const records = data.records || [];
+  if (records.length === 0) {
+    // Sealed-allocated order but no matching row — could be a graded card
+    // (different SKU path) or apparel. Normal — just log and move on.
+    return;
+  }
+
+  const updates = [];
+  for (const rec of records) {
+    const f = rec.fields || {};
+    const sqVar = (f.square_variation_id || '').trim();
+    const soldQty = variationQty[sqVar] || 0;
+    if (!soldQty) continue;
+    const oldOnHand = Number(f.on_hand || 0);
+    const oldWebAlloc = Number(f.website_alloc || 0);
+    const newOnHand   = Math.max(0, oldOnHand - soldQty);
+    const newWebAlloc = Math.max(0, oldWebAlloc - soldQty);
+    updates.push({
+      id: rec.id,
+      fields: { on_hand: newOnHand, website_alloc: newWebAlloc },
+    });
+    console.log(`SEALED_DECREMENT ${f.sku || rec.id}: on_hand ${oldOnHand}->${newOnHand}, website_alloc ${oldWebAlloc}->${newWebAlloc} (sold ${soldQty}, order ${order.id})`);
+  }
+  if (updates.length === 0) return;
+
+  const patchRes = await fetch(
+    `https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${env.SEALED_INVENTORY_TABLE_ID}`,
+    {
+      method: 'PATCH',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: updates, typecast: true }),
+    },
+  );
+  if (!patchRes.ok) {
+    const detail = await patchRes.json().catch(() => ({}));
+    console.log('SEALED_DECREMENT_PATCH_FAIL', patchRes.status, JSON.stringify(detail));
+  }
+}
+
 
 // Look up a map of {squareVariationId: printfulSyncVariantId} across all
 // sync products. Uses the edge cache for 10 min.
