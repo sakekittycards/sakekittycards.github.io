@@ -266,19 +266,13 @@
         <p class="res-article-eyebrow">Pricing</p>
         <h2>How we price your cards</h2>
         <p>
-          Our offer isn't a guess. For every raw card you submit, we check up to four live sources and use whichever has the freshest data:
-        </p>
-        <ul>
-          <li><strong>pokemontcg.io Market Price</strong> — daily refresh from TCGplayer, the primary anchor.</li>
-          <li><strong>TCG CSV</strong> by set and number — fills gaps pokemontcg.io misses (newer promos, oddball SKUs).</li>
-          <li><strong>TCGplayer Market Price</strong> via our worker — the published Market Price you see on TCGplayer product pages.</li>
-          <li><strong>TCGplayer Last-Sold Average</strong> — trimmed mean of the most recent sold transactions, dropping outliers.</li>
-        </ul>
-        <p>
-          For <strong>graded slabs</strong>, we add a fifth source: <strong>PriceCharting</strong> grade-aware lookups, which let us match against PSA 8 / 9 / 10 (and CGC, BGS) comparable sales. We never anchor a graded offer to raw-card data.
+          Our offer isn't a guess. For every card you submit, we blend three live signals — <strong>recent sold-listing average</strong>, <strong>current market price</strong>, and <strong>market trend</strong> (which way the card is moving) — and use that as the anchor.
         </p>
         <p>
-          We then apply a condition discount (NM 1.0× / LP 0.85× / MP 0.70× / HP 0.50× / DMG 0.30×) and your tier rate from the <a href="trade-in.html">payout matrix</a>. The number you see is what we'd pay <em>today</em> — not a placeholder we'll renegotiate later.
+          Graded slabs get matched against grade-specific comps (PSA 8 / 9 / 10, CGC, BGS) so a slab offer never gets anchored to raw-card data.
+        </p>
+        <p>
+          From there we apply a condition adjustment for played wear, then your rate from the <a href="trade-in.html">payout matrix</a>. The number you see is what we'd pay <em>today</em> — not a placeholder we'll renegotiate later.
         </p>
       </article>
 
