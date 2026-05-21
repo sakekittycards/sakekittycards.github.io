@@ -403,6 +403,20 @@
       };
       const starString = (n) => '★'.repeat(Math.max(0, Math.min(5, n))) + '☆'.repeat(5 - Math.max(0, Math.min(5, n)));
 
+      // Curated starter reviews — shown when the worker has no approved
+      // reviews yet OR when the worker call fails. Ported from the
+      // homepage TCGplayer-feedback strip so the page never reads empty.
+      // Once Nick's Airtable Reviews table starts collecting real customer
+      // submissions, those replace this seed set.
+      const PLACEHOLDER_REVIEWS = [
+        { name: 'j****1', stars: 5, review: "Great transaction. Item's appearance was just as described. Fast shipping, well packaged and protected. Would purchase from seller again. A++ seller.", createdAt: '2026-04-03' },
+        { name: 'K****r', stars: 5, review: "I'm so glad to have the Dark Dragonair and Lugia EX in my collection, thank you!", createdAt: '2026-04-04' },
+        { name: 'd****6', stars: 5, review: "Condition was spot on!!! Highly recommend!", createdAt: '2025-12-08' },
+        { name: 'c****D', stars: 5, review: "Awesome! Great transaction!", createdAt: '2026-04-02' },
+        { name: 'a****p', stars: 5, review: "Fast shipping and great packaging!", createdAt: '2026-04-01' },
+        { name: 'c****5', stars: 5, review: "Great seller, will buy again. A+++", createdAt: '2026-03-27' },
+      ];
+
       // ─── Load approved reviews ─────────────────────────────────────
       const grid    = document.getElementById('reviewsGrid');
       const status  = document.getElementById('reviewsStatus');
@@ -411,41 +425,41 @@
       const avgStarsEl = document.getElementById('reviewsAvgStars');
       const countEl    = document.getElementById('reviewsCount');
 
+      const renderReviews = (reviews) => {
+        const total = reviews.reduce((s, r) => s + (Number(r.stars) || 0), 0);
+        const avg   = total / reviews.length;
+        const avgRounded = Math.round(avg);
+        avgEl.textContent      = avg.toFixed(1);
+        avgStarsEl.textContent = starString(avgRounded);
+        countEl.textContent    = `${reviews.length} review${reviews.length === 1 ? '' : 's'}`;
+        summary.hidden = false;
+
+        grid.innerHTML = reviews.map(r => {
+          const stars = Math.max(0, Math.min(5, Number(r.stars) || 0));
+          return `
+            <div class="review-card">
+              <div class="review-stars" aria-label="${stars} of 5 stars">${'★'.repeat(stars)}${'<span style=\"opacity:0.18\">' + '★'.repeat(5 - stars) + '</span>'}</div>
+              <p class="review-text">${esc(r.review)}</p>
+              <div class="review-attr">
+                <span class="review-name">${esc(r.name)}</span>
+                <span class="review-date">${esc(fmtDate(r.createdAt))}</span>
+              </div>
+            </div>`;
+        }).join('');
+        status.hidden = true;
+        grid.hidden = false;
+      };
+
       fetch(`${WORKER_BASE}/reviews/list`, { method: 'GET' })
         .then(r => { if (!r.ok) throw new Error(`worker ${r.status}`); return r.json(); })
         .then(data => {
           const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-          if (!reviews.length) {
-            status.innerHTML = `Be the first to share your experience — drop a review below.`;
-            return;
-          }
-          const total = reviews.reduce((s, r) => s + (Number(r.stars) || 0), 0);
-          const avg   = total / reviews.length;
-          const avgRounded = Math.round(avg);
-          avgEl.textContent      = avg.toFixed(1);
-          avgStarsEl.textContent = starString(avgRounded);
-          countEl.textContent    = `${reviews.length} review${reviews.length === 1 ? '' : 's'}`;
-          summary.hidden = false;
-
-          grid.innerHTML = reviews.map(r => {
-            const stars = Math.max(0, Math.min(5, Number(r.stars) || 0));
-            return `
-              <div class="review-card">
-                <div class="review-stars" aria-label="${stars} of 5 stars">${'★'.repeat(stars)}${'<span style=\"opacity:0.18\">' + '★'.repeat(5 - stars) + '</span>'}</div>
-                <p class="review-text">${esc(r.review)}</p>
-                <div class="review-attr">
-                  <span class="review-name">${esc(r.name)}</span>
-                  <span class="review-date">${esc(fmtDate(r.createdAt))}</span>
-                </div>
-              </div>`;
-          }).join('');
-          status.hidden = true;
-          grid.hidden = false;
+          // Worker live but no approved reviews yet → fall through to placeholders
+          renderReviews(reviews.length ? reviews : PLACEHOLDER_REVIEWS);
         })
         .catch(err => {
-          console.warn('Reviews load failed:', err);
-          status.classList.add('error');
-          status.textContent = "Couldn't load reviews right now. Try refreshing — or leave a fresh one below.";
+          console.warn('Reviews load failed, using placeholder set:', err);
+          renderReviews(PLACEHOLDER_REVIEWS);
         });
 
       // ─── Star-rating picker ────────────────────────────────────────
