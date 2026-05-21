@@ -1951,7 +1951,9 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
         },
       };
       // If updating an existing item we need the current version. Fetch it first.
-      // Also capture existing image_ids so we know whether to attach an image.
+      // Also capture existing image_ids so we (1) know whether to attach an
+      // image, (2) PRESERVE existing image_ids in the upsert (Square's upsert
+      // REPLACES item_data — without this the next sync wipes images).
       let hasExistingImages = false;
       if (existingItemId) {
         const get = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(existingItemId)}`,
@@ -1961,7 +1963,13 @@ async function syncSealedInventory(request, base, squareHeaders, env) {
           if (gd?.object?.version) payload.object.version = gd.object.version;
           const v = gd?.object?.item_data?.variations?.find(v => v.id === existingVarId);
           if (v?.version) payload.object.item_data.variations[0].version = v.version;
-          if ((gd?.object?.item_data?.image_ids || []).length > 0) hasExistingImages = true;
+          const existingImageIds = gd?.object?.item_data?.image_ids || [];
+          if (existingImageIds.length > 0) {
+            hasExistingImages = true;
+            // Preserve image_ids across the upsert so images don't drop off
+            // when we update price / description / inventory.
+            payload.object.item_data.image_ids = existingImageIds;
+          }
         }
       }
 
