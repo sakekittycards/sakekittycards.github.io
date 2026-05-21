@@ -1544,11 +1544,18 @@ async function checkGiftCardBalance(request, base, squareHeaders, env) {
 }
 
 
-// Admin: export a TCGplayer-quantity CSV from the Airtable Sealed Inventory
-// table. Streams rows where `published=true`, `tcgplayer_alloc > 0`, and
-// `tcgplayer_product_id` is set. CSV columns: TCGplayer Id, SKU, Product Name,
-// Set, Total Quantity. Quantity only — Nick's separate TCG repricer owns
-// the price column on upload to TCGplayer Seller Hub.
+// Admin: export a TCGplayer "My Pricing"-compatible CSV from the Airtable
+// Sealed Inventory table. Streams rows where `published=true`,
+// `tcgplayer_alloc > 0`, and `tcgplayer_marketplace_id` is set.
+//
+// CSV emits TCGplayer's canonical 16-column format so the upload can both
+// update existing listings AND create new ones (when the marketplace_id +
+// set_name + product_name match TCGplayer's catalog).
+//
+// IMPORTANT: this uses `tcgplayer_marketplace_id` (NOT `tcgplayer_product_id`).
+// Marketplace IDs are different from the tcgcsv catalog IDs used for price
+// lookups via the sakekitty-prices worker. Marketplace IDs come from your
+// TCGplayer Seller Hub Custom Export.
 //
 // Usage:
 //   GET /admin/export-tcgplayer-csv          -> text/csv attachment (downloads)
@@ -1568,9 +1575,8 @@ async function exportTcgplayerCsv(request, env) {
   }
   const airHeaders = { 'Authorization': `Bearer ${env.AIRTABLE_TOKEN}` };
 
-  // Collector tier is website-only; the filter excludes it implicitly via
-  // tcgplayer_alloc>0 (Collector rows shouldn't have a tcgplayer_alloc set).
-  const filter = 'AND({published}=1, {tcgplayer_alloc}>0, {tcgplayer_product_id})';
+  // Require marketplace_id since that's what TCGplayer's seller upload needs.
+  const filter = 'AND({published}=1, {tcgplayer_alloc}>0, {tcgplayer_marketplace_id})';
   const params = new URLSearchParams({ filterByFormula: filter, pageSize: '100' });
   const rows = [];
   let offset = '';
@@ -1587,24 +1593,53 @@ async function exportTcgplayerCsv(request, env) {
     if (!offset) break;
   }
 
-  // Build CSV. Standard TCGplayer-friendly column names.
-  const HEAD = ['TCGplayer Id', 'SKU', 'Product Name', 'Set', 'Total Quantity'];
+  // TCGplayer canonical 16-column "My Pricing" CSV format.
+  const HEAD = [
+    'TCGplayer Id', 'Product Line', 'Set Name', 'Product Name', 'Title',
+    'Number', 'Rarity', 'Condition',
+    'TCG Market Price', 'TCG Direct Low', 'TCG Low Price With Shipping', 'TCG Low Price',
+    'Total Quantity', 'Add to Quantity', 'TCG Marketplace Price', 'Photo URL',
+  ];
+  // CSV quoting per TCGplayer's expectations: every value double-quoted,
+  // embedded quotes escaped as "".
   const csvEscape = (s) => {
     const str = String(s ?? '');
-    return /[",\n\r]/.test(str) ? '"' + str.replace(/"/g, '""') + '"' : str;
+    return '"' + str.replace(/"/g, '""') + '"';
   };
-  const lines = [HEAD.join(',')];
+  const lines = [HEAD.map(csvEscape).join(',')];
   const preview = [];
   for (const rec of rows) {
     const f = rec.fields || {};
-    const tcgId = f.tcgplayer_product_id;
+    const tcgId = Number(f.tcgplayer_marketplace_id || 0);
     const qty   = Number(f.tcgplayer_alloc || 0);
     if (!tcgId || qty <= 0) continue;
-    const row = [tcgId, f.sku || rec.id, f.product_name || '', f.set || '', qty];
+    const market = Number(f.tcg_market_price || 0);
+    const lastSold = Number(f.tcg_last_sold || 0);
+    const price = Math.max(market, lastSold);
+    const row = [
+      String(tcgId),
+      'Pokemon',
+      f.tcgplayer_marketplace_set_name || '',
+      f.tcgplayer_marketplace_product_name || f.product_name || '',
+      '',  // Title (unused for sealed)
+      '',  // Number
+      '',  // Rarity
+      'Unopened',
+      market ? market.toFixed(4) : '',
+      '', '', '',  // TCG Direct Low / Low Price With Shipping / Low Price
+      String(qty),               // Total Quantity (absolute target)
+      '0',                       // Add to Quantity (we want absolute total, not delta)
+      price > 0 ? price.toFixed(4) : '',
+      '',  // Photo URL (let TCGplayer use catalog default)
+    ];
     lines.push(row.map(csvEscape).join(','));
     preview.push({
-      tcgplayer_id: tcgId, sku: f.sku, product_name: f.product_name,
-      set: f.set, total_quantity: qty,
+      tcgplayer_id: tcgId,
+      sku: f.sku,
+      set_name: f.tcgplayer_marketplace_set_name,
+      product_name: f.tcgplayer_marketplace_product_name,
+      total_quantity: qty,
+      tcg_marketplace_price: price,
     });
   }
   const csv = lines.join('\r\n') + '\r\n';
@@ -1618,7 +1653,7 @@ async function exportTcgplayerCsv(request, env) {
     status: 200,
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="sealed-tcgplayer-qty-${stamp}.csv"`,
+      'Content-Disposition': `attachment; filename="sealed-tcgplayer-pricing-${stamp}.csv"`,
       'Cache-Control': 'no-store',
       ...CORS_HEADERS,
     },
