@@ -581,8 +581,14 @@ window.SK = {
     navInner.appendChild(cartBtn);
   }
 
-  // 2) Drawer + backdrop at end of body
-  if (!document.getElementById('cartDrawer')) {
+  // On the dedicated cart page we don't inject the slide-out drawer —
+  // the static .page-cart layout already owns #cartBody / #cartFooter,
+  // and a second copy would collide IDs (cartShipState, payWithSquare,
+  // cartInsuranceOptIn, etc.).
+  const isCartPage = document.body.classList.contains('page-cart');
+
+  // 2) Drawer + backdrop at end of body (skip on cart page)
+  if (!isCartPage && !document.getElementById('cartDrawer')) {
     const backdrop = document.createElement('div');
     backdrop.className = 'cart-drawer-backdrop';
     backdrop.id = 'cartBackdrop';
@@ -597,7 +603,10 @@ window.SK = {
     drawer.innerHTML = `
       <div class="cart-drawer-header">
         <h3 id="cartTitle">Cart</h3>
-        <button type="button" class="cart-drawer-close" id="cartClose" aria-label="Close cart">×</button>
+        <div class="cart-drawer-header-actions">
+          <a href="cart.html" class="cart-drawer-fullview" title="Open full cart page">View full cart →</a>
+          <button type="button" class="cart-drawer-close" id="cartClose" aria-label="Close cart">×</button>
+        </div>
       </div>
       <div class="cart-drawer-body" id="cartBody"></div>
       <div class="cart-drawer-footer" id="cartFooter"></div>
@@ -611,24 +620,36 @@ window.SK = {
   const closeBtn  = document.getElementById('cartClose');
 
   function open() {
+    if (!drawer) return;
     drawer.classList.add('open');
-    backdrop.classList.add('open');
+    backdrop?.classList.add('open');
     drawer.setAttribute('aria-hidden', 'false');
     document.body.classList.add('cart-open');
     renderDrawer();
   }
   function close() {
+    if (!drawer) return;
     drawer.classList.remove('open');
-    backdrop.classList.remove('open');
+    backdrop?.classList.remove('open');
     drawer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('cart-open');
   }
-  cartBtn?.addEventListener('click', open);
-  backdrop?.addEventListener('click', close);
-  closeBtn?.addEventListener('click', close);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && drawer.classList.contains('open')) close();
-  });
+  if (isCartPage) {
+    // On the cart page, the nav cart icon shouldn't open a drawer — we're
+    // already on the cart. Just scroll back to the top so customers can
+    // re-read the totals from the icon they expect to do something.
+    cartBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  } else {
+    cartBtn?.addEventListener('click', open);
+    backdrop?.addEventListener('click', close);
+    closeBtn?.addEventListener('click', close);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && drawer?.classList.contains('open')) close();
+    });
+  }
 
   function fmt(n) { return `$${(Math.round(n * 100) / 100).toFixed(2)}`; }
 
@@ -1173,10 +1194,20 @@ window.SK = {
 
   skCartListeners.add(() => {
     renderBadge();
-    if (drawer.classList.contains('open')) renderDrawer();
+    // Re-render whenever the cart visibly contains the cart UI: the drawer
+    // when it's open, or the cart page (always).
+    if (isCartPage) {
+      renderDrawer();
+    } else if (drawer?.classList.contains('open')) {
+      renderDrawer();
+    }
   });
 
   renderBadge();
+
+  // On the cart page, render once on load so customers see their cart
+  // immediately rather than empty containers.
+  if (isCartPage) renderDrawer();
 })();
 
 // ─── Branded confirm modal ─────────────────────────────────────────────────

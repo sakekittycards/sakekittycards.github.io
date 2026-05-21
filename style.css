@@ -454,7 +454,12 @@ button { font-family: inherit; }
 .cart-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
 
 .cart-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0;
+  /* Use dynamic viewport height so the drawer respects the iOS Safari
+     URL bar. `bottom:0` evaluated against the LARGE viewport and pushed
+     the checkout footer below the visible edge on mobile — `100dvh`
+     resizes when the URL bar shows/hides, keeping the footer in view. */
+  position: fixed; top: 0; right: 0;
+  height: 100dvh; max-height: 100dvh;
   width: 100%; max-width: 460px;   /* slightly wider for comfort on desktop */
   background: #0a0a12;
   border-left: 1px solid rgba(255,106,0,0.18);
@@ -488,8 +493,34 @@ button { font-family: inherit; }
 }
 .cart-drawer-close:hover { color: var(--orange); }
 
+/* Header actions row — "View full cart →" link sits next to the close X. */
+.cart-drawer-header-actions {
+  display: flex; align-items: center; gap: 10px;
+}
+.cart-drawer-fullview {
+  font-size: 12px; font-weight: 600;
+  color: var(--orange);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,106,0,0.35);
+  border-radius: 8px;
+  background: rgba(255,106,0,0.06);
+  transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.cart-drawer-fullview:hover {
+  background: rgba(255,106,0,0.14);
+  border-color: rgba(255,106,0,0.6);
+  color: #ffb87a;
+}
+
 .cart-drawer-body {
-  flex: 1; overflow-y: auto; padding: 8px 22px;
+  flex: 1 1 auto; min-height: 0;        /* min-height:0 lets a flex child actually scroll */
+  overflow-y: auto; overflow-x: hidden;
+  padding: 8px 22px;
+  -webkit-overflow-scrolling: touch;    /* smooth momentum scroll on iOS */
+  overscroll-behavior: contain;         /* don't pull-to-refresh the page underneath */
 }
 .cart-drawer-footer {
   padding: 18px 22px; border-top: 1px solid var(--border); flex-shrink: 0;
@@ -2137,3 +2168,77 @@ body.drip-unlocked { position: relative; }
   .cm-pill:hover,
   .btn:hover { transform: none; }
 }
+
+/* ── Dedicated cart page (cart.html) ──
+   Reuses every .cart-item / .cart-totals-row / .cart-pay-* style the
+   drawer ships, so the line items and totals look identical. Adds a
+   two-column shell (items | sticky summary) and tightens the typography
+   for a full-page review experience. */
+.page-cart .page-hero { padding-bottom: 24px; }
+.page-cart .page-hero h1 {
+  font-size: clamp(34px, 5vw, 52px);
+  margin-bottom: 8px;
+}
+.page-cart .page-hero p {
+  font-size: 15px; color: rgba(255,255,255,0.78); max-width: 640px;
+  margin: 0 auto;
+}
+
+.cart-page {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 32px;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+@media (max-width: 900px) {
+  .cart-page { grid-template-columns: 1fr; gap: 22px; }
+}
+
+.cart-page-items {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 8px 22px;
+}
+.cart-page-items-inner { display: block; }
+/* Inherits .cart-item styling from the drawer block above. */
+
+.cart-page-summary {
+  background: linear-gradient(160deg, rgba(255,106,0,0.06), rgba(123,47,255,0.04));
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px 22px 18px;
+  position: sticky; top: 96px;   /* clears the sticky nav on desktop */
+}
+@media (max-width: 900px) {
+  .cart-page-summary { position: static; top: auto; }
+}
+.cart-page-summary-title {
+  font-family: 'Bangers', cursive;
+  font-size: 26px; letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--orange), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: 0 0 14px;
+  padding: 2px 0 6px;
+}
+/* Empty-state inside cart page — looser padding than the cramped drawer. */
+.page-cart .cart-empty { padding: 64px 20px 40px; }
+.page-cart .cart-page-summary:has(#cartFooter:empty) {
+  /* When cart is empty the summary panel has no content — hide it so the
+     empty-state lives on its own. :has() is widely supported in modern
+     browsers; older browsers just see the empty panel. */
+  display: none;
+}
+
+/* ── Mobile-safe scroll on lookup search results ──
+   The trade-in / grading-prep dropdowns previously used a flat
+   max-height: 420px / 360px which on smaller phones extended below the
+   visible viewport, hiding the bottom of the result list. Cap them to a
+   share of the viewport so the customer can always scroll to the end. */
+@media (max-width: 720px) {
+  .ti-results { max-height: min(420px, 55vh); }
+  .gp-results { max-height: min(360px, 55vh); }
+}
+
