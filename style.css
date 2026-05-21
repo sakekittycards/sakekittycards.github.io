@@ -482,9 +482,12 @@ button { font-family: inherit; }
   font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 0.04em;
   background: linear-gradient(135deg, var(--orange), var(--pink));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  /* Bangers' "T" tail extends past the text bounding box on the right;
+     background-clip:text crops it. Tiny right-margin / padding fixes the
+     clip — pairs with the bottom-padding descender fix below. */
   margin: 0;
   line-height: 1.25;
-  padding: 2px 0 6px;    /* Bangers has deep descenders — give them room so background-clip doesn't crop */
+  padding: 2px 8px 6px 2px;  /* extra right padding for Bangers T tail + bottom for descenders */
 }
 .cart-drawer-close {
   background: none; border: none; color: var(--muted);

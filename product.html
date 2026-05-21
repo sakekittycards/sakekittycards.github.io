@@ -45,26 +45,31 @@
     .pdp-main-img-wrap {
       aspect-ratio: 1/1;
       background: var(--bg-card);
-      /* Sake Kitty hover-glow framing — matches the shop tile hover state
-         but kept on permanently here since the PDP is the product's
-         spotlight. Subtle by default, intensifies on hover. */
-      border: 1px solid rgba(255,106,0,0.40);
+      /* Glow color is driven by --glow-r/g/b custom properties. Defaults
+         to Sake Kitty orange; JS swaps the values to the dominant color
+         pulled from the loaded product image (palette extraction lives
+         in this file's main script). Smooth fade so the color reveal
+         feels intentional, not jarring. */
+      --glow-r: 255;
+      --glow-g: 106;
+      --glow-b: 0;
+      border: 1px solid rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.40);
       box-shadow:
-        0 0 0 1px rgba(255,106,0,0.18),
-        0 8px 28px rgba(255,106,0,0.18),
-        0 0 40px rgba(255,106,0,0.08);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        0 0 0 1px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.18),
+        0 8px 28px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.18),
+        0 0 40px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.08);
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
       border-radius: var(--r);
       overflow: hidden;
       display: flex; align-items: center; justify-content: center;
       position: relative;
     }
     .pdp-main-img-wrap:hover {
-      border-color: rgba(255,106,0,0.60);
+      border-color: rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.60);
       box-shadow:
-        0 0 0 1px rgba(255,106,0,0.30),
-        0 12px 36px rgba(255,106,0,0.28),
-        0 0 52px rgba(255,106,0,0.14);
+        0 0 0 1px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.30),
+        0 12px 36px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.28),
+        0 0 52px rgba(var(--glow-r), var(--glow-g), var(--glow-b), 0.14);
     }
     .pdp-main-img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .pdp-main-placeholder { font-size: 72px; opacity: 0.3; }
