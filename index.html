@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=164" />
+  <link rel="stylesheet" href="style.css?v=166" />
 
   <style>
     /* Hero-specific styles */
@@ -63,9 +63,11 @@
       position: relative; z-index: 1;
       min-height: calc(100vh - var(--nav-h));
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: calc(var(--nav-h) + 60px) 24px 80px;
+      padding: calc(var(--nav-h) + 56px) 24px 72px;
       text-align: center;
-      gap: 32px;       /* was 20 — cinematic breathing room between hero elements */
+      gap: 26px;       /* tightened from 32 — vertical rhythm pulls hero
+                          elements into one composed group instead of three
+                          separate beats. Per CD hierarchy review. */
     }
     .hero .wip-badge { margin-bottom: 0; }
     .hero-logo-outer { margin-bottom: 4px; }
@@ -74,30 +76,62 @@
        so the first thing customers see is "what can I do here?". Each button
        gets its own accent color so they're glanceable instead of melting into
        a single orange wash. Inline on desktop, stacked on mobile. */
+    /* Hero CTA hierarchy — Buy is the PRIMARY conversion action (strongest
+       glow + filled gradient). Sell and Trade are SECONDARY paths (outlined
+       with their accent color, calmer presence). Per CD hierarchy review:
+       three equal-weight gradient buttons were visually competing instead
+       of guiding the eye. */
     .hero-actions {
       display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 14px;
+      gap: 12px;
       animation: fadeUp 0.6s ease both 0.25s;
     }
-    .hero-actions .btn { min-width: 168px; justify-content: center; }
+    .hero-actions .btn { min-width: 168px; justify-content: center; font-weight: 800; }
+
+    /* Primary — Buy. Filled gradient, bolder glow, slight scale on hover. */
     .hero-actions .btn-buy {
       background: linear-gradient(135deg, var(--orange), var(--pink));
       color: #fff;
-      box-shadow: 0 3px 14px rgba(255,106,0,0.22);
+      box-shadow:
+        0 4px 18px rgba(255,106,0,0.34),
+        0 0 32px rgba(255,0,128,0.18);
+      transform: translateY(0);
+      transition: box-shadow .2s ease, transform .2s ease;
     }
-    .hero-actions .btn-buy:hover { box-shadow: 0 6px 22px rgba(255,106,0,0.34); }
-    .hero-actions .btn-sell {
-      background: linear-gradient(135deg, #00d4ff, #3a8dff);
-      color: #fff;
-      box-shadow: 0 3px 14px rgba(0,212,255,0.22);
+    .hero-actions .btn-buy:hover {
+      box-shadow:
+        0 8px 28px rgba(255,106,0,0.48),
+        0 0 48px rgba(255,0,128,0.28);
+      transform: translateY(-2px);
     }
-    .hero-actions .btn-sell:hover { box-shadow: 0 6px 22px rgba(0,212,255,0.34); }
+
+    /* Secondary — Sell, Trade. Outlined ghost buttons that carry their
+       accent color in the border + label, not the fill. Quieter visually,
+       still clearly tappable. */
+    .hero-actions .btn-sell,
     .hero-actions .btn-trade {
-      background: linear-gradient(135deg, #7b2fff, #ff0080);
-      color: #fff;
-      box-shadow: 0 3px 14px rgba(123,47,255,0.22);
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid rgba(0,212,255,0.45);
+      color: #aef3ff;
+      box-shadow: none;
+      transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
     }
-    .hero-actions .btn-trade:hover { box-shadow: 0 6px 22px rgba(123,47,255,0.34); }
+    .hero-actions .btn-trade {
+      border-color: rgba(255,0,128,0.45);
+      color: #ffb8d8;
+    }
+    .hero-actions .btn-sell:hover {
+      border-color: rgba(0,212,255,0.85);
+      background: rgba(0,212,255,0.08);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .hero-actions .btn-trade:hover {
+      border-color: rgba(255,0,128,0.85);
+      background: rgba(255,0,128,0.08);
+      color: #fff;
+      transform: translateY(-1px);
+    }
     @media (max-width: 580px) {
       .hero-actions { flex-direction: column; width: 100%; max-width: 320px; }
       .hero-actions .btn { width: 100%; }
@@ -299,19 +333,19 @@
 
     .hero-title {
       font-family: 'Bangers', cursive;
-      font-size: clamp(46px, 9.5vw, 92px);
-      letter-spacing: 0.03em;
-      line-height: 1.18; padding: 0 16px;
+      font-size: clamp(50px, 10vw, 96px);   /* slight bump for more authority */
+      letter-spacing: 0.02em;                /* tightened from 0.03 for editorial feel */
+      line-height: 1.15; padding: 0 16px 6px;
       background: linear-gradient(135deg, #ff6a00 0%, #ff0080 35%, #7b2fff 68%, #00d4ff 100%);
       background-size: 300% 300%;
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 18px rgba(255, 106, 0, 0.32));   /* calmer, less arcade */
+      filter: drop-shadow(0 0 22px rgba(255, 106, 0, 0.38));   /* slightly stronger halo */
       animation: gradientShift 6s ease infinite, fadeUp 0.7s ease both 0.35s;
     }
     .hero-tagline {
-      font-size: clamp(15px, 2.7vw, 19px);
-      color: rgba(255,255,255,0.86);
-      max-width: 600px; line-height: 1.65;
+      font-size: clamp(15.5px, 2.7vw, 20px);
+      color: rgba(255,255,255,0.92);         /* bumped from 0.86 — reads with more authority */
+      max-width: 620px; line-height: 1.6;
       animation: fadeUp 0.6s ease both 0.55s;
     }
     .hero-ctas {
@@ -1027,10 +1061,12 @@
       const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
         const name = item.name || '';
+        const desc = item.description || '';
         if (GRADER_RX.test(name)) return 'graded';
         if (SEALED_RX.test(name)) return 'sealed';
-        // Raw-single convention: lead with the year (e.g. "1999 Charizard…")
+        // Singles: year-prefix convention OR internal Card ID stamp.
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
+        if (/Card ID:\s*SK-\d+/i.test(desc)) return 'singles';
         return 'default';
       };
 
@@ -1045,7 +1081,9 @@
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=contain&cbg=000000&output=webp&q=78`;
         }
         if (cat === 'sealed') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
+          // fit=inside (no baked white canvas) so CSS gradient bg shows
+          // through letterbox. Matches shop.html. Bumped to 600px retina.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=600&fit=inside&output=webp&q=82`;
         }
         if (cat === 'singles') {
           // Raw Pokemon cards are 5:7 portrait — preserve the full artwork.

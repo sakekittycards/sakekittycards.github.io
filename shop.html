@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=164" />
+  <link rel="stylesheet" href="style.css?v=166" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -415,10 +415,12 @@
       const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
         const name = item.name || '';
+        const desc = item.description || '';
         if (GRADER_RX.test(name)) return 'graded';
         if (SEALED_RX.test(name)) return 'sealed';
-        // Raw singles convention: lead with the year (e.g., "1999 …").
+        // Singles: either year prefix OR internal Card ID stamp.
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
+        if (/Card ID:\s*SK-\d+/i.test(desc)) return 'singles';
         return 'merch';
       };
 
@@ -475,7 +477,10 @@
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=contain&cbg=000000&output=webp&q=78`;
         }
         if (kind === 'sealed') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
+          // Sealed: fit=inside (no baked-in white canvas) lets the
+          // gradient bg on .product-card.sealed .product-img-real show
+          // through the letterbox cleanly. Bumped to 600px for retina.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=600&fit=inside&output=webp&q=82`;
         }
         if (kind === 'singles') {
           // Raw Pokemon cards are 5:7 portrait — never crop artwork.
