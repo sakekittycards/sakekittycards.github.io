@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=165" />
+  <link rel="stylesheet" href="style.css?v=166" />
 
   <style>
     /* Hero-specific styles */
@@ -1129,8 +1129,11 @@
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=600&fit=inside&output=webp&q=82`;
         }
         if (cat === 'singles') {
-          // Raw Pokemon cards are 5:7 portrait — preserve the full artwork.
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=560&fit=contain&cbg=12122a&output=webp&q=82`;
+          // Pokemon cards are 0.717 aspect; wsrv 5:7 (0.714) is virtually
+          // identical — use `fit=cover` so wsrv NEVER adds dark padding bars
+          // around the art. The 2-3px crop is on the card's natural border,
+          // imperceptible. Bigger output (600x840) for retina sharpness.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&output=webp&q=82`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };

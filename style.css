@@ -1673,8 +1673,11 @@ body.cart-open { overflow: hidden; }
   aspect-ratio: 5/7;
 }
 .product-card.singles .product-img-real {
-  object-fit: contain;
-  background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
+  /* wsrv already returns the card pre-cropped to 5:7 (cover, no padding) so
+     `object-fit: cover` here just confirms a perfect fill with zero letterbox
+     bars on either axis. No card-tile gradient bleed-through anymore. */
+  object-fit: cover;
+  background: transparent;
 }
 /* Subtle inner ring just inside the image frame on hover — hints at
    "premium collectible" without overdesigning. Resting state stays
