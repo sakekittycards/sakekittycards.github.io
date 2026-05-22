@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=157" />
+  <link rel="stylesheet" href="style.css?v=164" />
 
   <style>
     /* Hero-specific styles */
@@ -1022,22 +1022,23 @@
 
       // Same regexes shop.html uses to categorize — keeps Just Listed
       // visuals in lockstep (white-bg contain for sealed, dark contain for
-      // graded slabs, default cover for everything else).
+      // graded slabs + singles, fit=cover for default merch).
       const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
       const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
       const categorize = (item) => {
         const name = item.name || '';
         if (GRADER_RX.test(name)) return 'graded';
         if (SEALED_RX.test(name)) return 'sealed';
+        // Raw-single convention: lead with the year (e.g. "1999 Charizard…")
+        if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
         return 'default';
       };
 
-      // wsrv URL — graded + sealed use fit=contain so the FULL product
-      // shows (cropping a booster box or a slab is the "zoom looks weird"
-      // bug). fit=contain pads to the full canvas so every output is the
-      // same size — fixes the "Whimsicott huge, Lycanroc tiny" disparity
-      // that fit=inside caused (inside returns varying aspect ratios).
-      // Default (apparel/merch) keeps fit=cover for tight tile fit.
+      // wsrv URL — graded + sealed + singles use fit=contain so the FULL
+      // product shows (cropping the artwork of a card or the label of a
+      // slab is the "zoom looks weird" bug). fit=contain pads to the full
+      // canvas so every output is exactly the same size — fixes uneven
+      // visual sizes that fit=inside caused.
       const thumb = (url, cat) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
         if (cat === 'graded') {
@@ -1045,6 +1046,10 @@
         }
         if (cat === 'sealed') {
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
+        }
+        if (cat === 'singles') {
+          // Raw Pokemon cards are 5:7 portrait — preserve the full artwork.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=560&fit=contain&cbg=12122a&output=webp&q=82`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
@@ -1063,8 +1068,9 @@
         const badge = oos ? `<div class="sold-out-badge">Sold Out</div>` : '';
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cls   = ['product-card'];
-        if (cat === 'graded') cls.push('graded');
-        if (cat === 'sealed') cls.push('sealed');
+        if (cat === 'graded')  cls.push('graded');
+        if (cat === 'sealed')  cls.push('sealed');
+        if (cat === 'singles') cls.push('singles');
         if (oos) cls.push('sold-out');
         return `
           <a href="${href}" class="${cls.join(' ')}" style="position:relative;color:inherit;text-decoration:none">
