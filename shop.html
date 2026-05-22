@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=165" />
+  <link rel="stylesheet" href="style.css?v=166" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -483,11 +483,11 @@
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=600&fit=inside&output=webp&q=82`;
         }
         if (kind === 'singles') {
-          // Raw Pokemon cards are 5:7 portrait — never crop artwork.
-          // Source images vary in aspect (pokemontcg.io vs uploaded scans);
-          // fit=contain on a 5:7 canvas with the dark site-tile gradient
-          // colour guarantees the full card with borders is always visible.
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=560&fit=contain&cbg=12122a&output=webp&q=82`;
+          // Pokemon cards are 0.717 aspect; wsrv 5:7 (0.714) matches within
+          // 0.5%. Using `fit=cover` means wsrv NEVER pads — no dark bars
+          // around the artwork. The imperceptible crop falls on the natural
+          // card border. 600x840 for retina sharpness.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=600&h=840&fit=cover&output=webp&q=82`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
