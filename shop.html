@@ -442,19 +442,23 @@
       // through wsrv.nl to get a properly sized WebP thumbnail. PDP keeps
       // the original URL for full-detail viewing.
       //
-      // Graded slabs are TALL portraits (5:8). `fit=cover` was cropping PSA
-      // labels off the top — `fit=inside` preserves the full slab uncropped.
+      // Graded slabs are TALL portraits (5:8). fit=cover was cropping PSA
+      // labels off the top, fit=inside returned varying aspect ratios that
+      // made slabs render at uneven sizes side-by-side. fit=contain pads
+      // to the full canvas so every output is exactly the same size.
       //
-      // Sealed products (booster boxes, ETBs, tins, packs) have wildly varying
-      // aspect ratios. `fit=cover` was cropping booster boxes / tall packs.
-      // `fit=inside` letterboxes the full product visible at the card edges.
+      // Sealed products (booster boxes, ETBs, tins, packs) have wildly
+      // varying aspect ratios. Same fix as graded — fit=contain with a
+      // white background gives consistent 400x400 outputs regardless of
+      // source aspect ratio. (fit=inside was making Whimsicott blister
+      // render ~2x bigger than Lycanroc on the Just Listed grid.)
       const thumbProxy = (url, kind) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
         if (kind === 'graded') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=inside&output=webp&q=78`;
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=contain&cbg=000000&output=webp&q=78`;
         }
         if (kind === 'sealed') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=inside&output=webp&q=80`;
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };

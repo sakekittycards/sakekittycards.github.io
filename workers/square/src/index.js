@@ -112,6 +112,10 @@ export default {
         return await uploadGradedItem(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/upload-single' && request.method === 'POST') {
+        return await uploadSingleItem(request, base, squareHeaders, env);
+      }
+
       if (path === '/admin/update-graded' && request.method === 'POST') {
         return await updateGradedItem(request, base, squareHeaders, env);
       }
