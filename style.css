@@ -1233,7 +1233,7 @@ body.cart-open { overflow: hidden; }
 
 /* Horizontal product cards — image on left, name + price + CTA on right.
    2 cards per row on desktop (>=900px), 1 per row on mobile/narrow. */
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(440px,1fr)); gap: 22px; }
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(460px,1fr)); gap: 24px; }
 
 /* Graded cards filter + sort controls */
 .graded-controls {
@@ -1652,6 +1652,29 @@ body.cart-open { overflow: hidden; }
                                 (Premium Checklane Blisters render too big
                                 otherwise, Single Pack Blisters vary wildly
                                 depending on TCGplayer's stock photo padding) */
+}
+
+/* Raw singles — the focus is the collectible artwork. Pokémon cards are
+   5:7 portrait, and object-fit:contain on a matching 5:7 frame guarantees
+   the borders + corners are always visible (illustration rares, full
+   arts, scenic cards all preserve composition end-to-end). Background
+   matches the wsrv cbg=12122a so any letterbox seams blend seamlessly
+   into the card tile. No padding — the wsrv canvas already fits the
+   card naturally and we want the artwork to fill the frame for a
+   "gallery wall" feel rather than a "thumbnail in a box" feel. */
+.product-card.singles .product-img,
+.product-card.singles .product-img-real {
+  aspect-ratio: 5/7;
+}
+.product-card.singles .product-img-real {
+  object-fit: contain;
+  background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
+}
+/* Subtle inner ring just inside the image frame on hover — hints at
+   "premium collectible" without overdesigning. Resting state stays
+   calm so the artwork carries the visual weight. */
+.product-card.singles:hover .product-img-real {
+  box-shadow: inset 0 0 0 1px rgba(255,106,0,0.18);
 }
 
 /* ── Shop loading/empty/error states ── */

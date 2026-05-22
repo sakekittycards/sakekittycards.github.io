@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=157" />
+  <link rel="stylesheet" href="style.css?v=164" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -55,7 +55,7 @@
     /* Top-of-page rhythm */
     .page-shop .section { padding-bottom: 28px; }
     .page-shop #tcgplayerBanner { padding-bottom: 32px; }
-    .page-shop #shopDirect { padding-bottom: 56px; }
+    .page-shop #shopDirect { padding-bottom: 40px; }   /* tightened from 56 — less dead space before footer */
 
     /* Shop Direct heading — bigger, primary commerce surface */
     .page-shop #shopDirect .section-title { font-size: clamp(28px, 4vw, 40px); }
@@ -73,16 +73,33 @@
     /* Product grid — slightly more breathing */
     .page-shop .product-grid { gap: 30px; }
     /* .product-card hover glow lives in sitewide style.css */
-    .page-shop .product-info { padding: 16px 16px 18px; }
+    .page-shop .product-info { padding: 18px 18px 20px 22px; }   /* tighter top, more left for breathing room from image */
     .page-shop .product-name {
-      font-size: 15px; font-weight: 700; line-height: 1.35;
-      color: rgba(255,255,255,0.96);
-      margin-bottom: 4px;
+      font-size: 15.5px; font-weight: 700; line-height: 1.4;
+      color: rgba(255,255,255,0.97);
+      margin-bottom: 6px;                       /* was 4 — small bump for cleaner rhythm */
+      letter-spacing: -0.1px;
     }
-    .page-shop .product-set { font-size: 13.5px; color: rgba(255,255,255,0.66); margin-bottom: 12px; }
+    .page-shop .product-set { font-size: 13.5px; color: rgba(255,255,255,0.66); margin-bottom: 14px; }
     .page-shop .product-price {
-      font-size: 20px; letter-spacing: -0.2px;
+      font-size: 21px; letter-spacing: -0.2px;
       filter: drop-shadow(0 0 8px rgba(255,106,0,0.20));
+    }
+
+    /* Singles — slightly tighter density on the dedicated grid since
+       the cards are taller (5:7 portrait) than sealed/merch (1/1). */
+    .page-shop #shopGridSingles .product-card { min-height: 0; }
+    .page-shop #shopGridSingles .product-info { padding: 20px 20px 22px 24px; }
+    /* Subtle premium ring on every singles card resting state — quieter
+       than the hover ring, just enough to read as "intentional gallery". */
+    .page-shop .product-card.singles {
+      box-shadow: 0 1px 0 rgba(255,255,255,0.02), 0 0 0 1px rgba(255,106,0,0.05);
+    }
+    .page-shop .product-card.singles:hover {
+      box-shadow:
+        0 0 0 1px rgba(255,106,0,0.30),
+        0 10px 32px rgba(255,106,0,0.22),
+        0 0 50px rgba(255,106,0,0.12);
     }
 
     /* Category separation */
@@ -460,6 +477,13 @@
         if (kind === 'sealed') {
           return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
         }
+        if (kind === 'singles') {
+          // Raw Pokemon cards are 5:7 portrait — never crop artwork.
+          // Source images vary in aspect (pokemontcg.io vs uploaded scans);
+          // fit=contain on a 5:7 canvas with the dark site-tile gradient
+          // colour guarantees the full card with borders is always visible.
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=560&fit=contain&cbg=12122a&output=webp&q=82`;
+        }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
 
@@ -468,6 +492,7 @@
         const cat = categorize(item);
         const isGraded = cat === 'graded';
         const isSealed = cat === 'sealed';
+        const isSingles = cat === 'singles';
         const eager = _eagerCount < EAGER_LIMIT;
         _eagerCount++;
         const loadAttrs = eager
@@ -477,10 +502,15 @@
         // fails (proxy down, rate-limited, etc.) fall back to the ORIGINAL
         // Square URL; only then show the placeholder. Stored on the img as
         // a data-attr so the onerror handler can step through.
-        const thumbKind = isGraded ? 'graded' : (isSealed ? 'sealed' : 'default');
+        const thumbKind = isGraded ? 'graded'
+                        : isSealed ? 'sealed'
+                        : isSingles ? 'singles'
+                        : 'default';
         const thumbUrl = thumbProxy(item.imageUrl, thumbKind);
         const originalUrl = item.imageUrl || '';
-        const wh = isGraded ? 'width="320" height="512"' : 'width="320" height="320"';
+        const wh = isGraded   ? 'width="320" height="512"'
+                : isSingles   ? 'width="400" height="560"'
+                : 'width="320" height="320"';
         const onerr = originalUrl && originalUrl !== thumbUrl
           ? `if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='${esc(originalUrl)}';}else{this.outerHTML='<div class=&quot;product-img&quot;>📦</div>';}`
           : `this.outerHTML='<div class=&quot;product-img&quot;>📦</div>'`;
@@ -504,6 +534,7 @@
         if (oos) cardClasses.push('sold-out');
         if (isGraded) cardClasses.push('graded');
         if (isSealed) cardClasses.push('sealed');
+        if (isSingles) cardClasses.push('singles');
         return `
           <a href="${href}" class="${cardClasses.join(' ')}" style="position:relative;color:inherit;text-decoration:none">
             ${badge}

@@ -1316,6 +1316,131 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   });
 }
 
+// Admin: create a RAW SINGLE listing on Square (not graded).
+// Body: { card_id, name, set_name, number, year, condition, price_cents, image_url }
+// Builds a name that categorize() will treat as 'singles' (starts with year).
+async function uploadSingleItem(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+
+  const cardId    = String(body.card_id || '').trim();
+  const name      = String(body.name || '').trim();
+  const setName   = String(body.set_name || '').trim();
+  const number    = String(body.number || '').trim();
+  const year      = String(body.year || '').trim();
+  const condition = String(body.condition || 'NM').trim().toUpperCase();
+  const priceCents = Number(body.price_cents);
+  const imageUrl  = String(body.image_url || '').trim();
+
+  if (!cardId || !name) {
+    return json({ error: 'missing_required_fields', required: ['card_id', 'name'] }, 400);
+  }
+  if (!Number.isFinite(priceCents) || priceCents <= 0) {
+    return json({ error: 'invalid_price_cents' }, 400);
+  }
+
+  // Title format: "<year> <set> <name> #<number> (<cond>)" — leads with year so
+  // shop.html categorize() routes it to 'singles'.
+  const titleParts = [];
+  if (year) titleParts.push(year);
+  if (setName) titleParts.push(setName);
+  if (name) titleParts.push(name);
+  if (number) titleParts.push(`#${number}`);
+  if (condition && condition !== 'NM') titleParts.push(`(${condition})`);
+  const title = titleParts.join(' ').slice(0, 255);
+
+  const description = [
+    `Card ID: ${cardId}`,
+    setName && `Set: ${setName}${year ? ` (${year})` : ''}`,
+    number && `Card Number: ${number}`,
+    `Condition: ${condition}`,
+  ].filter(Boolean).join('\n').slice(0, 4096);
+
+  const itemPlaceholder = `#sk-single-${cardId}`;
+  const variationPlaceholder = `#sk-single-var-${cardId}`;
+  const createPayload = {
+    idempotency_key: crypto.randomUUID(),
+    object: {
+      type: 'ITEM',
+      id: itemPlaceholder,
+      item_data: {
+        name: title,
+        description,
+        is_taxable: true,
+        variations: [{
+          type: 'ITEM_VARIATION',
+          id: variationPlaceholder,
+          item_variation_data: {
+            item_id: itemPlaceholder,
+            name: condition,
+            pricing_type: 'FIXED_PRICING',
+            price_money: { amount: Math.round(priceCents), currency: 'USD' },
+            sku: cardId,
+            track_inventory: false,
+          },
+        }],
+      },
+    },
+  };
+
+  const createRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST', headers: squareHeaders,
+    body: JSON.stringify(createPayload),
+  });
+  const createData = await createRes.json();
+  if (!createRes.ok) {
+    return json({ error: 'square_create_failed', detail: createData }, createRes.status);
+  }
+  const item = createData.catalog_object;
+  const itemId = item.id;
+
+  // Attach image if a stock URL was provided
+  let imageId = null;
+  if (imageUrl) {
+    try {
+      const imgRes = await fetch(imageUrl);
+      if (imgRes.ok) {
+        const buf = new Uint8Array(await imgRes.arrayBuffer());
+        const fd = new FormData();
+        fd.append('request', new Blob([JSON.stringify({
+          idempotency_key: crypto.randomUUID(),
+          object_id: itemId,
+          image: {
+            type: 'IMAGE',
+            id: `#sk-single-img-${cardId}-${Date.now()}`,
+            image_data: { name: `${cardId}.jpg`, caption: 'Sake Kitty Cards single listing' },
+          },
+          is_primary: true,
+        })], { type: 'application/json' }));
+        fd.append('image_file', new Blob([buf], { type: 'image/jpeg' }), `${cardId}.jpg`);
+        const upRes = await fetch(`${base}/v2/catalog/images`, {
+          method: 'POST',
+          headers: {
+            'Square-Version': SQUARE_API_VERSION,
+            'Authorization': `Bearer ${env.SQUARE_ACCESS_TOKEN}`,
+          },
+          body: fd,
+        });
+        const upData = await upRes.json();
+        if (upRes.ok) imageId = upData.image?.id || null;
+      }
+    } catch (e) {}
+  }
+
+  return json({
+    ok: true,
+    item_id: itemId,
+    variation_id: item.item_data?.variations?.[0]?.id,
+    image_id: imageId,
+    title,
+  });
+}
+
+
 // Admin: rename / re-describe an existing graded-card listing in Square.
 // Used to fix titles when the OCR/lookup chain produced wrong card names.
 // Auth: X-Sake-Admin-Token header. Body: { cert: '<cert>', card: { name,
