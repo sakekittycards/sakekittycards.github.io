@@ -1634,24 +1634,30 @@ body.cart-open { overflow: hidden; }
 /* Sealed products are mixed aspect ratios (tall booster boxes, wide ETBs,
    square tins, tall packs). object-fit:contain on a square frame keeps
    every product fully visible — no cropping of pack art or product names.
-   The dark tile background fills the letterbox cleanly.
 
-   Generous padding pulls the product back from the frame edges so it
-   reads as a product thumbnail with deliberate breathing room, not a
-   full-bleed catalog photo. Without this, the wsrv-returned image
-   fills the card edge-to-edge and feels zoomed in. */
+   2026-05-21 refinement pass: dropped padding 14% → 4%, added a soft
+   vertical gradient bg (off-white → white → light gray) so the seam
+   into the dark info area reads as intentional depth instead of a hard
+   edge, plus an inset "shelf shadow" along the bottom for product
+   presence. Hover lightly scales the image for a premium feel. The
+   resting state still letterboxes mixed aspect ratios cleanly, but the
+   product now occupies meaningfully more of the frame — boxes feel
+   substantial, tins readable, packs recognizable. */
 .product-card.sealed .product-img,
 .product-card.sealed .product-img-real {
   aspect-ratio: 1/1;
 }
 .product-card.sealed .product-img-real {
   object-fit: contain;
-  background: #fff;          /* white breathing room around the product */
-  padding: 14% 14%;          /* extra margin — normalizes visual size across
-                                products with different native crop ratios
-                                (Premium Checklane Blisters render too big
-                                otherwise, Single Pack Blisters vary wildly
-                                depending on TCGplayer's stock photo padding) */
+  background: linear-gradient(180deg, #f7f8fa 0%, #ffffff 48%, #eceff4 100%);
+  padding: 4% 4%;
+  box-shadow: inset 0 -22px 38px -22px rgba(0, 0, 0, 0.07);
+  transition: transform 0.4s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.3s ease;
+  transform-origin: center center;
+}
+.product-card.sealed:hover .product-img-real {
+  transform: scale(1.035);
+  box-shadow: inset 0 -22px 38px -22px rgba(0, 0, 0, 0.12);
 }
 
 /* Raw singles — the focus is the collectible artwork. Pokémon cards are
