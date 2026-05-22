@@ -1028,16 +1028,19 @@
         return 'default';
       };
 
-      // wsrv URL — graded + sealed use fit=inside so the FULL product
+      // wsrv URL — graded + sealed use fit=contain so the FULL product
       // shows (cropping a booster box or a slab is the "zoom looks weird"
-      // bug). Default (apparel/merch) keeps fit=cover for tight tile fit.
+      // bug). fit=contain pads to the full canvas so every output is the
+      // same size — fixes the "Whimsicott huge, Lycanroc tiny" disparity
+      // that fit=inside caused (inside returns varying aspect ratios).
+      // Default (apparel/merch) keeps fit=cover for tight tile fit.
       const thumb = (url, cat) => {
         if (!url || !/^https?:\/\//.test(url)) return url;
         if (cat === 'graded') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=inside&output=webp&q=78`;
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=320&h=512&fit=contain&cbg=000000&output=webp&q=78`;
         }
         if (cat === 'sealed') {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=inside&output=webp&q=80`;
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=contain&cbg=ffffff&output=webp&q=80`;
         }
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };

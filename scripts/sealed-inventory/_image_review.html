@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Sealed image review — Sake Kitty Cards</title>
+<style>
+  :root {
+    --bg: #0a0a12; --fg: #f5f5fa; --dim: #98989a; --line: #25252e;
+    --orange: #ff6a00; --pink: #ff0080;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); margin: 0; padding: 0;
+               font: 14px/1.5 -apple-system, Segoe UI, sans-serif; }
+  header {
+    padding: 24px 32px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+    display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap;
+  }
+  header h1 {
+    margin: 0; font-size: 22px; font-weight: 700;
+    background: linear-gradient(135deg, var(--orange), var(--pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  header .meta { color: var(--dim); font-size: 13px; }
+  header label { color: var(--dim); font-size: 13px; }
+  header select {
+    background: rgba(255,255,255,0.05); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 6px 10px; font: inherit;
+  }
+  main { padding: 24px 32px 64px; }
+
+  .group { margin: 0 0 40px; }
+  .group h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--dim); border-bottom: 1px solid var(--line);
+    padding-bottom: 8px; margin: 0 0 18px;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .card .img-wrap {
+    aspect-ratio: 1/1;
+    background: #fff;       /* match shop.html's sealed display so review is true-to-life */
+    padding: 14% 14%;       /* match the live 14% padding */
+    display: flex; align-items: center; justify-content: center;
+  }
+  .card .img-wrap img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .card .body { padding: 12px 14px; }
+  .card .name { font-size: 13px; font-weight: 600; line-height: 1.35;
+                 color: var(--fg); margin: 0 0 8px; min-height: 2.7em; }
+  .card .id { font-family: ui-monospace, Consolas, monospace; font-size: 11px;
+              color: var(--dim); margin-bottom: 4px; user-select: all; cursor: text; }
+  .card .img-url {
+    font-family: ui-monospace, Consolas, monospace; font-size: 10px;
+    color: var(--dim); word-break: break-all;
+    margin: 0 0 6px;
+  }
+  .card .img-url a { color: var(--dim); text-decoration: underline dotted; }
+  .card .actions { display: flex; gap: 6px; margin-top: 6px; }
+  .card .actions button {
+    background: rgba(255,106,0,0.08); border: 1px solid rgba(255,106,0,0.3);
+    color: var(--orange); font: 10px/1 inherit; font-weight: 700;
+    padding: 5px 8px; border-radius: 5px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card .actions button:hover { background: rgba(255,106,0,0.16); }
+  .card .raw-meta { font-size: 11px; color: var(--dim); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sealed product image review</h1>
+  <span class="meta" id="metaCount">loading…</span>
+  <label>Group by: <select id="groupBy">
+    <option value="type" selected>Product type (compare similar SKUs)</option>
+    <option value="none">All in one grid</option>
+  </select></label>
+  <span class="meta" style="margin-left:auto">Click an item ID or image URL to select-copy</span>
+</header>
+
+<main id="main">
+  <p style="color:var(--dim)">Fetching live Square inventory…</p>
+</main>
+
+<script>
+const WORKER = 'https://sakekitty-square.nwilliams23999.workers.dev';
+const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box|blister)\b/i;
+const GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s/i;
+
+function productType(name) {
+  const n = name.toLowerCase();
+  if (n.includes('premium checklane')) return 'Premium Checklane Blister';
+  if (n.includes('single pack blister') || n.includes('single-pack blister')) return 'Single Pack Blister';
+  if (n.includes('blister')) return 'Blister';
+  if (n.includes('mini tin')) return 'Mini Tin';
+  if (n.includes('tin')) return 'Tin';
+  if (n.includes('elite trainer') || n.includes('etb')) return 'ETB';
+  if (n.includes('sleeved booster pack')) return 'Sleeved Booster Pack';
+  if (n.includes('booster box')) return 'Booster Box';
+  if (n.includes('booster bundle')) return 'Booster Bundle';
+  if (n.includes('booster pack')) return 'Booster Pack';
+  if (n.includes('battle deck') || n.includes('deck')) return 'Deck';
+  if (n.includes('collection')) return 'Collection';
+  if (n.includes('box')) return 'Collection Box';
+  return 'Other';
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function cardHtml(item) {
+  const url = item.imageUrl || '';
+  const id = item.id;
+  return `
+    <div class="card" data-id="${esc(id)}">
+      <div class="img-wrap">
+        ${url ? `<img src="${esc(url)}" alt="${esc(item.name)}" />` : '<span style="color:#666">no image</span>'}
+      </div>
+      <div class="body">
+        <p class="name">${esc(item.name)}</p>
+        <p class="id">${esc(id)}</p>
+        <p class="img-url">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener">open original ↗</a>` : '(none)'}</p>
+        <div class="actions">
+          <button onclick="navigator.clipboard.writeText('${esc(id)}')">Copy ID</button>
+          ${url ? `<button onclick="navigator.clipboard.writeText('${esc(url)}')">Copy URL</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function render(items, groupBy) {
+  const main = document.getElementById('main');
+  if (groupBy === 'none') {
+    main.innerHTML = `<div class="group"><div class="grid">${items.map(cardHtml).join('')}</div></div>`;
+    return;
+  }
+  // Group by product type, sorted by group size (big buckets first so
+  // "compare these to each other" is the top of the page)
+  const groups = {};
+  for (const it of items) {
+    const t = productType(it.name || '');
+    (groups[t] ||= []).push(it);
+  }
+  const order = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+  main.innerHTML = order.map(t =>
+    `<div class="group">
+       <h2>${esc(t)} (${groups[t].length})</h2>
+       <div class="grid">${groups[t].map(cardHtml).join('')}</div>
+     </div>`
+  ).join('');
+}
+
+async function load() {
+  const res = await fetch(`${WORKER}/items`);
+  const data = await res.json();
+  const items = (data.items || []).filter(it =>
+    SEALED_RX.test(it.name || '') && !GRADER_RX.test(it.name || '')
+  );
+  document.getElementById('metaCount').textContent = `${items.length} sealed items`;
+  let mode = document.getElementById('groupBy').value;
+  render(items, mode);
+  document.getElementById('groupBy').addEventListener('change', (e) => {
+    mode = e.target.value;
+    render(items, mode);
+  });
+}
+
+load().catch(err => {
+  document.getElementById('main').innerHTML =
+    `<p style="color:#ff6b6b">Failed to load: ${err.message}</p>`;
+});
+</script>
+
+</body>
+</html>

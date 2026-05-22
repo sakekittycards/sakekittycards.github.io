@@ -1,0 +1,112 @@
+{
+  "Destined Rivals Booster Box": {
+    "gid": 24269,
+    "cat": 3,
+    "product_kw": "booster box"
+  },
+  "Destined Rivals Elite Trainer Box": {
+    "gid": 24269,
+    "cat": 3,
+    "product_kw": "elite trainer box"
+  },
+  "Destined Rivals Sleeved Booster Pack": {
+    "gid": 24269,
+    "cat": 3,
+    "product_kw": "sleeved booster pack"
+  },
+  "151 Booster Bundle": {
+    "gid": 23237,
+    "cat": 3,
+    "product_kw": "booster bundle"
+  },
+  "151 Mini Tin": {
+    "gid": 23237,
+    "cat": 3,
+    "product_kw": "mini tin"
+  },
+  "Ascended Heroes Elite Trainer Box": {
+    "gid": 24541,
+    "cat": 3,
+    "product_kw": "elite trainer box"
+  },
+  "Ascended Heroes Booster Bundle": {
+    "gid": 24541,
+    "cat": 3,
+    "product_kw": "booster bundle"
+  },
+  "Prismatic Evolutions Elite Trainer Box": {
+    "gid": 23821,
+    "cat": 3,
+    "product_kw": "elite trainer box"
+  },
+  "Prismatic Evolutions Mini Tin": {
+    "gid": 23821,
+    "cat": 3,
+    "product_kw": "mini tin"
+  },
+  "First Partner Illustration Collection (Series 1)": {
+    "gid": null,
+    "cat": 3,
+    "product_kw": "collection"
+  },
+  "Evolving Skies Booster Pack": {
+    "gid": 2848,
+    "cat": 3,
+    "product_kw": "booster pack"
+  },
+  "Fusion Strike Sleeved Booster Pack": {
+    "gid": 2906,
+    "cat": 3,
+    "product_kw": "sleeved"
+  },
+  "Mega Feraligatr ex Box": {
+    "gid": 24451,
+    "cat": 3,
+    "product_kw": "feraligatr"
+  },
+  "Mega Battle Deck (Mega Diancie ex)": {
+    "gid": 24499,
+    "cat": 85,
+    "product_kw": "diancie"
+  },
+  "Mega Heroes Mini Tin [Mega Venusaur]": {
+    "gid": 24451,
+    "cat": 3,
+    "product_kw": "venusaur"
+  },
+  "Mega Evolution Single Pack Blister [Drifblim]": {
+    "gid": 24451,
+    "cat": 3,
+    "product_kw": "drifblim"
+  },
+  "Mega Evolution Single Pack Blister [Lycanroc]": {
+    "gid": 24451,
+    "cat": 3,
+    "product_kw": "lycanroc"
+  },
+  "Phantasmal Flames Booster Box": {
+    "gid": 24448,
+    "cat": 3,
+    "product_kw": "booster box"
+  },
+  "Phantasmal Flames Single Pack Blister [Whimsicott]": {
+    "gid": 24448,
+    "cat": 3,
+    "product_kw": "whimsicott"
+  },
+  "Mega Evolution M2 Inferno X Booster Box (JP)": {
+    "gid": 24459,
+    "cat": 85,
+    "product_kw": "booster box"
+  },
+  "Ninja Spinner Booster Box (JP)": {
+    "gid": 24653,
+    "cat": 85,
+    "product_kw": "booster box"
+  },
+  "Adventure on Kami's Island Booster Box (One Piece OP-15)": {
+    "gid": 24637,
+    "cat": 68,
+    "product_kw": "booster box"
+  }
+}
