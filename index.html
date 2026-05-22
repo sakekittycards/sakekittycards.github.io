@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=156" />
+  <link rel="stylesheet" href="style.css?v=157" />
 
   <style>
     /* Hero-specific styles */
@@ -358,7 +358,11 @@
       .just-listed-grid { grid-template-columns: 1fr; gap: 14px; }
     }
     .just-listed .product-card .product-img,
-    .just-listed .product-card .product-img-real { aspect-ratio: 1/1; }
+    .just-listed .product-card .product-img-real {
+      aspect-ratio: 5/7;
+      object-fit: contain;
+      background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
+    }
     .just-listed-status {
       text-align: center; color: var(--dim); font-size: 14px;
       padding: 28px 0;

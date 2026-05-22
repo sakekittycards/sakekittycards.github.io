@@ -29,27 +29,47 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=156" />
+  <link rel="stylesheet" href="style.css?v=157" />
 
   <style>
-    /* Reviews page — premium collector trust wall. Four sections:
-       (1) Hero with summary card · (2) Masonry review wall · (3) CTA strip
-       · (4) Two-col Leave-a-Review (trust copy + form).
-       Submissions land in Airtable with Approved=false; rendered only after
-       Nick approves. Scoped under .page-reviews so styles don't leak. */
+    /* Reviews page — premium collector trust wall. Five sections:
+       (1) Hero with summary card · (2) Social-proof stats row ·
+       (3) Masonry review wall · (4) CTA strip ·
+       (5) Two-col Leave-a-Review (trust copy + form).
+       Submissions land in Airtable with Approved=false; rendered only
+       after Nick approves. Scoped under .page-reviews so styles don't leak. */
 
-    /* Ambient page glow — keeps the negative space alive without competing
-       with the cards. Pinned to the hero band only. */
+    /* ─── Motion primitives ─────────────────────────────────────────── */
+    @keyframes reviewsFadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* Heading shimmer: slow gradient drift so the hero text breathes
+       without being gimmicky. The gradient-clipped text reveals the
+       moving colors through the letters. */
+    @keyframes reviewsTitleShimmer {
+      0%   { background-position:   0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position:   0% 50%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .page-reviews .reviews-hero h1 { animation: none !important; }
+      .page-reviews [class*="reviews-"] { animation: none !important; }
+    }
+
+    /* ─── Hero ──────────────────────────────────────────────────────── */
     .page-reviews .reviews-hero {
       position: relative;
       text-align: center;
       max-width: var(--max-w);
       margin: 0 auto;
-      padding: calc(var(--nav-h) + 56px) 24px 8px;
+      /* Tightened: was nav+56 / 8.  Pulls the summary card up toward the H1. */
+      padding: calc(var(--nav-h) + 40px) 24px 4px;
+      animation: reviewsFadeUp 0.6s ease both;
     }
     .page-reviews .reviews-hero::before {
       content: '';
-      position: absolute; inset: -10% 5% 10%;
+      position: absolute; inset: -8% 5% 8%;
       z-index: -1;
       pointer-events: none;
       background:
@@ -60,100 +80,190 @@
     .page-reviews .reviews-hero h1 {
       font-family: 'Bangers', cursive;
       font-size: clamp(40px, 6.8vw, 68px);
-      letter-spacing: 0.03em; line-height: 1.12;
-      background: linear-gradient(135deg, #ff7a1f 0%, #e6196b 48%, #7b2fff 100%);
+      letter-spacing: 0.03em; line-height: 1.10;
+      background: linear-gradient(135deg, #ff7a1f 0%, #ff3b8a 25%, #e6196b 50%, #a040ff 75%, #ff7a1f 100%);
+      background-size: 220% 220%;
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       filter: drop-shadow(0 0 18px rgba(255,106,0,0.30)) drop-shadow(0 0 36px rgba(255,0,128,0.16));
-      margin: 0 0 14px; padding-bottom: 6px;
+      margin: 0 0 10px; padding-bottom: 6px;
+      animation: reviewsTitleShimmer 9s ease-in-out infinite;
     }
     .page-reviews .reviews-hero p.reviews-sub {
-      font-size: clamp(15px, 1.9vw, 17.5px);
-      line-height: 1.6;
-      color: rgba(229,229,247,0.85);
-      max-width: 620px;
+      /* Brighter + slightly bigger + tighter leading per refinement notes. */
+      font-size: clamp(16px, 2vw, 18.5px);
+      line-height: 1.5;
+      color: rgba(245,245,255,0.94);
+      max-width: 640px;
       margin: 0 auto;
+      font-weight: 500;
     }
 
-    /* Premium summary card — glass + neon edge. Replaces the old pill.
-       Centered, restrained max-width so the score reads as a hero element
-       not a wall of stats. Stays hidden until JS populates the numbers. */
+    /* Premium summary card — glass + neon edge. Hero centerpiece. */
     .reviews-summary-card {
       display: inline-flex; flex-direction: column; align-items: center;
       gap: 14px;
-      margin: 32px auto 0;
-      padding: 28px 44px 24px;
+      /* Pull closer to subheading (was 32px). */
+      margin: 22px auto 0;
+      padding: 34px 56px 28px;
       background:
-        radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,106,0,0.10), transparent 60%),
-        rgba(8,8,14,0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,106,0,0.30);
-      border-radius: 22px;
+        radial-gradient(ellipse 55% 70% at 50% 60%, rgba(255,106,0,0.16), transparent 65%),
+        radial-gradient(ellipse 70% 80% at 50% 0%, rgba(255,0,128,0.10), transparent 60%),
+        rgba(8,8,14,0.62);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,106,0,0.34);
+      border-radius: 26px;
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.04) inset,
-        0 18px 40px rgba(0,0,0,0.42),
-        0 0 36px rgba(255,106,0,0.14),
-        0 0 64px rgba(255,0,128,0.10);
+        0 0 0 1px rgba(255,255,255,0.05) inset,
+        0 22px 50px rgba(0,0,0,0.50),
+        0 0 44px rgba(255,106,0,0.20),
+        0 0 90px rgba(255,0,128,0.14);
       position: relative;
+      overflow: hidden;
+      animation: reviewsFadeUp 0.65s ease both 0.12s;
     }
-    /* Subtle top accent line — orange→pink gradient pinstripe */
+    /* Top accent line — orange→pink gradient pinstripe */
     .reviews-summary-card::before {
       content: '';
-      position: absolute; top: 0; left: 18%; right: 18%; height: 1px;
+      position: absolute; top: 0; left: 14%; right: 14%; height: 1px;
       background: linear-gradient(90deg, transparent, var(--orange), var(--pink), transparent);
-      opacity: 0.7;
+      opacity: 0.85;
+    }
+    /* Glass reflection highlight near the top edge */
+    .reviews-summary-card::after {
+      content: '';
+      position: absolute; top: 1px; left: 12%; right: 12%; height: 36%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0));
+      border-radius: 26px 26px 50% 50% / 26px 26px 30% 30%;
+      pointer-events: none;
+      opacity: 0.55;
     }
     .rs-score-row {
-      display: inline-flex; align-items: baseline; gap: 18px;
+      display: inline-flex; align-items: baseline; gap: 20px;
+      position: relative;
     }
     .rs-score {
       font-family: 'Bangers', cursive;
-      font-size: clamp(54px, 7vw, 76px);
+      font-size: clamp(58px, 7.4vw, 82px);
       line-height: 1;
       color: #ffd34a;
-      text-shadow: 0 0 22px rgba(255,204,0,0.50), 0 0 4px rgba(255,170,0,0.30);
+      text-shadow:
+        0 0 24px rgba(255,204,0,0.55),
+        0 0 8px rgba(255,170,0,0.40),
+        0 0 2px rgba(255,255,255,0.20);
       letter-spacing: 0.02em;
-      padding-bottom: 4px; /* Bangers descender breathing room */
+      padding-bottom: 4px;
+      position: relative;
+    }
+    /* Soft radial halo behind the "5.0" */
+    .rs-score::before {
+      content: '';
+      position: absolute; inset: -38% -42%;
+      background: radial-gradient(circle, rgba(255,170,0,0.32), rgba(255,106,0,0.14) 40%, transparent 70%);
+      filter: blur(8px);
+      z-index: -1;
+      pointer-events: none;
     }
     .rs-stars {
       color: #ffcc00;
-      font-size: clamp(22px, 2.6vw, 28px);
-      letter-spacing: 5px;
+      font-size: clamp(26px, 3vw, 32px);
+      letter-spacing: 6px;
       line-height: 1;
-      text-shadow: 0 0 10px rgba(255,204,0,0.40);
+      text-shadow: 0 0 12px rgba(255,204,0,0.50);
       white-space: nowrap;
     }
     .rs-count {
-      font-size: 13.5px; font-weight: 600;
-      letter-spacing: 0.6px;
-      color: rgba(255,255,255,0.78);
+      font-size: 13.5px; font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.82);
       text-transform: uppercase;
     }
     @media (max-width: 520px) {
-      .reviews-summary-card { padding: 22px 28px 20px; }
+      .reviews-summary-card { padding: 26px 30px 22px; border-radius: 22px; }
       .rs-score-row { flex-direction: column; gap: 8px; align-items: center; }
     }
 
-    /* ─── Review wall — masonry via CSS columns ────────────────────────── */
+    /* ─── Social-proof stats row ───────────────────────────────────── */
+    .social-proof-row {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 28px 24px 8px;
+      animation: reviewsFadeUp 0.6s ease both 0.22s;
+    }
+    .sp-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 880px) { .sp-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .sp-grid { grid-template-columns: 1fr; } }
+    .sp-stat {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      transition: border-color .22s ease, transform .22s ease, box-shadow .22s ease;
+    }
+    .sp-stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,106,0,0.30);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.30), 0 0 18px rgba(255,106,0,0.12);
+    }
+    .sp-stat-icon {
+      flex-shrink: 0;
+      width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.16), rgba(255,0,128,0.10));
+      border: 1px solid rgba(255,106,0,0.30);
+      color: var(--orange);
+    }
+    .sp-stat-icon svg { width: 18px; height: 18px; stroke-width: 2; }
+    .sp-stat-icon.is-cyan { background: linear-gradient(135deg, rgba(0,212,255,0.16), rgba(58,141,255,0.10)); border-color: rgba(0,212,255,0.30); color: var(--cyan); }
+    .sp-stat-icon.is-gold { background: linear-gradient(135deg, rgba(255,204,0,0.18), rgba(255,170,0,0.10)); border-color: rgba(255,204,0,0.35); color: #ffcc00; }
+    .sp-stat-icon.is-purple { background: linear-gradient(135deg, rgba(123,47,255,0.18), rgba(255,0,128,0.10)); border-color: rgba(123,47,255,0.30); color: #b894ff; }
+    .sp-stat-body {
+      display: flex; flex-direction: column; gap: 1px;
+      line-height: 1.2;
+    }
+    .sp-stat-value {
+      font-family: 'Bangers', cursive;
+      font-size: 18px; letter-spacing: 0.03em;
+      color: rgba(255,255,255,0.96);
+      padding-bottom: 1px;
+    }
+    .sp-stat-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.6px; text-transform: uppercase;
+      color: rgba(255,255,255,0.62);
+    }
+
+    /* ─── Review wall — masonry via CSS columns ─────────────────────── */
     .reviews-wall-section {
       max-width: var(--max-w);
       margin: 0 auto;
-      padding: 40px 24px 24px;
+      padding: 22px 24px 18px;
+      animation: reviewsFadeUp 0.6s ease both 0.30s;
     }
     .reviews-wall {
       column-count: 3;
-      column-gap: 22px;
+      column-gap: 18px;
     }
-    @media (max-width: 980px) { .reviews-wall { column-count: 2; column-gap: 18px; } }
+    @media (max-width: 980px) { .reviews-wall { column-count: 2; column-gap: 16px; } }
     @media (max-width: 620px) { .reviews-wall { column-count: 1; } }
 
     .review-card {
-      /* CSS-column masonry: each card stays intact, gap below */
       break-inside: avoid;
       page-break-inside: avoid;
-      display: block;
+      /* Flex column so attribution sticks to the bottom on shorter
+         reviews — keeps an architectural rhythm without stretching
+         short ones into giant empty boxes (min-height sets the floor). */
+      display: flex; flex-direction: column;
+      min-height: 168px;
       margin: 0 0 18px;
-      padding: 18px 20px 16px;
+      padding: 16px 18px 14px;
       background:
         radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255,106,0,0.05), transparent 70%),
         rgba(12,12,20,0.65);
@@ -161,9 +271,11 @@
       border-radius: 14px;
       position: relative;
       isolation: isolate;
-      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+      transition:
+        transform .25s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color .22s ease,
+        box-shadow .25s ease;
     }
-    /* Top accent gradient strip — premium signal, super subtle */
     .review-card::before {
       content: '';
       position: absolute; top: 0; left: 14px; right: 14px; height: 1px;
@@ -171,25 +283,27 @@
       opacity: 0.55;
       transition: opacity .22s ease;
     }
-    /* Decorative open-quote glyph in the top-right corner */
+    /* Refined quote icon — smaller, tucked, low opacity */
     .review-card::after {
-      content: '\201C';                  /* curly left double-quote */
-      position: absolute; top: 4px; right: 14px;
+      content: '\201C';
+      position: absolute; top: 2px; right: 12px;
       font-family: 'Bangers', Georgia, serif;
-      font-size: 44px; line-height: 1;
-      color: rgba(255,106,0,0.18);
+      font-size: 36px; line-height: 1;
+      color: rgba(255,106,0,0.16);
       pointer-events: none;
       z-index: -1;
+      transition: color .25s ease;
     }
     .review-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(255,106,0,0.35);
+      transform: translateY(-4px);
+      border-color: rgba(255,106,0,0.42);
       box-shadow:
-        0 14px 28px rgba(0,0,0,0.45),
-        0 0 24px rgba(255,106,0,0.16),
-        0 0 48px rgba(255,0,128,0.10);
+        0 18px 34px rgba(0,0,0,0.50),
+        0 0 28px rgba(255,106,0,0.22),
+        0 0 56px rgba(255,0,128,0.12);
     }
     .review-card:hover::before { opacity: 1; }
+    .review-card:hover::after { color: rgba(255,106,0,0.30); }
 
     .review-stars {
       color: #ffcc00;
@@ -205,13 +319,14 @@
     .review-text {
       font-size: 14.5px;
       color: rgba(255,255,255,0.94);
-      line-height: 1.66;
-      margin: 0 0 12px;
-      /* Slight em-quote feel without italics — keeps brand voice */
+      line-height: 1.65;
+      margin: 0;
+      flex: 1;          /* push attribution to the bottom of the card */
     }
     .review-attr {
       display: flex; justify-content: space-between; align-items: center;
       gap: 10px;
+      margin-top: 12px;
       padding-top: 10px;
       border-top: 1px solid rgba(255,255,255,0.06);
       font-size: 12.5px;
@@ -231,112 +346,188 @@
     }
     .reviews-status.error { color: rgba(255,106,0,0.85); }
 
-    /* ─── CTA strip between wall and form ──────────────────────────────── */
+    /* ─── CTA strip ─────────────────────────────────────────────────── */
     .reviews-cta-strip {
       max-width: var(--max-w);
       margin: 0 auto;
-      padding: 14px 24px 36px;
+      padding: 10px 24px 28px;
+      animation: reviewsFadeUp 0.6s ease both 0.40s;
     }
     .reviews-cta-strip-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 22px; flex-wrap: wrap;
-      padding: 22px 28px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 28px; flex-wrap: wrap;
+      padding: 24px 32px;
       background:
-        linear-gradient(135deg, rgba(255,106,0,0.06), rgba(255,0,128,0.05));
-      border: 1px solid rgba(255,106,0,0.22);
-      border-radius: 16px;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
+        radial-gradient(ellipse 60% 100% at 50% 0%, rgba(255,106,0,0.10), transparent 70%),
+        linear-gradient(135deg, rgba(255,106,0,0.05), rgba(255,0,128,0.04));
+      border: 1px solid rgba(255,106,0,0.26);
+      border-radius: 18px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 14px 32px rgba(0,0,0,0.34),
+        0 0 28px rgba(255,106,0,0.10);
+      position: relative;
+    }
+    /* Tiny trust/star accent icon on the left */
+    .rcs-icon {
+      flex-shrink: 0;
+      width: 46px; height: 46px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255,204,0,0.18), rgba(255,106,0,0.14));
+      border: 1px solid rgba(255,204,0,0.38);
+      color: #ffcc00;
+      box-shadow: 0 0 18px rgba(255,204,0,0.18);
+    }
+    .rcs-icon svg { width: 22px; height: 22px; }
+    .rcs-text {
+      flex: 1; min-width: 220px;
+      text-align: left;
     }
     .reviews-cta-strip h2 {
       font-family: 'Bangers', cursive;
-      font-size: clamp(22px, 2.8vw, 28px);
+      font-size: clamp(22px, 2.8vw, 30px);
       letter-spacing: 0.04em; line-height: 1.2;
-      margin: 0; padding-bottom: 4px;
-      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.72));
+      margin: 0 0 4px; padding-bottom: 4px;
+      background: linear-gradient(135deg, #fff, rgba(255,255,255,0.74));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .rcs-sub {
+      font-size: 13.5px; line-height: 1.4;
+      color: rgba(255,255,255,0.72);
+      margin: 0;
     }
     .rcs-buttons {
       display: inline-flex; gap: 12px; flex-wrap: wrap;
     }
-    .rcs-buttons .btn { min-width: 148px; justify-content: center; }
-    @media (max-width: 620px) {
-      .reviews-cta-strip-inner { flex-direction: column; align-items: stretch; text-align: center; padding: 22px 20px; }
-      .rcs-buttons { justify-content: center; }
+    .rcs-buttons .btn {
+      min-width: 168px; justify-content: center;
+      padding: 14px 28px; font-size: 15.5px;
+      transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
+    }
+    .rcs-buttons .btn-primary {
+      box-shadow: 0 4px 14px rgba(255,106,0,0.26);
+    }
+    .rcs-buttons .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255,106,0,0.40), 0 0 24px rgba(255,0,128,0.20);
+      filter: brightness(1.05);
+    }
+    .rcs-buttons .btn-outline {
+      border-color: rgba(255,255,255,0.20);
+    }
+    .rcs-buttons .btn-outline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(255,106,0,0.18);
+    }
+    @media (max-width: 720px) {
+      .reviews-cta-strip-inner { flex-direction: column; align-items: center; text-align: center; padding: 22px 20px; gap: 18px; }
+      .rcs-text { text-align: center; min-width: 0; }
+      .rcs-buttons { justify-content: center; width: 100%; }
+      .rcs-buttons .btn { flex: 1 1 140px; }
     }
 
-    /* ─── Leave a Review — two-column on desktop ───────────────────────── */
+    /* ─── Leave a Review — two-column on desktop ───────────────────── */
     .leave-review-section {
       max-width: var(--max-w);
       margin: 0 auto;
-      padding: 8px 24px 64px;
+      /* Reduce trailing whitespace so the footer sits closer to content. */
+      padding: 4px 24px 28px;
+      animation: reviewsFadeUp 0.6s ease both 0.48s;
     }
     .lr-grid {
       display: grid;
       grid-template-columns: 1fr 1.25fr;
-      gap: 40px;
+      gap: 36px;
       align-items: start;
     }
     @media (max-width: 880px) {
-      .lr-grid { grid-template-columns: 1fr; gap: 28px; }
+      .lr-grid { grid-template-columns: 1fr; gap: 24px; }
     }
 
+    /* Glass card around the trust block so the left side balances
+       the form visually instead of reading as raw body copy. */
     .lr-trust {
-      padding: 36px 8px 0;
+      padding: 28px 28px 26px;
+      background:
+        radial-gradient(ellipse 70% 50% at 0% 0%, rgba(255,106,0,0.07), transparent 65%),
+        radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255,0,128,0.05), transparent 70%),
+        rgba(10,10,16,0.50);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03) inset,
+        0 12px 28px rgba(0,0,0,0.32);
     }
-    @media (max-width: 880px) { .lr-trust { padding: 0; text-align: center; } }
+    @media (max-width: 880px) { .lr-trust { text-align: center; } }
+    .lr-accent-line {
+      display: inline-block;
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 1.8px; text-transform: uppercase;
+      color: var(--orange);
+      padding: 5px 11px;
+      background: rgba(255,106,0,0.08);
+      border: 1px solid rgba(255,106,0,0.30);
+      border-radius: 100px;
+      margin: 0 0 14px;
+    }
     .lr-trust h2 {
       font-family: 'Bangers', cursive;
       font-size: clamp(30px, 4.2vw, 42px);
-      letter-spacing: 0.03em; line-height: 1.15;
+      letter-spacing: 0.03em; line-height: 1.12;
       padding-bottom: 6px;
       background: linear-gradient(135deg, var(--orange), var(--pink));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       filter: drop-shadow(0 0 12px rgba(255,106,0,0.22));
-      margin: 0 0 14px;
+      margin: 0 0 12px;
     }
     .lr-trust > p {
-      font-size: 15px;
-      line-height: 1.65;
-      color: rgba(229,229,247,0.82);
+      font-size: 15.5px;
+      line-height: 1.62;
+      color: rgba(245,245,255,0.86);
       margin: 0 0 22px;
-      max-width: 460px;
     }
-    @media (max-width: 880px) { .lr-trust > p { margin-left: auto; margin-right: auto; } }
     .lr-trust-bullets {
       list-style: none;
       padding: 0;
       margin: 0;
       display: flex; flex-direction: column;
       gap: 12px;
-      max-width: 460px;
     }
-    @media (max-width: 880px) { .lr-trust-bullets { margin: 0 auto; } }
     .lr-trust-bullets li {
       position: relative;
-      padding: 10px 14px 10px 40px;
-      font-size: 13.5px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
       line-height: 1.4;
-      color: rgba(255,255,255,0.88);
-      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.90);
+      background: rgba(255,255,255,0.025);
       border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 10px;
+      border-radius: 11px;
+      transition: border-color .22s ease, background .22s ease;
     }
-    .lr-trust-bullets li::before {
-      content: '\2713';                  /* ✓ */
-      position: absolute; left: 14px; top: 50%;
-      transform: translateY(-50%);
-      width: 18px; height: 18px;
+    .lr-trust-bullets li:hover {
+      border-color: rgba(255,106,0,0.25);
+      background: rgba(255,106,0,0.04);
+    }
+    .lr-trust-bullets .lr-bullet-icon {
+      flex-shrink: 0;
+      width: 28px; height: 28px;
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 800;
-      color: #06060a;
-      background: linear-gradient(135deg, var(--orange), var(--pink));
-      border-radius: 50%;
-      box-shadow: 0 0 12px rgba(255,106,0,0.45);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.20), rgba(255,0,128,0.14));
+      border: 1px solid rgba(255,106,0,0.30);
+      color: var(--orange);
+      box-shadow: 0 0 12px rgba(255,106,0,0.20);
     }
+    .lr-trust-bullets .lr-bullet-icon svg { width: 14px; height: 14px; stroke-width: 2.2; }
 
-    /* Form card — glass treatment, slightly tighter than before */
+    /* ─── Form card ─────────────────────────────────────────────────── */
     .lr-form-wrap {
-      padding: 26px 26px 22px;
+      padding: 24px 24px 20px;
       background:
         radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,106,0,0.06), transparent 70%),
         rgba(10,10,16,0.55);
@@ -353,14 +544,15 @@
       font-size: 11px; font-weight: 700;
       letter-spacing: 1.6px; text-transform: uppercase;
       color: var(--orange);
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       text-align: center;
     }
 
-    .review-form .form-group { margin-bottom: 14px; }
+    .review-form .form-group { margin-bottom: 12px; }
+    .review-form .form-group:last-of-type { margin-bottom: 14px; }
     .review-form label {
       display: block;
-      font-size: 12px; font-weight: 700;
+      font-size: 11.5px; font-weight: 700;
       color: rgba(255,255,255,0.78);
       letter-spacing: 1.4px; text-transform: uppercase;
       margin-bottom: 6px;
@@ -374,45 +566,54 @@
     .review-form input,
     .review-form textarea {
       width: 100%; box-sizing: border-box;
-      background: rgba(0,0,0,0.30);
+      background: rgba(0,0,0,0.32);
       border: 1.5px solid rgba(255,255,255,0.10);
       border-radius: 10px;
       padding: 11px 14px;
       font-size: 14.5px;
       font-family: inherit;
       color: var(--text);
-      transition: border-color .15s, box-shadow .15s, background .15s;
+      transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        background .18s ease;
     }
     .review-form input::placeholder,
-    .review-form textarea::placeholder { color: rgba(255,255,255,0.35); }
+    .review-form textarea::placeholder { color: rgba(255,255,255,0.32); }
+    .review-form input:hover,
+    .review-form textarea:hover {
+      border-color: rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.40);
+    }
     .review-form input:focus,
     .review-form textarea:focus {
       outline: none;
-      border-color: rgba(255,106,0,0.65);
-      background: rgba(0,0,0,0.45);
-      box-shadow: 0 0 0 3px rgba(255,106,0,0.14), 0 3px 14px rgba(255,106,0,0.12);
+      border-color: rgba(255,106,0,0.70);
+      background: rgba(0,0,0,0.46);
+      box-shadow: 0 0 0 3px rgba(255,106,0,0.16), 0 4px 18px rgba(255,106,0,0.16);
     }
-    .review-form textarea { min-height: 108px; resize: vertical; line-height: 1.55; }
+    .review-form textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 
     /* Star rating picker — five buttons, click to set value */
     .star-picker {
-      display: inline-flex; gap: 4px;
+      display: inline-flex; align-items: center; gap: 4px;
       padding: 2px 0;
+      vertical-align: middle;
     }
     .star-picker button {
       background: none; border: none; cursor: pointer;
       font-size: 30px; line-height: 1;
       color: rgba(255,255,255,0.16);
       padding: 0 2px;
-      transition: color .15s, transform .1s;
+      transition: color .15s, transform .12s, text-shadow .15s;
     }
-    .star-picker button:hover { transform: scale(1.08); }
+    .star-picker button:hover { transform: scale(1.10); color: rgba(255,204,0,0.85); }
     .star-picker button:focus-visible {
       outline: 2px solid rgba(255,204,0,0.65);
       outline-offset: 2px;
       border-radius: 4px;
     }
-    .star-picker button.is-lit { color: #ffcc00; text-shadow: 0 0 12px rgba(255,204,0,0.5); }
+    .star-picker button.is-lit { color: #ffcc00; text-shadow: 0 0 12px rgba(255,204,0,0.55); }
     .star-picker-hint {
       display: inline-block;
       margin-left: 10px;
@@ -431,13 +632,16 @@
       cursor: pointer;
       box-shadow: 0 6px 22px rgba(255,106,0,0.32), 0 0 0 1px rgba(255,255,255,0.06) inset;
       line-height: 1.2;
-      transition: transform .15s, box-shadow .15s, filter .15s;
-      margin-top: 4px;
+      transition: transform .15s ease, box-shadow .2s ease, filter .15s ease;
+      margin-top: 2px;
     }
     .review-form-cta:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(255,106,0,0.42), 0 0 0 1px rgba(255,255,255,0.10) inset;
-      filter: brightness(1.05);
+      box-shadow:
+        0 10px 28px rgba(255,106,0,0.46),
+        0 0 28px rgba(255,0,128,0.22),
+        0 0 0 1px rgba(255,255,255,0.10) inset;
+      filter: brightness(1.06);
     }
     .review-form-cta:focus-visible {
       outline: 2px solid rgba(255,204,0,0.65);
@@ -453,6 +657,20 @@
     }
     .review-form-status.ok    { color: var(--cyan); }
     .review-form-status.error { color: var(--orange); }
+
+    /* Mobile audit: tighten hero, summary, sections everywhere */
+    @media (max-width: 620px) {
+      .page-reviews .reviews-hero { padding: calc(var(--nav-h) + 26px) 18px 4px; }
+      .page-reviews .reviews-hero p.reviews-sub { font-size: 15px; }
+      .reviews-summary-card { margin-top: 18px; }
+      .social-proof-row { padding: 22px 16px 4px; }
+      .reviews-wall-section { padding: 18px 18px 14px; }
+      .reviews-cta-strip { padding: 8px 16px 20px; }
+      .leave-review-section { padding: 4px 16px 22px; }
+      .lr-trust { padding: 22px 20px 20px; }
+      .lr-form-wrap { padding: 20px 18px 18px; }
+      .review-form-cta { font-size: 18px; padding: 13px 16px 10px; }
+    }
   </style>
 </head>
 <body class="page-reviews">
@@ -511,16 +729,64 @@
       </div>
     </section>
 
-    <!-- Section 2 — Review wall (approved reviews from the worker) -->
+    <!-- Section 2 — Social proof stats row -->
+    <section class="social-proof-row" aria-label="Why collectors trust us">
+      <div class="sp-grid">
+        <div class="sp-stat">
+          <span class="sp-stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </span>
+          <div class="sp-stat-body">
+            <span class="sp-stat-value">1,000+</span>
+            <span class="sp-stat-label">Orders Shipped</span>
+          </div>
+        </div>
+        <div class="sp-stat">
+          <span class="sp-stat-icon is-cyan" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <div class="sp-stat-body">
+            <span class="sp-stat-value">FL Card Shows</span>
+            <span class="sp-stat-label">Trusted Vendor</span>
+          </div>
+        </div>
+        <div class="sp-stat">
+          <span class="sp-stat-icon is-gold" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </span>
+          <div class="sp-stat-body">
+            <span class="sp-stat-value">5★ Verified</span>
+            <span class="sp-stat-label">Customer Rating</span>
+          </div>
+        </div>
+        <div class="sp-stat">
+          <span class="sp-stat-icon is-purple" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </span>
+          <div class="sp-stat-body">
+            <span class="sp-stat-value">Insured Shipping</span>
+            <span class="sp-stat-label">Sleeved · Protected</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3 — Review wall (approved reviews from the worker) -->
     <section class="reviews-wall-section" aria-label="Customer reviews">
       <div id="reviewsStatus" class="reviews-status">Loading reviews…</div>
       <div id="reviewsGrid" class="reviews-wall" hidden></div>
     </section>
 
-    <!-- Section 3 — CTA strip between reviews and form -->
+    <!-- Section 4 — CTA strip between reviews and form -->
     <section class="reviews-cta-strip" aria-label="Shop or trade with Sake Kitty Cards">
       <div class="reviews-cta-strip-inner">
-        <h2>Ready to shop with confidence?</h2>
+        <span class="rcs-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </span>
+        <div class="rcs-text">
+          <h2>Ready to shop with confidence?</h2>
+          <p class="rcs-sub">Browse our latest singles, slabs, and sealed inventory.</p>
+        </div>
         <div class="rcs-buttons">
           <a href="shop.html" class="btn btn-primary">Shop Cards</a>
           <a href="trade-in.html" class="btn btn-outline">Sell / Trade</a>
@@ -532,12 +798,28 @@
     <section class="leave-review-section" aria-labelledby="leave-review-heading">
       <div class="lr-grid">
         <div class="lr-trust">
+          <span class="lr-accent-line">Collector-first experience.</span>
           <h2 id="leave-review-heading">Bought From Us?</h2>
           <p>Whether you found us at a show, traded with us, or ordered online, your review helps other collectors know what to expect.</p>
           <ul class="lr-trust-bullets">
-            <li>Reviews are checked before publishing</li>
-            <li>Your email is never shown</li>
-            <li>Keep it honest — good, bad, or glowing</li>
+            <li>
+              <span class="lr-bullet-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+              </span>
+              <span>Reviews are checked before publishing</span>
+            </li>
+            <li>
+              <span class="lr-bullet-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <span>Your email is never shown</span>
+            </li>
+            <li>
+              <span class="lr-bullet-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.93 6.32 6.41-.07-5.17 3.79 1.95 6.31L12 14.5l-5.12 3.85 1.95-6.31L3.66 8.25l6.41.07L12 2z"/></svg>
+              </span>
+              <span>Keep it honest &mdash; good, bad, or glowing</span>
+            </li>
           </ul>
         </div>
         <div class="lr-form-wrap">

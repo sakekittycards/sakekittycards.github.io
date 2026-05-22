@@ -1608,7 +1608,10 @@ body.cart-open { overflow: hidden; }
 .product-img::after { content:''; position:absolute; inset:0; background: linear-gradient(180deg,transparent 55%,rgba(0,0,0,.55) 100%); }
 .product-img-real {
   width: 100%; aspect-ratio: 5/7;
-  object-fit: cover;
+  /* `contain` (was `cover`) — full product image always visible across all
+     categories (graded slabs, raw singles, sealed, merch). Aspect mismatch
+     letterboxes onto the dark tile bg instead of cropping the card art. */
+  object-fit: contain;
   background: linear-gradient(135deg,#12122a,#1a1a3e,#0f2050);
   display: block;
 }
