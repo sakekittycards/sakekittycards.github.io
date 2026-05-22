@@ -29,11 +29,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=166" />
+  <link rel="stylesheet" href="style.css?v=165" />
   <style>
     /* ── Page-scoped polish — tighter spacing, premium glow, calmer blobs.
        All hero / page-content / bg-blob tweaks scoped under .page-shipping
        so they don't bleed into the global stylesheet. ── */
+
+    /* Motion primitive — subtle fade-up on section entry. Respects
+       prefers-reduced-motion. */
+    @keyframes shipFadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .page-shipping .pack-grid,
+    .page-shipping .pack-rules,
+    .page-shipping .pack-tips,
+    .page-shipping .pack-questions,
+    .page-shipping .pack-thanks { animation: shipFadeUp 0.55s ease both; }
+    .page-shipping .pack-grid     { animation-delay: 0.04s; }
+    .page-shipping .pack-rules    { animation-delay: 0.10s; }
+    .page-shipping .pack-tips     { animation-delay: 0.16s; }
+    .page-shipping .pack-questions{ animation-delay: 0.22s; }
+    .page-shipping .pack-thanks   { animation-delay: 0.28s; }
+    @media (prefers-reduced-motion: reduce) {
+      .page-shipping [class^="pack-"] { animation: none !important; }
+    }
+
     .page-shipping .bg-blob   { opacity: 0.06; filter: blur(140px); }
     /* Bumped max-width on the centered children (hero + section) — putting it
        on .page-content broke centering since that wrapper has no margin:0 auto. */
@@ -290,17 +311,21 @@
        louder (red glow, beefier border) since these rules prevent damaged
        shipments. ── */
     .pack-rules {
-      display: grid; gap: 24px;
-      grid-template-columns: 1.5fr 1fr;
+      display: grid; gap: 22px;
+      grid-template-columns: 1fr 1fr;
       margin-bottom: 32px;
+      align-items: stretch;
     }
-    @media (max-width: 820px) { .pack-rules { grid-template-columns: 1fr; gap: 22px; } }
+    @media (max-width: 880px) { .pack-rules { grid-template-columns: 1fr; gap: 18px; } }
 
     .donot, .sleeves {
       background: var(--bg-card); border-radius: var(--r);
-      padding: 30px 28px 26px;
-      transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
+      padding: 28px 26px 24px;
+      transition:
+        transform .25s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color .25s ease, box-shadow .3s ease, background .25s ease;
       position: relative;
+      display: flex; flex-direction: column;
     }
     /* DO NOT — louder framing: thicker border, brighter inset, outer glow */
     .donot {
@@ -366,30 +391,77 @@
     .donot strong { color: #ff96ad; font-weight: 700; }
 
     .sleeves p {
-      font-size: 14.5px; line-height: 1.7; color: rgba(255,255,255,0.95); margin-bottom: 14px;
+      font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.94); margin: 0 0 14px;
     }
     .sleeves p strong { color: #fff; font-weight: 700; }
-    .sleeves .nope {
-      font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.80);
-      padding-top: 14px; border-top: 1px solid rgba(80,220,140,0.16); margin-top: 8px;
+    /* Comparison block — OK on top (green), AVOID on bottom (red) — gives
+       the right panel real visual weight so it stops reading as a paragraph
+       afterthought next to the DO NOT bullet list. */
+    .sleeve-check {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: auto;
+    }
+    @media (max-width: 460px) { .sleeve-check { grid-template-columns: 1fr; } }
+    .sleeve-check-card {
+      padding: 14px 14px 12px;
+      border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.025);
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .sleeve-check-card .scc-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px; font-weight: 800;
+      letter-spacing: 1.6px; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .sleeve-check-card .scc-label::before {
+      content: ""; width: 8px; height: 8px; border-radius: 50%;
+      display: inline-block;
+    }
+    .sleeve-check-card ul { list-style: none; padding: 0; margin: 0; }
+    .sleeve-check-card li {
+      font-size: 13px; line-height: 1.5;
+      color: rgba(255,255,255,0.88);
+      padding: 3px 0;
+    }
+    .sleeve-check-card.scc-ok {
+      border: 1px solid rgba(80,220,140,0.30);
+      background: rgba(80,220,140,0.05);
+    }
+    .sleeve-check-card.scc-ok .scc-label { color: #80dc8c; }
+    .sleeve-check-card.scc-ok .scc-label::before {
+      background: #80dc8c; box-shadow: 0 0 10px rgba(80,220,140,0.6);
+    }
+    .sleeve-check-card.scc-avoid {
+      border: 1px solid rgba(255,55,90,0.30);
+      background: rgba(255,55,90,0.05);
+    }
+    .sleeve-check-card.scc-avoid .scc-label { color: #ff8aa0; }
+    .sleeve-check-card.scc-avoid .scc-label::before {
+      background: #ff375a; box-shadow: 0 0 10px rgba(255,55,90,0.55);
     }
 
     /* ── Tip rows at bottom (shipping + extra) ── */
     .pack-tips {
-      display: grid; gap: 24px;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      margin-bottom: 32px;
+      display: grid; gap: 22px;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 28px;
       align-items: stretch;
     }
+    @media (max-width: 720px) { .pack-tips { grid-template-columns: 1fr; gap: 18px; } }
     /* Thin neon accent bar at the top of each card via ::before, not a full
        gradient header. Title sits cleanly below it in solid white with a
        per-tone text-shadow glow so the icon + name read together. */
     .tipbox {
       position: relative;
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 30px 28px 26px;
+      border-radius: var(--r); padding: 26px 26px 22px;
       display: flex; flex-direction: column;
-      transition: transform .28s ease, border-color .25s, box-shadow .3s, background .25s;
+      transition:
+        transform .25s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color .25s ease, box-shadow .3s ease, background .25s ease;
     }
     .tipbox.tone-blue:hover  { transform: translateY(-2px); border-color: rgba(0,212,255,0.50); box-shadow: 0 0 0 1px rgba(0,212,255,0.20) inset, 0 0 42px rgba(0,212,255,0.16); }
     .tipbox.tone-amber:hover { transform: translateY(-2px); border-color: rgba(255,157,0,0.50); box-shadow: 0 0 0 1px rgba(255,157,0,0.20) inset, 0 0 42px rgba(255,157,0,0.16); }
@@ -409,8 +481,8 @@
     .tipbox h3 {
       display: flex; align-items: center; gap: 12px;
       font-family: 'Bangers', cursive; letter-spacing: 0.05em;
-      font-size: 25px; line-height: 1.2; padding: 4px 0 4px;
-      margin: 4px 0 16px;
+      font-size: clamp(22px, 2.4vw, 26px); line-height: 1.2; padding: 4px 0 4px;
+      margin: 4px 0 14px;
       color: #fff;
     }
     .tipbox.tone-blue h3 { text-shadow: 0 0 16px rgba(0,212,255,0.55), 0 0 4px rgba(0,212,255,0.40); }
@@ -420,8 +492,8 @@
     .tipbox.tone-amber h3 svg path { stroke: #ffd24d; fill: none; }
     .tipbox ul { list-style: none; padding: 0; margin: 0; }
     .tipbox li {
-      font-size: 15px; line-height: 1.7; padding: 9px 0 9px 24px; position: relative;
-      color: rgba(255,255,255,0.95);
+      font-size: 14.5px; line-height: 1.6; padding: 8px 0 8px 24px; position: relative;
+      color: rgba(255,255,255,0.94);
     }
     .tipbox.tone-blue li::before,
     .tipbox.tone-amber li::before {
@@ -437,13 +509,18 @@
        welcome handoff, not as a hard-sell button bar. ── */
     .pack-questions {
       position: relative; overflow: hidden;
-      max-width: 760px; margin: 40px auto 20px;
-      padding: 36px 32px 30px;
-      background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(123,47,255,0.05));
-      border: 1px solid rgba(0,212,255,0.30);
+      max-width: 760px; margin: 24px auto 18px;
+      padding: 30px 32px 26px;
+      background:
+        radial-gradient(ellipse 60% 100% at 50% 0%, rgba(0,212,255,0.10), transparent 70%),
+        linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,47,255,0.05));
+      border: 1px solid rgba(0,212,255,0.32);
       border-radius: var(--r);
       text-align: center;
-      box-shadow: 0 0 0 1px rgba(0,212,255,0.10) inset, 0 0 36px rgba(0,212,255,0.10);
+      box-shadow:
+        0 0 0 1px rgba(0,212,255,0.10) inset,
+        0 12px 30px rgba(0,0,0,0.30),
+        0 0 36px rgba(0,212,255,0.12);
     }
     .pack-questions .pq-glow {
       position: absolute; inset: -40% -10% auto -10%;
@@ -466,8 +543,8 @@
       filter: drop-shadow(0 0 10px rgba(0,212,255,0.30));
     }
     .pack-questions p {
-      font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.92);
-      max-width: 540px; margin: 0 auto 20px;
+      font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.92);
+      max-width: 540px; margin: 0 auto 18px;
     }
     .pack-questions p a { color: #4ddfff; font-weight: 600; text-decoration: none; }
     .pack-questions p a.pq-ig { color: #ff66b3; }
@@ -546,6 +623,22 @@
       color: rgba(229,229,247,0.65);
     }
     .pack-footline .star { color: #ff0080; padding: 0 12px; }
+
+    /* ── Mobile audit: tighten rhythm across the page. ── */
+    @media (max-width: 620px) {
+      .page-shipping .page-hero { padding-bottom: 20px; }
+      .page-shipping .page-hero h1 { margin-bottom: 10px; }
+      .page-shipping .page-hero > p:not(.pack-tagline) { font-size: 14.5px; }
+      .pack-grid { margin-bottom: 24px; }
+      .pack-rules { margin-bottom: 24px; }
+      .pack-tips { margin-bottom: 22px; }
+      .pack-questions { padding: 26px 22px 22px; margin: 18px auto 14px; }
+      .pack-thanks { padding: 22px 22px 22px; }
+      .pack-footline { font-size: 15px; margin-top: 14px; }
+      .tier-head { font-size: clamp(22px, 6vw, 26px); }
+      .donot h3, .sleeves h3 { font-size: clamp(22px, 6vw, 26px); }
+      .tipbox h3 { font-size: clamp(20px, 5.6vw, 24px); }
+    }
   </style>
 </head>
 <body class="page-shipping">
@@ -663,14 +756,16 @@
               <li><span>Place the storage box inside a <strong>shipping box</strong>. Fill all empty space with packing paper or peanuts. <strong style="color:#ffb84d">No movement inside the box.</strong></span></li>
               <li><span>Seal the box securely with tape. <strong>Double box</strong> valuable collections when possible.</span></li>
             </ol>
-            <h3 class="checklist-head">Bulk Packing Tips</h3>
-            <ul class="checklist">
-              <li>Keep cards tight and secure.</li>
-              <li>No movement inside the box.</li>
-              <li>Use plenty of packing material.</li>
-              <li>Double box high-value collections.</li>
-              <li>Label the box clearly.</li>
-            </ul>
+            <div class="bulk-tips">
+              <h3 class="checklist-head">Bulk Packing Tips</h3>
+              <ul class="checklist">
+                <li>Keep cards tight and secure.</li>
+                <li>No movement inside the box.</li>
+                <li>Use plenty of packing material.</li>
+                <li>Double box high-value collections.</li>
+                <li>Label the box clearly.</li>
+              </ul>
+            </div>
           </div>
         </article>
 
@@ -694,9 +789,25 @@
 
         <section class="sleeves">
           <h3>Use Only Clear Sleeves</h3>
-          <p>Use <strong>standard clear penny sleeves</strong> for all cards.</p>
-          <p><strong>Team bags:</strong> resealable plastic bags used to protect top loaders.</p>
-          <p class="nope">No colored sleeves, no patterned sleeves, no ETB sleeves, no Dragon Shield — nothing but clear.</p>
+          <p>Use <strong>standard clear penny sleeves</strong> for every card. <strong>Team bags</strong> are resealable plastic bags that protect top loaders inside the mailer.</p>
+          <div class="sleeve-check">
+            <div class="sleeve-check-card scc-ok">
+              <span class="scc-label">Use</span>
+              <ul>
+                <li>Clear penny sleeves</li>
+                <li>Standard top loaders</li>
+                <li>Resealable team bags</li>
+              </ul>
+            </div>
+            <div class="sleeve-check-card scc-avoid">
+              <span class="scc-label">Avoid</span>
+              <ul>
+                <li>Colored or patterned sleeves</li>
+                <li>ETB / Dragon Shield sleeves</li>
+                <li>Card Savers (for submissions)</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
       </div>
