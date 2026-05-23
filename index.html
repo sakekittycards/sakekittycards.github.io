@@ -795,11 +795,15 @@
         line-height: 1.5;
       }
       /* CTA — sits flush left under the sub, slightly smaller pill so it
-         reads as a section-level anchor, not a competing primary action. */
+         reads as a section-level anchor, not a competing primary action.
+         min-height pins to 44px (Apple HIG tap-target floor) since
+         .see-all isn't a .btn and so doesn't inherit the sitewide 44px
+         rule from style.css. */
       .just-listed-header a.see-all {
         margin: 2px 0 0;
-        padding: 10px 22px;
+        padding: 11px 22px;
         font-size: 13.5px;
+        min-height: 44px;
       }
 
       /* Product cards on the strip — image at 33% width (was 36%) so the
@@ -830,16 +834,16 @@
       }
       .just-listed .product-card .product-img,
       .just-listed .product-card .product-img-real {
-        width: 33%;
+        width: 32%;
       }
       .just-listed .product-card .product-info {
-        padding: 8px 14px 8px 16px;
+        padding: 6px 14px 6px 16px;
         justify-content: center;
       }
       .just-listed .product-card .product-name {
         font-size: 14px;
-        line-height: 1.2;
-        margin-bottom: 8px;
+        line-height: 1.18;
+        margin-bottom: 6px;
         /* Clamp long card titles to 2 lines so a 3-line wrap never
            pushes one card taller than its siblings. The vendor prefix
            (-webkit-line-clamp) has wide cross-browser support including
@@ -1406,9 +1410,9 @@
     }
     // Particle count reduced 60 -> 42 (~30%) per direction — more empty
     // negative-space zones, calmer cinematic feel. Mobile drops further
-    // to 26 so the gaps between stacked product cards don't compete
+    // to 22 so the gaps between stacked product cards don't compete
     // with the title + price text for the eye.
-    const PARTICLE_COUNT = window.innerWidth <= 640 ? 26 : 42;
+    const PARTICLE_COUNT = window.innerWidth <= 640 ? 22 : 42;
     for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(mkParticle(true));
 
     // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle,
