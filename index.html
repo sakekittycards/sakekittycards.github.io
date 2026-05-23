@@ -806,22 +806,70 @@
          5:7 aspect drives a slightly shorter card height (~8% trim).
          Vertical padding tightened 9→7. Title down a half-step to 14px
          with 1.2 line-height for tighter wrap on long names. Bumped the
-         title→price separation 3→7 so the price reads as its own beat
-         instead of crowding the title. Price stays bold + orange. */
+         title→price separation 3→8 so the price reads as its own beat
+         instead of crowding the title. Price stays bold + orange.
+
+         Premium depth (final polish 2026-05-22): soft top-edge highlight
+         (inset 1px top), warm vignette gradient (155° tilt from near-
+         transparent white → bg-card → near-black), grounded 24px drop
+         shadow, and a hairline orange ring (6% opacity) so each tile
+         lifts off the pure-black page bg without reading as "cyberpunk
+         overload". Long titles now clamp to 2 lines so a 3-line wrap
+         never balloons one card taller than its neighbors. */
+      .just-listed .product-card {
+        background:
+          linear-gradient(155deg,
+            rgba(255,255,255,0.045) 0%,
+            var(--bg-card) 42%,
+            #07070b 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.05),
+          0 1px 0 rgba(255,106,0,0.06),
+          0 10px 26px rgba(0,0,0,0.42);
+      }
       .just-listed .product-card .product-img,
       .just-listed .product-card .product-img-real {
         width: 33%;
       }
       .just-listed .product-card .product-info {
-        padding: 7px 14px 7px 16px;
+        padding: 8px 14px 8px 16px;
         justify-content: center;
       }
       .just-listed .product-card .product-name {
         font-size: 14px;
         line-height: 1.2;
-        margin-bottom: 7px;
+        margin-bottom: 8px;
+        /* Clamp long card titles to 2 lines so a 3-line wrap never
+           pushes one card taller than its siblings. The vendor prefix
+           (-webkit-line-clamp) has wide cross-browser support including
+           iOS Safari + Chrome Android. */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
       .just-listed .product-card .product-price { font-size: 17.5px; }
+
+      /* Trust strip — tighten the icon→title→description rhythm on
+         mobile + slightly bump the grid container's depth so it reads
+         in the same premium register as the product cards above. Bg
+         gradient 0.04 → 0.06 opacity, border 6% → 10%, soft inset
+         highlight + grounded shadow. */
+      .features-grid {
+        background: linear-gradient(135deg, rgba(255,106,0,0.06), rgba(123,47,255,0.06));
+        border-color: rgba(255,255,255,0.10);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.04),
+          0 8px 24px rgba(0,0,0,0.32);
+      }
+      .features .feature-icon { margin-bottom: 10px; }
+      .features .lc-xl { width: 52px; height: 52px; }
+      .features .feature-item h3 {
+        font-size: 16.5px;
+        margin-bottom: 4px;
+      }
+      .features .feature-item p { font-size: 13.5px; line-height: 1.55; }
 
       /* Trust strip + downstream sections — drop home-page section
          padding from 64→44 so the beats below Just Listed don't
@@ -1357,8 +1405,11 @@
       };
     }
     // Particle count reduced 60 -> 42 (~30%) per direction — more empty
-    // negative-space zones, calmer cinematic feel.
-    for (let i = 0; i < 42; i++) particles.push(mkParticle(true));
+    // negative-space zones, calmer cinematic feel. Mobile drops further
+    // to 26 so the gaps between stacked product cards don't compete
+    // with the title + price text for the eye.
+    const PARTICLE_COUNT = window.innerWidth <= 640 ? 26 : 42;
+    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(mkParticle(true));
 
     // Easter egg: 5 clicks on the hero logo toggles paint drips + hue cycle,
     // and fires a one-shot aura burst that expands from center and recedes.
