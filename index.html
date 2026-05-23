@@ -706,6 +706,108 @@
     @media (max-width: 480px) {
       .event-preview { flex-direction: column; text-align: center; }
     }
+
+    /* ── Mobile homepage compression (≤640px) ──
+       Pulls "Built by Collectors" + "Just Listed" much higher on the page
+       by shrinking the hero logo, tightening the BST button row, reducing
+       padding around the headline, and pinching the home-page section
+       rhythm. The goal: phone visitors see a product card within one
+       short scroll instead of paging through giant black gaps. Per
+       2026-05-22 mobile shop-forward audit. */
+    @media (max-width: 640px) {
+      /* Hero — kill the forced full-viewport min-height (was making the
+         hero ALWAYS reach 100vh even after content), tighten top/bottom
+         padding, and pull the gap between hero elements from 26→14. */
+      .hero {
+        min-height: 0;
+        padding: calc(var(--nav-h) + 18px) 18px 24px;
+        gap: 14px;
+      }
+      /* Logo — drop from 86vw to 58vw cap @ 240px ceiling. Removes the
+         "two-thirds of the first screen is logo" problem on phones. */
+      .hero-logo-outer { margin-bottom: 0; }
+      .hero-logo-mask img {
+        width: 100%;
+        max-width: min(58vw, 240px);
+      }
+      /* Headline — keep the gradient drama but tighter line-box so it
+         doesn't add 40px of vertical air on its own. */
+      .hero-title {
+        font-size: clamp(40px, 11vw, 56px);
+        padding: 0 6px 4px;
+        line-height: 1.05;
+      }
+      .hero-tagline {
+        font-size: 14.5px;
+        line-height: 1.5;
+        padding: 0 8px;
+      }
+      /* Buy / Sell / Trade — column stack (inherited from 580px rule)
+         with a smaller button + tighter gap. */
+      .hero-actions { gap: 8px; }
+      .hero-actions .btn-lg {
+        padding: 13px 26px;
+        font-size: 15.5px;
+        min-height: 46px;
+      }
+
+      /* Just Listed — pull the section header up close to the hero so
+         the first product card sits within reach on the first scroll. */
+      .just-listed { padding: 18px 18px 8px; }
+      .just-listed-header { margin-bottom: 14px; gap: 10px; }
+      .just-listed-header h2 {
+        font-size: clamp(26px, 7.4vw, 34px);
+        line-height: 1.1;
+        padding-bottom: 2px;
+      }
+      .just-listed-header .just-listed-sub {
+        font-size: 13.5px;
+        margin-top: 4px;
+      }
+
+      /* Product cards on the strip — uniform min-height, image takes
+         40% (was 45%) so the title + price block has more horizontal
+         breathing room. Tighter title type so long card names don't
+         balloon the card height. */
+      .just-listed .product-card { min-height: 158px; }
+      .just-listed .product-card .product-img,
+      .just-listed .product-card .product-img-real {
+        width: 40%;
+      }
+      .just-listed .product-card .product-info {
+        padding: 12px 14px 12px 16px;
+      }
+      .just-listed .product-card .product-name {
+        font-size: 14.5px;
+        line-height: 1.28;
+      }
+      .just-listed .product-card .product-price { font-size: 17.5px; }
+
+      /* Trust strip + downstream sections — drop home-page section
+         padding from 64→44 so the beats below Just Listed don't
+         reintroduce the dead air we just removed above it. */
+      body.page-home .page-content > section.section {
+        padding-top: 44px;
+        padding-bottom: 44px;
+      }
+      body.page-home .page-content > section.section[style*="padding-top:0"] {
+        padding-top: 0;
+      }
+      .features { padding: 22px 18px 28px; }
+      .features-grid { padding: 22px 14px; gap: 12px; }
+      .feature-item { padding: 14px 12px; }
+    }
+
+    /* Extra-small phones — pinch slightly more. */
+    @media (max-width: 380px) {
+      .hero {
+        padding: calc(var(--nav-h) + 14px) 14px 20px;
+        gap: 12px;
+      }
+      .hero-logo-mask img { max-width: min(56vw, 210px); }
+      .just-listed { padding: 14px 14px 6px; }
+      .just-listed .product-card { min-height: 146px; }
+    }
   </style>
 
   <!-- JSON-LD bundle — three nodes so each schema type is independently
