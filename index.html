@@ -716,17 +716,26 @@
        2026-05-22 mobile shop-forward audit. */
     @media (max-width: 640px) {
       /* Hero — kill the forced full-viewport min-height (was making the
-         hero ALWAYS reach 100vh even after content), tighten top/bottom
-         padding, and pull the inter-element gap to 10. Polish pass v3
-         (2026-05-22 third refinement): hero gap 12→10, padding-top
-         16→14, padding-bottom 18→12 — shaves another ~5% off the hero
-         footprint and tightens tagline→Just Listed without touching
-         the logo size. */
+         hero ALWAYS reach 100vh even after content). Top padding bumped
+         14→28 to give the floating-logo animation room: float peak
+         lifts the logo -6px (see floatLogoMobile below) + glow ring
+         extends -10px above the logo, so we need ~16px headroom below
+         the navbar for the glow not to visually touch it. Bottom
+         padding 12→8 partly compensates so the net hero footprint
+         only grows ~10px. */
       .hero {
         min-height: 0;
-        padding: calc(var(--nav-h) + 14px) 18px 12px;
+        padding: calc(var(--nav-h) + 28px) 18px 8px;
         gap: 10px;
       }
+      /* Float travel halved on mobile (12px → 6px). Same 4.5s rhythm,
+         same ease curve — atmospheric subtle drift, not "logo wandering
+         around the screen". Pairs with the bumped top padding above. */
+      @keyframes floatLogoMobile {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-6px); }
+      }
+      .hero-logo-wrap { animation-name: floatLogoMobile; }
       /* Logo — 56vw / 228px cap. ~5% trim off the previous 58vw / 240px
          so the artwork stays unmistakably the hero anchor, just slightly
          less commanding of the first screen. */
@@ -826,7 +835,7 @@
     /* Extra-small phones — pinch slightly more. */
     @media (max-width: 380px) {
       .hero {
-        padding: calc(var(--nav-h) + 10px) 14px 10px;
+        padding: calc(var(--nav-h) + 24px) 14px 6px;
         gap: 9px;
       }
       .hero-logo-mask img { max-width: min(54vw, 200px); }
