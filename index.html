@@ -717,25 +717,31 @@
     @media (max-width: 640px) {
       /* Hero — kill the forced full-viewport min-height (was making the
          hero ALWAYS reach 100vh even after content). Top padding bumped
-         14→28 to give the floating-logo animation room: float peak
-         lifts the logo -6px (see floatLogoMobile below) + glow ring
-         extends -10px above the logo, so we need ~16px headroom below
-         the navbar for the glow not to visually touch it. Bottom
-         padding 12→8 partly compensates so the net hero footprint
-         only grows ~10px. */
+         to nav + 48 — the logo's glow ring uses inset: -10px PLUS a
+         filter: blur(14px) glowPulse, so the visual halo extends
+         roughly 25-30px above the logo top, NOT just 10. The previous
+         28px didn't account for the blur falloff, so the halo still
+         visually entered the navbar at the float peak. With 48px
+         padding + a 3px float (below), the visual halo clears the
+         navbar by ~15-20px at peak. Bottom padding 8→4 to keep the
+         net hero footprint growth minimal. */
       .hero {
         min-height: 0;
-        padding: calc(var(--nav-h) + 28px) 18px 8px;
+        padding: calc(var(--nav-h) + 48px) 18px 4px;
         gap: 10px;
       }
-      /* Float travel halved on mobile (12px → 6px). Same 4.5s rhythm,
-         same ease curve — atmospheric subtle drift, not "logo wandering
-         around the screen". Pairs with the bumped top padding above. */
+      /* Float travel cut to -3px on mobile (was -12 desktop, -6 polish
+         pass). Same 4.5s rhythm, same ease curve. At this scale the
+         drift reads as "alive" without giving the logo room to crash
+         the navbar. Explicit shorthand so the override survives any
+         browser quirks around partial-property cascade. */
       @keyframes floatLogoMobile {
         0%, 100% { transform: translateY(0); }
-        50%      { transform: translateY(-6px); }
+        50%      { transform: translateY(-3px); }
       }
-      .hero-logo-wrap { animation-name: floatLogoMobile; }
+      .hero-logo-wrap {
+        animation: floatLogoMobile 4.5s ease-in-out infinite;
+      }
       /* Logo — 56vw / 228px cap. ~5% trim off the previous 58vw / 240px
          so the artwork stays unmistakably the hero anchor, just slightly
          less commanding of the first screen. */
@@ -835,7 +841,7 @@
     /* Extra-small phones — pinch slightly more. */
     @media (max-width: 380px) {
       .hero {
-        padding: calc(var(--nav-h) + 24px) 14px 6px;
+        padding: calc(var(--nav-h) + 44px) 14px 2px;
         gap: 9px;
       }
       .hero-logo-mask img { max-width: min(54vw, 200px); }
