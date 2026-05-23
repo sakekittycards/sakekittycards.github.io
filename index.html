@@ -717,15 +717,15 @@
     @media (max-width: 640px) {
       /* Hero — kill the forced full-viewport min-height (was making the
          hero ALWAYS reach 100vh even after content), tighten top/bottom
-         padding, and pull the inter-element gap to 12 (down from the
-         desktop 26). 2026-05-22 polish: dropped hero gap 14→12 and
-         padding-bottom 24→18 so the Trade button → "Built by Collectors"
-         and tagline → "Just Listed" beats compress ~20% without the
-         layout reading cramped. */
+         padding, and pull the inter-element gap to 10. Polish pass v3
+         (2026-05-22 third refinement): hero gap 12→10, padding-top
+         16→14, padding-bottom 18→12 — shaves another ~5% off the hero
+         footprint and tightens tagline→Just Listed without touching
+         the logo size. */
       .hero {
         min-height: 0;
-        padding: calc(var(--nav-h) + 16px) 18px 18px;
-        gap: 12px;
+        padding: calc(var(--nav-h) + 14px) 18px 12px;
+        gap: 10px;
       }
       /* Logo — 56vw / 228px cap. ~5% trim off the previous 58vw / 240px
          so the artwork stays unmistakably the hero anchor, just slightly
@@ -748,8 +748,9 @@
         padding: 0 8px;
       }
       /* Buy / Sell / Trade — column stack (inherited from 580px rule)
-         with a smaller button + tighter gap. */
-      .hero-actions { gap: 8px; }
+         with a tighter inter-button gap. Buttons themselves stay large
+         and premium (46px min-height). */
+      .hero-actions { gap: 6px; }
       .hero-actions .btn-lg {
         padding: 13px 26px;
         font-size: 15.5px;
@@ -761,12 +762,12 @@
          Header laid out as a single vertical cluster (title → sub → CTA)
          on mobile so the "Shop everything →" button reads as part of
          the same group instead of detached on its own row. */
-      .just-listed { padding: 12px 18px 8px; }
+      .just-listed { padding: 8px 18px 8px; }
       .just-listed-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 14px;
+        gap: 9px;
+        margin-bottom: 12px;
       }
       .just-listed-header h2 {
         font-size: clamp(26px, 7.4vw, 34px);
@@ -786,23 +787,24 @@
         font-size: 13.5px;
       }
 
-      /* Product cards on the strip — image takes 36% (down from 40%) so
-         it sits slightly shorter and gives the title + price block more
-         horizontal room. Internal vertical padding tightened 12→9, title
-         line-height 1.28→1.22. Removed explicit min-height — the 5:7
-         image ratio at 36% width already yields a uniform card height
-         and the cards now scale exactly with the image. */
+      /* Product cards on the strip — image at 33% width (was 36%) so the
+         5:7 aspect drives a slightly shorter card height (~8% trim).
+         Vertical padding tightened 9→7. Title down a half-step to 14px
+         with 1.2 line-height for tighter wrap on long names. Bumped the
+         title→price separation 3→7 so the price reads as its own beat
+         instead of crowding the title. Price stays bold + orange. */
       .just-listed .product-card .product-img,
       .just-listed .product-card .product-img-real {
-        width: 36%;
+        width: 33%;
       }
       .just-listed .product-card .product-info {
-        padding: 9px 14px 9px 16px;
+        padding: 7px 14px 7px 16px;
         justify-content: center;
       }
       .just-listed .product-card .product-name {
-        font-size: 14.5px;
-        line-height: 1.22;
+        font-size: 14px;
+        line-height: 1.2;
+        margin-bottom: 7px;
       }
       .just-listed .product-card .product-price { font-size: 17.5px; }
 
@@ -824,11 +826,12 @@
     /* Extra-small phones — pinch slightly more. */
     @media (max-width: 380px) {
       .hero {
-        padding: calc(var(--nav-h) + 12px) 14px 14px;
-        gap: 10px;
+        padding: calc(var(--nav-h) + 10px) 14px 10px;
+        gap: 9px;
       }
       .hero-logo-mask img { max-width: min(54vw, 200px); }
-      .just-listed { padding: 10px 14px 6px; }
+      .hero-actions { gap: 5px; }
+      .just-listed { padding: 6px 14px 6px; }
     }
   </style>
 
