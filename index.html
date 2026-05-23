@@ -717,18 +717,23 @@
     @media (max-width: 640px) {
       /* Hero — kill the forced full-viewport min-height (was making the
          hero ALWAYS reach 100vh even after content), tighten top/bottom
-         padding, and pull the gap between hero elements from 26→14. */
+         padding, and pull the inter-element gap to 12 (down from the
+         desktop 26). 2026-05-22 polish: dropped hero gap 14→12 and
+         padding-bottom 24→18 so the Trade button → "Built by Collectors"
+         and tagline → "Just Listed" beats compress ~20% without the
+         layout reading cramped. */
       .hero {
         min-height: 0;
-        padding: calc(var(--nav-h) + 18px) 18px 24px;
-        gap: 14px;
+        padding: calc(var(--nav-h) + 16px) 18px 18px;
+        gap: 12px;
       }
-      /* Logo — drop from 86vw to 58vw cap @ 240px ceiling. Removes the
-         "two-thirds of the first screen is logo" problem on phones. */
+      /* Logo — 56vw / 228px cap. ~5% trim off the previous 58vw / 240px
+         so the artwork stays unmistakably the hero anchor, just slightly
+         less commanding of the first screen. */
       .hero-logo-outer { margin-bottom: 0; }
       .hero-logo-mask img {
         width: 100%;
-        max-width: min(58vw, 240px);
+        max-width: min(56vw, 228px);
       }
       /* Headline — keep the gradient drama but tighter line-box so it
          doesn't add 40px of vertical air on its own. */
@@ -752,9 +757,17 @@
       }
 
       /* Just Listed — pull the section header up close to the hero so
-         the first product card sits within reach on the first scroll. */
-      .just-listed { padding: 18px 18px 8px; }
-      .just-listed-header { margin-bottom: 14px; gap: 10px; }
+         the first product card sits within reach on the first scroll.
+         Header laid out as a single vertical cluster (title → sub → CTA)
+         on mobile so the "Shop everything →" button reads as part of
+         the same group instead of detached on its own row. */
+      .just-listed { padding: 12px 18px 8px; }
+      .just-listed-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
       .just-listed-header h2 {
         font-size: clamp(26px, 7.4vw, 34px);
         line-height: 1.1;
@@ -763,23 +776,33 @@
       .just-listed-header .just-listed-sub {
         font-size: 13.5px;
         margin-top: 4px;
+        line-height: 1.5;
+      }
+      /* CTA — sits flush left under the sub, slightly smaller pill so it
+         reads as a section-level anchor, not a competing primary action. */
+      .just-listed-header a.see-all {
+        margin: 2px 0 0;
+        padding: 10px 22px;
+        font-size: 13.5px;
       }
 
-      /* Product cards on the strip — uniform min-height, image takes
-         40% (was 45%) so the title + price block has more horizontal
-         breathing room. Tighter title type so long card names don't
-         balloon the card height. */
-      .just-listed .product-card { min-height: 158px; }
+      /* Product cards on the strip — image takes 36% (down from 40%) so
+         it sits slightly shorter and gives the title + price block more
+         horizontal room. Internal vertical padding tightened 12→9, title
+         line-height 1.28→1.22. Removed explicit min-height — the 5:7
+         image ratio at 36% width already yields a uniform card height
+         and the cards now scale exactly with the image. */
       .just-listed .product-card .product-img,
       .just-listed .product-card .product-img-real {
-        width: 40%;
+        width: 36%;
       }
       .just-listed .product-card .product-info {
-        padding: 12px 14px 12px 16px;
+        padding: 9px 14px 9px 16px;
+        justify-content: center;
       }
       .just-listed .product-card .product-name {
         font-size: 14.5px;
-        line-height: 1.28;
+        line-height: 1.22;
       }
       .just-listed .product-card .product-price { font-size: 17.5px; }
 
@@ -801,12 +824,11 @@
     /* Extra-small phones — pinch slightly more. */
     @media (max-width: 380px) {
       .hero {
-        padding: calc(var(--nav-h) + 14px) 14px 20px;
-        gap: 12px;
+        padding: calc(var(--nav-h) + 12px) 14px 14px;
+        gap: 10px;
       }
-      .hero-logo-mask img { max-width: min(56vw, 210px); }
-      .just-listed { padding: 14px 14px 6px; }
-      .just-listed .product-card { min-height: 146px; }
+      .hero-logo-mask img { max-width: min(54vw, 200px); }
+      .just-listed { padding: 10px 14px 6px; }
     }
   </style>
 
