@@ -2442,6 +2442,18 @@
         .map(t => _SK_TOKEN_ALIASES[t] || t)
         .join(' ');
     }
+    // Pull "specific" card-number tokens out of the RAW query (before
+    // normalizeSearchText shreds the slash, turning "214/S-P" into
+    // "214 s p"). e.g. "214/S-P", "GG70", "SM211", "062/SV-P", "XY121".
+    // Surfaces an EXACT number match even when the typed name doesn't match
+    // the card's species — slab-label number searches like "214/s-p pikachu"
+    // should still find Mischievous Pichu #214/S-P. Bare numbers ("214",
+    // "208") are intentionally excluded (too ambiguous), so this only ADDS
+    // high-signal exact-number hits; it never broadens a plain-number search.
+    function _numberCandidates(rawQuery) {
+      const m = String(rawQuery || '').toLowerCase().match(/[a-z]*\d[a-z0-9]*(?:\/[a-z0-9-]+)?/gi) || [];
+      return new Set(m.map(s => s.toLowerCase()).filter(s => s.includes('/') || /[a-z]/.test(s)));
+    }
 
     // Damerau-Levenshtein edit distance (adds single-edit transposition vs
     // plain Levenshtein, so "pikahcu" ↔ "pikachu" is 1 edit instead of 2).
@@ -2759,6 +2771,7 @@
       // they land in the index.
       const scored = [];
       const fullQuery = cleaned.join(' ');
+      const numSet = _numberCandidates(tokens.join(' '));
       for (let i = 0; i < idx.length; i++) {
         const [name, setName, number, productId, market] = idx[i];
         if (_SEALED_RE.test(name || '')) continue;
@@ -2769,7 +2782,10 @@
         for (const t of tokensToMatch) {
           if (!hay.includes(t)) { allMatch = false; break; }
         }
-        if (!allMatch) continue;
+        // Exact card-number match surfaces the card even when the typed
+        // name doesn't match (slab-label number searches).
+        const numHit = numSet.size > 0 && numSet.has(String(number || '').toLowerCase().trim());
+        if (!allMatch && !numHit) continue;
         // Score: exact match > startsWith > token-boundary > substring,
         // plus a market-price tie-breaker so $1300 Charizards beat $5 ones.
         const nameNorm = normalizeSearchText(name);
@@ -2779,6 +2795,7 @@
         else if (cleaned.every(t => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}`).test(nameNorm))) score = 2000;
         else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
         else score = 200;  // tokens matched somewhere (setName / number only)
+        if (numHit) score = Math.max(score, 8000);
         // Market boost: log-scale so $5000 doesn't dominate $500 by 10x.
         if (market != null && market > 0) {
           score += Math.min(500, Math.log10(market + 1) * 100);
@@ -2819,6 +2836,7 @@
       // Scan full JP index, rank by name relevance + market, then slice.
       const scoredJp = [];
       const fullQuery = cleaned.join(' ');
+      const numSet = _numberCandidates(tokens.join(' '));
       for (let i = 0; i < idx.length; i++) {
         const entry = idx[i];
         const name = entry[0], setName = entry[1], number = entry[2], productId = entry[3], market = entry[4];
@@ -2828,13 +2846,17 @@
         for (const t of cleaned) {
           if (!hay.includes(t)) { allMatch = false; break; }
         }
-        if (!allMatch) continue;
+        // Exact card-number match surfaces the card even when the typed
+        // name doesn't match (e.g. "214/s-p pikachu" -> Pichu #214/S-P).
+        const numHit = numSet.size > 0 && numSet.has(String(number || '').toLowerCase().trim());
+        if (!allMatch && !numHit) continue;
         const nameNorm = normalizeSearchText(name);
         let score = 0;
         if (nameNorm === fullQuery) score = 10000;
         else if (nameNorm.startsWith(fullQuery)) score = 5000;
         else if (cleaned.every(t => nameNorm.includes(t))) score = 1000;
         else score = 200;
+        if (numHit) score = Math.max(score, 8000);
         if (market != null && market > 0) {
           score += Math.min(500, Math.log10(market + 1) * 100);
         }
