@@ -1287,6 +1287,15 @@
       const grid    = document.getElementById('justListedGrid');
       if (!section || !status || !grid) return;
 
+      // === Card inventory paused (restocking) ===
+      // MIRROR of SK_INVENTORY_PAUSED in shop.html — flip BOTH together.
+      // When true, hide the whole Just Listed strip: it showcases fresh
+      // CARD arrivals, so with graded/sealed/singles out at a show there's
+      // nothing to feature and a merch-only "Just Listed" would misread.
+      // Skip the fetch entirely while hidden.
+      const SK_INVENTORY_PAUSED = true;
+      if (SK_INVENTORY_PAUSED) { section.classList.add('is-empty'); return; }
+
       const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
       const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
       const fmt = n => `$${Number(n).toFixed(2)}`;
