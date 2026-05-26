@@ -1290,10 +1290,16 @@
       // === Card inventory paused (restocking) ===
       // MIRROR of SK_INVENTORY_PAUSED in shop.html — flip BOTH together.
       // When true, hide the whole Just Listed strip: it showcases fresh
-      // CARD arrivals, so with graded/sealed/singles out at a show there's
-      // nothing to feature and a merch-only "Just Listed" would misread.
-      // Skip the fetch entirely while hidden.
-      const SK_INVENTORY_PAUSED = true;
+      // CARD arrivals, so with everything out at a show there's nothing to
+      // feature and a merch-only "Just Listed" would misread.
+      //
+      // Current state (2026-05-26): graded is back online while sealed +
+      // singles stay paused. So the full pause is OFF, but we restrict the
+      // strip to GRADED arrivals only — it must never surface a sealed/single
+      // that's hidden in the shop. Flip JUST_LISTED_GRADED_ONLY off when
+      // sealed/singles come back.
+      const SK_INVENTORY_PAUSED = false;
+      const JUST_LISTED_GRADED_ONLY = true;
       if (SK_INVENTORY_PAUSED) { section.classList.add('is-empty'); return; }
 
       const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
@@ -1385,7 +1391,12 @@
             const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
             return tb - ta;
           });
-          const inStock = items.filter(it => it.inStock !== false).slice(0, 4);
+          // Graded-only gate: while sealed + singles are paused in the shop,
+          // the home strip features fresh slabs only (see flag above).
+          const eligible = JUST_LISTED_GRADED_ONLY
+            ? items.filter(it => categorize(it) === 'graded')
+            : items;
+          const inStock = eligible.filter(it => it.inStock !== false).slice(0, 4);
           if (!inStock.length) {
             section.classList.add('is-empty');
             return;

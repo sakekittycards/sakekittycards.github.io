@@ -369,14 +369,20 @@
   <script src="main.js?v=63" defer></script>
   <script>
     (async function loadShop() {
-      // === FEATURE FLAG: card inventory paused (restocking) ===
-      // When true: drops the graded + singles buckets, hides the TCGPlayer
-      // banner (storefront pauses with the on-site shop when Nick is away),
-      // swaps the hero subtitle, and shows the restocking poster above the
-      // merch grid. Merch (Printful-fulfilled apparel) stays live since
-      // print-on-demand doesn't need restocking. Flip back to false to
-      // restore card sections + the TCGPlayer banner.
-      const SK_INVENTORY_PAUSED = true;
+      // === FEATURE FLAGS: inventory pause ===
+      // SK_INVENTORY_PAUSED (FULL pause) drops ALL card buckets (graded +
+      // sealed + singles), hides the TCGPlayer banner, swaps the hero
+      // subtitle, and shows the restocking poster. Merch (Printful POD)
+      // always stays live. The granular flags below pause individual buckets
+      // while the rest of the shop stays live.
+      //
+      // Current state (2026-05-26): graded is BACK ONLINE; sealed + singles
+      // stay paused (out at shows). So the full pause is OFF and the two
+      // granular flags are ON. Flip SEALED_PAUSED / SINGLES_PAUSED back to
+      // false to restore those sections.
+      const SK_INVENTORY_PAUSED = false;
+      const SEALED_PAUSED  = true;   // hide the Sealed section
+      const SINGLES_PAUSED = true;   // hide the raw Singles section
 
       if (SK_INVENTORY_PAUSED) {
         document.getElementById('tcgplayerBanner').hidden = true;
@@ -604,6 +610,14 @@
           buckets.singles = [];
           document.getElementById('gradedAtShowBanner').hidden = true;
         }
+
+        // Granular pauses — hide individual card buckets while the rest of
+        // the shop stays live. Currently sealed + singles are out at shows
+        // but graded slabs are back online. Empty buckets auto-hide their
+        // section (loop below skips zero-length lists) and drop from the
+        // category nav, so no further wiring is needed.
+        if (SEALED_PAUSED)  buckets.sealed  = [];
+        if (SINGLES_PAUSED) buckets.singles = [];
 
         const sectionMap = {
           graded:  ['shopSectionGraded',  'shopGridGraded'],
