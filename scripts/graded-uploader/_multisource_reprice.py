@@ -35,7 +35,7 @@ from _ebay_apify import fetch_apify, fetch_or_cache as _ebay_cached
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (29).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (36).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -67,10 +67,10 @@ def get_token() -> str | None:
 
 
 def markup(base: float) -> float:
-    """Margin-based pricing (replaces the old aggressive headroom tiers):
+    """Net 10% profit when buying at 90% of base value:
       cost          = base * 0.90       (we buy at 90% of base value)
       sell price P  -> net = 0.97*P - 6 (after 3% fees + $6 shipping)
-      profit goal:   net - cost = 0.10 * cost  (10% margin on cost)
+      profit goal:   net - cost = 0.10 * cost  (10% net profit on cost)
       -> P = (0.99 * base + 6) / 0.97
     """
     return (base * 0.99 + 6) / 0.97
@@ -196,25 +196,32 @@ def grade_matches_title(title: str, grade: str) -> bool:
     return False
 
 
+# Competing-slab noise that pollutes PSA-grade averages (2026-05-22).
+# These appear in titles like "Beckett BGS 9 ... Regrade to PSA 10" — the
+# sold price reflects the BGS slab, not a real PSA 10 comp.
+_NOISE_TITLE_WORDS = ("BGS", "CGC", "SGC", "REGRADE", " RAW ", "UNGRADED", "AUTHENTIC ONLY")
+
+
 def title_passes(title: str, subject: str, number: str, grade: str) -> bool:
-    """STRICT eBay listing filter (added 2026-05-18 to fix wrong-card matches).
-    A listing's title must contain:
-      1. The grade (with CGC/PSA equivalencies)
-      2. The first significant word of the cleaned subject (>=4 chars)
-      3. The short number (2+ digits)
-    Drops the wrong-card noise that produced 'avg $4116 > 2x CL $855' style
-    outlier rejections — those rejections were doing the right thing, but a
-    cleaner filter lets the real comps survive instead of falling through.
+    """STRICT eBay listing filter.
+    A listing's title must:
+      1. Match the grade (with CGC/PSA equivalencies)
+      2. Contain the first significant word of the cleaned subject (>=4 chars)
+      3. Contain the short number (2+ digits)
+      4. NOT contain competing-slab noise (BGS/CGC/Regrade) — these pollute
+         PSA averages with non-PSA sale prices.
     """
     if not grade_matches_title(title, grade):
         return False
-    t = title.upper().replace(".", "").replace("-", " ")
-    # Subject: first meaningful word must appear
+    t_up = title.upper()
+    # Reject competing-slab noise BEFORE other checks
+    for noise in _NOISE_TITLE_WORDS:
+        if noise in t_up:
+            return False
+    t = t_up.replace(".", "").replace("-", " ")
     subj_word = (_clean_subject(subject).split() or [""])[0].upper()
     if len(subj_word) >= 4 and subj_word not in t:
         return False
-    # Number: must appear when it's 2+ digits (single-digit numbers are
-    # too noisy to enforce — too many random matches)
     n_short = _short_number(number)
     if n_short and len(n_short) >= 2 and n_short not in t:
         return False
@@ -222,12 +229,39 @@ def title_passes(title: str, subject: str, number: str, grade: str) -> bool:
 
 
 def trimmed_avg(values: list[float], drop_pct: float = 0.1) -> float | None:
+    """DEPRECATED — kept for backward callers. New median-of-last-5 path uses
+    median_last5_by_date() below."""
     if not values: return None
     vs = sorted(values)
     if len(vs) <= 3: return sum(vs) / len(vs)
     k = max(1, int(len(vs) * drop_pct))
     trimmed = vs[k:-k] if len(vs) > 2 * k else vs
     return sum(trimmed) / len(trimmed)
+
+
+def median_last5_by_date(items_with_dates: list[tuple[float, str]]) -> float | None:
+    """Median of the last 5 sold (by endedAt date, most recent first).
+
+    Why median (not mean) and why last-5 (not trimmed-avg-of-all):
+    - Apify doesn't expose a Best Offer flag, so we can't drop BO sales directly.
+    - Median is robust to one BO outlier on the low side (BOs settle 5-15%
+      below auction/fixed price), achieving "drop best offers" without the flag.
+    - Last-5 keeps the window tight enough to track real market moves on hot
+      cards; older comps don't drag the price down on rising charts.
+
+    Input: list of (price, endedAt_iso_string) tuples.
+    """
+    if not items_with_dates:
+        return None
+    items_with_dates.sort(key=lambda x: x[1] or "", reverse=True)
+    sample = [p for p, _ in items_with_dates[:5] if p and p > 0]
+    if not sample:
+        return None
+    sample.sort()
+    n = len(sample)
+    if n % 2 == 1:
+        return round(sample[n // 2], 2)
+    return round((sample[n // 2 - 1] + sample[n // 2]) / 2, 2)
 
 
 def parse_current_price(raw: str) -> float | None:
@@ -351,34 +385,40 @@ def main():
         # the 'avg $4116 > 2x CL $855' outlier rejections.
         subj = c["cl_row"].get("Subject", "") if c.get("cl_row") else ""
         num = c["cl_row"].get("Number", "") if c.get("cl_row") else ""
-        ebay_prices = []
+        # Collect (price, endedAt) tuples after STRICT title filter (rejects
+        # BGS/CGC/Regrade noise + wrong-card matches).
+        ebay_priced_items: list[tuple[float, str]] = []
         for it in ebay_items:
             title = it.get("title", "")
             if not title_passes(title, subj, num, grade): continue
             try: p = float(it.get("totalPrice") or it.get("soldPrice") or 0)
             except (TypeError, ValueError): continue
-            if 1 < p < 100000: ebay_prices.append(p)
+            if 1 < p < 100000:
+                ebay_priced_items.append((p, it.get("endedAt", "")))
 
-        ebay_count = len(ebay_prices)
+        ebay_count = len(ebay_priced_items)
         ebay_avg = None
         ebay_reject = ""
-        # Guard 1: minimum sample size (need >=3 grade-matched comps)
+        # Need at least 3 clean comps to trust eBay
         if ebay_count < 3:
             ebay_reject = f"need>=3 (got {ebay_count})"
         else:
-            raw_avg = trimmed_avg(ebay_prices)
-            # Guard 2: outlier filter — reject if eBay avg > 2x CL CV
-            if raw_avg and cl_cv > 0 and raw_avg > 2 * cl_cv:
-                ebay_reject = f"avg ${raw_avg:.0f} > 2x CL ${cl_cv:.0f}"
-            else:
-                ebay_avg = raw_avg
+            # Median of last 5 sold by date — robust to Best Offer outliers
+            # (Apify doesn't expose the BO flag, but median naturally drops
+            # one low BO from a 5-sample window).
+            ebay_avg = median_last5_by_date(ebay_priced_items)
 
-        # Pick max
-        sources = [("CL", cl_cv)]
+        # Pick winner — CL is NEVER a base (2026-05-22 rule: CL lags real market
+        # on hot/new cards). Only PC and eBay are allowed bases. If neither has
+        # data, we skip the sticker change entirely (no fallback to CL).
+        sources = []
         if pc_val: sources.append(("PC", pc_val))
         if ebay_avg: sources.append(("EBAY", ebay_avg))
-        winner_name, winner_val = max(sources, key=lambda x: x[1])
-        new_price = snap_clean(markup(winner_val))
+        if sources:
+            winner_name, winner_val = max(sources, key=lambda x: x[1])
+            new_price = snap_clean(markup(winner_val))
+        else:
+            winner_name, winner_val, new_price = "NONE", 0.0, 0
         cur_price = parse_current_price(row.get("your_price", "")) or 0
 
         # Policy: never lower an existing sticker — only push if higher.
@@ -391,7 +431,11 @@ def main():
         #   $200..$999   -> need formula > current * 1.05
         #   $1000+       -> need formula > current * 1.10
         allow_lower = os.environ.get("ALLOW_LOWER") == "1"
-        if cur_price > 0 and new_price > 2 * cur_price:
+        if winner_name == "NONE":
+            # No PC AND no eBay (or eBay <3 comps). CL is never a fallback —
+            # leave the existing Square sticker alone. Reported so it's audible.
+            action = "skip-no-market-data"
+        elif cur_price > 0 and new_price > 2 * cur_price:
             action = "skip-sanity-cap-2x"
         elif new_price > cur_price:
             if cur_price >= 1000:

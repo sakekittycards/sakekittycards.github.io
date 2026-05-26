@@ -63,14 +63,22 @@ def _fresh(entry: dict) -> bool:
     return age_hours <= CACHE_TTL_HOURS
 
 
+_NOISE_TITLE_WORDS = ("BGS", "CGC", "SGC", "REGRADE", "RAW", "UNGRADED", "AUTHENTIC ONLY")
+
+
 def _grade_in_title(title: str, grade: str) -> bool:
-    """Loose grade check — title should mention the grade."""
+    """Strict grade check — title must mention the right grade AND not be
+    a competing-slab listing (BGS/CGC/Regrade). The verbose Apify keyword
+    sometimes pulls in BGS listings that mention "Regrade to PSA 10" — those
+    must be rejected because their sold price reflects the BGS slab, not PSA."""
     t = title.upper()
+    # Reject competing-slab noise that pollutes PSA averages
+    for noise in _NOISE_TITLE_WORDS:
+        if noise in t:
+            return False
     g = grade.upper().replace(" ", "").replace(".", "")
-    # Normalize common variants: "PSA10" matches "PSA 10" / "GEM MT 10" / "PSA10"
     if g in t.replace(" ", "").replace(".", ""):
         return True
-    # PSA 10 = GEM MT 10 / GEM MINT 10 fallback
     if "PSA10" in g and ("GEM MT 10" in t or "GEM MINT 10" in t):
         return True
     if "PSA9" in g and "PSA 9" in t:
@@ -79,22 +87,20 @@ def _grade_in_title(title: str, grade: str) -> bool:
 
 
 def average_last_5(items: list[dict], grade: str) -> float | None:
-    """Sort items by endedAt desc, filter by grade, average last 5 totalPrice."""
+    """Sort items by endedAt desc, filter by grade strictly, take MEDIAN of
+    last 5 totalPrice.
+
+    Why MEDIAN not mean: Apify doesn't expose a Best Offer flag, so we can't
+    drop BO sales directly. Median is robust to one BO outlier on the low side
+    (BOs typically settle 5-15% below auction/fixed-price), achieving the
+    "drop best offers" intent without the flag.
+    """
     if not items:
         return None
-    # Filter to items with the right grade
-    filtered = [
-        it for it in items
-        if _grade_in_title(it.get("title", ""), grade)
-    ]
+    filtered = [it for it in items if _grade_in_title(it.get("title", ""), grade)]
     if not filtered:
-        # Fall back to unfiltered if grade filter wipes everything (rare)
-        filtered = items
-    # Sort by endedAt desc
-    def key(it: dict):
-        return it.get("endedAt", "")
-    filtered.sort(key=key, reverse=True)
-    # Take up to 5 most recent
+        return None  # No clean PSA comps — caller should fall back to PC, not pretend we have data
+    filtered.sort(key=lambda it: it.get("endedAt", ""), reverse=True)
     sample = filtered[:5]
     prices = []
     for it in sample:
@@ -106,7 +112,11 @@ def average_last_5(items: list[dict], grade: str) -> float | None:
             prices.append(p)
     if not prices:
         return None
-    return round(sum(prices) / len(prices), 2)
+    prices.sort()
+    n = len(prices)
+    if n % 2 == 1:
+        return round(prices[n // 2], 2)
+    return round((prices[n // 2 - 1] + prices[n // 2]) / 2, 2)
 
 
 MAX_KEYWORDS_PER_RUN = 6  # Apify input schema cap

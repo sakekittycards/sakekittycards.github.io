@@ -125,14 +125,17 @@ def main() -> int:
         pass
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--cl-csv", type=Path, default=None,
+                    help="Override the Card Ladder CSV path (default: latest Collection - Card Ladder (N).csv in Downloads)")
     args = ap.parse_args()
 
-    if not CARD_LADDER_CSV.exists():
-        print(f"[rp] Card Ladder CSV not found: {CARD_LADDER_CSV}")
+    cl_csv = args.cl_csv or CARD_LADDER_CSV
+    if not cl_csv.exists():
+        print(f"[rp] Card Ladder CSV not found: {cl_csv}")
         return 1
 
-    cl = load_cl_values(CARD_LADDER_CSV)
-    print(f"[rp] Loaded {len(cl)} certs from {CARD_LADDER_CSV.name}")
+    cl = load_cl_values(cl_csv)
+    print(f"[rp] Loaded {len(cl)} certs from {cl_csv.name}")
 
     # Load pricing.csv
     with PRICING_CSV.open("r", encoding="utf-8", newline="") as f:
