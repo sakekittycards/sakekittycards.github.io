@@ -31,7 +31,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from _ebay_apify import fetch_or_cache as ebay_fetch, average_last_5 as ebay_avg5
+from _ebay_chrome import fetch_or_cache as ebay_fetch, average_last_5 as ebay_avg5
 
 REPO_DIR = Path(__file__).resolve().parents[2]
 CARD_LADDER_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (19).csv")

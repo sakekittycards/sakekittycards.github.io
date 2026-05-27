@@ -30,12 +30,19 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from _ebay_apify import fetch_apify, fetch_or_cache as _ebay_cached
+# eBay sold comps come from a real Chrome browser (Playwright), not Apify —
+# Apify's capped search returned wrong lows (Deoxys $198 vs ~$300 real) and
+# burns a metered quota. _ebay_chrome is an API-compatible drop-in.
+from _ebay_chrome import fetch_apify, fetch_or_cache as _ebay_cached
+# pricing.csv carries no productId, so resolve it by fuzzy-matching the card's
+# identity against all-cards-fallback.json (PriceCharting's own product list) —
+# same proven matcher the max-formula script uses.
+from _apply_max_price_formula import fuzzy_resolve_pid
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (36).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (39).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -202,6 +209,25 @@ def grade_matches_title(title: str, grade: str) -> bool:
 _NOISE_TITLE_WORDS = ("BGS", "CGC", "SGC", "REGRADE", " RAW ", "UNGRADED", "AUTHENTIC ONLY")
 
 
+# Per-cert eBay comp exclusions. subject+number+grade can't tell apart a
+# DIFFERENT/more-valuable variant that shares the same subject and number, so
+# those comps pollute the sold average. List the variant tokens (UPPER) that
+# disqualify a comp for THIS specific card. (Card-specific on purpose — a
+# blanket "reject SHADOWLESS" would wrongly drop comps for a card that IS
+# shadowless.)
+VARIANT_EXCLUDE: dict[str, tuple[str, ...]] = {
+    # Venusaur #15 Base Set, UNLIMITED — drop Shadowless / 1st-ed (sell ~2-3x).
+    "65570347": ("SHADOWLESS", "1ST ED", "FIRST ED"),
+    # Moltres #146 Vending Series II — drop the other #146 Moltres variants:
+    # Bandai Carddass "Prism", Gym "Rocket's", and the Red/Green Gift Set Holo
+    # (the Gift Set sells ~3-4x and was dragging the mean to $1700+).
+    "84566703": ("CARDDASS", "PRISM", "ROCKET", "GYM", "GIFT SET", "RED/GREEN", "RED GREEN"),
+    # Zapdos #16 Base Set, UNLIMITED — drop Fossil-set Zapdos (its cert # can
+    # contain "16" and slip the number filter), 1st-ed, and foreign printings.
+    "139036804": ("FOSSIL", "1ST ED", "FIRST ED", "PORTUGUESE"),
+}
+
+
 def title_passes(title: str, subject: str, number: str, grade: str) -> bool:
     """STRICT eBay listing filter.
     A listing's title must:
@@ -239,29 +265,35 @@ def trimmed_avg(values: list[float], drop_pct: float = 0.1) -> float | None:
     return sum(trimmed) / len(trimmed)
 
 
-def median_last5_by_date(items_with_dates: list[tuple[float, str]]) -> float | None:
-    """Median of the last 5 sold (by endedAt date, most recent first).
+def best_recent_avg(items_with_dates: list[tuple[float, str]]) -> float | None:
+    """eBay base = the HIGHEST of mean-of-last-3, mean-of-last-5, and
+    mean-of-last-10 sold (by endedAt date, most recent first). Per Nick
+    2026-05-27 (replaced the prior median-of-5).
 
-    Why median (not mean) and why last-5 (not trimmed-avg-of-all):
-    - Apify doesn't expose a Best Offer flag, so we can't drop BO sales directly.
-    - Median is robust to one BO outlier on the low side (BOs settle 5-15%
-      below auction/fixed price), achieving "drop best offers" without the flag.
-    - Last-5 keeps the window tight enough to track real market moves on hot
-      cards; older comps don't drag the price down on rising charts.
+    Why max-of-windows: the last-3 mean captures a rising market, the last-10
+    mean smooths a quiet stretch; taking the highest biases toward the top of
+    the legitimate recent range — right for a retail sticker and consistent
+    with the max-of-sources policy. The strict title filter upstream
+    (subject + number + grade, BGS/CGC noise rejected) is what keeps a
+    wrong-card or competing-slab comp out of these means, and the 2x sanity cap
+    + tier threshold still gate any actual push.
 
-    Input: list of (price, endedAt_iso_string) tuples.
+    Input: list of (price, endedAt_iso_string) tuples. Windows shorter than the
+    available comp count just average what's there (e.g. 4 comps -> last-5 and
+    last-10 both average all 4).
     """
     if not items_with_dates:
         return None
     items_with_dates.sort(key=lambda x: x[1] or "", reverse=True)
-    sample = [p for p, _ in items_with_dates[:5] if p and p > 0]
-    if not sample:
+    prices = [p for p, _ in items_with_dates if p and p > 0]
+    if not prices:
         return None
-    sample.sort()
-    n = len(sample)
-    if n % 2 == 1:
-        return round(sample[n // 2], 2)
-    return round((sample[n // 2 - 1] + sample[n // 2]) / 2, 2)
+    means = []
+    for n in (3, 5, 10):
+        window = prices[:n]
+        if window:
+            means.append(sum(window) / len(window))
+    return round(max(means), 2) if means else None
 
 
 def parse_current_price(raw: str) -> float | None:
@@ -308,7 +340,12 @@ def main():
     with PC_GRADED.open("r", encoding="utf-8") as f:
         pc_index = json.load(f)
 
-    print(f"[ms] Loaded: {len(cl_map)} CL rows, {len(pricing_rows)} pricing rows, {len(pc_index):,} PC entries")
+    # Load PriceCharting product list (name/set -> productId) for PC resolution
+    with ALL_CARDS.open("r", encoding="utf-8") as f:
+        fallback = json.load(f)
+
+    print(f"[ms] Loaded: {len(cl_map)} CL rows, {len(pricing_rows)} pricing rows, "
+          f"{len(pc_index):,} PC entries, {len(fallback):,} fallback products")
 
     # First pass: build per-cert PC price + ebay keyword list
     cards: list[dict] = []
@@ -326,10 +363,17 @@ def main():
             continue
         try: cl_cv = float((cl_row.get("Current Value") or "0").replace(",", ""))
         except ValueError: cl_cv = 0.0
-        # Try PC lookup
+        # PriceCharting lookup. pricing.csv has no productId, so resolve it by
+        # fuzzy-matching the CL identity (cleaned Subject/Set + short Number) —
+        # the same truth-source fields we build the eBay query from — against
+        # all-cards-fallback, then read the per-grade column from pc-graded.json.
         pc_value = None
-        try: pid = int(str(row.get("productId") or "0").strip() or "0")
-        except ValueError: pid = 0
+        pid = fuzzy_resolve_pid(
+            _clean_subject(cl_row.get("Subject") or ""),
+            _clean_set(cl_row.get("Set") or ""),
+            _short_number(cl_row.get("Number") or ""),
+            fallback,
+        )
         if pid and str(pid) in pc_index:
             vals = pc_index[str(pid)]
             grade_norm = normalize_grade(row.get("grade", ""))
@@ -354,8 +398,16 @@ def main():
 
     # Build final pricing
     token = get_token()
+    if os.environ.get("DRY_RUN") == "1":
+        token = None
+        print("[ms] DRY_RUN=1 — building report only, will NOT push to Square.")
     if not token:
         print("[ms] WARNING: SK_ADMIN_TOKEN not set — will not push updates, just report.")
+    # Certs to hold from auto-push (manual review), e.g. variant pollution in
+    # the eBay comps (Shadowless/1st-ed/cross-set sharing a subject+number).
+    hold_certs = {c.strip() for c in os.environ.get("HOLD_CERTS", "").split(",") if c.strip()}
+    if hold_certs:
+        print(f"[ms] HOLD_CERTS: holding {sorted(hold_certs)} from auto-push.")
 
     report = []
     updates: list[tuple[str, int, dict]] = []
@@ -387,10 +439,16 @@ def main():
         num = c["cl_row"].get("Number", "") if c.get("cl_row") else ""
         # Collect (price, endedAt) tuples after STRICT title filter (rejects
         # BGS/CGC/Regrade noise + wrong-card matches).
+        excl = VARIANT_EXCLUDE.get(cert, ())
         ebay_priced_items: list[tuple[float, str]] = []
         for it in ebay_items:
             title = it.get("title", "")
             if not title_passes(title, subj, num, grade): continue
+            # Nick 2026-05-27: don't consider Best Offer sales (settle below ask).
+            if it.get("bestOffer"): continue
+            # Clean comps only: drop different/more-valuable variants of the
+            # same subject+number (Shadowless, Carddass Prism, etc.).
+            if excl and any(x in title.upper() for x in excl): continue
             try: p = float(it.get("totalPrice") or it.get("soldPrice") or 0)
             except (TypeError, ValueError): continue
             if 1 < p < 100000:
@@ -403,15 +461,17 @@ def main():
         if ebay_count < 3:
             ebay_reject = f"need>=3 (got {ebay_count})"
         else:
-            # Median of last 5 sold by date — robust to Best Offer outliers
-            # (Apify doesn't expose the BO flag, but median naturally drops
-            # one low BO from a 5-sample window).
-            ebay_avg = median_last5_by_date(ebay_priced_items)
+            # Base = highest of mean-of-last-3 / last-5 / last-10 sold by date
+            # (Nick 2026-05-27).
+            ebay_avg = best_recent_avg(ebay_priced_items)
 
-        # Pick winner — CL is NEVER a base (2026-05-22 rule: CL lags real market
-        # on hot/new cards). Only PC and eBay are allowed bases. If neither has
-        # data, we skip the sticker change entirely (no fallback to CL).
+        # Pick winner = MAX of the three sources (Nick 2026-05-27, reinstating
+        # CL after this session's earlier "ignore CL" pass): Card Ladder Current
+        # Value, PriceCharting, and the eBay scrape. CL only wins when it's the
+        # highest — it now also rescues cards eBay+PC can't cover (CGC Pristine
+        # promos, JP slabs). If all three are empty we still skip the change.
         sources = []
+        if cl_cv: sources.append(("CL", cl_cv))
         if pc_val: sources.append(("PC", pc_val))
         if ebay_avg: sources.append(("EBAY", ebay_avg))
         if sources:
@@ -431,7 +491,9 @@ def main():
         #   $200..$999   -> need formula > current * 1.05
         #   $1000+       -> need formula > current * 1.10
         allow_lower = os.environ.get("ALLOW_LOWER") == "1"
-        if winner_name == "NONE":
+        if cert in hold_certs:
+            action = "skip-held"
+        elif winner_name == "NONE":
             # No PC AND no eBay (or eBay <3 comps). CL is never a fallback —
             # leave the existing Square sticker alone. Reported so it's audible.
             action = "skip-no-market-data"
