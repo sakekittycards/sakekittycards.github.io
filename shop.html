@@ -238,7 +238,7 @@
             <span class="cta-arrow" aria-hidden="true">→</span>
           </a>
         </div>
-        <p class="inventory-paused-note">Cards are out at <a href="events.html" style="color:var(--orange);text-decoration:none">an upcoming show</a> — <strong>merch below is still available!</strong></p>
+        <p class="inventory-paused-note">Singles &amp; sealed are restocking after <a href="events.html" style="color:var(--orange);text-decoration:none">an upcoming show</a> — <strong>graded cards &amp; merch still available below!</strong></p>
       </div>
 
       <div id="shopStatus" class="shop-status">
@@ -389,6 +389,12 @@
         document.getElementById('inventoryPaused').hidden = false;
         const heroSub = document.getElementById('shopHeroSub');
         if (heroSub) heroSub.textContent = 'Card inventory is out at an upcoming show — fresh stock drops back here next week. Apparel & merch still available below.';
+      }
+
+      // Granular pause (singles/sealed out, graded still online): show the
+      // restock poster too, so those sections don't just silently vanish.
+      if (!SK_INVENTORY_PAUSED && (SEALED_PAUSED || SINGLES_PAUSED)) {
+        document.getElementById('inventoryPaused').hidden = false;
       }
 
       // === FEATURE FLAG: graded inventory at a show ===
