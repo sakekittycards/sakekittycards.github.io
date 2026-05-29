@@ -1,0 +1,6 @@
+# Persistent Chrome profile for the eBay sold scraper (_ebay_chrome.py).
+# ~100 MB user-data dir with cookies/cache — never commit.
+_ebay_chrome_profile/
+
+# eBay scrape cache — regenerable runtime data, 72h TTL, churns every run.
+_ebay_chrome_cache.json

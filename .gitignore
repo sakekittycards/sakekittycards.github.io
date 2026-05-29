@@ -10,6 +10,9 @@ desktop.ini
 __pycache__/
 *.pyc
 
+# Playwright MCP scratch artifacts (snapshots/console logs from browser tooling)
+.playwright-mcp/
+
 # Graded-card pipeline runtime data — local-only
 scripts/graded-uploader/inbox/
 scripts/graded-uploader/finished/
