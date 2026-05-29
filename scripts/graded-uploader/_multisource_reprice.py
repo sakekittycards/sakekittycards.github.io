@@ -42,7 +42,7 @@ from _apply_max_price_formula import fuzzy_resolve_pid
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (39).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (41).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
@@ -390,10 +390,14 @@ def main():
         keywords.append(kw)
         cert_to_kw[cert] = kw
 
-    # Fetch eBay sold via Apify in batches — use the per-cert cache so we
-    # don't burn Apify quota re-fetching cards we already priced this week.
-    print(f"[ms] Fetching eBay sold for {len(cert_to_kw)} certs (cache + Apify) ...")
-    ebay_by_cert = _ebay_cached(cert_to_kw) if cert_to_kw else {}
+    # Fetch eBay sold via real Chrome. A reprice ALWAYS scrapes brand-new comps
+    # (Nick 2026-05-29: "data must be brand new when i ask to reprice graded") —
+    # force_fresh bypasses the 72h cache. Set USE_CACHE=1 to opt back into the
+    # cache (e.g. a same-session re-run while iterating on guards/exclusions).
+    force_fresh = os.environ.get("USE_CACHE") != "1"
+    print(f"[ms] Fetching eBay sold for {len(cert_to_kw)} certs "
+          f"({'FRESH scrape' if force_fresh else 'cache OK'}) ...")
+    ebay_by_cert = _ebay_cached(cert_to_kw, force_fresh=force_fresh) if cert_to_kw else {}
     print(f"[ms] eBay results: {sum(1 for v in ebay_by_cert.values() if v)} certs returned data")
 
     # Build final pricing
