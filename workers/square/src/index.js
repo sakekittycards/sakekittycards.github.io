@@ -214,14 +214,34 @@ export default {
 
 async function listItems(base, headers, locationId, env) {
   // Square catalog and Printful mockups fetched in parallel.
-  const [squareRes, printfulMockups] = await Promise.all([
-    fetch(`${base}/v2/catalog/list?types=ITEM,IMAGE`, { headers }).then(r => r.json().then(d => [r, d])),
+  // Square's /v2/catalog/list caps at ~100 objects per page. The catalog has
+  // grown well past that (60+ graded slabs + apparel + their images), so we
+  // MUST follow the pagination cursor — otherwise items beyond page 1 silently
+  // fall off the shop (this is exactly why newly-listed graded cards stopped
+  // appearing once the catalog crossed 100 objects).
+  const [squareResult, printfulMockups] = await Promise.all([
+    (async () => {
+      const objs = [];
+      let cursor = '';
+      for (let page = 0; page < 50; page++) {
+        const listUrl = `${base}/v2/catalog/list?types=ITEM,IMAGE`
+          + (cursor ? `&cursor=${encodeURIComponent(cursor)}` : '');
+        const r = await fetch(listUrl, { headers });
+        const d = await r.json();
+        if (!r.ok) return { error: d, status: r.status };
+        for (const o of (d.objects || [])) objs.push(o);
+        cursor = d.cursor || '';
+        if (!cursor) break;
+      }
+      return { objects: objs };
+    })(),
     fetchPrintfulVariantImages(env).catch(() => ({})),  // fail open
   ]);
-  const [res, data] = squareRes;
-  if (!res.ok) return json({ error: 'square_api_error', detail: data }, res.status);
+  if (squareResult.error) {
+    return json({ error: 'square_api_error', detail: squareResult.error }, squareResult.status || 502);
+  }
 
-  const objects = data.objects || [];
+  const objects = squareResult.objects;
   const images  = Object.fromEntries(
     objects.filter(o => o.type === 'IMAGE').map(o => [o.id, o.image_data?.url])
   );
