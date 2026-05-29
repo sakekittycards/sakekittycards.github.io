@@ -89,6 +89,38 @@ def load_placeholder_b64() -> tuple[str, str]:
     return base64.b64encode(PLACEHOLDER.read_bytes()).decode("ascii"), PLACEHOLDER.name
 
 
+def live_square_certs() -> set[str]:
+    """Every cert currently live on Square (paginated). Source of truth for
+    'already listed' — prevents re-listing a card pricing.csv doesn't know about."""
+    import urllib.parse
+    cert_re = re.compile(r"Cert\s*#?:?\s*([A-Za-z0-9]+)", re.I)
+    token = get_token()
+    if not token:
+        print("[list] WARNING: no token — cannot check live Square certs; "
+              "relying on pricing.csv only (dup risk).")
+        return set()
+    out: set[str] = set()
+    cursor = ""
+    for _ in range(50):
+        u = f"{WORKER_BASE}/admin/inspect?types=ITEM" + (
+            f"&cursor={urllib.parse.quote(cursor)}" if cursor else "")
+        req = urllib.request.Request(u, headers={
+            "X-Sake-Admin-Token": token, "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.loads(r.read())
+        for o in d.get("objects", []):
+            if o.get("type") != "ITEM":
+                continue
+            m = cert_re.search(o.get("item_data", {}).get("description", "") or "")
+            if m:
+                out.add(m.group(1))
+        cursor = d.get("cursor") or ""
+        if not cursor:
+            break
+    return out
+
+
 def upload_one(card: dict, price_cents: int, img_b64: str, img_name: str,
                token: str) -> dict:
     payload = {
@@ -129,6 +161,13 @@ def main():
         pricing_rows = list(csv.DictReader(f))
         pricing_fields = list(pricing_rows[0].keys())
     listed = {(r.get("cert") or "").strip() for r in pricing_rows}
+
+    # CRITICAL: also exclude certs ALREADY LIVE on Square. pricing.csv can lag
+    # the live catalog (some certs were listed via other flows and never tracked
+    # locally) — keying "to list" off pricing.csv alone re-lists those as
+    # DUPLICATES (happened 2026-05-29: 3 dupes created — Boa Hancock et al.).
+    # The live catalog is the source of truth for "already listed".
+    listed |= live_square_certs()
 
     pc_index = json.loads(PC_GRADED.read_text(encoding="utf-8"))
     fallback = json.loads(ALL_CARDS.read_text(encoding="utf-8"))
