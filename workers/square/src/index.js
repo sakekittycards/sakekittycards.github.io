@@ -1141,6 +1141,9 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   if (card.card_number) descriptionLines.push(`Card Number: ${card.card_number}`);
   // "Verify cert at psacard.com" line removed 2026-05-06 — Nick verifies
   // every cert before listing, so the disclaimer adds noise without value.
+  // Optional free-text note (e.g. "Photo coming soon — new item" for cards
+  // listed before their scan is shot). Appended last so it reads as a footer.
+  if (card.listing_note) descriptionLines.push(String(card.listing_note));
   const description = descriptionLines.join('\n');
 
   // 1. Create the catalog item + single ITEM_VARIATION (qty 1, fixed price).
