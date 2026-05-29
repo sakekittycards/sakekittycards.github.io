@@ -268,15 +268,20 @@ def fetch_ebay(keywords: list[str]) -> dict[str, list[dict]]:
 fetch_apify = fetch_ebay
 
 
-def fetch_or_cache(card_queries: dict[str, str]) -> dict[str, list[dict]]:
+def fetch_or_cache(card_queries: dict[str, str], force_fresh: bool = False) -> dict[str, list[dict]]:
     """card_queries: {cert: keyword}. Returns {cert: [items]}.
-    Reads cache first; only scrapes un-cached or stale keywords (72h TTL)."""
+    Reads cache first; only scrapes un-cached or stale keywords (72h TTL).
+
+    force_fresh=True ignores the cache entirely and re-scrapes every keyword.
+    Nick 2026-05-29: "data must be brand new when i ask to reprice graded" — the
+    reprice path passes this so a reprice never settles for cached comps, even
+    inside the 72h TTL. The cache TTL still applies to any other caller."""
     cache = _load_cache()
     out: dict[str, list[dict]] = {}
     to_fetch: dict[str, str] = {}
     for cert, kw in card_queries.items():
         entry = cache.get(kw)
-        if entry and _fresh(entry):
+        if entry and _fresh(entry) and not force_fresh:
             out[cert] = entry["items"]
         else:
             to_fetch[cert] = kw
