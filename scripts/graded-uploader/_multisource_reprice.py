@@ -415,34 +415,19 @@ def main():
 
     report = []
     updates: list[tuple[str, int, dict]] = []
+
+    # ── PASS 1: compute each card's own base = max(CL, PC, eBay) ────────────
     for c in cards:
-        cert = c["cert"]
-        row = c["row"]
         if c.get("skip"):
-            report.append({
-                "cert": cert, "name": row.get("name", ""),
-                "current": parse_current_price(row.get("your_price", "")),
-                "cl_cv": "", "pc": "", "ebay_avg": "",
-                "ebay_count": 0, "ebay_reject": "", "ebay_kw": "",
-                "ebay_url": "",
-                "winner": "", "base": "", "new_price": "",
-                "action": "skip",
-                "reason": c.get("reason", "manual override"),
-            })
             continue
-        cl_cv = c["cl_cv"]
-        pc_val = c["pc_value"]
-        # eBay average — with mandatory guards (per 2026-05-12 incident)
-        kw = c["ebay_kw"]
+        cert = c["cert"]; row = c["row"]
+        cl_cv = c["cl_cv"]; pc_val = c["pc_value"]
+        # eBay average — with mandatory guards (per 2026-05-12 incident).
         ebay_items = ebay_by_cert.get(cert, [])
         grade = normalize_grade(row.get("grade", ""))
-        # STRICT post-filter (added 2026-05-18): listings must mention grade
-        # AND card subject AND number — drops wrong-card noise that produced
-        # the 'avg $4116 > 2x CL $855' outlier rejections.
+        # STRICT post-filter: listings must mention grade AND subject AND number.
         subj = c["cl_row"].get("Subject", "") if c.get("cl_row") else ""
         num = c["cl_row"].get("Number", "") if c.get("cl_row") else ""
-        # Collect (price, endedAt) tuples after STRICT title filter (rejects
-        # BGS/CGC/Regrade noise + wrong-card matches).
         excl = VARIANT_EXCLUDE.get(cert, ())
         ebay_priced_items: list[tuple[float, str]] = []
         for it in ebay_items:
@@ -461,45 +446,99 @@ def main():
         ebay_count = len(ebay_priced_items)
         ebay_avg = None
         ebay_reject = ""
-        # Need at least 3 clean comps to trust eBay
         if ebay_count < 3:
             ebay_reject = f"need>=3 (got {ebay_count})"
         else:
-            # Base = highest of mean-of-last-3 / last-5 / last-10 sold by date
-            # (Nick 2026-05-27).
             ebay_avg = best_recent_avg(ebay_priced_items)
 
-        # Pick winner = MAX of the three sources (Nick 2026-05-27, reinstating
-        # CL after this session's earlier "ignore CL" pass): Card Ladder Current
-        # Value, PriceCharting, and the eBay scrape. CL only wins when it's the
-        # highest — it now also rescues cards eBay+PC can't cover (CGC Pristine
-        # promos, JP slabs). If all three are empty we still skip the change.
+        # Winner = MAX of CL / PC / eBay (Nick 2026-05-27).
         sources = []
         if cl_cv: sources.append(("CL", cl_cv))
         if pc_val: sources.append(("PC", pc_val))
         if ebay_avg: sources.append(("EBAY", ebay_avg))
         if sources:
             winner_name, winner_val = max(sources, key=lambda x: x[1])
-            new_price = snap_clean(markup(winner_val))
         else:
-            winner_name, winner_val, new_price = "NONE", 0.0, 0
-        cur_price = parse_current_price(row.get("your_price", "")) or 0
+            winner_name, winner_val = "NONE", 0.0
+        c["_ebay_avg"] = ebay_avg
+        c["_ebay_count"] = ebay_count
+        c["_ebay_reject"] = ebay_reject
+        c["_winner_name"] = winner_name
+        c["_winner_val"] = winner_val
+        c["_cur_price"] = parse_current_price(row.get("your_price", "")) or 0
+
+    # ── Equalize identical cards ────────────────────────────────────────────
+    # The eBay keyword (Year + Subject + Variation + Number + Set + Grade) is a
+    # card-identity key: two slabs of the SAME card in the SAME grade share it.
+    # Two copies had divergent Card Ladder CVs and so priced differently — lift
+    # the whole group to the max base so duplicates always match (sticky-floor:
+    # equalize UP, never lower one to meet the other).
+    group_max: dict[str, float] = {}     # highest source base in the group
+    group_size: dict[str, int] = {}      # how many copies of this card
+    group_cur_max: dict[str, float] = {} # highest CURRENT sticker in the group
+    for c in cards:
+        if c.get("skip"):
+            continue
+        kw = c["ebay_kw"]
+        group_size[kw] = group_size.get(kw, 0) + 1
+        group_cur_max[kw] = max(group_cur_max.get(kw, 0.0), c.get("_cur_price", 0.0) or 0.0)
+        if c.get("_winner_name") == "NONE":
+            continue
+        group_max[kw] = max(group_max.get(kw, 0.0), c.get("_winner_val", 0.0))
+
+    allow_lower = os.environ.get("ALLOW_LOWER") == "1"
+
+    # ── PASS 2: equalize -> price -> decide action -> report ────────────────
+    for c in cards:
+        cert = c["cert"]; row = c["row"]
+        if c.get("skip"):
+            report.append({
+                "cert": cert, "name": row.get("name", ""),
+                "current": parse_current_price(row.get("your_price", "")),
+                "cl_cv": "", "pc": "", "ebay_avg": "",
+                "ebay_count": 0, "ebay_reject": "", "ebay_kw": "",
+                "ebay_url": "",
+                "winner": "", "base": "", "new_price": "",
+                "action": "skip",
+                "reason": c.get("reason", "manual override"),
+            })
+            continue
+        cl_cv = c["cl_cv"]; pc_val = c["pc_value"]; kw = c["ebay_kw"]
+        ebay_avg = c["_ebay_avg"]; ebay_count = c["_ebay_count"]
+        ebay_reject = c["_ebay_reject"]
+        winner_name = c["_winner_name"]; winner_val = c["_winner_val"]
+        cur_price = c["_cur_price"]
+
+        # Equalize identical cards. base_val = highest source base in the group;
+        # for a card with duplicates the sticker is lifted to the HIGHEST of the
+        # group's formula price and the group's current stickers, so two copies
+        # always match WITHOUT lowering either (sticky floor).
+        base_val = winner_val
+        equalized = False
+        reason = ""
+        if winner_name != "NONE":
+            own_price = snap_clean(markup(winner_val))
+            base_val = max(winner_val, group_max.get(kw, winner_val))
+            formula_price = snap_clean(markup(base_val))
+            if group_size.get(kw, 1) > 1:
+                new_price = max(formula_price, int(round(group_cur_max.get(kw, 0.0))))
+                if new_price != own_price:
+                    equalized = True
+                    reason = f"equalized to duplicate (${new_price})"
+            else:
+                new_price = formula_price
+        else:
+            new_price = 0
 
         # Policy: never lower an existing sticker — only push if higher.
         # Guard 3: sanity cap — don't auto-raise more than 2x in a single run.
-        # Guard 4 (added 2026-05-15): tier-based raise threshold. A 2% bump on
-        # a $3000 sticker reads as "chasing the market" to buyers even though
-        # the dollars are noise. Require a meaningful move at higher tiers
-        # before pushing a raise.
+        # Guard 4: tier-based raise threshold.
         #   under $200   -> raise on any formula bump
         #   $200..$999   -> need formula > current * 1.05
         #   $1000+       -> need formula > current * 1.10
-        allow_lower = os.environ.get("ALLOW_LOWER") == "1"
         if cert in hold_certs:
             action = "skip-held"
         elif winner_name == "NONE":
-            # No PC AND no eBay (or eBay <3 comps). CL is never a fallback —
-            # leave the existing Square sticker alone. Reported so it's audible.
             action = "skip-no-market-data"
         elif cur_price > 0 and new_price > 2 * cur_price:
             action = "skip-sanity-cap-2x"
@@ -510,8 +549,10 @@ def main():
                 threshold = cur_price * 1.05
             else:
                 threshold = cur_price  # any raise OK in tier 1
-            if new_price > threshold:
-                action = "raise"
+            # A pure-equalization raise (matching an identical card) bypasses the
+            # tier threshold — identical cards must match regardless of % move.
+            if new_price > threshold or equalized:
+                action = "raise-equalize" if equalized and new_price <= threshold else "raise"
                 updates.append((cert, new_price, c))
             else:
                 action = "skip-below-tier-threshold"
@@ -533,11 +574,11 @@ def main():
             "ebay_reject": ebay_reject,
             "ebay_kw": kw,
             "ebay_url": ebay_sold_url(kw),
-            "winner":  winner_name,
-            "base":    f"{winner_val:.2f}",
+            "winner":  winner_name + ("*" if equalized else ""),
+            "base":    f"{base_val:.2f}",
             "new_price": new_price,
             "action":  action,
-            "reason":  "",
+            "reason":  reason,
         })
 
     # Write report
