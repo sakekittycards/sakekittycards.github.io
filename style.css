@@ -1732,6 +1732,9 @@ body.cart-open { overflow: hidden; }
 .product-set  { font-size: 14px; color: var(--dim); margin-bottom: 10px; }
 .product-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .product-price { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .2px; color: var(--orange); font-variant-numeric: tabular-nums; }
+/* Graded slabs + raw singles are make-offer only — the price slot shows a
+   "Make Offer" label instead of a dollar amount. */
+.product-price.product-offer { font-size: 16px; letter-spacing: .3px; text-transform: uppercase; }
 
 /* Sold out state */
 .product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }

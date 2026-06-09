@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=166" />
+  <link rel="stylesheet" href="style.css?v=167" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -132,6 +132,7 @@
       margin-bottom: 20px;
       font-variant-numeric: tabular-nums;
     }
+    .pdp-price-offer { letter-spacing: .5px; text-transform: uppercase; }
     .pdp-price .oos-flag {
       display: inline-block; margin-left: 10px;
       font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 700;
@@ -372,8 +373,8 @@
       <button class="pay-modal-close" id="offerModalClose" aria-label="Close">×</button>
       <h2 id="offerModalTitle">Make an Offer</h2>
       <p class="pay-modal-sub">
-        Submit an offer for <strong id="offerCardName">this card</strong>.
-        Asking <strong id="offerAsking">—</strong>. Nick reviews offers and replies by email — usually within 24 hours.
+        Submit an offer for <strong id="offerCardName">this card</strong>.<span id="offerAskingWrap">
+        Asking <strong id="offerAsking">—</strong>.</span> Nick reviews offers and replies by email — usually within 24 hours.
       </p>
       <form class="pay-modal-form" id="offerForm">
         <label>Your Offer (USD)
@@ -470,6 +471,16 @@
       const isGradedItem = GRADER_RX.test(String(item.name || ''));
       if (isGradedItem) item.stock = 1;
 
+      // Singles (raw single cards) are detected the same way the shop grid
+      // categorizes them: year prefix ("1999 Charizard Holo") or an internal
+      // "Card ID: SK-####" stamp in the description.
+      const isSinglesItem = /^(?:19|20)\d{2}\s/.test(String(item.name || ''))
+        || /Card ID:\s*SK-\d+/i.test(String(item.description || ''));
+
+      // Graded slabs and raw singles are sold by negotiation, not at a fixed
+      // listed price: hide the price + Add-to-Cart and show Make Offer instead.
+      const isOfferOnly = isGradedItem || isSinglesItem;
+
       // Inject Product + BreadcrumbList JSON-LD so search engines + social
       // unfurls get the price, availability, image, and crumb path.  Built
       // from the loaded Square data so it always matches what the user sees.
@@ -483,16 +494,27 @@
           "image": item.imageUrl ? [item.imageUrl] : undefined,
           "sku": item.id,
           "brand": { "@type": "Brand", "name": "Sake Kitty Cards" },
-          "offers": {
-            "@type": "Offer",
-            "url": productUrl,
-            "priceCurrency": item.currency || "USD",
-            "price": typeof item.price === "number" ? item.price.toFixed(2) : item.price,
-            "availability": (item.inStock === false)
-              ? "https://schema.org/OutOfStock"
-              : "https://schema.org/InStock",
-            "seller": { "@type": "Organization", "name": "Sake Kitty Cards" }
-          }
+          // Graded slabs + singles are make-offer only — no listed price, so
+          // omit the price fields from structured data (price by negotiation).
+          "offers": isOfferOnly
+            ? {
+                "@type": "Offer",
+                "url": productUrl,
+                "availability": (item.inStock === false)
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/InStock",
+                "seller": { "@type": "Organization", "name": "Sake Kitty Cards" }
+              }
+            : {
+                "@type": "Offer",
+                "url": productUrl,
+                "priceCurrency": item.currency || "USD",
+                "price": typeof item.price === "number" ? item.price.toFixed(2) : item.price,
+                "availability": (item.inStock === false)
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/InStock",
+                "seller": { "@type": "Organization", "name": "Sake Kitty Cards" }
+              }
         };
         const crumbLd = {
           "@context": "https://schema.org",
@@ -662,7 +684,9 @@
           <div class="pdp-info">
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
-              ${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}
+              ${isOfferOnly
+                ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}`
+                : `${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}`}
             </div>
             ${(!oos && !isGradedItem && typeof item.stock === 'number')
               ? `<div class="pdp-stock${item.stock <= 5 ? ' low' : ''}" id="pdpStock">${item.stock} in stock${item.stock <= 5 ? ' — selling fast' : ''}</div>`
@@ -701,10 +725,14 @@
               </div>` : ''}
 
             <div class="pdp-actions" style="display:flex;gap:10px;flex-wrap:wrap">
-              ${oos
-                ? `<button type="button" class="btn btn-sm btn-disabled pdp-add-btn" disabled>Out of Stock</button>`
-                : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>
-                   ${(showSizes || showColors) ? '' : `<button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Make Offer</button>`}`}
+              ${isOfferOnly
+                ? (oos
+                    ? `<button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Check Availability</button>`
+                    : `<button type="button" class="btn btn-primary btn-lg" id="pdpOfferBtn">Make Offer</button>`)
+                : (oos
+                    ? `<button type="button" class="btn btn-sm btn-disabled pdp-add-btn" disabled>Out of Stock</button>`
+                    : `<button type="button" class="btn btn-primary btn-lg pdp-add-btn" id="pdpAddBtn">Add to Cart</button>
+                       ${(showSizes || showColors) ? '' : `<button type="button" class="btn btn-outline btn-lg" id="pdpOfferBtn">Make Offer</button>`}`)}
             </div>
 
             <p style="margin:14px 0 0;padding:10px 12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.22);border-radius:8px;font-size:12.5px;line-height:1.55;color:rgba(229,229,247,0.85)">
@@ -1116,6 +1144,7 @@
       const offerMessage   = document.getElementById('offerMessage');
       const offerCardName  = document.getElementById('offerCardName');
       const offerAsking    = document.getElementById('offerAsking');
+      const offerAskingWrap = document.getElementById('offerAskingWrap');
       const offerMinHint   = document.getElementById('offerMinHint');
 
       const openOffer = () => {
@@ -1123,8 +1152,15 @@
         const askingPrice = v?.price != null ? v.price : item.price;
         const fullName = item.name + (v ? ` – ${v.name}` : '');
         offerCardName.textContent = fullName;
-        offerAsking.textContent   = fmt(askingPrice);
-        offerAmount.placeholder   = String(Math.max(1, Math.round(askingPrice * 0.85)));
+        // Graded slabs + singles are make-offer only — no public asking price.
+        if (isOfferOnly) {
+          if (offerAskingWrap) offerAskingWrap.style.display = 'none';
+          offerAmount.placeholder = '';
+        } else {
+          if (offerAskingWrap) offerAskingWrap.style.display = '';
+          offerAsking.textContent = fmt(askingPrice);
+          offerAmount.placeholder = String(Math.max(1, Math.round(askingPrice * 0.85)));
+        }
         // Optional offer floor — read from item metadata if Square ever surfaces it.
         const floor = (item.offerMin != null) ? Number(item.offerMin) : null;
         if (floor && floor > 0) {

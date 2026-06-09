@@ -42,7 +42,7 @@ from _apply_max_price_formula import fuzzy_resolve_pid
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 PRICING_CSV = HERE / "pricing.csv"
-CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (41).csv")
+CL_CSV = Path(r"C:\Users\lunar\Downloads\Collection - Card Ladder (42).csv")
 PC_GRADED = REPO / "assets" / "pc-graded.json"
 ALL_CARDS  = REPO / "assets" / "all-cards-fallback.json"
 WORKER_BASE = "https://sakekitty-square.nwilliams23999.workers.dev"
