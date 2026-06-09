@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=167" />
+  <link rel="stylesheet" href="style.css?v=168" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -132,7 +132,17 @@
       margin-bottom: 20px;
       font-variant-numeric: tabular-nums;
     }
-    .pdp-price-offer { letter-spacing: .5px; text-transform: uppercase; }
+    .pdp-price-offer {
+      display: inline-block;
+      padding: 7px 18px;
+      border-radius: 100px;
+      background: rgba(255,106,0,0.08);
+      border: 1px solid rgba(255,106,0,0.32);
+      color: var(--orange);
+      font-size: 15px; font-weight: 600;
+      letter-spacing: .8px; text-transform: uppercase;
+      vertical-align: middle;
+    }
     .pdp-price .oos-flag {
       display: inline-block; margin-left: 10px;
       font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 700;
