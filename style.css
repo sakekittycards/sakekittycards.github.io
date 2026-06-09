@@ -1734,7 +1734,20 @@ body.cart-open { overflow: hidden; }
 .product-price { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .2px; color: var(--orange); font-variant-numeric: tabular-nums; }
 /* Graded slabs + raw singles are make-offer only — the price slot shows a
    "Make Offer" label instead of a dollar amount. */
-.product-price.product-offer { font-size: 16px; letter-spacing: .3px; text-transform: uppercase; }
+.product-price.product-offer {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(255,106,0,0.08);
+  border: 1px solid rgba(255,106,0,0.30);
+  color: var(--orange);
+  font-size: 12.5px; font-weight: 600;
+  letter-spacing: .6px; text-transform: uppercase;
+  filter: none;
+}
+/* Shop page bumps base .product-price to 21px + adds a glow — reset both so
+   the offer pill stays soft and pill-sized, not a loud price-style label. */
+.page-shop .product-price.product-offer { font-size: 12.5px; filter: none; }
 
 /* Sold out state */
 .product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }
