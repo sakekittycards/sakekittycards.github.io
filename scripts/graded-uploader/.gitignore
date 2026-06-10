@@ -22,3 +22,14 @@ _match.log
 _match2.log
 _attach.log
 _live_check.jpg
+
+# Singles listing runtime/test artifacts
+_singles.log
+_singles_live.log
+_ts_*.py
+_ts_*.jpg
+_ts_*.png
+_tcg_*.py
+_tcg*.jpg
+_chk*.jpg
+_single_check.jpg

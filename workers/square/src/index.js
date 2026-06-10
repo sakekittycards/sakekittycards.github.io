@@ -1382,6 +1382,9 @@ async function uploadSingleItem(request, base, squareHeaders, env) {
   const condition = String(body.condition || 'NM').trim().toUpperCase();
   const priceCents = Number(body.price_cents);
   const imageUrl  = String(body.image_url || '').trim();
+  // Prefer raw bytes — image CDNs (TCGplayer, scrydex/pokemontcg.io) bot-block
+  // server-side fetches, so the caller fetches the image and sends base64.
+  const imageB64  = String(body.image_base64 || '').trim();
 
   if (!cardId || !name) {
     return json({ error: 'missing_required_fields', required: ['card_id', 'name'] }, 400);
@@ -1445,13 +1448,18 @@ async function uploadSingleItem(request, base, squareHeaders, env) {
   const item = createData.catalog_object;
   const itemId = item.id;
 
-  // Attach image if a stock URL was provided
+  // Attach image: prefer base64 bytes, else fetch a stock URL.
   let imageId = null;
-  if (imageUrl) {
+  if (imageB64 || imageUrl) {
     try {
-      const imgRes = await fetch(imageUrl);
-      if (imgRes.ok) {
-        const buf = new Uint8Array(await imgRes.arrayBuffer());
+      let buf = null;
+      if (imageB64) {
+        buf = base64ToBytes(imageB64);
+      } else {
+        const imgRes = await fetch(imageUrl);
+        if (imgRes.ok) buf = new Uint8Array(await imgRes.arrayBuffer());
+      }
+      if (buf) {
         const fd = new FormData();
         fd.append('request', new Blob([JSON.stringify({
           idempotency_key: crypto.randomUUID(),
