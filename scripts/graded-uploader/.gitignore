@@ -11,3 +11,14 @@ _relist_images_raw/
 _relist_progress.json
 _relist_run.log
 _relist_test.log
+
+# Photo-attach pipeline runtime artifacts (Nick's own slab photos)
+_processed_photos/
+_crop_test/
+_vidframes/
+_photo_map.json
+_photo_ocr_cache.json
+_match.log
+_match2.log
+_attach.log
+_live_check.jpg
