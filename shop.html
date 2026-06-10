@@ -376,12 +376,11 @@
       // always stays live. The granular flags below pause individual buckets
       // while the rest of the shop stays live.
       //
-      // Current state (2026-05-26): graded is BACK ONLINE; sealed + singles
-      // stay paused (out at shows). So the full pause is OFF and the two
-      // granular flags are ON. Flip SEALED_PAUSED / SINGLES_PAUSED back to
-      // false to restore those sections.
+      // Current state (2026-06-10): store FULLY LIVE — graded, sealed, and
+      // singles all online; restocking poster off. Flip a granular flag back
+      // to true only to pull an individual bucket while a show is out.
       const SK_INVENTORY_PAUSED = false;
-      const SEALED_PAUSED  = true;   // hide the Sealed section
+      const SEALED_PAUSED  = false;  // Sealed live (store re-opened 2026-06-10)
       const SINGLES_PAUSED = false;  // raw Singles live (rebuilt 2026-06-10)
 
       if (SK_INVENTORY_PAUSED) {
