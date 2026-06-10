@@ -334,7 +334,12 @@ async function listItems(base, headers, locationId, env) {
         id:          o.id,
         variationId: primary.id,
         name:        o.item_data?.name || '',
-        description: o.item_data?.description || '',
+        // Strip the cert line from the PUBLIC description — customers shouldn't
+        // see the slab's cert number (Nick 2026-06-09; we also censor it on the
+        // stock photo). The cert stays in Square's stored description, which the
+        // admin /inspect-based tooling (reprice, takedown, update/replace by
+        // cert) still reads — so backend lookups are unaffected.
+        description: stripCertLines(o.item_data?.description),
         price:       primary.price,
         currency:    o.item_data?.variations?.[0]?.item_variation_data?.price_money?.currency || 'USD',
         imageUrl,
@@ -1135,29 +1140,44 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   if (!Number.isFinite(priceCents) || priceCents <= 0) {
     return json({ error: 'invalid_price_cents' }, 400);
   }
-  if (!imageB64) {
-    return json({ error: 'missing_image_base64' }, 400);
-  }
+  // Image is OPTIONAL — a graded slab can be listed imageless with an
+  // "(image soon)" title tag while Nick shoots his own photos. image_soon can
+  // also be forced explicitly even when an image is present.
+  const imageSoon = body.image_soon === true || !imageB64;
 
-  // Title: lead with the grade (buyers scan grade first), then year, set,
-  // card name, number. Strip descriptors like "GEM MT" / "MINT" — keep just
-  // "PSA 10" / "PSA 9".
-  const gradeNum = card.grade
-    ? (card.grade.match(/\b(\d{1,2})\b/) || [])[1] || ''
-    : '';
+  // Title: lead with the grader + grade (buyers scan grade first; the shop
+  // categorizer also keys on the leading grader token to bucket the slab),
+  // then year, set, card name, number. Accept a `card.grader` override
+  // (PSA / CGC / BGS / SGC / ...) so non-PSA slabs aren't mislabeled. Stays
+  // backward-compatible with legacy callers that pass an already-prefixed
+  // grade like "PSA 10" — we split the grader off so the title doesn't
+  // double-prefix to "PSA PSA 10".
+  const KNOWN_GRADER_RX = /^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\b/i;
+  let grader   = String(card.grader || '').trim();
+  let gradeStr = String(card.grade || '').trim();
+  const gm = gradeStr.match(KNOWN_GRADER_RX);
+  if (gm) {
+    if (!grader) grader = gm[1].toUpperCase();
+    gradeStr = gradeStr.replace(KNOWN_GRADER_RX, '').trim();
+  }
+  if (!grader) grader = 'PSA';
+  const gradeLead = gradeStr ? `${grader} ${gradeStr}` : grader;
   const titleParts = [];
-  if (gradeNum)         titleParts.push(`PSA ${gradeNum}`);
+  titleParts.push(gradeLead);
   if (card.year)        titleParts.push(card.year);
   if (card.set_name)    titleParts.push(card.set_name);
   if (card.name)        titleParts.push(card.name);
   if (card.card_number) titleParts.push(`#${card.card_number}`);
-  const title = titleParts.join(' ').trim();
+  let title = titleParts.join(' ').trim();
+  if (imageSoon) title = `${title} (image soon)`;
 
   const descriptionLines = [
-    `PSA Cert #: ${card.cert_number}`,
+    // Keep the "Cert #: <cert>" substring intact — update/replace/delete
+    // routes look items up by it. The grader prefix varies per slab.
+    `${grader} Cert #: ${card.cert_number}`,
   ];
   if (card.set_name)    descriptionLines.push(`Set: ${card.set_name}${card.year ? ` (${card.year})` : ''}`);
-  if (card.grade)       descriptionLines.push(`Grade: PSA ${card.grade}`);
+  if (card.grade)       descriptionLines.push(`Grade: ${gradeLead}`);
   if (card.card_number) descriptionLines.push(`Card Number: ${card.card_number}`);
   // "Verify cert at psacard.com" line removed 2026-05-06 — Nick verifies
   // every cert before listing, so the disclaimer adds noise without value.
@@ -1241,7 +1261,11 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   }
 
   // 3. Upload + attach the listing image. Square wants multipart/form-data
-  // with a JSON 'request' part and a binary 'image_file' part.
+  // with a JSON 'request' part and a binary 'image_file' part. Skipped
+  // entirely for imageless ("image soon") listings.
+  let imgData = null;
+  let backImageId = null;
+  if (imageB64) {
   const imageBytes = base64ToBytes(imageB64);
   const imageRequest = {
     idempotency_key: crypto.randomUUID(),
@@ -1276,7 +1300,7 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
   const imgRes = await fetch(`${base}/v2/catalog/images`, {
     method: 'POST', headers: imageHeaders, body: fd,
   });
-  const imgData = await imgRes.json();
+  imgData = await imgRes.json();
   if (!imgRes.ok) {
     return json({
       error: 'square_image_upload_failed',
@@ -1287,7 +1311,6 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
 
   // 4. Optional back image — uploaded with is_primary: false so the
   // front stays as the gallery hero. Best-effort: log + continue on failure.
-  let backImageId = null;
   if (backB64) {
     try {
       const backBytes = base64ToBytes(backB64);
@@ -1327,12 +1350,13 @@ async function uploadGradedItem(request, base, squareHeaders, env) {
       console.warn('back image upload threw:', e.message || e);
     }
   }
+  }  // end if (imageB64) — imageless listings skip image upload
 
   return json({
     ok: true,
     item_id: item.id,
     variation_id: variation.id,
-    image_id: imgData.image?.id,
+    image_id: imgData?.image?.id || null,
     back_image_id: backImageId,
     title,
     listing_url: `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`,
@@ -2559,6 +2583,18 @@ function json(data, status = 200) {
     status,
     headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
   });
+}
+
+// Remove any "Cert #:" line (e.g. "PSA Cert #: 12345678", "CGC Cert #: ...")
+// from a description before it goes out on the PUBLIC /items feed. Graded slabs
+// store their cert in the Square description for cert-keyed admin tooling, but
+// customers shouldn't see it. Non-graded items have no such line — no-op for them.
+function stripCertLines(desc) {
+  return String(desc || '')
+    .split('\n')
+    .filter(line => !/cert\s*#/i.test(line))
+    .join('\n')
+    .trim();
 }
 
 // ─── Promo code redemption ────────────────────────────────────────────────

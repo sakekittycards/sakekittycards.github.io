@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=168" />
+  <link rel="stylesheet" href="style.css?v=169" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -505,7 +505,10 @@
       };
 
       const renderCard = (item) => {
-        const oos = item.inStock === false;
+        // "Claimed" = a graded slab that's reserved/sale-pending (Nick marks it
+        // with a CLAIMED note in the listing). Shown but not purchasable.
+        const claimed = /\bclaimed\b/i.test(item.description || '');
+        const oos = item.inStock === false || claimed;
         const cat = categorize(item);
         const isGraded = cat === 'graded';
         const isSealed = cat === 'sealed';
@@ -541,7 +544,9 @@
         const stock = typeof item.stock === 'number' ? item.stock : null;
         const LOW_STOCK_THRESHOLD = 5;
         let badge = '';
-        if (oos) {
+        if (claimed) {
+          badge = `<div class="claimed-badge">Claimed</div>`;
+        } else if (oos) {
           badge = `<div class="sold-out-badge">Sold Out</div>`;
         } else if (!isGraded && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD) {
           badge = `<div class="low-stock-badge">Only ${stock} left</div>`;
@@ -549,6 +554,7 @@
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cardClasses = ['product-card'];
         if (oos) cardClasses.push('sold-out');
+        if (claimed) cardClasses.push('claimed');
         if (isGraded) cardClasses.push('graded');
         if (isSealed) cardClasses.push('sealed');
         if (isSingles) cardClasses.push('singles');

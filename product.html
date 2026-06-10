@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=168" />
+  <link rel="stylesheet" href="style.css?v=169" />
   <style>
     /* ── Product page layout ── */
     .pdp { display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; }
@@ -544,7 +544,11 @@
       })();
 
       const vars = Array.isArray(item.variations) ? item.variations : [];
-      const oos  = item.inStock === false;
+      // "Claimed" = reserved / sale-pending graded slab (CLAIMED note in the
+      // listing). Treated as unavailable, but labeled "Claimed" not "Sold Out".
+      const claimed = /\bclaimed\b/i.test(item.description || '');
+      const oos  = item.inStock === false || claimed;
+      const availFlag = claimed ? 'Claimed' : 'Sold Out';
 
       // Parse each variant name into {color, size}. "Black, M" → color=Black, size=M.
       // Single-axis names (or empty) → size=null; name used as color label.
@@ -695,8 +699,8 @@
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
               ${isOfferOnly
-                ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}`
-                : `${fmt(initialPrice)}${oos ? ' <span class="oos-flag">Sold Out</span>' : ''}`}
+                ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
+                : `${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
             </div>
             ${(!oos && !isGradedItem && typeof item.stock === 'number')
               ? `<div class="pdp-stock${item.stock <= 5 ? ' low' : ''}" id="pdpStock">${item.stock} in stock${item.stock <= 5 ? ' — selling fast' : ''}</div>`
