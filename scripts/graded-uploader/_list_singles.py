@@ -30,7 +30,21 @@ CSV_PATH = Path(os.environ.get("SINGLES_CSV",
 UPLOAD_URL = f"{WORKER_BASE}/admin/upload-single"
 PKMN_API = "https://api.pokemontcg.io/v2/cards"
 THRESHOLD = float(os.environ.get("THRESHOLD", "100"))
+LIMIT = int(os.environ.get("LIMIT", "0"))   # >0 = cap to the top-N most valuable
 MARKUP = 1.20
+
+# Verified stock-image overrides (by TCGplayer Id) for cards pokemontcg.io lacks
+# — JP cards + Pokemon Together promos pulled from tcgsearch's public bucket
+# (clean re-hosted TCGplayer product scans), and the 2026 N's Zekrom promo from
+# pokemon.com's official card DB. Each was downloaded and visually confirmed to
+# be the exact card + correct variant (clean scans, not marketplace photos).
+IMAGE_OVERRIDE = {
+    "8219378": "https://kwuqqoyuksvlnbgzaaim.supabase.co/storage/v1/object/public/product-images/f3af607e-a0c1-445a-b702-5c567bc5b07a/c05e86fa-f411-4871-bbef-cadb602de806.webp",  # Latias ex 087/064 (JP)
+    "8532141": "https://kwuqqoyuksvlnbgzaaim.supabase.co/storage/v1/object/public/product-images/33c1babf-1320-411e-8851-1f28139cce13/e9fd0daf-646e-407c-9542-b9c2993fc6bc.webp",  # Lillie's Clefairy ex 126/100 (JP)
+    "8045543": "https://kwuqqoyuksvlnbgzaaim.supabase.co/storage/v1/object/public/product-images/f855b5d2-42f6-47cd-b7d3-79228ba731ac/38fb90f0-a1cc-4c73-ada7-e2e4a4cf5b34.webp",  # Eevee 133/165 (Pokemon Together)
+    "8045548": "https://kwuqqoyuksvlnbgzaaim.supabase.co/storage/v1/object/public/product-images/f855b5d2-42f6-47cd-b7d3-79228ba731ac/d7921b6a-54ba-4866-a100-104f20886795.webp",  # Pikachu 025/165 (Pokemon Together)
+    "9168435": "https://assets.pokemon.com/static-assets/content-assets/cms2/img/cards/web/MEP/MEP_EN_31.png",  # N's Zekrom 031 (Mega Evolution Promo)
+}
 
 # Year fallback for the few cards pokemontcg.io can't resolve (newest promos +
 # Japanese). Lets them list imageless but still bucket as Make-Offer singles.
@@ -64,6 +78,20 @@ def clean_cond(s: str) -> str:
 
 def is_reverse(s: str) -> bool:
     return "reverse" in (s or "").lower()
+
+
+def variant_tag(set_name: str, condition: str) -> str | None:
+    """Detect a print variant that pokemontcg.io can't represent. Its vintage
+    images are the *Unlimited* print only — there's no 1st-Edition / Shadowless
+    artwork — so showing one for those variants is the wrong card. Returns a
+    short display tag ('1st Ed' / 'Shadowless') so the listing stays honest, and
+    callers drop the stock image when this is set."""
+    s = ((set_name or "") + " " + (condition or "")).lower()
+    if "1st edition" in s:
+        return "1st Ed"
+    if "shadowless" in s:
+        return "Shadowless"
+    return None
 
 
 def clean_name(product_name: str) -> str:
@@ -101,7 +129,13 @@ SET_MAP = {
     "xy - evolutions": ["Evolutions"], "xy evolutions": ["Evolutions"],
     "scarlet & violet promo": ["Scarlet & Violet Black Star Promos", "Scarlet & Violet Promos"],
     "scarlet & violet promos": ["Scarlet & Violet Black Star Promos", "Scarlet & Violet Promos"],
+    "scarlet & violet promo cards": ["Scarlet & Violet Black Star Promos", "Scarlet & Violet Promos"],
     "sm promos": ["SM Black Star Promos"],
+    "sm - unbroken bonds": ["Unbroken Bonds"],
+    "xy promos": ["XY Black Star Promos"],
+    "wotc promo": ["Wizards Black Star Promos"],
+    "nintendo promos": ["Nintendo Black Star Promos"],
+    "radiant collection": ["Generations", "Legendary Treasures"],
 }
 
 
@@ -168,6 +202,14 @@ def fetch_image_b64(url: str) -> str | None:
             timeout=30)
         b = r.read()
         if b and len(b) > 2000:
+            # Square accepts JPEG/PNG/GIF, not WebP — normalize the tcgsearch
+            # bucket's .webp scans to PNG before base64.
+            if b[:4] == b"RIFF" and b[8:12] == b"WEBP":
+                import io
+                from PIL import Image
+                buf = io.BytesIO()
+                Image.open(io.BytesIO(b)).convert("RGB").save(buf, "PNG")
+                b = buf.getvalue()
             return base64.b64encode(b).decode("ascii")
     except Exception:
         return None
@@ -231,7 +273,10 @@ def main():
     rows = list(csv.DictReader(CSV_PATH.open(encoding="utf-8-sig")))
     over = [r for r in rows if num(r["Total Quantity"]) > 0 and num(r["TCG Market Price"]) > THRESHOLD]
     over.sort(key=lambda r: -num(r["TCG Market Price"]))
-    print(f"[singles] {len(over)} owned cards over ${THRESHOLD:.0f}  DRY_RUN={dry}")
+    if LIMIT > 0:
+        over = over[:LIMIT]
+    label = f"top {len(over)}" if LIMIT > 0 else f"{len(over)} owned cards over ${THRESHOLD:.0f}"
+    print(f"[singles] {label}  DRY_RUN={dry}")
 
     recs = []
     for r in over:
@@ -241,12 +286,20 @@ def main():
         cond = clean_cond(r["Condition"])
         rev = is_reverse(r["Condition"])
         mkt = num(r["TCG Market Price"])
+        vtag = variant_tag(r["Set Name"], r["Condition"])
         res = resolve(name, number, r["Set Name"])
+        # pokemontcg.io only carries the Unlimited print — never show its image
+        # for a 1st-Edition / Shadowless listing (wrong variant). Better imageless.
+        image = (res["image"] if res else None)
+        if image and vtag:
+            image = None
+        if r["TCGplayer Id"] in IMAGE_OVERRIDE:   # verified correct-variant scan
+            image = IMAGE_OVERRIDE[r["TCGplayer Id"]]
         recs.append({
             "card_id": r["TCGplayer Id"], "name": name, "number": number,
-            "set_name": setn, "cond": cond, "rev": rev, "market": mkt,
+            "set_name": setn, "cond": cond, "rev": rev, "vtag": vtag, "market": mkt,
             "price_cents": int(round(mkt * MARKUP * 100)),
-            "image": res["image"] if res else None,
+            "image": image,
             "year": (res["year"] if res and res.get("year") else YEAR_FALLBACK.get(r["TCGplayer Id"], "")),
             "matched_set": res["set"] if res else None,
         })
@@ -278,7 +331,7 @@ def main():
             skip += 1
             print(f"[singles] {i:>2}/{len(recs)} SKIP (no year) {x['card_id']} {x['name']}")
             continue
-        cond_disp = x["cond"] + (" RH" if x["rev"] else "")
+        cond_disp = x["cond"] + (" RH" if x["rev"] else "") + (f" {x['vtag']}" if x.get("vtag") else "")
         payload = {
             "card_id": x["card_id"], "name": x["name"], "set_name": x["set_name"],
             "number": x["number"], "year": x["year"], "condition": cond_disp,
