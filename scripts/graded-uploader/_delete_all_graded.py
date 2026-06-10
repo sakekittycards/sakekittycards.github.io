@@ -56,17 +56,28 @@ def is_graded(item: dict) -> bool:
 
 
 def fetch_all_items(token: str) -> list[dict]:
-    req = urllib.request.Request(
-        INSPECT_URL,
-        headers={
-            "X-Sake-Admin-Token": token,
-            "User-Agent": "Mozilla/5.0",
-            "Accept": "application/json",
-        },
-    )
-    with urllib.request.urlopen(req, timeout=60) as r:
-        d = json.loads(r.read())
-    return d.get("objects", [])
+    """Paginate the inspect cursor — the catalog is >100 objects, so a single
+    page silently drops graded items on later pages (Square caps pages at 100)."""
+    import urllib.parse
+    out: list[dict] = []
+    cursor = ""
+    for _ in range(50):
+        u = INSPECT_URL + (f"&cursor={urllib.parse.quote(cursor)}" if cursor else "")
+        req = urllib.request.Request(
+            u,
+            headers={
+                "X-Sake-Admin-Token": token,
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "application/json",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=60) as r:
+            d = json.loads(r.read())
+        out.extend(o for o in d.get("objects", []) if o.get("type") == "ITEM")
+        cursor = d.get("cursor") or ""
+        if not cursor:
+            break
+    return out
 
 
 def delete_item(item_id: str, token: str) -> tuple[bool, str]:

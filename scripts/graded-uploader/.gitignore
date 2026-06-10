@@ -4,3 +4,32 @@ _ebay_chrome_profile/
 
 # eBay scrape cache — regenerable runtime data, 72h TTL, churns every run.
 _ebay_chrome_cache.json
+
+# Re-list runtime artifacts (eBay-image experiment + imageless rebuild)
+_relist_images/
+_relist_images_raw/
+_relist_progress.json
+_relist_run.log
+_relist_test.log
+
+# Photo-attach pipeline runtime artifacts (Nick's own slab photos)
+_processed_photos/
+_crop_test/
+_vidframes/
+_photo_map.json
+_photo_ocr_cache.json
+_match.log
+_match2.log
+_attach.log
+_live_check.jpg
+
+# Singles listing runtime/test artifacts
+_singles.log
+_singles_live.log
+_ts_*.py
+_ts_*.jpg
+_ts_*.png
+_tcg_*.py
+_tcg*.jpg
+_chk*.jpg
+_single_check.jpg

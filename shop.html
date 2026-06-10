@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=168" />
+  <link rel="stylesheet" href="style.css?v=169" />
   <style>
     /* ── Shop page polish — scoped under .page-shop. Premium storefront
        hierarchy: bigger Shop Direct heading, more deliberate section
@@ -376,13 +376,12 @@
       // always stays live. The granular flags below pause individual buckets
       // while the rest of the shop stays live.
       //
-      // Current state (2026-05-26): graded is BACK ONLINE; sealed + singles
-      // stay paused (out at shows). So the full pause is OFF and the two
-      // granular flags are ON. Flip SEALED_PAUSED / SINGLES_PAUSED back to
-      // false to restore those sections.
+      // Current state (2026-06-10): store FULLY LIVE — graded, sealed, and
+      // singles all online; restocking poster off. Flip a granular flag back
+      // to true only to pull an individual bucket while a show is out.
       const SK_INVENTORY_PAUSED = false;
-      const SEALED_PAUSED  = true;   // hide the Sealed section
-      const SINGLES_PAUSED = true;   // hide the raw Singles section
+      const SEALED_PAUSED  = false;  // Sealed live (store re-opened 2026-06-10)
+      const SINGLES_PAUSED = false;  // raw Singles live (rebuilt 2026-06-10)
 
       if (SK_INVENTORY_PAUSED) {
         document.getElementById('tcgplayerBanner').hidden = true;
@@ -505,7 +504,10 @@
       };
 
       const renderCard = (item) => {
-        const oos = item.inStock === false;
+        // "Claimed" = a graded slab that's reserved/sale-pending (Nick marks it
+        // with a CLAIMED note in the listing). Shown but not purchasable.
+        const claimed = /\bclaimed\b/i.test(item.description || '');
+        const oos = item.inStock === false || claimed;
         const cat = categorize(item);
         const isGraded = cat === 'graded';
         const isSealed = cat === 'sealed';
@@ -541,7 +543,9 @@
         const stock = typeof item.stock === 'number' ? item.stock : null;
         const LOW_STOCK_THRESHOLD = 5;
         let badge = '';
-        if (oos) {
+        if (claimed) {
+          badge = `<div class="claimed-badge">Claimed</div>`;
+        } else if (oos) {
           badge = `<div class="sold-out-badge">Sold Out</div>`;
         } else if (!isGraded && stock !== null && stock > 0 && stock <= LOW_STOCK_THRESHOLD) {
           badge = `<div class="low-stock-badge">Only ${stock} left</div>`;
@@ -549,6 +553,7 @@
         const href  = `product.html?id=${encodeURIComponent(item.id)}`;
         const cardClasses = ['product-card'];
         if (oos) cardClasses.push('sold-out');
+        if (claimed) cardClasses.push('claimed');
         if (isGraded) cardClasses.push('graded');
         if (isSealed) cardClasses.push('sealed');
         if (isSingles) cardClasses.push('singles');

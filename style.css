@@ -1763,6 +1763,18 @@ body.cart-open { overflow: hidden; }
   font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
   backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15);
 }
+/* "Claimed" — a graded slab that's reserved / sale-pending. Same dimming as
+   sold-out, but an amber badge so it reads as "spoken for, ask me" rather than
+   "gone". Driven by a CLAIMED note in the listing description (see shop.html). */
+.claimed-badge {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: linear-gradient(135deg, #f5a623, #e8741e); color: #fff;
+  padding: 5px 11px; border-radius: var(--r-pill);
+  font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 2px 12px rgba(232,116,30,0.40);
+}
+.product-card.claimed .product-img { filter: grayscale(0.45) brightness(0.7); }
 /* Scarcity badge — appears on cards where in-stock count is at or below
    the low-stock threshold (5 by default, set in shop.html renderCard).
    Placed top-LEFT so the title (which left-aligns and can wrap to

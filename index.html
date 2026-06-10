@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=168" />
+  <link rel="stylesheet" href="style.css?v=169" />
 
   <style>
     /* Hero-specific styles */
@@ -1293,13 +1293,10 @@
       // CARD arrivals, so with everything out at a show there's nothing to
       // feature and a merch-only "Just Listed" would misread.
       //
-      // Current state (2026-05-26): graded is back online while sealed +
-      // singles stay paused. So the full pause is OFF, but we restrict the
-      // strip to GRADED arrivals only — it must never surface a sealed/single
-      // that's hidden in the shop. Flip JUST_LISTED_GRADED_ONLY off when
-      // sealed/singles come back.
+      // Current state (2026-06-10): store fully live — graded, sealed, and
+      // singles all back. Just Listed surfaces all card arrivals again.
       const SK_INVENTORY_PAUSED = false;
-      const JUST_LISTED_GRADED_ONLY = true;
+      const JUST_LISTED_GRADED_ONLY = false;
       if (SK_INVENTORY_PAUSED) { section.classList.add('is-empty'); return; }
 
       const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
