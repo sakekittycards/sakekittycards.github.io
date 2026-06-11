@@ -71,22 +71,19 @@ def main() -> int:
     if age_h > MAX_AGE_H:
         log(f"export older than {MAX_AGE_H:.0f}h — skipping (drop a fresh Sake export to sync)"); return 0
 
-    # GRADED: PAUSED for live pricing (2026-06-11). The CardLadder export's
-    # "Current Value" is the wrong metric AND stale (CL moves intraday); graded
-    # must price off the LIVE cardladder.py last-5-no-outlier scraper. Until that
-    # is wired (pending a permission rule for the token read), graded shows
-    # make-offer on the site and we only DRY-RUN here (reconcile visibility, no
-    # wrong-price writes). Flip back to ["--live"] once cardladder pricing lands.
-    run([sys.executable, "_sync_dryrun.py", str(src)])  # dry-run only
-    log("(GRADED price push PAUSED — awaiting live cardladder.py; make-offer on site)")
+    flag = ["--live"] if LIVE else []
 
-    # SINGLES: price each Square single off the newest TCGplayer MyPricing export
-    # by SKU (exact card/variant) -> TCG Market Price x1.03 -> price-only update.
-    singles_flag = ["--live"] if LIVE else []
-    run([sys.executable, "_site_reprice_singles.py", *singles_flag])
+    # GRADED: live cardladder.py (last-5-no-outlier x1.03) via the sk-queue, with
+    # the eBay sanity-gate (suspect cards -> eBay last-sold). Needs worker.py up +
+    # its CardLadder session valid AND restarted to load the fixed grade regex.
+    run([sys.executable, "_reprice_graded_verify.py", str(src), *flag])
 
-    # SEALED is handled by its own hourly task (SakeKitty-SealedReprice).
-    log("=== hourly sync end (graded + singles%s) ===" % (" LIVE" if LIVE else " dry-run"))
+    # SINGLES (raw): each Square single by SKU -> newest TCGplayer MyPricing
+    # export "TCG Market Price" x1.03 -> price-only update.
+    run([sys.executable, "_site_reprice_singles.py", *flag])
+
+    # SEALED: its own hourly task (SakeKitty-SealedReprice) keeps it priced.
+    log("=== hourly sync end (graded + singles + sealed-via-own-task%s) ===" % (" LIVE" if LIVE else " dry-run"))
     return 0
 
 
