@@ -141,6 +141,16 @@
       color: var(--dim);
       margin-bottom: 2px;
     }
+    /* "See recent eBay sales" link under the price (all card/sealed PDPs). */
+    .pdp-ebay-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin: 2px 0 14px;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      color: var(--cyan, #00d4ff); text-decoration: none;
+      border-bottom: 1px solid transparent; transition: border-color .15s;
+    }
+    .pdp-ebay-link::before { content: "📈"; font-size: 13px; }
+    .pdp-ebay-link:hover { border-bottom-color: currentColor; }
     .pdp-price-offer {
       display: inline-block;
       padding: 7px 18px;
@@ -720,6 +730,11 @@
                     : `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`)
                 : `${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
             </div>
+            ${isOfferOnly
+              ? `<a class="pdp-ebay-link" target="_blank" rel="noopener noreferrer"
+                    href="https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(String(item.name || '').replace(/\s*\(placeholder photo\)\s*/i, '').trim())}&_sacat=0&LH_Sold=1&LH_Complete=1&_sop=13">
+                    See recent eBay sales →</a>`
+              : ''}
             ${(!oos && !isGradedItem && typeof item.stock === 'number')
               ? `<div class="pdp-stock${item.stock <= 5 ? ' low' : ''}" id="pdpStock">${item.stock} in stock${item.stock <= 5 ? ' — selling fast' : ''}</div>`
               : ''}
