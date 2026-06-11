@@ -124,6 +124,10 @@ export default {
         return await updateGradedPrice(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/update-single-price' && request.method === 'POST') {
+        return await updateSinglePrice(request, base, squareHeaders, env);
+      }
+
       if (path === '/admin/replace-graded-images' && request.method === 'POST') {
         return await replaceGradedImages(request, base, squareHeaders, env);
       }
@@ -1716,6 +1720,85 @@ async function updateGradedPrice(request, base, squareHeaders, env) {
   return json({
     ok:       true,
     item_id:  foundId,
+    price_cents: Math.round(priceCents),
+    variations_updated: variations.length,
+  });
+}
+
+
+// Admin: update ONLY the price of a raw-single listing, located by its
+// "Card ID: <sku>" description line (the TCGplayer SKU). Mirrors
+// updateGradedPrice exactly — price-only, leaves name/image/description
+// untouched. Used by the hourly site reprice (singles -> TCGplayer market x1.03).
+async function updateSinglePrice(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+
+  const cardId = String(body.card_id || body.sku || '').trim();
+  const priceCents = Number(body.price_cents);
+  if (!cardId) return json({ error: 'missing_card_id' }, 400);
+  if (!Number.isFinite(priceCents) || priceCents <= 0) return json({ error: 'invalid_price_cents' }, 400);
+
+  // Find the item whose description's "Card ID: <n>" EXACTLY equals cardId
+  // (exact equality avoids 9125 matching 91259xx). Walk paginated catalog list.
+  let cursor = '';
+  let foundId = null;
+  for (let page = 0; page < 25; page++) {
+    const listUrl = `${base}/v2/catalog/list?types=ITEM${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    const r = await fetch(listUrl, { headers: squareHeaders });
+    const d = await r.json();
+    if (!r.ok) return json({ error: 'square_list_failed', detail: d }, r.status);
+    const match = (d.objects || []).find(o => {
+      if (o.type !== 'ITEM') return false;
+      const m = (o.item_data?.description || '').match(/Card ID:\s*(\w+)/);
+      return m && m[1] === cardId;
+    });
+    if (match) { foundId = match.id; break; }
+    cursor = d.cursor || '';
+    if (!cursor) break;
+  }
+  if (!foundId) return json({ error: 'item_not_found_for_card_id', card_id: cardId }, 404);
+
+  const readRes = await fetch(
+    `${base}/v2/catalog/object/${encodeURIComponent(foundId)}`,
+    { headers: squareHeaders },
+  );
+  const readData = await readRes.json();
+  if (!readRes.ok || !readData.object) {
+    return json({ error: 'square_read_failed', detail: readData }, readRes.status);
+  }
+  const fullItem = readData.object;
+  const variations = fullItem.item_data?.variations || [];
+  if (!variations.length) return json({ error: 'no_variations_on_item' }, 422);
+
+  const updatedVariations = variations.map(v => ({
+    ...v,
+    item_variation_data: {
+      ...(v.item_variation_data || {}),
+      pricing_type: 'FIXED_PRICING',
+      price_money: { amount: Math.round(priceCents), currency: 'USD' },
+    },
+  }));
+  const updated = {
+    ...fullItem,
+    item_data: { ...fullItem.item_data, variations: updatedVariations },
+  };
+
+  const upRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST',
+    headers: squareHeaders,
+    body: JSON.stringify({ idempotency_key: crypto.randomUUID(), object: updated }),
+  });
+  const upData = await upRes.json();
+  if (!upRes.ok) return json({ error: 'square_update_failed', detail: upData }, upRes.status);
+
+  return json({
+    ok: true,
+    item_id: foundId,
     price_cents: Math.round(priceCents),
     variations_updated: variations.length,
   });
