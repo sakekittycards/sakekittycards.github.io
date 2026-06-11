@@ -51,13 +51,17 @@ IMAGE_OVERRIDE = {
 # "(stock image — not actual card)" on the listing so customers aren't misled;
 # Nick replaces them with his own photos. Nick-approved per card. (Currently
 # empty — the Blastoise eBay placeholder was replaced by a real Unlimited scan.)
-STOCK_IMAGE = {
-    # Shadowless Base Set Blastoise — no clean shadowless SCAN exists anywhere
-    # (every DB serves Unlimited or 1st-Ed), so Nick approved this eBay listing
-    # photo of a confirmed Shadowless copy (no 1st-Ed stamp). Tagged "(stock
-    # image — not actual card)"; replaced when Nick shoots his own.
-    "2998618": "https://i.ebayimg.com/images/g/YBYAAeSwVKVqE6Wn/s-l1600.webp",
-}
+# PLACEHOLDER PHOTOS — eBay listing photos of the correct VARIANT, used where no
+# clean database scan exists. Each verified variant-correct (no wrong 1st-Ed
+# stamp) and saved as a committed local PNG so it survives the eBay listing
+# ending. Worker tags these "(placeholder photo)". Replaced when Nick shoots his
+# own. Keyed by TCGplayer Id.
+_PH_DIR = Path(__file__).resolve().parent / "_placeholder_images"
+STOCK_IMAGE = {cid: str(_PH_DIR / f"{cid}.png") for cid in (
+    "2998618",             # Base Set Blastoise 002 — Shadowless
+    "2995231", "2995232",  # Fossil Gengar 5/62 — Unlimited
+    "2902783",             # Gym Challenge Erika's Venusaur 4/132 — Unlimited
+)}
 
 # Force a variant tag where the TCGplayer CSV data is contradictory/wrong.
 # Blastoise CSV says set "Base Set (Shadowless)" but condition "Unlimited" —

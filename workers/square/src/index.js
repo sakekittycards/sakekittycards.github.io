@@ -1407,14 +1407,14 @@ async function uploadSingleItem(request, base, squareHeaders, env) {
   if (number) titleParts.push(`#${number}`);
   if (condition && condition !== 'NM') titleParts.push(`(${condition})`);
   let title = titleParts.join(' ').slice(0, 255);
-  if (stockImage) title = `${title} (stock image — not actual card)`.slice(0, 255);
+  if (stockImage) title = `${title} (placeholder photo)`.slice(0, 255);
 
   const description = [
     `Card ID: ${cardId}`,
     setName && `Set: ${setName}${year ? ` (${year})` : ''}`,
     number && `Card Number: ${number}`,
     `Condition: ${condition}`,
-    stockImage && 'Note: photo is a representative stock image, not the actual card in inventory — real photos coming soon.',
+    stockImage && 'Note: placeholder photo — not the actual card in inventory; real photos coming soon.',
   ].filter(Boolean).join('\n').slice(0, 4096);
 
   const itemPlaceholder = `#sk-single-${cardId}`;
