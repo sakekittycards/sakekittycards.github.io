@@ -1,0 +1,4 @@
+# Held / reserved slabs — cert # per line (text after # is a note).
+# These are NEVER listed on the site: excluded from add, and force-removed
+# from the site if found. Still tracked in CardLadder (Nick still holds them).
+120436530  # Zapdos Ex #202 (2023 151 SIR, PSA 10) — held for a customer (2026-06-11)

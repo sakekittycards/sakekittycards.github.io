@@ -132,6 +132,15 @@
       margin-bottom: 20px;
       font-variant-numeric: tabular-nums;
     }
+    /* "Market Price" caption above the amount on offer-only PDPs. */
+    .pdp-mkt-label {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px; font-weight: 600; letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 2px;
+    }
     .pdp-price-offer {
       display: inline-block;
       padding: 7px 18px;
@@ -487,9 +496,16 @@
       const isSinglesItem = /^(?:19|20)\d{2}\s/.test(String(item.name || ''))
         || /Card ID:\s*SK-\d+/i.test(String(item.description || ''));
 
-      // Graded slabs and raw singles are sold by negotiation, not at a fixed
-      // listed price: hide the price + Add-to-Cart and show Make Offer instead.
-      const isOfferOnly = isGradedItem || isSinglesItem;
+      // Sealed (booster boxes, ETBs, tins, etc.) — mirror shop.html's categorize:
+      // singles win first so a set name like "Radiant Collection" isn't misread.
+      const SEALED_RX = /\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b/i;
+      const isSealedItem = !isGradedItem && !isSinglesItem
+        && SEALED_RX.test(String(item.name || ''));
+
+      // Graded, raw singles, AND sealed are sold by negotiation now: show a
+      // "Market Price" reference + Make Offer (no fixed-price Add-to-Cart).
+      // Merch (apparel) is the only buy-now category.
+      const isOfferOnly = isGradedItem || isSinglesItem || isSealedItem;
 
       // Inject Product + BreadcrumbList JSON-LD so search engines + social
       // unfurls get the price, availability, image, and crumb path.  Built
@@ -699,7 +715,9 @@
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
               ${isOfferOnly
-                ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
+                ? ((typeof initialPrice === 'number' && initialPrice > 0)
+                    ? `<span class="pdp-mkt-label">Market Price</span> ${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
+                    : `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`)
                 : `${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
             </div>
             ${(!oos && !isGradedItem && typeof item.stock === 'number')
