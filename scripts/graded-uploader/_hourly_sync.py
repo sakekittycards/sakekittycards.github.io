@@ -71,17 +71,20 @@ def main() -> int:
     if age_h > MAX_AGE_H:
         log(f"export older than {MAX_AGE_H:.0f}h — skipping (drop a fresh Sake export to sync)"); return 0
 
-    # Export-driven reconcile (safe): matches Square graded items to the FRESH
-    # Sake export by Cert #, reprices keepers (CL value x1.15), flags sold for
-    # delete, and reports CL-only slabs WITHOUT adding them (auto-add is off).
-    # This replaces the old pricing.csv-driven path, which read stale certs +
-    # only page 1 of Square and would mass-delete current graded inventory.
-    if LIVE:
-        log("LIVE requested but the export-driven executor is not wired yet — "
-            "refusing to write to Square. Running the safe dry-run instead.")
-    run([sys.executable, "_sync_dryrun.py", str(src)])
+    # GRADED: export-driven reconcile — match Square graded by Cert # to the
+    # fresh Sake CardLadder export, reprice keepers (market x1.03), delete sold,
+    # NEVER auto-add. Held certs excluded. (Replaced the stale pricing.csv path.)
+    graded_flag = ["--live"] if LIVE else []
+    run([sys.executable, "_sync_dryrun.py", str(src), *graded_flag])
     log("(auto-add is OFF: CL-only slabs are reported, never inserted — user-gated)")
-    log("=== hourly sync end ===")
+
+    # SINGLES: price each Square single off the newest TCGplayer MyPricing export
+    # by SKU (exact card/variant) -> TCG Market Price x1.03 -> price-only update.
+    singles_flag = ["--live"] if LIVE else []
+    run([sys.executable, "_site_reprice_singles.py", *singles_flag])
+
+    # SEALED is handled by its own hourly task (SakeKitty-SealedReprice).
+    log("=== hourly sync end (graded + singles%s) ===" % (" LIVE" if LIVE else " dry-run"))
     return 0
 
 

@@ -35,8 +35,7 @@ WORKER = "https://sakekitty-square.nwilliams23999.workers.dev"
 INSPECT = f"{WORKER}/admin/inspect?types=ITEM"
 UPDATE_PRICE = f"{WORKER}/admin/update-graded-price"
 DELETE_ITEM = f"{WORKER}/admin/delete-item"
-MARKUP = 1.00   # interim: AT market. Superseded soon by the unified engine:
-#                max(market, recent-avg-sold) then undercut lowest TCGplayer Gold Star seller.
+MARKUP = 1.03   # market or 3% above (covers <=3% fee; "sell everything at market or 3% above").
 
 
 def tok() -> str | None:
