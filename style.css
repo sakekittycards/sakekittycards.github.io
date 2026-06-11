@@ -1600,6 +1600,16 @@ body.cart-open { overflow: hidden; }
     0 8px 28px rgba(255,106,0,0.22),
     0 0 40px rgba(255,106,0,0.10);
 }
+/* Playful one-shot wiggle on hover-in. Keyframes bake in the -5px lift so the
+   rotation composes with the resting hover transform instead of fighting it. */
+@keyframes skCardWiggle {
+  0%   { transform: translateY(-5px) rotate(0deg); }
+  22%  { transform: translateY(-5px) rotate(-2deg); }
+  48%  { transform: translateY(-5px) rotate(1.6deg); }
+  72%  { transform: translateY(-5px) rotate(-0.9deg); }
+  100% { transform: translateY(-5px) rotate(0deg); }
+}
+.product-card:not(.sold-out):hover { animation: skCardWiggle 0.45s ease-in-out; }
 .product-img {
   aspect-ratio: 5/7; display: flex; align-items: center; justify-content: center;
   font-size: 52px; position: relative; overflow: hidden;
@@ -2237,6 +2247,10 @@ body.drip-unlocked { position: relative; }
   .feature-card:hover,
   .cm-pill:hover,
   .btn:hover { transform: none; }
+  .product-card:not(.sold-out):hover { animation: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-card:not(.sold-out):hover { animation: none; }
 }
 
 /* ── Dedicated cart page (cart.html) ──
