@@ -192,14 +192,14 @@ button { font-family: inherit; }
   pointer-events: none;
   z-index: 0;
   filter: url(#nav-goo);
-  opacity: 0.72;
+  opacity: 0.5;
 }
 /* Subtle dark veil between lava and text — improves contrast without killing the effect */
 .site-nav .nav-inner::before {
   content: '';
   position: absolute;
   inset: -12px -20px;
-  background: radial-gradient(ellipse 60% 140% at 50% 50%, rgba(6,6,8,0.35), transparent 75%);
+  background: radial-gradient(ellipse 60% 140% at 50% 50%, rgba(6,6,8,0.48), transparent 78%);
   pointer-events: none;
   z-index: -1;
 }
@@ -225,34 +225,34 @@ button { font-family: inherit; }
 /* 5 blobs each falling top → bottom on their own schedule, looping forever.
    Start + end positions are outside the nav so the loop reset is invisible. */
 .nav-lava-blob:nth-child(1) {
-  width: 150px; height: 150px;
+  width: 96px; height: 96px;
   background: #ff6a00;
   top: 0; left: 3%;
   animation: lavaFall1 24s linear infinite;
 }
 .nav-lava-blob:nth-child(2) {
-  width: 130px; height: 130px;
+  width: 84px; height: 84px;
   background: #ff0080;
   top: 0; left: 22%;
   animation: lavaFall2 28s linear infinite;
   animation-delay: -7s;
 }
 .nav-lava-blob:nth-child(3) {
-  width: 160px; height: 160px;
+  width: 100px; height: 100px;
   background: #7b2fff;
   top: 0; left: 45%;
   animation: lavaFall3 26s linear infinite;
   animation-delay: -14s;
 }
 .nav-lava-blob:nth-child(4) {
-  width: 140px; height: 140px;
+  width: 90px; height: 90px;
   background: #00d4ff;
   top: 0; left: 68%;
   animation: lavaFall4 30s linear infinite;
   animation-delay: -10s;
 }
 .nav-lava-blob:nth-child(5) {
-  width: 135px; height: 135px;
+  width: 86px; height: 86px;
   background: #ff4e00;
   top: 0; left: 88%;
   animation: lavaFall5 22s linear infinite;
