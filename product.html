@@ -715,7 +715,7 @@
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
               ${isOfferOnly
-                ? ((typeof initialPrice === 'number' && initialPrice > 0)
+                ? ((!isGradedItem && typeof initialPrice === 'number' && initialPrice > 0)
                     ? `<span class="pdp-mkt-label">Market Price</span> ${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
                     : `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`)
                 : `${fmt(initialPrice)}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
