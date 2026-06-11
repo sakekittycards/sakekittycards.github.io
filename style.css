@@ -128,6 +128,28 @@ button { font-family: inherit; }
 .bg-blob-2 { width: 500px; height: 500px; background: radial-gradient(circle,#3a00ff,#00d4ff); bottom: -200px; right: -200px; }
 .site-nav, .page-content, .site-footer { position: relative; z-index: 1; }
 
+/* Sitewide water-ripple pulse — one faint ring expands from centre across the
+   whole background on a slow loop. Lives on the bg layer (z-index 0, under
+   content) at ultra-low opacity so it's barely perceptible. */
+@keyframes skBgRipple {
+  0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0; }
+  8%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 0; }
+}
+body::after {
+  content: '';
+  position: fixed; top: 50%; left: 50%;
+  width: 220vmax; height: 220vmax;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(circle, transparent 45%, rgba(125,205,255,0.06) 50%, transparent 55%);
+  animation: skBgRipple 12s ease-out infinite;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) { body::after { display: none; } }
+
 /* ── Nav ── */
 .site-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
