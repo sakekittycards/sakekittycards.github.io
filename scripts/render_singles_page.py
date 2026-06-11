@@ -95,7 +95,7 @@ HTML = f"""<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=172" />
+  <link rel="stylesheet" href="style.css?v=173" />
   <style>
     .page-singles .page-hero {{ padding-bottom: 18px; }}
     .page-singles .page-hero h1 {{ font-size: clamp(38px, 7vw, 60px); }}
@@ -277,7 +277,7 @@ HTML = f"""<!DOCTYPE html>
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=63" defer></script>
+  <script src="main.js?v=157" defer></script>
 </body>
 </html>
 """
