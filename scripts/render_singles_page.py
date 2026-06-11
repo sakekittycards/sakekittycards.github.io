@@ -48,9 +48,10 @@ def card_html(c):
                if img else '<div class="single-noimg">No image</div>')
     lang_badge = '<span class="single-lang jp">JP</span>' if lang == "Japanese" else ""
     qty_badge = f'<span class="single-qty">{qty} avail</span>' if qty > 1 else ""
+    ph_badge = '<span class="single-ph">Placeholder photo</span>' if c.get("placeholder") else ""
     return f"""        <article class="single-card">
           <a class="single-imgwrap" href="{e(mailto)}" aria-label="Make an offer on {e(name)} {e(num)}">
-            {img_tag}{lang_badge}
+            {img_tag}{lang_badge}{ph_badge}
           </a>
           <div class="single-meta">
             <h3 class="single-name">{e(name)}</h3>
@@ -141,6 +142,19 @@ HTML = f"""<!DOCTYPE html>
       font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
       background: #4a2540; color: #ffb6e6;
     }}
+    .single-ph {{
+      position: absolute; top: 22px; left: 22px;
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
+      background: rgba(0,0,0,0.74); color: #ffd27a; letter-spacing: .02em;
+    }}
+    .singles-tcg {{
+      max-width: 720px; margin: 30px auto 0; padding: 22px 24px; border-radius: 16px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(123,47,255,0.12));
+      border: 1px solid rgba(255,106,0,0.35);
+    }}
+    .singles-tcg h2 {{ margin: 0 0 6px; font-size: clamp(20px,4vw,26px); }}
+    .singles-tcg p {{ margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }}
     .single-meta {{ padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }}
     .single-name {{ font-size: 16px; font-weight: 700; margin: 0; line-height: 1.2; }}
     .single-sub {{ font-size: 12.5px; color: var(--dim); margin: 0; }}
@@ -210,9 +224,9 @@ HTML = f"""<!DOCTYPE html>
 
   <main id="main" class="page-content">
     <div class="page-hero">
-      <h1>Featured Singles</h1>
-      <p>A rotating pick of our top cards — vintage holos, chase alt arts, and modern hits. No fixed price: send your best offer and we'll get back to you.</p>
-      <p class="singles-tagline">Best <span class="ok">Offer</span> · Honest <span class="pop">Condition</span></p>
+      <h1>Today's Singles</h1>
+      <p>Today's top picks from our inventory — vintage holos, chase alt arts, and modern hits. No fixed price: send your best offer, or buy now on TCGplayer.</p>
+      <p class="singles-tagline">Today's <span class="ok">Picks</span> · Best <span class="pop">Offer</span></p>
       <div class="singles-note">
         <span aria-hidden="true">📍</span>
         <span>We're local vendors — these also sell in person and at shows, so availability can change. <strong>We'll confirm a card is still here before anything's finalized.</strong> Tap any card to send an offer straight to Nick.</span>
@@ -222,6 +236,11 @@ HTML = f"""<!DOCTYPE html>
     <div class="section" style="padding-top:0">
       <div class="singles-grid">
 {cards}
+      </div>
+      <div class="singles-tcg">
+        <h2>Want the full list?</h2>
+        <p>These are just today's picks. Browse our entire inventory — and buy now at a set price — on our TCGplayer store.</p>
+        <a class="btn btn-lg" href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener">Shop our TCGplayer store →</a>
       </div>
     </div>
   </main>

@@ -9,7 +9,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "676088",
-    "img": "assets/singles/676088.jpg"
+    "img": "assets/singles/676088.jpg",
+    "placeholder": false
   },
   {
     "name": "Mew ex",
@@ -21,7 +22,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "534919",
-    "img": "assets/singles/534919.jpg"
+    "img": "assets/singles/534919.jpg",
+    "placeholder": false
   },
   {
     "name": "Mega Charizard X ex",
@@ -33,7 +35,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "662184",
-    "img": "assets/singles/662184.jpg"
+    "img": "assets/singles/662184.jpg",
+    "placeholder": false
   },
   {
     "name": "Mega Charizard Y ex",
@@ -45,7 +48,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "676106",
-    "img": "assets/singles/676106.jpg"
+    "img": "assets/singles/676106.jpg",
+    "placeholder": false
   },
   {
     "name": "Zekrom ex",
@@ -57,7 +61,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "642623",
-    "img": "assets/singles/642623.jpg"
+    "img": "assets/singles/642623.jpg",
+    "placeholder": false
   },
   {
     "name": "Blastoise",
@@ -69,7 +74,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "42360",
-    "img": "assets/singles/42360.jpg"
+    "img": "assets/singles/42360.jpg",
+    "placeholder": true
   },
   {
     "name": "Charizard ex",
@@ -81,7 +87,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "517045",
-    "img": "assets/singles/517045.jpg"
+    "img": "assets/singles/517045.jpg",
+    "placeholder": false
   },
   {
     "name": "Pikachu ex",
@@ -93,7 +100,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "676089",
-    "img": "assets/singles/676089.jpg"
+    "img": "assets/singles/676089.jpg",
+    "placeholder": false
   },
   {
     "name": "Gengar ex",
@@ -105,7 +113,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "85680",
-    "img": "assets/singles/85680.jpg"
+    "img": "assets/singles/85680.jpg",
+    "placeholder": false
   },
   {
     "name": "Team Rocket's Mewtwo ex",
@@ -117,7 +126,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "676093",
-    "img": "assets/singles/676093.jpg"
+    "img": "assets/singles/676093.jpg",
+    "placeholder": false
   },
   {
     "name": "Mega Charizard X ex",
@@ -129,7 +139,8 @@
     "qty": 3,
     "lang": "English",
     "pid": "662185",
-    "img": "assets/singles/662185.jpg"
+    "img": "assets/singles/662185.jpg",
+    "placeholder": false
   },
   {
     "name": "Charizard (6)",
@@ -141,7 +152,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "84183",
-    "img": "assets/singles/84183.jpg"
+    "img": "assets/singles/84183.jpg",
+    "placeholder": false
   },
   {
     "name": "Pikachu ex",
@@ -153,7 +165,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "590027",
-    "img": "assets/singles/590027.jpg"
+    "img": "assets/singles/590027.jpg",
+    "placeholder": false
   },
   {
     "name": "Charizard ex",
@@ -165,7 +178,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "535090",
-    "img": "assets/singles/535090.jpg"
+    "img": "assets/singles/535090.jpg",
+    "placeholder": false
   },
   {
     "name": "Vaporeon ex",
@@ -177,7 +191,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "610504",
-    "img": "assets/singles/610504.jpg"
+    "img": "assets/singles/610504.jpg",
+    "placeholder": false
   },
   {
     "name": "Jolteon ex",
@@ -189,7 +204,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "610508",
-    "img": "assets/singles/610508.jpg"
+    "img": "assets/singles/610508.jpg",
+    "placeholder": false
   },
   {
     "name": "Eevee ex",
@@ -201,7 +217,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "610522",
-    "img": "assets/singles/610522.jpg"
+    "img": "assets/singles/610522.jpg",
+    "placeholder": false
   },
   {
     "name": "Pikachu - 027 (Pokemon Center Exclusive)",
@@ -213,7 +230,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "500264",
-    "img": "assets/singles/500264.jpg"
+    "img": "assets/singles/500264.jpg",
+    "placeholder": false
   },
   {
     "name": "Charizard",
@@ -225,7 +243,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "42479",
-    "img": "assets/singles/42479.jpg"
+    "img": "assets/singles/42479.jpg",
+    "placeholder": false
   },
   {
     "name": "Glaceon V (Alternate Full Art)",
@@ -237,7 +256,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "246747",
-    "img": "assets/singles/246747.jpg"
+    "img": "assets/singles/246747.jpg",
+    "placeholder": false
   },
   {
     "name": "Eevee - 133/165 (Pokemon Together)",
@@ -249,7 +269,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "559565",
-    "img": "assets/singles/559565.jpg"
+    "img": "assets/singles/559565.jpg",
+    "placeholder": false
   },
   {
     "name": "Venusaur",
@@ -261,7 +282,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "107010",
-    "img": "assets/singles/107010.jpg"
+    "img": "assets/singles/107010.jpg",
+    "placeholder": false
   },
   {
     "name": "Pikachu - 025/165 (Pokemon Together)",
@@ -273,7 +295,8 @@
     "qty": 3,
     "lang": "English",
     "pid": "559566",
-    "img": "assets/singles/559566.jpg"
+    "img": "assets/singles/559566.jpg",
+    "placeholder": false
   },
   {
     "name": "Latias ex",
@@ -285,7 +308,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "579469",
-    "img": "assets/singles/579469.jpg"
+    "img": "assets/singles/579469.jpg",
+    "placeholder": false
   },
   {
     "name": "Gengar (5)",
@@ -297,7 +321,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "106521",
-    "img": "assets/singles/106521.jpg"
+    "img": "assets/singles/106521.jpg",
+    "placeholder": true
   },
   {
     "name": "Magikarp & Wailord GX",
@@ -309,7 +334,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "181694",
-    "img": "assets/singles/181694.jpg"
+    "img": "assets/singles/181694.jpg",
+    "placeholder": false
   },
   {
     "name": "Team Rocket's Nidoking ex",
@@ -321,7 +347,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "633033",
-    "img": "assets/singles/633033.jpg"
+    "img": "assets/singles/633033.jpg",
+    "placeholder": false
   },
   {
     "name": "Dragonite (4)",
@@ -333,7 +360,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "106520",
-    "img": "assets/singles/106520.jpg"
+    "img": "assets/singles/106520.jpg",
+    "placeholder": false
   },
   {
     "name": "Lillie's Clefairy ex",
@@ -345,7 +373,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "615002",
-    "img": "assets/singles/615002.jpg"
+    "img": "assets/singles/615002.jpg",
+    "placeholder": false
   },
   {
     "name": "Charmander",
@@ -357,7 +386,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "502556",
-    "img": "assets/singles/502556.jpg"
+    "img": "assets/singles/502556.jpg",
+    "placeholder": false
   },
   {
     "name": "Squirtle",
@@ -369,7 +399,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "502549",
-    "img": "assets/singles/502549.jpg"
+    "img": "assets/singles/502549.jpg",
+    "placeholder": false
   },
   {
     "name": "Gengar (48)",
@@ -381,7 +412,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "571586",
-    "img": "assets/singles/571586.jpg"
+    "img": "assets/singles/571586.jpg",
+    "placeholder": false
   },
   {
     "name": "Erika's Venusaur",
@@ -393,7 +425,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "85307",
-    "img": "assets/singles/85307.jpg"
+    "img": "assets/singles/85307.jpg",
+    "placeholder": true
   },
   {
     "name": "Psyduck",
@@ -405,7 +438,8 @@
     "qty": 16,
     "lang": "English",
     "pid": "676038",
-    "img": "assets/singles/676038.jpg"
+    "img": "assets/singles/676038.jpg",
+    "placeholder": false
   },
   {
     "name": "Venusaur",
@@ -417,7 +451,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "107010",
-    "img": "assets/singles/107010.jpg"
+    "img": "assets/singles/107010.jpg",
+    "placeholder": false
   },
   {
     "name": "N's Zekrom - 031 (Pokemon Center Exclusive)",
@@ -429,7 +464,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "680481",
-    "img": "assets/singles/680481.jpg"
+    "img": "assets/singles/680481.jpg",
+    "placeholder": false
   },
   {
     "name": "Charizard",
@@ -441,7 +477,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "124026",
-    "img": "assets/singles/124026.jpg"
+    "img": "assets/singles/124026.jpg",
+    "placeholder": false
   },
   {
     "name": "Mega Meganium ex",
@@ -453,7 +490,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "676084",
-    "img": "assets/singles/676084.jpg"
+    "img": "assets/singles/676084.jpg",
+    "placeholder": false
   },
   {
     "name": "Gengar (5)",
@@ -465,7 +503,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "106521",
-    "img": "assets/singles/106521.jpg"
+    "img": "assets/singles/106521.jpg",
+    "placeholder": true
   },
   {
     "name": "Pikachu (Full Art)",
@@ -477,7 +516,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "113771",
-    "img": "assets/singles/113771.jpg"
+    "img": "assets/singles/113771.jpg",
+    "placeholder": false
   },
   {
     "name": "Mega Latias ex",
@@ -489,7 +529,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "654520",
-    "img": "assets/singles/654520.jpg"
+    "img": "assets/singles/654520.jpg",
+    "placeholder": false
   },
   {
     "name": "Zeraora V (Alternate Full Art)",
@@ -501,7 +542,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "241712",
-    "img": "assets/singles/241712.jpg"
+    "img": "assets/singles/241712.jpg",
+    "placeholder": false
   },
   {
     "name": "Moltres ex - 031 (EX Collector's Window Tins)",
@@ -513,7 +555,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "87567",
-    "img": "assets/singles/87567.jpg"
+    "img": "assets/singles/87567.jpg",
+    "placeholder": false
   },
   {
     "name": "Mew EX - XY126",
@@ -525,7 +568,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "123434",
-    "img": "assets/singles/123434.jpg"
+    "img": "assets/singles/123434.jpg",
+    "placeholder": false
   },
   {
     "name": "Leafeon VSTAR",
@@ -537,7 +581,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "477060",
-    "img": "assets/singles/477060.jpg"
+    "img": "assets/singles/477060.jpg",
+    "placeholder": false
   },
   {
     "name": "Greninja & Zoroark GX (Secret)",
@@ -549,7 +594,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "189312",
-    "img": "assets/singles/189312.jpg"
+    "img": "assets/singles/189312.jpg",
+    "placeholder": false
   },
   {
     "name": "Flying Pikachu",
@@ -561,7 +607,8 @@
     "qty": 1,
     "lang": "English",
     "pid": "85534",
-    "img": "assets/singles/85534.jpg"
+    "img": "assets/singles/85534.jpg",
+    "placeholder": false
   },
   {
     "name": "Charmeleon",
@@ -573,7 +620,8 @@
     "qty": 3,
     "lang": "English",
     "pid": "566514",
-    "img": "assets/singles/566514.jpg"
+    "img": "assets/singles/566514.jpg",
+    "placeholder": false
   },
   {
     "name": "Mimikyu - 075 (Pokemon Center Exclusive)",
@@ -585,7 +633,8 @@
     "qty": 2,
     "lang": "English",
     "pid": "535953",
-    "img": "assets/singles/535953.jpg"
+    "img": "assets/singles/535953.jpg",
+    "placeholder": false
   },
   {
     "name": "Eevee GX - SM233",
@@ -597,6 +646,7 @@
     "qty": 1,
     "lang": "English",
     "pid": "200272",
-    "img": "assets/singles/200272.jpg"
+    "img": "assets/singles/200272.jpg",
+    "placeholder": false
   }
 ]
