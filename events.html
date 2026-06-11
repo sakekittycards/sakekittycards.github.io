@@ -607,11 +607,20 @@
   </footer>
 
   <script src="main.js?v=160" defer></script>
-  <script src="assets/events-data.js?v=6"></script>
+  <script src="assets/events-data.js?v=7"></script>
   <script>
     // EVENTS data moved to assets/events-data.js so vendor-portal.html
     // can render the same calendar without duplicating the schedule.
-    const EVENTS = window.SK_EVENTS;
+    // Secret/teaser events: an entry stays masked (name/loc show the teaser)
+    // until its `revealAt` (YYYY-MM-DD) date, then auto-swaps to realName/realLoc.
+    // Secret-by-default: if we never reach revealAt, the teaser is what shows.
+    const _todayISO = new Date().toISOString().slice(0, 10);
+    const EVENTS = (window.SK_EVENTS || []).map(function (ev) {
+      if (ev.revealAt && _todayISO >= ev.revealAt) {
+        return Object.assign({}, ev, { name: ev.realName || ev.name, loc: ev.realLoc || ev.loc });
+      }
+      return ev;
+    });
 
     // Inject Event[] JSON-LD so Google can surface upcoming shows in the
     // events knowledge box (and source the dates from machine-readable
