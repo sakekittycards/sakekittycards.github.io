@@ -2191,7 +2191,7 @@ body.drip-unlocked { position: relative; }
 @media (max-width: 768px) {
   .nav-toggle { display: flex; order: 3; }
   .nav-cart { order: 2; margin-left: auto; }  /* cart sits between logo and hamburger */
-  .nav-links { display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: rgba(6,6,8,.96); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); flex-direction: column; padding: 18px; gap: 4px; margin-left: 0; align-items: stretch; }
+  .nav-links { display: none; position: absolute; top: var(--nav-h); left: 0; right: 0; background: rgba(7,7,11,.995); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); flex-direction: column; padding: 18px; gap: 4px; margin-left: 0; align-items: stretch; }
   .nav-links.open { display: flex; }
   .nav-links li { text-align: left; }
   /* Bigger tap targets + more readable text on the mobile menu drawer.
