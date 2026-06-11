@@ -512,7 +512,9 @@
     }
     .ti-remove {
       background: none; border: none; color: var(--dim);
-      cursor: pointer; font-size: 20px; padding: 4px 8px;
+      cursor: pointer; font-size: 20px;
+      min-width: 44px; min-height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
       transition: color .15s;
     }
     .ti-remove:hover { color: #ff6b6b; }
@@ -2109,7 +2111,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=159" defer></script>
+  <script src="main.js?v=160" defer></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
