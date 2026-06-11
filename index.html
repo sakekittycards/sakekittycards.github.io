@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=177" />
+  <link rel="stylesheet" href="style.css?v=178" />
 
   <style>
     /* Hero-specific styles */
@@ -1183,23 +1183,11 @@
         <div class="divider"></div>
         <p class="section-sub">We're on the road — come find our table at these upcoming shows.</p>
       </div>
-      <!-- Next 3 upcoming events. Manually updated as shows pass — keep in
-           sync with events.html EVENTS array. (Refactor to shared data file
-           if this gets out of date often.) -->
-      <div class="events-preview-grid">
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy" style="font-size:14px">9–10</span></div>
-          <div class="event-preview-info"><h4>Collect-A-Con</h4><p>Cleveland, OH</p></div>
-        </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">10</span></div>
-          <div class="event-preview-info"><h4>Naples Card Show</h4><p>Naples, FL</p></div>
-        </div>
-        <div class="card event-preview">
-          <div class="event-date"><span class="mo">May</span><span class="dy">16</span></div>
-          <div class="event-preview-info"><h4>Stuart Card Show</h4><p>Stuart, FL</p></div>
-        </div>
-      </div>
+      <!-- Next 3 upcoming in-person shows — rendered from assets/events-data.js
+           by the script near the bottom of the page, so this NEVER goes stale
+           (used to be hardcoded + hand-updated, which left May shows showing in
+           June). Empty by default; the script fills it on load. -->
+      <div class="events-preview-grid" id="eventsPreviewGrid"></div>
       <div class="see-all-wrap"><a href="events.html" class="see-all">View all events →</a></div>
     </section>
 
@@ -1237,6 +1225,50 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
+  <!-- Shared show schedule — same source events.html + the vendor portal use. -->
+  <script src="assets/events-data.js?v=7"></script>
+  <script>
+    // Catch Us Live — render the next 3 upcoming IN-PERSON shows straight from
+    // the shared events-data.js. Mirrors events.html (revealAt masking + the
+    // "(end||start) >= today" upcoming filter) so the homepage can never drift
+    // stale the way the old hardcoded cards did.
+    (function () {
+      const grid = document.getElementById('eventsPreviewGrid');
+      if (!grid || !Array.isArray(window.SK_EVENTS)) return;
+      const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const todayISO = new Date().toISOString().slice(0, 10);
+      const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      const shortLoc = (loc) => {
+        const m = String(loc || '').match(/([A-Za-z.\s]+,\s*[A-Z]{2})(?:\s+\d{5})?\s*$/);
+        return m ? m[1].trim() : (String(loc || '').split(' · ')[0] || '');
+      };
+      const dayLabel = (ev) => {
+        const sd = parseInt(ev.start.slice(8, 10), 10);
+        if (!ev.end) return String(sd);
+        const ed = parseInt(ev.end.slice(8, 10), 10);
+        return ev.end.slice(0, 7) === ev.start.slice(0, 7) ? `${sd}–${ed}` : String(sd);
+      };
+      const upcoming = window.SK_EVENTS
+        .map(ev => (ev.revealAt && todayISO >= ev.revealAt)
+          ? Object.assign({}, ev, { name: ev.realName || ev.name, loc: ev.realLoc || ev.loc })
+          : ev)
+        .filter(ev => (ev.end || ev.start) >= todayISO)                          // not past
+        .filter(ev => ev.type !== 'whatnot' && !/^online/i.test(ev.loc || ''))   // in-person only
+        .sort((a, b) => a.start.localeCompare(b.start))
+        .slice(0, 3);
+      if (!upcoming.length) return; // leave the heading + "View all events" link, no stale cards
+      grid.innerHTML = upcoming.map(ev => {
+        const mo = MO[parseInt(ev.start.slice(5, 7), 10) - 1];
+        const dy = dayLabel(ev);
+        const dySize = dy.length > 2 ? ' style="font-size:14px"' : '';
+        return `
+        <div class="card event-preview">
+          <div class="event-date"><span class="mo">${mo}</span><span class="dy"${dySize}>${dy}</span></div>
+          <div class="event-preview-info"><h4>${esc(ev.name)}</h4><p>${esc(shortLoc(ev.loc))}</p></div>
+        </div>`;
+      }).join('');
+    })();
+  </script>
   <script src="main.js?v=160" defer></script>
   <script>
     // Testimonials — show 3 more on click. Premium curation: don't dump
@@ -1390,7 +1422,9 @@
           const eligible = JUST_LISTED_GRADED_ONLY
             ? items.filter(it => categorize(it) === 'graded')
             : items;
-          const inStock = eligible.filter(it => it.inStock !== false).slice(0, 4);
+          // Require a real photo — imageless products render a bare 📦 box
+          // that looks unfinished on the homepage strip; skip them here.
+          const inStock = eligible.filter(it => it.inStock !== false && it.imageUrl).slice(0, 4);
           if (!inStock.length) {
             section.classList.add('is-empty');
             return;
