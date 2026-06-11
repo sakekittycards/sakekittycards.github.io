@@ -1809,6 +1809,17 @@ body.cart-open { overflow: hidden; }
    the offer pill stays soft and pill-sized, not a loud price-style label. */
 .page-shop .product-price.product-offer { font-size: 12.5px; filter: none; }
 
+/* "Market Price" caption that precedes the dollar amount on offer-only items
+   (graded / singles / sealed). Muted + uppercase so the number still leads. */
+.mkt-label {
+  display: block;
+  font-size: 10.5px; font-weight: 600; letter-spacing: .7px;
+  text-transform: uppercase;
+  color: var(--dim);
+  filter: none;
+  margin-bottom: 1px;
+}
+
 /* Sold out state */
 .product-card.sold-out .product-img { filter: grayscale(0.75) brightness(0.55); }
 .product-card.sold-out .product-name,
