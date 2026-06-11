@@ -168,7 +168,7 @@
   <main id="main" class="page-content">
     <div id="shopHero" class="page-hero">
       <h1>Shop</h1>
-      <p id="shopHeroSub">Apparel and merch direct from us — singles and sealed live on our TCGPlayer storefront.</p>
+      <p id="shopHeroSub">Graded slabs, sealed, singles, and apparel — all direct from us. Packed with care, shipped fast and insured.</p>
     </div>
 
     <!-- Local-vendor inventory notice — site lags real-time in-person sales
@@ -184,8 +184,8 @@
     <div id="tcgplayerBanner" class="section" style="padding-top:0">
       <div class="tcg-banner">
         <div class="tcg-banner-text">
-          <h2>Prefer TCGPlayer's buyer protection?</h2>
-          <p>A slice of our singles and sealed lives on our TCGPlayer storefront — Gold Star seller with secure checkout.</p>
+          <h2>Want even more singles?</h2>
+          <p>Hundreds more singles live on our TCGplayer store — same shop you're on now, a Gold Star seller with a 99%+ positive feedback rating.</p>
         </div>
         <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" class="btn btn-tcg">
           Shop on TCGPlayer →
@@ -428,10 +428,11 @@
         const name = item.name || '';
         const desc = item.description || '';
         if (GRADER_RX.test(name)) return 'graded';
-        if (SEALED_RX.test(name)) return 'sealed';
-        // Singles: either year prefix OR internal Card ID stamp.
+        // Singles FIRST (year prefix OR internal Card ID stamp) — otherwise a set
+        // name like "Radiant Collection" trips SEALED_RX's "collection" token.
         if (/^(?:19|20)\d{2}\s/.test(name)) return 'singles';
-        if (/Card ID:\s*SK-\d+/i.test(desc)) return 'singles';
+        if (/Card ID:/i.test(desc) && !SEALED_RX.test(name)) return 'singles';
+        if (SEALED_RX.test(name)) return 'sealed';
         return 'merch';
       };
 
