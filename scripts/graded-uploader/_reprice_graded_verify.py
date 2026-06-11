@@ -110,8 +110,10 @@ def main():
         cert = (r.get("Graded Cert #") or "").strip()
         if not cert or cert in HELD: continue
         grader, grade = parse_grade(r.get("Condition"))
+        cv = float((r.get("Current Value") or "0").replace(",", "") or 0)
         cards.append({"cert": cert, "name": clean_name(r.get("Subject") or ""), "set": (r.get("Set") or "").strip(),
-                      "number": (r.get("Number") or "").strip(), "grader": grader, "grade": grade})
+                      "number": (r.get("Number") or "").strip(), "grader": grader, "grade": grade,
+                      "cv": (math.ceil(cv * FEE) if cv else None)})
     print(f"GRADED re-verify — {len(cards)} slabs (cardladder + eBay sanity-gate)")
     current = inspect_prices(tok)
 
@@ -157,12 +159,21 @@ def main():
         final, src_used, note = cl, "cardladder", ""
         if suspect:
             eb = ebay_price(c)
-            if eb and cl and abs(eb - cl) / max(eb, cl) > EBAY_DISAGREE:
-                final, src_used, note = eb, "ebay", f"cl {cl} vs ebay {eb} -> ebay"
-            elif eb and not cl:
-                final, src_used, note = eb, "ebay", "cardladder no-data -> ebay"
-            elif cl:
-                note = f"suspect(n={n}) but ebay {eb} agrees" if eb else f"suspect(n={n}); no ebay"
+            cv = c.get("cv")
+            # CV (the export Current Value) is the stable sanity anchor. Trust a
+            # live source only if it's within 0.6-1.6x of CV; this rejects thin
+            # eBay mismatches (Ceruledge $938 vs CV $50) AND cardladder mismatches
+            # (Chinese Pikachu $3062 vs CV $4584) without dragging good fresh
+            # comps to the stale CV (Pikachu eBay $5047 is 1.10x CV -> trusted).
+            near = lambda x: bool(x and cv and 0.6 <= x / cv <= 1.6)
+            if near(eb):
+                final, src_used, note = eb, "ebay", f"suspect -> eBay {eb} (within band of CV {cv})"
+            elif near(cl):
+                final, src_used, note = cl, "cardladder", f"suspect(n={n}) -> cardladder {cl} (within band of CV {cv})"
+            elif cv:
+                final, src_used, note = cv, "cv", f"cl {cl}/eBay {eb} both off CV -> CV {cv}"
+            elif eb:
+                final, src_used, note = eb, "ebay", f"no CV; cardladder no-data -> eBay {eb}"
         rows.append({**c, "current": cur, "cl": cl, "n": n, "final": final, "src": src_used, "note": note})
 
     moved = [r for r in rows if r["final"] and r["current"] and abs(r["final"] - r["current"]) >= 1]
