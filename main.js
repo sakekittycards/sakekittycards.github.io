@@ -1300,3 +1300,91 @@ window.skConfirm = function skConfirm(opts) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 };
+
+/* ── Shop FX: card press/hover ripple (ramps with hold/hover time) + ambient dots ──
+   Pointer events drive it, so it works for BOTH desktop hover and a mobile
+   press-and-hold: the ripple builds while the finger is down and the card opens
+   on release (the normal link click fires on touchend). Honors reduced-motion;
+   dots only render on the shop + product pages. */
+(function skShopFx() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  // Intensity = how long you've kept hovering/holding cards: ramps 0->1 over 60s,
+  // eases back 1->0 over the next 60s, then repeats.
+  (function cardRipple() {
+    let active = null, px = 0, py = 0;
+    let elapsed = 0, last = performance.now(), nextSpawn = 0;
+    const PEAK = 60, PERIOD = 120;
+
+    const setPos = (e, card) => {
+      const r = card.getBoundingClientRect();
+      px = e.clientX - r.left; py = e.clientY - r.top;
+    };
+    const begin = (e) => {
+      const c = e.target.closest && e.target.closest('.product-card:not(.sold-out)');
+      if (!c) return;
+      active = c;
+      if (getComputedStyle(c).position === 'static') c.style.position = 'relative';
+      setPos(e, c);
+    };
+    const end = (e) => {
+      const c = e.target.closest && e.target.closest('.product-card');
+      if (c && active === c && !c.contains(e.relatedTarget)) active = null;
+    };
+    // pointerover/out = desktop hover; pointerdown/up + cancel = mobile press-hold.
+    document.addEventListener('pointerover', begin, true);
+    document.addEventListener('pointerdown', begin, true);
+    document.addEventListener('pointerout', end, true);
+    document.addEventListener('pointerup', () => { active = null; }, true);
+    document.addEventListener('pointercancel', () => { active = null; }, true);
+    document.addEventListener('pointermove', (e) => { if (active) setPos(e, active); }, { passive: true });
+
+    function spawn(card, intensity) {
+      const s = document.createElement('span');
+      s.className = 'sk-card-ripple';
+      s.style.left = px + 'px';
+      s.style.top = py + 'px';
+      s.style.setProperty('--op', (0.08 + intensity * 0.22).toFixed(3));
+      card.appendChild(s);
+      setTimeout(() => s.remove(), 1100);
+    }
+
+    function tick(now) {
+      const dt = (now - last) / 1000; last = now;
+      if (active && document.contains(active)) elapsed += dt;
+      else { active = null; elapsed = Math.max(0, elapsed - dt * 1.5); }
+      const p = elapsed % PERIOD;
+      const intensity = p <= PEAK ? p / PEAK : (PERIOD - p) / PEAK;
+      if (active && !document.hidden) {
+        nextSpawn -= dt * 1000;
+        if (nextSpawn <= 0) { spawn(active, intensity); nextSpawn = 820 - intensity * 680; }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  // Ambient dots — shop + product pages only.
+  (function dots() {
+    if (!/\/(shop|product)\.html$/.test(location.pathname)) return;
+    const layer = document.createElement('div');
+    layer.id = 'sk-dots-layer';
+    (document.body || document.documentElement).appendChild(layer);
+    const COLORS = ['255,106,0', '255,0,128', '0,212,255', '123,47,255'];
+    function dot() {
+      if (document.hidden) return;
+      const d = document.createElement('span');
+      d.className = 'sk-dot';
+      const size = (3 + Math.random() * 5).toFixed(1);
+      d.style.width = d.style.height = size + 'px';
+      d.style.left = (Math.random() * 100).toFixed(2) + 'vw';
+      d.style.top = (Math.random() * 100).toFixed(2) + 'vh';
+      d.style.setProperty('--c', COLORS[(Math.random() * COLORS.length) | 0]);
+      d.style.animationDuration = (3.5 + Math.random() * 4).toFixed(1) + 's';
+      layer.appendChild(d);
+      setTimeout(() => d.remove(), 9000);
+    }
+    for (let i = 0; i < 5; i++) setTimeout(dot, i * 250);
+    setInterval(dot, 750);
+  })();
+})();

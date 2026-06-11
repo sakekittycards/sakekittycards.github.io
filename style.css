@@ -128,27 +128,40 @@ button { font-family: inherit; }
 .bg-blob-2 { width: 500px; height: 500px; background: radial-gradient(circle,#3a00ff,#00d4ff); bottom: -200px; right: -200px; }
 .site-nav, .page-content, .site-footer { position: relative; z-index: 1; }
 
-/* Sitewide water-ripple pulse — one faint ring expands from centre across the
-   whole background on a slow loop. Lives on the bg layer (z-index 0, under
-   content) at ultra-low opacity so it's barely perceptible. */
-@keyframes skBgRipple {
-  0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0; }
-  8%   { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1);   opacity: 0; }
+/* Let a mobile press-and-hold build the ripple instead of popping the iOS
+   long-press link/image menu. The card still opens on release (tap = click). */
+.product-card { -webkit-touch-callout: none; }
+
+/* Card-hover water ripple — main.js spawns rings from the cursor inside a hovered
+   product card. Spawn rate + opacity ramp with how long you keep hovering cards
+   (peak ~1 min), then ease back down and repeat. Clipped by the card's overflow. */
+.sk-card-ripple {
+  position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; pointer-events: none; opacity: 0; transform: scale(0); z-index: 3;
+  background: radial-gradient(circle, rgba(190,228,255,0.9) 0%, rgba(190,228,255,0) 70%);
+  animation: skCardRipple 1.1s ease-out forwards;
 }
-body::after {
-  content: '';
-  position: fixed; top: 50%; left: 50%;
-  width: 220vmax; height: 220vmax;
-  transform: translate(-50%, -50%) scale(0);
-  border-radius: 50%;
-  pointer-events: none; z-index: 0;
-  background: radial-gradient(circle, transparent 45%, rgba(125,205,255,0.06) 50%, transparent 55%);
-  animation: skBgRipple 12s ease-out infinite;
-  will-change: transform, opacity;
+@keyframes skCardRipple {
+  0%   { transform: scale(0);  opacity: 0; }
+  15%  { opacity: var(--op, 0.22); }
+  100% { transform: scale(26); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { body::after { display: none; } }
+
+/* Shop-only ambient: fun little dots that form and fade at random spots. Lives
+   on the bg layer (z-index 0), under content, pointer-events none. */
+#sk-dots-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.sk-dot {
+  position: absolute; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, rgba(var(--c, 0,212,255), 0.55), rgba(var(--c, 0,212,255), 0) 70%);
+  animation: skDotFade 5s ease-in-out forwards;
+}
+@keyframes skDotFade {
+  0%   { opacity: 0; transform: scale(0.4); }
+  35%  { opacity: 0.5; }
+  65%  { opacity: 0.5; }
+  100% { opacity: 0; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) { #sk-dots-layer, .sk-card-ripple { display: none; } }
 
 /* ── Nav ── */
 .site-nav {
