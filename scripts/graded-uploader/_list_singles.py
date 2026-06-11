@@ -46,6 +46,15 @@ IMAGE_OVERRIDE = {
     "9168435": "https://assets.pokemon.com/static-assets/content-assets/cms2/img/cards/web/MEP/MEP_EN_31.png",  # N's Zekrom 031 (Mega Evolution Promo)
 }
 
+# Temporary STOCK-PHOTO placeholders — NOT the actual card in inventory. Used
+# only where no clean correct-variant scan exists (e.g. Shadowless Base Set,
+# which databases only carry as Unlimited or 1st-Ed). The worker tags these
+# "(stock image — not actual card)" on the listing so customers aren't misled;
+# Nick replaces them with his own photos. Nick-approved per card.
+STOCK_IMAGE = {
+    "2998618": "https://i.ebayimg.com/images/g/YBYAAeSwVKVqE6Wn/s-l1600.webp",  # Base Set (Shadowless) Blastoise 002/102 — eBay listing photo
+}
+
 # Year fallback for the few cards pokemontcg.io can't resolve (newest promos +
 # Japanese). Lets them list imageless but still bucket as Make-Offer singles.
 YEAR_FALLBACK = {
@@ -295,9 +304,12 @@ def main():
             image = None
         if r["TCGplayer Id"] in IMAGE_OVERRIDE:   # verified correct-variant scan
             image = IMAGE_OVERRIDE[r["TCGplayer Id"]]
+        stock = r["TCGplayer Id"] in STOCK_IMAGE
+        if stock:                                  # approved placeholder (not the real card)
+            image = STOCK_IMAGE[r["TCGplayer Id"]]
         recs.append({
             "card_id": r["TCGplayer Id"], "name": name, "number": number,
-            "set_name": setn, "cond": cond, "rev": rev, "vtag": vtag, "market": mkt,
+            "set_name": setn, "cond": cond, "rev": rev, "vtag": vtag, "stock": stock, "market": mkt,
             "price_cents": int(round(mkt * MARKUP * 100)),
             "image": image,
             "year": (res["year"] if res and res.get("year") else YEAR_FALLBACK.get(r["TCGplayer Id"], "")),
@@ -337,6 +349,8 @@ def main():
             "number": x["number"], "year": x["year"], "condition": cond_disp,
             "price_cents": x["price_cents"],
         }
+        if x.get("stock"):
+            payload["stock_image"] = True
         b64 = fetch_image_b64(x["image"]) if x["image"] else None
         if b64:
             payload["image_base64"] = b64
