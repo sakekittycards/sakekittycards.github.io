@@ -47,12 +47,44 @@ IMAGE_OVERRIDE = {
 }
 
 # Temporary STOCK-PHOTO placeholders — NOT the actual card in inventory. Used
-# only where no clean correct-variant scan exists (e.g. Shadowless Base Set,
-# which databases only carry as Unlimited or 1st-Ed). The worker tags these
+# only where no clean correct-variant scan exists. The worker tags these
 # "(stock image — not actual card)" on the listing so customers aren't misled;
-# Nick replaces them with his own photos. Nick-approved per card.
+# Nick replaces them with his own photos. Nick-approved per card. (Currently
+# empty — the Blastoise eBay placeholder was replaced by a real Unlimited scan.)
 STOCK_IMAGE = {
-    "2998618": "https://i.ebayimg.com/images/g/YBYAAeSwVKVqE6Wn/s-l1600.webp",  # Base Set (Shadowless) Blastoise 002/102 — eBay listing photo
+    # Shadowless Base Set Blastoise — no clean shadowless SCAN exists anywhere
+    # (every DB serves Unlimited or 1st-Ed), so Nick approved this eBay listing
+    # photo of a confirmed Shadowless copy (no 1st-Ed stamp). Tagged "(stock
+    # image — not actual card)"; replaced when Nick shoots his own.
+    "2998618": "https://i.ebayimg.com/images/g/YBYAAeSwVKVqE6Wn/s-l1600.webp",
+}
+
+# Force a variant tag where the TCGplayer CSV data is contradictory/wrong.
+# Blastoise CSV says set "Base Set (Shadowless)" but condition "Unlimited" —
+# Nick confirmed it IS Shadowless.
+VARIANT_OVERRIDE = {"2998618": "Shadowless"}
+
+# Correct-VARIANT scans for vintage cards that pokemontcg.io can ONLY show as
+# 1st Edition — its WOTC-era images all carry the "EDITION 1" stamp, so an
+# Unlimited listing would get the wrong card. Committed local PNGs, each
+# hand-verified Unlimited (no stamp): Base Set Venusaur from tcgsearch's
+# labelled "Base Set" folder; Dragonite from Serebii. Highest image priority.
+# NOTE: Fossil Gengar (2995231/2995232) + Gym Erika's Venusaur (2902783) are
+# DELIBERATELY absent — NO clean Unlimited scan exists for them in any database
+# (all serve the 1st-Ed stamped scan), so they list imageless via the WOTC
+# guard rather than show the wrong variant.
+_FIX_DIR = Path(__file__).resolve().parent / "_fix_images"
+FIX_IMAGE = {cid: str(_FIX_DIR / f"{cid}.png") for cid in (
+    "2999708", "2999709",  # Base Set Venusaur 015/102 (Unlimited)
+    "2995221",             # Fossil Dragonite 4/62 (Unlimited)
+)}
+
+# pokemontcg.io serves 1st-Edition (stamped) art for these WOTC sets, so its
+# image must NEVER be used for them — a card here without a FIX_IMAGE/override
+# lists imageless rather than showing the wrong variant.
+WOTC_FIRST_ED_SETS = {
+    "base set", "jungle", "fossil", "team rocket", "gym heroes", "gym challenge",
+    "neo genesis", "neo discovery", "neo revelation", "neo destiny",
 }
 
 # Year fallback for the few cards pokemontcg.io can't resolve (newest promos +
@@ -95,10 +127,13 @@ def variant_tag(set_name: str, condition: str) -> str | None:
     artwork — so showing one for those variants is the wrong card. Returns a
     short display tag ('1st Ed' / 'Shadowless') so the listing stays honest, and
     callers drop the stock image when this is set."""
-    s = ((set_name or "") + " " + (condition or "")).lower()
-    if "1st edition" in s:
+    cond = (condition or "").lower()
+    sset = (set_name or "").lower()
+    if "1st edition" in cond:
         return "1st Ed"
-    if "shadowless" in s:
+    if "unlimited" in cond:          # explicit Unlimited beats a stale "(Shadowless)" set label
+        return None
+    if "shadowless" in cond or "shadowless" in sset:
         return "Shadowless"
     return None
 
@@ -170,12 +205,14 @@ def resolve(name: str, number: str, tcg_set: str) -> dict | None:
     def fetch(qname, qnum):
         q = f'name:"{qname}"' + (f" number:{qnum}" if qnum else "")
         url = f"{PKMN_API}?q={urllib.parse.quote(q)}&pageSize=50"
-        try:
-            d = json.loads(urllib.request.urlopen(
-                urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=25).read())
-            return d.get("data", [])
-        except Exception:
-            return []
+        for attempt in range(3):   # retry transient pokemontcg.io hiccups (else cards get dropped)
+            try:
+                d = json.loads(urllib.request.urlopen(
+                    urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=25).read())
+                return d.get("data", [])
+            except Exception:
+                time.sleep(1.5 * (attempt + 1))
+        return []
 
     # Number variants (vintage drops leading zeros "002"->"2"; promos may carry
     # a set prefix like "SM166" already in the number).
@@ -206,10 +243,13 @@ def fetch_image_b64(url: str) -> str | None:
     if not url:
         return None
     try:
-        r = urllib.request.urlopen(urllib.request.Request(
-            url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0 Safari/537.36"}),
-            timeout=30)
-        b = r.read()
+        if not url.lower().startswith("http"):      # committed local FIX_IMAGE PNG
+            b = Path(url).read_bytes()
+        else:
+            r = urllib.request.urlopen(urllib.request.Request(
+                url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0 Safari/537.36"}),
+                timeout=30)
+            b = r.read()
         if b and len(b) > 2000:
             # Square accepts JPEG/PNG/GIF, not WebP — normalize the tcgsearch
             # bucket's .webp scans to PNG before base64.
@@ -295,18 +335,24 @@ def main():
         cond = clean_cond(r["Condition"])
         rev = is_reverse(r["Condition"])
         mkt = num(r["TCG Market Price"])
-        vtag = variant_tag(r["Set Name"], r["Condition"])
+        vtag = VARIANT_OVERRIDE.get(r["TCGplayer Id"]) or variant_tag(r["Set Name"], r["Condition"])
         res = resolve(name, number, r["Set Name"])
         # pokemontcg.io only carries the Unlimited print — never show its image
         # for a 1st-Edition / Shadowless listing (wrong variant). Better imageless.
         image = (res["image"] if res else None)
         if image and vtag:
             image = None
+        # pokemontcg.io WOTC scans are 1st-Ed (stamped) — never use them for these
+        # sets; rely on a FIX_IMAGE/override or go imageless.
+        if image and clean_set(r["Set Name"]).lower() in WOTC_FIRST_ED_SETS:
+            image = None
         if r["TCGplayer Id"] in IMAGE_OVERRIDE:   # verified correct-variant scan
             image = IMAGE_OVERRIDE[r["TCGplayer Id"]]
         stock = r["TCGplayer Id"] in STOCK_IMAGE
         if stock:                                  # approved placeholder (not the real card)
             image = STOCK_IMAGE[r["TCGplayer Id"]]
+        if r["TCGplayer Id"] in FIX_IMAGE:         # hand-verified correct-variant local scan
+            image = FIX_IMAGE[r["TCGplayer Id"]]
         recs.append({
             "card_id": r["TCGplayer Id"], "name": name, "number": number,
             "set_name": setn, "cond": cond, "rev": rev, "vtag": vtag, "stock": stock, "market": mkt,
