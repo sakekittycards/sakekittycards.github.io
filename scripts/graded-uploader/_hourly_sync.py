@@ -41,11 +41,11 @@ def newest_export() -> Path | None:
     return files[0] if files else None
 
 
-def run(cmd: list[str]) -> None:
-    log("RUN " + " ".join(cmd))
+def run(cmd: list[str], cwd=None, env_extra=None) -> None:
+    log("RUN " + " ".join(cmd) + (f"  (cwd={cwd})" if cwd else ""))
     try:
-        env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
-        r = subprocess.run(cmd, cwd=str(HERE), capture_output=True, text=True,
+        env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8", **(env_extra or {})}
+        r = subprocess.run(cmd, cwd=str(cwd or HERE), capture_output=True, text=True,
                            encoding="utf-8", errors="replace", timeout=900, env=env)
         tail = "\n".join((r.stdout or "").splitlines()[-25:])
         log("OUT:\n" + tail)
@@ -57,33 +57,45 @@ def run(cmd: list[str]) -> None:
 
 def main() -> int:
     log("=== hourly sync start (mode=%s) ===" % ("LIVE" if LIVE else "DRY-RUN"))
-    src = newest_export()
-    if not src:
-        log("no 'Collection - Card Ladder*.csv' in Downloads — nothing to sync; abort"); return 0
-    age_h = (datetime.datetime.now().timestamp() - src.stat().st_mtime) / 3600.0
-    try:
-        rows = sum(1 for _ in src.open("r", encoding="utf-8-sig")) - 1
-    except Exception as e:
-        log(f"SAFETY ABORT: cannot read export: {e}"); return 1
-    log(f"export: {src.name} | age {age_h:.1f}h | {rows} rows")
-    if rows < 1:
-        log("SAFETY ABORT: export has 0 data rows — refusing to touch the catalog"); return 1
-    if age_h > MAX_AGE_H:
-        log(f"export older than {MAX_AGE_H:.0f}h — skipping (drop a fresh Sake export to sync)"); return 0
-
     flag = ["--live"] if LIVE else []
 
     # GRADED: live cardladder.py (last-5-no-outlier x1.03) via the sk-queue, with
     # the eBay sanity-gate (suspect cards -> eBay last-sold). Needs worker.py up +
     # its CardLadder session valid AND restarted to load the fixed grade regex.
-    run([sys.executable, "_reprice_graded_verify.py", str(src), *flag])
+    # Gated on a fresh Sake CardLadder export; if missing/stale, SKIP graded only
+    # (singles + sealed still run — they have their own sources).
+    src = newest_export()
+    skip_graded = ""
+    if not src:
+        skip_graded = "no 'Collection - Card Ladder*.csv' in Downloads"
+    else:
+        age_h = (datetime.datetime.now().timestamp() - src.stat().st_mtime) / 3600.0
+        try:
+            rows = sum(1 for _ in src.open("r", encoding="utf-8-sig")) - 1
+        except Exception as e:
+            rows, skip_graded = 0, f"cannot read export: {e}"
+        if not skip_graded and rows < 1:
+            skip_graded = "export has 0 data rows"
+        elif not skip_graded and age_h > MAX_AGE_H:
+            skip_graded = f"export older than {MAX_AGE_H:.0f}h (drop a fresh Sake export)"
+        else:
+            log(f"graded export: {src.name} | age {age_h:.1f}h | {rows} rows")
+    if skip_graded:
+        log(f"GRADED skipped: {skip_graded}")
+    else:
+        run([sys.executable, "_reprice_graded_verify.py", str(src), *flag])
 
     # SINGLES (raw): each Square single by SKU -> newest TCGplayer MyPricing
     # export "TCG Market Price" x1.03 -> price-only update.
     run([sys.executable, "_site_reprice_singles.py", *flag])
 
-    # SEALED: its own hourly task (SakeKitty-SealedReprice) keeps it priced.
-    log("=== hourly sync end (graded + singles + sealed-via-own-task%s) ===" % (" LIVE" if LIVE else " dry-run"))
+    # SEALED: tcgsearch -> Square (Airtable-backed). Bundled into this hourly run
+    # (was a separate SakeKitty-SealedReprice task — now consolidated here).
+    sealed_dir = HERE.parent / "sealed-inventory"
+    run([sys.executable, "_sealed_reprice.py"], cwd=sealed_dir,
+        env_extra=({} if LIVE else {"DRY_RUN": "1"}))
+
+    log("=== hourly sync end (graded + singles + sealed%s) ===" % (" LIVE" if LIVE else " dry-run"))
     return 0
 
 
