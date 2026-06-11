@@ -803,7 +803,7 @@ window.SK = {
 
           <!-- Utility / trust chips. -->
           <ul class="cart-empty-trust">
-            <li><strong>Free shipping over $${SK_FREE_SHIP_THRESHOLD}</strong> · flat $5 under · cards & sealed ship insured at $1 per $100</li>
+            <li><strong>Free shipping over $${SK_FREE_SHIP_THRESHOLD}</strong> · flat $5 under · cards & sealed ship insured at $1.50 per $100</li>
             <li><strong>★ Gold Star Seller</strong> on TCGPlayer · 99%+ feedback</li>
             <li>Local-vendor heads up — every order reviewed before we charge</li>
           </ul>

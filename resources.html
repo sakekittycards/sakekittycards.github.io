@@ -249,6 +249,13 @@
     .cond-modal-zoom:hover { background: rgba(255,255,255,0.2); }
     .cond-modal-content:not(.zoomed) img { cursor: zoom-in; }
     .cond-modal-content.zoomed img { width: 1800px; max-width: none; cursor: zoom-out; }
+    /* On phones the content fills the viewport, so top:-44px pushes the
+       close/zoom buttons off-screen. Pin them inside the image's top-right
+       corner with a 44px tap target and a dark scrim for contrast. */
+    @media (max-width: 600px) {
+      .cond-modal-close { top: 8px; right: 8px; width: 44px; height: 44px; background: rgba(0,0,0,0.6); }
+      .cond-modal-zoom  { top: 8px; right: 60px; width: 44px; height: 44px; background: rgba(0,0,0,0.6); }
+    }
   </style>
 </head>
 <body class="page-resources">
@@ -472,7 +479,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=159"></script>
+  <script src="main.js?v=160"></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring (mirrors trade-in.html)
     (function() {

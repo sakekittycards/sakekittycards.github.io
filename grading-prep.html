@@ -44,6 +44,19 @@
     .gp-search::placeholder { color:rgba(255,255,255,0.40); }
     .gp-search-icon { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:16px; height:16px; opacity:.75; pointer-events:none; color:var(--orange); }
     .gp-search-icon svg { width:100%; height:100%; fill:var(--orange); }
+    /* "Search tips" disclosure — mirrors the Sell/Trade heads-up so the
+       paired forms stay in lockstep (collapsed by default, muted). */
+    .gp-heads-up { margin: 12px 0; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; transition: border-color .18s, background .18s; }
+    .gp-heads-up[open] { border-color: rgba(0,212,255,0.40); background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,47,255,0.08)); }
+    .gp-heads-up > summary { list-style: none; cursor: pointer; padding: 11px 14px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+    .gp-heads-up > summary::-webkit-details-marker { display: none; }
+    .gp-hu-icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
+    .gp-hu-label { flex: 1; min-width: 0; }
+    .gp-hu-label strong { color: var(--cyan); font-weight: 700; }
+    .gp-hu-chev { flex-shrink: 0; color: var(--cyan); font-size: 13px; transition: transform .22s ease; }
+    .gp-heads-up[open] .gp-hu-chev { transform: rotate(180deg); }
+    .gp-hu-body { padding: 0 14px 13px; font-size: 12.5px; line-height: 1.55; color: var(--muted); }
+    .gp-hu-body em { color: var(--muted); font-style: italic; }
 
     .gp-results { position:absolute; top:calc(100% + 6px); left:0; right:0; background:rgba(12,12,18,.97); border:1px solid var(--border); border-radius:var(--r); max-height:360px; overflow-y:auto; z-index:20; backdrop-filter:blur(16px); box-shadow:0 10px 40px rgba(0,0,0,.5); display:none; }
     .gp-results.open { display:block; }
@@ -222,7 +235,10 @@
       display: flex; align-items: center; justify-content: center;
       transition: color .15s, border-color .15s, background .15s;
       padding: 0;
+      position: relative;
     }
+    /* Expand the tap target to 44px without growing the visible 28px circle */
+    .gp-remove::after { content: ''; position: absolute; inset: -8px; }
     .gp-remove:hover {
       color: #ff7878;
       border-color: rgba(255,120,120,0.40);
@@ -1146,9 +1162,19 @@
               <div class="gp-search-icon">
                 <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
               </div>
-              <input type="search" class="gp-search" id="gpSearch" aria-label="Search card name" placeholder="Search card name…" autocomplete="off" enterkeyhint="search" />
+              <input type="search" class="gp-search" id="gpSearch" aria-label="Search cards by name, set, or number" placeholder='Search by name, set, or number (e.g. "170/198", "SWSH001", "242/SV-P")' autocomplete="off" enterkeyhint="search" />
               <div class="gp-results" id="gpResults"></div>
             </div>
+            <details class="gp-heads-up">
+              <summary>
+                <span class="gp-hu-icon">💡</span>
+                <span class="gp-hu-label"><strong>Search tips:</strong> how to find your card</span>
+                <span class="gp-hu-chev" aria-hidden="true">▾</span>
+              </summary>
+              <div class="gp-hu-body">
+                Search by <strong style="color:var(--text)">name, set, or card number</strong> — English and Japanese Pokémon. Try <em>"Charizard"</em>, <em>"Obsidian Flames 125"</em>, a number like <em>"170/198"</em>, or a promo ID like <em>"SWSH001"</em> / <em>"242/SV-P"</em>. If a card doesn't come up (Topps, odd promos, sealed-era oddballs), use <strong style="color:var(--orange)">add it manually</strong> below — screening still covers it.
+              </div>
+            </details>
             <p style="font-size:12px;color:var(--dim);margin:-6px 0 12px;line-height:1.5">
               Card not coming up? (e.g. Topps Pokémon, certain promos, sealed-period oddballs) —
               <button type="button" id="gpManualToggle" style="background:none;border:none;color:var(--orange);text-decoration:underline;cursor:pointer;font:inherit;padding:0">add it manually</button>.
@@ -1319,7 +1345,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=159" defer></script>
+  <script src="main.js?v=160" defer></script>
   <script>
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';

@@ -273,7 +273,7 @@
           <form id="gcBalanceForm">
             <div class="gc-form-row">
               <label for="gcCode">Gift Card Code</label>
-              <input type="text" id="gcCode" placeholder="e.g. ABCD-1234-EFGH-5678" autocomplete="off" required />
+              <input type="text" id="gcCode" placeholder="e.g. ABCD-1234-EFGH-5678" autocomplete="off" autocapitalize="characters" spellcheck="false" minlength="4" required title="Enter the full code from your gift card email" />
             </div>
             <button type="submit" id="gcBalanceBtn" class="gc-cta">Check Balance</button>
           </form>
@@ -321,7 +321,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=159" defer></script>
+  <script src="main.js?v=160" defer></script>
   <script>
     // Buy flow — pick amount, then redirect to Square's gift-card order
     // page (PCI compliance forces the actual checkout to land on Square).
