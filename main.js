@@ -1354,13 +1354,62 @@ window.skConfirm = function skConfirm(opts) {
       card.appendChild(s);
       setTimeout(() => s.remove(), 1150);
     }
+    // Sparks borrow the card's own colours — sampled once from its image (wsrv
+    // proxy sends CORS headers, so the canvas isn't tainted). Falls back to warm
+    // embers if the image can't be read.
+    const FALLBACK = ['255,200,120', '255,150,40', '255,120,0'];
+    function cardColors(card) {
+      if (card._skColors) return card._skColors;
+      if (card._skSampling) return FALLBACK;
+      const img = card.querySelector('.product-img-real, img');
+      const src = img && (img.currentSrc || img.src);
+      if (!src) { card._skColors = FALLBACK; return FALLBACK; }
+      card._skSampling = true;
+      const im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = () => {
+        try {
+          const n = 28, cv = document.createElement('canvas');
+          cv.width = cv.height = n;
+          const ctx = cv.getContext('2d');
+          ctx.drawImage(im, 0, 0, n, n);
+          const d = ctx.getImageData(0, 0, n, n).data, buckets = {};
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i], g = d[i + 1], b = d[i + 2];
+            if (d[i + 3] < 128) continue;
+            const mx2 = Math.max(r, g, b), mn = Math.min(r, g, b);
+            if (mx2 < 60 || mn > 225 || mx2 - mn < 35) continue;   // skip dark / white / dull
+            const k = (r >> 5) + ',' + (g >> 5) + ',' + (b >> 5);
+            const e = buckets[k] || (buckets[k] = { s: [0, 0, 0], n: 0 });
+            e.s[0] += r; e.s[1] += g; e.s[2] += b; e.n++;
+          }
+          const arr = Object.values(buckets).sort((a, b) => b.n - a.n).slice(0, 5)
+            .map(e => `${Math.round(e.s[0] / e.n)},${Math.round(e.s[1] / e.n)},${Math.round(e.s[2] / e.n)}`);
+          card._skColors = arr.length ? arr : FALLBACK;
+        } catch (_) { card._skColors = FALLBACK; }
+      };
+      im.onerror = () => { card._skColors = FALLBACK; };
+      im.src = src;
+      return FALLBACK;
+    }
+
     function sparks(n, intensity, strong) {
+      if (!active) return;
+      const cols = cardColors(active);
+      const r = active.getBoundingClientRect();   // emit from the card's border, flying outward
       for (let i = 0; i < n; i++) {
         const s = document.createElement('span');
         s.className = strong ? 'sk-spark strong' : 'sk-spark';
-        s.style.left = mx + 'px'; s.style.top = my + 'px';
-        const ang = Math.random() * Math.PI * 2;
-        const dist = (strong ? 50 : 22) + Math.random() * (40 + intensity * 60);
+        let x, y, nx, ny;
+        const side = (Math.random() * 4) | 0;
+        if (side === 0)      { x = r.left + Math.random() * r.width;  y = r.top;    nx = 0;  ny = -1; }
+        else if (side === 1) { x = r.right;                           y = r.top + Math.random() * r.height; nx = 1;  ny = 0; }
+        else if (side === 2) { x = r.left + Math.random() * r.width;  y = r.bottom; nx = 0;  ny = 1; }
+        else                 { x = r.left;                            y = r.top + Math.random() * r.height; nx = -1; ny = 0; }
+        s.style.left = x + 'px'; s.style.top = y + 'px';
+        s.style.setProperty('--c', cols[(Math.random() * cols.length) | 0]);
+        const ang = Math.atan2(ny, nx) + (Math.random() - 0.5) * 1.3;   // outward normal + jitter
+        const dist = (strong ? 46 : 20) + Math.random() * (34 + intensity * 60);
         s.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(0) + 'px');
         s.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(0) + 'px');
         s.style.setProperty('--life', (0.45 + Math.random() * 0.55).toFixed(2) + 's');

@@ -166,8 +166,8 @@ button { font-family: inherit; }
 #sk-spark-layer { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
 .sk-spark {
   position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,226,150,1) 0%, rgba(255,150,30,0.7) 55%, rgba(255,120,0,0) 72%);
-  box-shadow: 0 0 6px rgba(255,170,60,0.7);
+  background: radial-gradient(circle, rgba(var(--c, 255,200,120), 1) 0%, rgba(var(--c, 255,200,120), 0.55) 55%, rgba(var(--c, 255,200,120), 0) 72%);
+  box-shadow: 0 0 6px rgba(var(--c, 255,200,120), 0.8);
   animation: skSpark var(--life, 0.8s) ease-out forwards;
 }
 .sk-spark.strong { width: 6px; height: 6px; margin: -3px 0 0 -3px; }
