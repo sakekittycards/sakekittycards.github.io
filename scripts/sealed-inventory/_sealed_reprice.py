@@ -37,14 +37,33 @@ def air(method, path='', body=None):
         headers={'Authorization': 'Bearer ' + AIR, 'Content-Type': 'application/json'})
     return json.loads(urllib.request.urlopen(req, timeout=60).read())
 
+UA = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
+
 def sb_price(pid):
     u = SB + '/rest/v1/cards?tcgplayer_product_id=eq.' + str(pid) + '&select=tcgplayer_market_price&limit=1'
     try:
         d = json.loads(urllib.request.urlopen(urllib.request.Request(u,
-            headers={'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'User-Agent': 'Mozilla/5.0'}), timeout=25).read())
+            headers={'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'User-Agent': UA}), timeout=25).read())
         return float(d[0]['tcgplayer_market_price']) if d and d[0].get('tcgplayer_market_price') else None
     except Exception:
         return None
+
+def recent_sold(pid):
+    """TCGplayer mpapi recent sold avg (last-5 outlier-trimmed). None if unavailable."""
+    try:
+        req = urllib.request.Request(f'https://mpapi.tcgplayer.com/v2/product/{pid}/latestsales',
+            method='POST', data=json.dumps({'listingType': 'ListingWithoutPhotos', 'limit': 25, 'offset': 0}).encode(),
+            headers={'User-Agent': UA, 'Origin': 'https://www.tcgplayer.com', 'Referer': 'https://www.tcgplayer.com/',
+                     'Accept': 'application/json', 'Content-Type': 'application/json'})
+        sales = json.loads(urllib.request.urlopen(req, timeout=20).read()).get('data') or []
+    except Exception:
+        return None
+    p = [float(s['purchasePrice']) for s in sales if s.get('purchasePrice')][:5]  # 5 most recent
+    if not p: return None
+    p = sorted(p)
+    if len(p) >= 5: p = p[1:-1]   # drop high+low outlier
+    return round(sum(p) / len(p), 2)
 
 def worker(path):
     req = urllib.request.Request(WORKER + path, data=b'{}', method='POST',
@@ -74,13 +93,15 @@ def main():
         mkt = sb_price(pid)
         if mkt is None:
             log(f'  {sku:18} pid={pid} | no tcgsearch price — hold ${cur}'); continue
-        mkt = round(mkt, 2)
-        if cur is not None and abs(float(cur) - mkt) < 0.01:
-            log(f'  {sku:18} ${cur} == tcgsearch ${mkt} (no change)'); continue
-        log(f'  {sku:18} ${cur} -> ${mkt}  (tcgsearch)')
+        rec = recent_sold(pid)   # mpapi recent-sold avg (higher of market vs sold wins)
+        price = round(max(mkt, rec or 0) * 1.03, 2)
+        src = f'max(mkt {mkt:.2f}, sold {rec})x1.03' if rec else f'mkt {mkt:.2f}x1.03 (no sold)'
+        if cur is not None and abs(float(cur) - price) < 0.01:
+            log(f'  {sku:18} ${cur} == ${price} (no change)'); continue
+        log(f'  {sku:18} ${cur} -> ${price}  [{src}]')
         if not DRY:
             try:
-                air('PATCH', body={'records': [{'id': r['id'], 'fields': {'manual_price_override': mkt}}]})
+                air('PATCH', body={'records': [{'id': r['id'], 'fields': {'manual_price_override': price}}]})
                 changed += 1
             except Exception as e:
                 log(f'    PATCH ERR {e!r}')
