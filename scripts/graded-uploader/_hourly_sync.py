@@ -71,12 +71,14 @@ def main() -> int:
     if age_h > MAX_AGE_H:
         log(f"export older than {MAX_AGE_H:.0f}h — skipping (drop a fresh Sake export to sync)"); return 0
 
-    # GRADED: export-driven reconcile — match Square graded by Cert # to the
-    # fresh Sake CardLadder export, reprice keepers (market x1.03), delete sold,
-    # NEVER auto-add. Held certs excluded. (Replaced the stale pricing.csv path.)
-    graded_flag = ["--live"] if LIVE else []
-    run([sys.executable, "_sync_dryrun.py", str(src), *graded_flag])
-    log("(auto-add is OFF: CL-only slabs are reported, never inserted — user-gated)")
+    # GRADED: PAUSED for live pricing (2026-06-11). The CardLadder export's
+    # "Current Value" is the wrong metric AND stale (CL moves intraday); graded
+    # must price off the LIVE cardladder.py last-5-no-outlier scraper. Until that
+    # is wired (pending a permission rule for the token read), graded shows
+    # make-offer on the site and we only DRY-RUN here (reconcile visibility, no
+    # wrong-price writes). Flip back to ["--live"] once cardladder pricing lands.
+    run([sys.executable, "_sync_dryrun.py", str(src)])  # dry-run only
+    log("(GRADED price push PAUSED — awaiting live cardladder.py; make-offer on site)")
 
     # SINGLES: price each Square single off the newest TCGplayer MyPricing export
     # by SKU (exact card/variant) -> TCG Market Price x1.03 -> price-only update.
