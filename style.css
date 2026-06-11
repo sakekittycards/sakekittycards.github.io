@@ -1604,9 +1604,9 @@ body.cart-open { overflow: hidden; }
    rotation composes with the resting hover transform instead of fighting it. */
 @keyframes skCardWiggle {
   0%   { transform: translateY(-5px) rotate(0deg); }
-  22%  { transform: translateY(-5px) rotate(-2deg); }
-  48%  { transform: translateY(-5px) rotate(1.6deg); }
-  72%  { transform: translateY(-5px) rotate(-0.9deg); }
+  22%  { transform: translateY(-5px) rotate(-0.2deg); }
+  48%  { transform: translateY(-5px) rotate(0.16deg); }
+  72%  { transform: translateY(-5px) rotate(-0.09deg); }
   100% { transform: translateY(-5px) rotate(0deg); }
 }
 .product-card:not(.sold-out):hover { animation: skCardWiggle 0.45s ease-in-out; }
