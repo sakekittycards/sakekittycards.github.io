@@ -144,7 +144,7 @@ button { font-family: inherit; }
 @keyframes skCardRipple {
   0%   { transform: scale(0);  opacity: 0; }
   15%  { opacity: var(--op, 0.22); }
-  100% { transform: scale(26); opacity: 0; }
+  100% { transform: scale(var(--scale, 26)); opacity: 0; }
 }
 
 /* Shop-only ambient: fun little dots that form and fade at random spots. Lives
@@ -161,7 +161,21 @@ button { font-family: inherit; }
   65%  { opacity: 0.5; }
   100% { opacity: 0; transform: scale(1.15); }
 }
-@media (prefers-reduced-motion: reduce) { #sk-dots-layer, .sk-card-ripple { display: none; } }
+/* Sparks that fly off a hovered/held card — warm embers in a fixed layer so they
+   escape the card's clipped bounds. main.js sets --dx/--dy/--life per spark. */
+#sk-spark-layer { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.sk-spark {
+  position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,226,150,1) 0%, rgba(255,150,30,0.7) 55%, rgba(255,120,0,0) 72%);
+  box-shadow: 0 0 6px rgba(255,170,60,0.7);
+  animation: skSpark var(--life, 0.8s) ease-out forwards;
+}
+.sk-spark.strong { width: 6px; height: 6px; margin: -3px 0 0 -3px; }
+@keyframes skSpark {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { #sk-dots-layer, #sk-spark-layer, .sk-card-ripple { display: none; } }
 
 /* ── Nav ── */
 .site-nav {

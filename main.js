@@ -1312,13 +1312,18 @@ window.skConfirm = function skConfirm(opts) {
   // Intensity = how long you've kept hovering/holding cards: ramps 0->1 over 60s,
   // eases back 1->0 over the next 60s, then repeats.
   (function cardRipple() {
-    let active = null, px = 0, py = 0;
-    let elapsed = 0, last = performance.now(), nextSpawn = 0;
+    let active = null, px = 0, py = 0, mx = 0, my = 0;
+    let elapsed = 0, last = performance.now(), nextSpawn = 0, sparkAccum = 0, pulseAccum = 0;
     const PEAK = 60, PERIOD = 120;
+
+    const sparkLayer = document.createElement('div');
+    sparkLayer.id = 'sk-spark-layer';
+    (document.body || document.documentElement).appendChild(sparkLayer);
 
     const setPos = (e, card) => {
       const r = card.getBoundingClientRect();
       px = e.clientX - r.left; py = e.clientY - r.top;
+      mx = e.clientX; my = e.clientY;
     };
     const begin = (e) => {
       const c = e.target.closest && e.target.closest('.product-card:not(.sold-out)');
@@ -1327,26 +1332,45 @@ window.skConfirm = function skConfirm(opts) {
       if (getComputedStyle(c).position === 'static') c.style.position = 'relative';
       setPos(e, c);
     };
+    const stop = () => { active = null; pulseAccum = 0; };
     const end = (e) => {
       const c = e.target.closest && e.target.closest('.product-card');
-      if (c && active === c && !c.contains(e.relatedTarget)) active = null;
+      if (c && active === c && !c.contains(e.relatedTarget)) stop();
     };
     // pointerover/out = desktop hover; pointerdown/up + cancel = mobile press-hold.
     document.addEventListener('pointerover', begin, true);
     document.addEventListener('pointerdown', begin, true);
     document.addEventListener('pointerout', end, true);
-    document.addEventListener('pointerup', () => { active = null; }, true);
-    document.addEventListener('pointercancel', () => { active = null; }, true);
+    document.addEventListener('pointerup', stop, true);
+    document.addEventListener('pointercancel', stop, true);
     document.addEventListener('pointermove', (e) => { if (active) setPos(e, active); }, { passive: true });
 
-    function spawn(card, intensity) {
+    function ripple(card, scale, op) {
       const s = document.createElement('span');
       s.className = 'sk-card-ripple';
-      s.style.left = px + 'px';
-      s.style.top = py + 'px';
-      s.style.setProperty('--op', (0.08 + intensity * 0.22).toFixed(3));
+      s.style.left = px + 'px'; s.style.top = py + 'px';
+      s.style.setProperty('--op', op.toFixed(3));
+      s.style.setProperty('--scale', scale);
       card.appendChild(s);
-      setTimeout(() => s.remove(), 1100);
+      setTimeout(() => s.remove(), 1150);
+    }
+    function sparks(n, intensity, strong) {
+      for (let i = 0; i < n; i++) {
+        const s = document.createElement('span');
+        s.className = strong ? 'sk-spark strong' : 'sk-spark';
+        s.style.left = mx + 'px'; s.style.top = my + 'px';
+        const ang = Math.random() * Math.PI * 2;
+        const dist = (strong ? 50 : 22) + Math.random() * (40 + intensity * 60);
+        s.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(0) + 'px');
+        s.style.setProperty('--dy', (Math.sin(ang) * dist).toFixed(0) + 'px');
+        s.style.setProperty('--life', (0.45 + Math.random() * 0.55).toFixed(2) + 's');
+        sparkLayer.appendChild(s);
+        setTimeout(() => s.remove(), 1100);
+      }
+    }
+    function pulse(card, intensity) {           // noticeable heartbeat every 5s of holding
+      ripple(card, 32, 0.34 + intensity * 0.12);
+      sparks(10 + Math.round(intensity * 8), intensity, true);
     }
 
     function tick(now) {
@@ -1357,7 +1381,11 @@ window.skConfirm = function skConfirm(opts) {
       const intensity = p <= PEAK ? p / PEAK : (PERIOD - p) / PEAK;
       if (active && !document.hidden) {
         nextSpawn -= dt * 1000;
-        if (nextSpawn <= 0) { spawn(active, intensity); nextSpawn = 820 - intensity * 680; }
+        if (nextSpawn <= 0) { ripple(active, 26, 0.08 + intensity * 0.22); nextSpawn = 820 - intensity * 680; }
+        sparkAccum -= dt * 1000;
+        if (sparkAccum <= 0) { sparks(1 + Math.round(intensity * 2), intensity, false); sparkAccum = 230 - intensity * 150; }
+        pulseAccum += dt;
+        if (pulseAccum >= 5) { pulse(active, intensity); pulseAccum -= 5; }
       }
       requestAnimationFrame(tick);
     }
