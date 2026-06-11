@@ -148,6 +148,27 @@ export default {
         return await fixSealedImages(request, base, squareHeaders, env);
       }
 
+      // Admin: export the captured subscriber/customer emails from the promo D1
+      // (QR-claimed signups + code redeemers). Admin-token gated. Used to build
+      // the Resend audience for the launch announcement.
+      if (path === '/admin/export-subscribers' && request.method === 'GET') {
+        const tok = request.headers.get('X-Sake-Admin-Token') || '';
+        if (!env.ADMIN_TOKEN || !timingSafeEqual(tok, env.ADMIN_TOKEN)) return json({ error: 'unauthorized' }, 401);
+        if (!env.PROMO_DB) return json({ error: 'promo_disabled' }, 503);
+        const q = await env.PROMO_DB.prepare(
+          `SELECT email, MIN(src) AS src FROM (
+             SELECT assigned_to_email AS email, 'signup' AS src FROM promo_codes WHERE assigned_to_email IS NOT NULL AND assigned_to_email != ''
+             UNION ALL
+             SELECT used_by_email AS email, 'buyer' AS src FROM promo_codes WHERE used_by_email IS NOT NULL AND used_by_email != ''
+             UNION ALL
+             SELECT email AS email, 'attempt' AS src FROM promo_attempts WHERE email IS NOT NULL AND email != ''
+           ) GROUP BY lower(email) ORDER BY email`
+        ).all();
+        const rows = (q.results || []).map(r => ({ email: String(r.email).trim().toLowerCase(), src: r.src }))
+          .filter(r => r.email.includes('@'));
+        return json({ count: rows.length, emails: rows });
+      }
+
       // Public endpoint — let the gift-cards page check a balance from
       // a customer-typed code without redirecting to Square.
       if (path === '/gift-card/balance' && request.method === 'POST') {
