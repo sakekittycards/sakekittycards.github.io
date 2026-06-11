@@ -95,7 +95,7 @@ HTML = f"""<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=170" />
+  <link rel="stylesheet" href="style.css?v=171" />
   <style>
     .page-singles .page-hero {{ padding-bottom: 18px; }}
     .page-singles .page-hero h1 {{ font-size: clamp(38px, 7vw, 60px); }}
