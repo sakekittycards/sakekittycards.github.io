@@ -128,6 +128,10 @@ export default {
         return await updateSinglePrice(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/clear-single-price' && request.method === 'POST') {
+        return await updateSinglePrice(request, base, squareHeaders, env, true);
+      }
+
       if (path === '/admin/replace-graded-images' && request.method === 'POST') {
         return await replaceGradedImages(request, base, squareHeaders, env);
       }
@@ -1730,7 +1734,7 @@ async function updateGradedPrice(request, base, squareHeaders, env) {
 // "Card ID: <sku>" description line (the TCGplayer SKU). Mirrors
 // updateGradedPrice exactly — price-only, leaves name/image/description
 // untouched. Used by the hourly site reprice (singles -> TCGplayer market x1.03).
-async function updateSinglePrice(request, base, squareHeaders, env) {
+async function updateSinglePrice(request, base, squareHeaders, env, clear = false) {
   const provided = request.headers.get('X-Sake-Admin-Token') || '';
   if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
     return json({ error: 'unauthorized' }, 401);
@@ -1741,7 +1745,9 @@ async function updateSinglePrice(request, base, squareHeaders, env) {
   const cardId = String(body.card_id || body.sku || '').trim();
   const priceCents = Number(body.price_cents);
   if (!cardId) return json({ error: 'missing_card_id' }, 400);
-  if (!Number.isFinite(priceCents) || priceCents <= 0) return json({ error: 'invalid_price_cents' }, 400);
+  // clear=true -> VARIABLE_PRICING (no price) so the site shows Make Offer
+  // (used when there's no reliable sold data). Otherwise a positive price.
+  if (!clear && (!Number.isFinite(priceCents) || priceCents <= 0)) return json({ error: 'invalid_price_cents' }, 400);
 
   // Find the item whose description's "Card ID: <n>" EXACTLY equals cardId
   // (exact equality avoids 9125 matching 91259xx). Walk paginated catalog list.
@@ -1775,14 +1781,17 @@ async function updateSinglePrice(request, base, squareHeaders, env) {
   const variations = fullItem.item_data?.variations || [];
   if (!variations.length) return json({ error: 'no_variations_on_item' }, 422);
 
-  const updatedVariations = variations.map(v => ({
-    ...v,
-    item_variation_data: {
-      ...(v.item_variation_data || {}),
-      pricing_type: 'FIXED_PRICING',
-      price_money: { amount: Math.round(priceCents), currency: 'USD' },
-    },
-  }));
+  const updatedVariations = variations.map(v => {
+    const vd = { ...(v.item_variation_data || {}) };
+    if (clear) {
+      vd.pricing_type = 'VARIABLE_PRICING';
+      delete vd.price_money;
+    } else {
+      vd.pricing_type = 'FIXED_PRICING';
+      vd.price_money = { amount: Math.round(priceCents), currency: 'USD' };
+    }
+    return { ...v, item_variation_data: vd };
+  });
   const updated = {
     ...fullItem,
     item_data: { ...fullItem.item_data, variations: updatedVariations },
@@ -1799,7 +1808,8 @@ async function updateSinglePrice(request, base, squareHeaders, env) {
   return json({
     ok: true,
     item_id: foundId,
-    price_cents: Math.round(priceCents),
+    cleared: clear,
+    price_cents: clear ? null : Math.round(priceCents),
     variations_updated: variations.length,
   });
 }
