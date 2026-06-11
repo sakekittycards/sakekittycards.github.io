@@ -1281,8 +1281,9 @@ body.cart-open { overflow: hidden; }
 .inventory-paused-note strong { color: var(--orange); }
 
 /* Horizontal product cards — image on left, name + price + CTA on right.
-   2 cards per row on desktop (>=900px), 1 per row on mobile/narrow. */
-.product-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(460px,1fr)); gap: 24px; }
+   Locked to exactly 2 per row on desktop (never 3 on ultrawide), 1 on phones. */
+.product-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+@media (max-width: 640px) { .product-grid { grid-template-columns: 1fr; } }
 
 /* Graded cards filter + sort controls */
 .graded-controls {
