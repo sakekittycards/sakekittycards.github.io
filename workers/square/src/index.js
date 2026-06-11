@@ -1395,19 +1395,26 @@ async function uploadSingleItem(request, base, squareHeaders, env) {
 
   // Title format: "<year> <set> <name> #<number> (<cond>)" — leads with year so
   // shop.html categorize() routes it to 'singles'.
+  // stock_image: the photo is a representative stock image, NOT the actual card
+  // in inventory (placeholder until Nick shoots the real one). Tagged visibly in
+  // the title — shop.html renders the title, not the description.
+  const stockImage = body.stock_image === true;
+
   const titleParts = [];
   if (year) titleParts.push(year);
   if (setName) titleParts.push(setName);
   if (name) titleParts.push(name);
   if (number) titleParts.push(`#${number}`);
   if (condition && condition !== 'NM') titleParts.push(`(${condition})`);
-  const title = titleParts.join(' ').slice(0, 255);
+  let title = titleParts.join(' ').slice(0, 255);
+  if (stockImage) title = `${title} (stock image — not actual card)`.slice(0, 255);
 
   const description = [
     `Card ID: ${cardId}`,
     setName && `Set: ${setName}${year ? ` (${year})` : ''}`,
     number && `Card Number: ${number}`,
     `Condition: ${condition}`,
+    stockImage && 'Note: photo is a representative stock image, not the actual card in inventory — real photos coming soon.',
   ].filter(Boolean).join('\n').slice(0, 4096);
 
   const itemPlaceholder = `#sk-single-${cardId}`;
