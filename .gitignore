@@ -27,3 +27,8 @@ scripts/graded-uploader/upscaler/
 # files ship to the site. Re-download with `gallery-dl https://instagram.com/sakekittycards`
 # into assets/instagram/ if you need to recurate.
 assets/instagram/
+
+# stock-watch runtime artifacts
+scripts/graded-uploader/_stock_watch.log
+scripts/graded-uploader/_stock_watch_cron.out
+scripts/graded-uploader/_stock_watch_status.json
