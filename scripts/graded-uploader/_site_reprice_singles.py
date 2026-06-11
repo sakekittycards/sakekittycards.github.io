@@ -34,31 +34,52 @@ SB_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6
           "DIwS7KTAkLADALR8LMuzMvMP9Q3ErZgWsc3IWjMcjIs")
 
 
-def _trim_mean(vals):
-    v = sorted(float(x) for x in vals if x and float(x) > 0)
-    if not v: return None
-    if len(v) >= 5: v = v[1:-1]
-    return round(sum(v) / len(v), 2)
+_CONDS = ["Near Mint", "Lightly Played", "Moderately Played", "Heavily Played", "Damaged"]
 
 
-def recent_sold(product_name, export_market):
-    """Accurate recent-sold avg via tcgsearch Supabase (productId by exact name,
-    market cross-checked vs the export) + TCGplayer mpapi /latestsales. Returns
-    (recent_avg, productId). recent_avg is None when we can't get it ACCURATELY
-    (no card match / market mismatch / no recent sales) -> caller shows Make Offer."""
+def parse_cond_variant(cond_str):
+    """'Lightly Played Reverse Holofoil' -> ('Lightly Played', 'Reverse Holofoil').
+    Edition words (Unlimited / 1st Edition) are not part of mpapi's variant field
+    (they're baked into the product), so strip them. No printing -> 'Normal'."""
+    s = (cond_str or "").strip()
+    cond = next((c for c in _CONDS if s.lower().startswith(c.lower())), "Near Mint")
+    rest = s[len(cond):].strip() if s.lower().startswith(cond.lower()) else s
+    rest = re.sub(r"\b(unlimited|1st\s*edition|first\s*edition)\b", "", rest, flags=re.I).strip()
+    return cond, (rest or "Normal")
+
+
+def last5_no_outlier(prices):
+    """5 most-recent (input order), drop high+low outlier, average the middle."""
+    p = [float(x) for x in prices if x and float(x) > 0][:5]
+    if not p: return None
+    p = sorted(p)
+    if len(p) >= 5: p = p[1:-1]
+    return round(sum(p) / len(p), 2)
+
+
+def recent_sold(product_name, export_market, cond_str):
+    """Recent-sold avg off TCGplayer's last-solds (mpapi /latestsales), filtered to
+    the EXACT variant + condition, last-5 non-outlier of those RELEVANT sales.
+    Returns (recent_avg, productId). recent_avg is None when we can't get it
+    ACCURATELY -> caller shows Make Offer. Accuracy guards:
+      - Supabase must resolve the card UNAMBIGUOUSLY (one match) by exact name and
+        the market must be near the export market (vintage names like 'Blastoise'
+        map to many products -> ambiguous -> Make Offer).
+      - need >=2 sales matching the card's exact condition + variant (don't average
+        a Damaged sale into a Near Mint price)."""
+    want_cond, want_var = parse_cond_variant(cond_str)
     try:
         u = SB + "/rest/v1/cards?name=eq." + urllib.parse.quote(product_name) + \
-            "&select=tcgplayer_product_id,tcgplayer_market_price&limit=2"
+            "&select=tcgplayer_product_id,tcgplayer_market_price"
         d = json.loads(urllib.request.urlopen(urllib.request.Request(u,
             headers={"apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "User-Agent": UA}), timeout=20).read())
     except Exception:
         return None, None
-    if not d or not d[0].get("tcgplayer_product_id"):
-        return None, None
+    if len(d) != 1 or not d[0].get("tcgplayer_product_id"):
+        return None, None   # 0 or ambiguous -> Make Offer
     pid = d[0]["tcgplayer_product_id"]; sbm = d[0].get("tcgplayer_market_price")
-    # confirm it's the right card: Supabase market must be near the export market
     if sbm and export_market and abs(float(sbm) - export_market) / export_market > 0.25:
-        return None, pid
+        return None, pid    # market mismatch -> wrong card -> Make Offer
     try:
         req = urllib.request.Request(f"https://mpapi.tcgplayer.com/v2/product/{pid}/latestsales",
             method="POST", data=json.dumps({"listingType": "ListingWithoutPhotos", "limit": 25, "offset": 0}).encode(),
@@ -67,8 +88,12 @@ def recent_sold(product_name, export_market):
         sales = json.loads(urllib.request.urlopen(req, timeout=20).read()).get("data") or []
     except Exception:
         return None, pid
-    prices = [s.get("purchasePrice") for s in sales if s.get("purchasePrice")][:10]
-    return _trim_mean(prices), pid
+    rel = [s.get("purchasePrice") for s in sales
+           if s.get("purchasePrice") and (s.get("condition") or "") == want_cond
+           and (s.get("variant") or "Normal") == want_var]
+    if len(rel) < 2:
+        return None, pid    # not enough exact-match sales -> Make Offer
+    return last5_no_outlier(rel), pid
 
 
 def tok():
@@ -138,20 +163,21 @@ def main():
             rows.append(dict(sku=sku, name=nm, cur=cur, mkt=None, sell=None, delta=None, miss=True)); continue
         mkt = fnum(r.get("TCG Market Price")); low = fnum(r.get("TCG Low Price"))
         cond = (r.get("Condition") or "").strip()
-        is_nm = "near mint" in cond.lower() or cond.lower().startswith("nm")
         pname = (r.get("Product Name") or "").strip()
-        # price = max(market, recent-sold) x1.03 — but ONLY when we have an
-        # ACCURATE recent-sold (NM card + confirmed mpapi sales). Otherwise show
-        # Make Offer rather than a market-only (possibly-stale/underpriced) number.
+        # price = max(market, recent-sold) x1.03. recent_sold filters TCGplayer's
+        # last-solds to this card's EXACT variant + condition (last-5 non-outlier).
+        # No accurate exact-match sold -> Make Offer (don't show a market-only or
+        # cross-condition-averaged number). Works for NM AND played, as long as
+        # there are enough same-condition sales.
         rs, sell, offer = None, None, False
-        if mkt > 0 and is_nm:
-            rs, _pid = recent_sold(pname, mkt)
+        if mkt > 0:
+            rs, _pid = recent_sold(pname, mkt, cond)
             if rs:
                 sell = math.ceil(max(mkt, rs) * FEE)
             else:
-                offer = True   # NM but no accurate recent-sold
+                offer = True
         else:
-            offer = True       # non-NM: no reliable condition-specific sold -> Make Offer
+            offer = True
         rows.append(dict(sku=sku, setn=(r.get("Set Name") or "").strip(), name=pname,
             num=(r.get("Number") or "").strip(), cond=cond, mkt=mkt, low=low, recent=rs,
             sell=sell, offer=offer, cur=cur,
