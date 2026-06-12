@@ -153,6 +153,7 @@
         <li><a href="team.html">Our Team</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="reviews.html">Reviews</a></li>
+        <li><a href="watch.html">Watch</a></li>
         <li class="nav-dropdown">
           <a href="resources.html">Resources</a>
           <ul class="nav-dropdown-menu" aria-label="Resources">
@@ -354,6 +355,7 @@
         <a href="trade-in.html">Sell / Trade</a>
         <a href="grading-prep.html">Grading Prep</a>
         <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
         <a href="resources.html">Resources</a>
         <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
@@ -565,11 +567,13 @@
             <div class="product-info">
               <div class="product-name">${esc(item.name)}</div>
               <div class="product-footer">
-                ${(isGraded || isSealed || isSingles)
-                  ? (item.price > 0
-                      ? `<span class="product-price"><span class="mkt-label">Market Price</span> ${fmt(item.price)}</span>`
-                      : `<span class="product-price product-offer">Make Offer</span>`)
-                  : `<span class="product-price">${fmt(item.price)}</span>`}
+                ${isGraded
+                  ? `<span class="product-price product-offer">Make Offer</span>`
+                  : (isSealed || isSingles)
+                    ? (item.price > 0
+                        ? `<span class="product-price"><span class="mkt-label">Market Price</span> ${fmt(item.price)}</span>`
+                        : `<span class="product-price product-offer">Make Offer</span>`)
+                    : `<span class="product-price">${fmt(item.price)}</span>`}
               </div>
               <div class="product-cta">${(isGraded || isSealed || isSingles) ? 'Make Offer →' : 'More Details →'}</div>
             </div>
