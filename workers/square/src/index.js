@@ -124,6 +124,10 @@ export default {
         return await updateGradedPrice(request, base, squareHeaders, env);
       }
 
+      if (path === '/admin/clear-graded-price' && request.method === 'POST') {
+        return await updateGradedPrice(request, base, squareHeaders, env, true);
+      }
+
       if (path === '/admin/update-single-price' && request.method === 'POST') {
         return await updateSinglePrice(request, base, squareHeaders, env);
       }
@@ -1644,7 +1648,7 @@ async function updateGradedItem(request, base, squareHeaders, env) {
 // pricing_type to FIXED_PRICING and price_money.amount = price_cents.
 // Used by the Card Ladder re-pricing flow so we don't need to delete +
 // re-upload an item just to change its price.
-async function updateGradedPrice(request, base, squareHeaders, env) {
+async function updateGradedPrice(request, base, squareHeaders, env, clear = false) {
   const provided = request.headers.get('X-Sake-Admin-Token') || '';
   if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
     return json({ error: 'unauthorized' }, 401);
@@ -1656,7 +1660,9 @@ async function updateGradedPrice(request, base, squareHeaders, env) {
   const cert = String(body.cert || '').trim();
   const priceCents = Number(body.price_cents);
   if (!cert) return json({ error: 'missing_cert' }, 400);
-  if (!Number.isFinite(priceCents) || priceCents <= 0) return json({ error: 'invalid_price_cents' }, 400);
+  // clear=true -> VARIABLE_PRICING (no price) so the site shows Make Offer (used
+  // when we can't verify the exact-card last-5-sold). Otherwise a positive price.
+  if (!clear && (!Number.isFinite(priceCents) || priceCents <= 0)) return json({ error: 'invalid_price_cents' }, 400);
 
   // Find the item by "Cert #: <cert>" in description (same lookup pattern
   // as updateGradedItem). Walk paginated /v2/catalog/list.
@@ -1691,16 +1697,13 @@ async function updateGradedPrice(request, base, squareHeaders, env) {
   const variations = fullItem.item_data?.variations || [];
   if (!variations.length) return json({ error: 'no_variations_on_item' }, 422);
 
-  // Update every variation's price. Most graded items have a single variation,
-  // but loop in case Square ever produces multi-variation graded listings.
-  const updatedVariations = variations.map(v => ({
-    ...v,
-    item_variation_data: {
-      ...(v.item_variation_data || {}),
-      pricing_type: 'FIXED_PRICING',
-      price_money: { amount: Math.round(priceCents), currency: 'USD' },
-    },
-  }));
+  // Update every variation's price (clear -> VARIABLE_PRICING -> Make Offer).
+  const updatedVariations = variations.map(v => {
+    const vd = { ...(v.item_variation_data || {}) };
+    if (clear) { vd.pricing_type = 'VARIABLE_PRICING'; delete vd.price_money; }
+    else { vd.pricing_type = 'FIXED_PRICING'; vd.price_money = { amount: Math.round(priceCents), currency: 'USD' }; }
+    return { ...v, item_variation_data: vd };
+  });
 
   const updated = {
     ...fullItem,

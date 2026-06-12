@@ -41,12 +41,12 @@ def newest_export() -> Path | None:
     return files[0] if files else None
 
 
-def run(cmd: list[str], cwd=None, env_extra=None) -> None:
+def run(cmd: list[str], cwd=None, env_extra=None, timeout=900) -> None:
     log("RUN " + " ".join(cmd) + (f"  (cwd={cwd})" if cwd else ""))
     try:
         env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8", **(env_extra or {})}
         r = subprocess.run(cmd, cwd=str(cwd or HERE), capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=900, env=env)
+                           encoding="utf-8", errors="replace", timeout=timeout, env=env)
         tail = "\n".join((r.stdout or "").splitlines()[-25:])
         log("OUT:\n" + tail)
         if r.returncode != 0:
@@ -80,13 +80,16 @@ def main() -> int:
             skip_graded = f"export older than {MAX_AGE_H:.0f}h (drop a fresh Sake export)"
         else:
             log(f"graded export: {src.name} | age {age_h:.1f}h | {rows} rows")
-    # GRADED PRICING PAUSED 2026-06-12: cardladder fuzzy text-search mismatched
-    # cards (averaged wrong variants/sets — Typhlosion JP #157 got Premium File +
-    # Dark + Neo Destiny copies). Rebuilding off exact-card last-5-sold (eBay
-    # strict comps). Graded is make-offer on the site until then. Do NOT re-enable
-    # _reprice_graded_verify.py (text-search) — replace with the exact-card pricer.
-    log(f"GRADED pricing PAUSED (rebuilding exact-card last-5-sold) — make-offer on site"
-        + (f"; export note: {skip_graded}" if skip_graded else ""))
+    # GRADED: exact-card eBay last-5-sold (variant-guarded), NOT cardladder's fuzzy
+    # text-search (it averaged wrong variants/sets — Typhlosion JP #157 pulled in
+    # Premium File + Dark + Neo Destiny). _reprice_graded_ebay.py force-scrapes eBay
+    # SOLD comps per cert, filters to the EXACT card (grader+grade+number+name +
+    # foreign-variant guard), prices last-5-recent no-outlier x1.03, and PARKS
+    # (Make Offer) anything ambiguous. Do NOT re-enable _reprice_graded_verify.py.
+    if skip_graded:
+        log(f"GRADED skipped: {skip_graded}")
+    else:
+        run([sys.executable, "_reprice_graded_ebay.py", *flag], timeout=2400)
 
     # SINGLES (raw): each Square single by SKU -> newest TCGplayer MyPricing
     # export "TCG Market Price" x1.03 -> price-only update.
