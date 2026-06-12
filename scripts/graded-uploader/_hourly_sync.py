@@ -80,10 +80,13 @@ def main() -> int:
             skip_graded = f"export older than {MAX_AGE_H:.0f}h (drop a fresh Sake export)"
         else:
             log(f"graded export: {src.name} | age {age_h:.1f}h | {rows} rows")
-    if skip_graded:
-        log(f"GRADED skipped: {skip_graded}")
-    else:
-        run([sys.executable, "_reprice_graded_verify.py", str(src), *flag])
+    # GRADED PRICING PAUSED 2026-06-12: cardladder fuzzy text-search mismatched
+    # cards (averaged wrong variants/sets — Typhlosion JP #157 got Premium File +
+    # Dark + Neo Destiny copies). Rebuilding off exact-card last-5-sold (eBay
+    # strict comps). Graded is make-offer on the site until then. Do NOT re-enable
+    # _reprice_graded_verify.py (text-search) — replace with the exact-card pricer.
+    log(f"GRADED pricing PAUSED (rebuilding exact-card last-5-sold) — make-offer on site"
+        + (f"; export note: {skip_graded}" if skip_graded else ""))
 
     # SINGLES (raw): each Square single by SKU -> newest TCGplayer MyPricing
     # export "TCG Market Price" x1.03 -> price-only update.
