@@ -1,128 +1,70 @@
-"""SITE raw-singles pricing — EXACT via SKU -> TCGplayer MyPricing export.
+"""SITE raw-singles pricing — JustTCG (exact-SKU market) + TCGplayer mpapi (actual last-solds).
 
-The Square singles' variation SKU IS the TCGplayer SKU, which pins the exact
-card + variant + condition. Join SKU -> newest Downloads\\TCGplayer__MyPricing_*.csv
-"TCGplayer Id" -> "TCG Market Price" (already condition/variant-specific).
-sell = market x 1.03 (market or 3% above; covers the <=3% fee). NO fuzzy
-name/number matching against tcgsearch (numbers collide across sets -> wrong
-variant). See memory feedback_site_pricing_methodology.
+Per single (keyed by its Square variation SKU = the TCGplayer SKU, which pins the
+EXACT product + condition + printing — zero wrong-variant risk):
+  1. JustTCG `/v1/cards` by tcgplayerSkuId  -> exact-variant MARKET price + the
+     card's tcgplayerId (productId) + the variant's condition + printing.
+  2. TCGplayer mpapi `/v2/product/{pid}/latestsales` -> the ACTUAL recent sales;
+     filter to the SAME condition + printing, last-5 non-outlier.
+  3. price = max(market, recent-sold) x 1.03.
 
-Read-only review -> _site_singles_review.csv. Does NOT write to Square.
+CRITICAL (user 2026-06-12): we must be CERTAIN we pulled real mpapi last-solds. If
+mpapi errors / returns no sales / no sales match the exact condition+printing ->
+PARK the card (Make Offer via /admin/clear-single-price). Never a guessed/market-
+only number when the sold data isn't verified.
+
+Usage: python _site_reprice_singles.py [--live]
 """
 from __future__ import annotations
-import csv, json, math, os, re, subprocess, sys, urllib.request, urllib.parse
+import json, math, os, re, subprocess, sys, time, urllib.error, urllib.request
 from pathlib import Path
 
 try: sys.stdout.reconfigure(encoding="utf-8")
 except Exception: pass
 
 HERE = Path(__file__).resolve().parent
-DOWN = Path.home() / "Downloads"
 WORKER = "https://sakekitty-square.nwilliams23999.workers.dev"
 INSPECT = f"{WORKER}/admin/inspect?types=ITEM"
 UPDATE = f"{WORKER}/admin/update-single-price"
 CLEAR = f"{WORKER}/admin/clear-single-price"
 FEE = 1.03
 LIVE = "--live" in sys.argv
-GRADER = re.compile(r"^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s", re.I)
-SEALED = re.compile(r"\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b", re.I)
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36")
-SB = "https://kwuqqoyuksvlnbgzaaim.supabase.co"
-SB_KEY = ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dXFxb3l1a3N2bG5i"
-          "Z3phYWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk0NzA1NTIsImV4cCI6MjA1NTA0NjU1Mn0."
-          "DIwS7KTAkLADALR8LMuzMvMP9Q3ErZgWsc3IWjMcjIs")
+GRADER = re.compile(r"^(PSA|BGS|CGC|SGC|HGA|AGS|TAG|GMA|ISA|CSG)\s", re.I)
+SEALED = re.compile(r"\b(booster|pack|etb|elite\s*trainer|tin|collection|bundle|deck|case|box)\b", re.I)
 
 
-_CONDS = ["Near Mint", "Lightly Played", "Moderately Played", "Heavily Played", "Damaged"]
-
-
-def parse_cond_variant(cond_str):
-    """'Lightly Played Reverse Holofoil' -> ('Lightly Played', 'Reverse Holofoil').
-    Edition words (Unlimited / 1st Edition) are not part of mpapi's variant field
-    (they're baked into the product), so strip them. No printing -> 'Normal'."""
-    s = (cond_str or "").strip()
-    cond = next((c for c in _CONDS if s.lower().startswith(c.lower())), "Near Mint")
-    rest = s[len(cond):].strip() if s.lower().startswith(cond.lower()) else s
-    rest = re.sub(r"\b(unlimited|1st\s*edition|first\s*edition)\b", "", rest, flags=re.I).strip()
-    return cond, (rest or "Normal")
-
-
-def last5_no_outlier(prices):
-    """5 most-recent (input order), drop high+low outlier, average the middle."""
-    p = [float(x) for x in prices if x and float(x) > 0][:5]
-    if not p: return None
-    p = sorted(p)
-    if len(p) >= 5: p = p[1:-1]
-    return round(sum(p) / len(p), 2)
-
-
-def recent_sold(product_name, export_market, cond_str):
-    """Recent-sold avg off TCGplayer's last-solds (mpapi /latestsales), filtered to
-    the EXACT variant + condition, last-5 non-outlier of those RELEVANT sales.
-    Returns (recent_avg, productId). recent_avg is None when we can't get it
-    ACCURATELY -> caller shows Make Offer. Accuracy guards:
-      - Supabase must resolve the card UNAMBIGUOUSLY (one match) by exact name and
-        the market must be near the export market (vintage names like 'Blastoise'
-        map to many products -> ambiguous -> Make Offer).
-      - need >=2 sales matching the card's exact condition + variant (don't average
-        a Damaged sale into a Near Mint price)."""
-    want_cond, want_var = parse_cond_variant(cond_str)
+def _reg(name):
     try:
-        u = SB + "/rest/v1/cards?name=eq." + urllib.parse.quote(product_name) + \
-            "&select=tcgplayer_product_id,tcgplayer_market_price"
-        d = json.loads(urllib.request.urlopen(urllib.request.Request(u,
-            headers={"apikey": SB_KEY, "Authorization": "Bearer " + SB_KEY, "User-Agent": UA}), timeout=20).read())
+        return subprocess.run(["powershell", "-NoProfile", "-Command",
+            f"[Environment]::GetEnvironmentVariable('{name}','User')"],
+            capture_output=True, text=True, timeout=10).stdout.strip()
     except Exception:
-        return None, None
-    if len(d) != 1 or not d[0].get("tcgplayer_product_id"):
-        return None, None   # 0 or ambiguous -> Make Offer
-    pid = d[0]["tcgplayer_product_id"]; sbm = d[0].get("tcgplayer_market_price")
-    if sbm and export_market and abs(float(sbm) - export_market) / export_market > 0.25:
-        return None, pid    # market mismatch -> wrong card -> Make Offer
-    try:
-        req = urllib.request.Request(f"https://mpapi.tcgplayer.com/v2/product/{pid}/latestsales",
-            method="POST", data=json.dumps({"listingType": "ListingWithoutPhotos", "limit": 25, "offset": 0}).encode(),
-            headers={"User-Agent": UA, "Origin": "https://www.tcgplayer.com",
-                     "Referer": "https://www.tcgplayer.com/", "Accept": "application/json", "Content-Type": "application/json"})
-        sales = json.loads(urllib.request.urlopen(req, timeout=20).read()).get("data") or []
-    except Exception:
-        return None, pid
-    rel = [s.get("purchasePrice") for s in sales
-           if s.get("purchasePrice") and (s.get("condition") or "") == want_cond
-           and (s.get("variant") or "Normal") == want_var]
-    if len(rel) < 2:
-        return None, pid    # not enough exact-match sales -> Make Offer
-    return last5_no_outlier(rel), pid
+        return ""
 
+def admin_tok():
+    return (os.environ.get("SK_ADMIN_TOKEN") or _reg("SK_ADMIN_TOKEN")).strip()
 
-def tok():
-    t = os.environ.get("SK_ADMIN_TOKEN")
-    if t: return t.strip()
-    r = subprocess.run(["powershell", "-NoProfile", "-Command",
-        "[Environment]::GetEnvironmentVariable('SK_ADMIN_TOKEN','User')"],
-        capture_output=True, text=True, timeout=10)
-    return (r.stdout or "").strip() or None
+def justtcg_key():
+    return (_reg("JUSTTCG_API_KEY") or os.environ.get("JUSTTCG_API_KEY") or "tcg_4568319217c045bca50bc5664d6c5001").strip()
 
 
 def inspect_all(token):
     out, cur = [], None
     while True:
         u = INSPECT + (f"&cursor={cur}" if cur else "")
-        req = urllib.request.Request(u, headers={"X-Sake-Admin-Token": token,
-            "User-Agent": "Mozilla/5.0", "Accept": "application/json"})
-        d = json.loads(urllib.request.urlopen(req, timeout=60).read())
+        d = json.loads(urllib.request.urlopen(urllib.request.Request(u, headers={
+            "X-Sake-Admin-Token": token, "User-Agent": UA, "Accept": "application/json"}), timeout=60).read())
         out += d.get("objects", []); cur = d.get("cursor")
         if not cur: break
     return out
-
 
 def is_single(nm, desc):
     if GRADER.search(nm): return False
     if re.match(r"^(?:19|20)\d{2}\s", nm): return True
     if re.search(r"Card ID:", desc, re.I) and not SEALED.search(nm): return True
     return False
-
 
 def price_of(it):
     for v in (it.get("item_data") or {}).get("variations", []):
@@ -131,109 +73,132 @@ def price_of(it):
     return None
 
 
-def newest_mypricing():
-    fs = sorted(DOWN.glob("TCGplayer__MyPricing_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return fs[0] if fs else None
+def justtcg_by_skus(skus):
+    """{sku: {market, pid, cond, printing, name}} via JustTCG /v1/cards (batches of 100)."""
+    key = justtcg_key(); out = {}
+    for i in range(0, len(skus), 100):
+        batch = skus[i:i + 100]
+        body = json.dumps([{"tcgplayerSkuId": s} for s in batch]).encode()
+        req = urllib.request.Request("https://api.justtcg.com/v1/cards", method="POST", data=body,
+            headers={"x-api-key": key, "Content-Type": "application/json", "User-Agent": "curl/8.7.1", "Accept": "application/json"})
+        try:
+            payload = json.loads(urllib.request.urlopen(req, timeout=40).read())
+        except Exception as e:
+            print(f"  [justtcg] batch err: {str(e)[:100]}"); continue
+        for card in payload.get("data", []):
+            pid = card.get("tcgplayerId")
+            for v in card.get("variants", []):
+                vs = str(v.get("tcgplayerSkuId") or "")
+                if vs in batch:
+                    out[vs] = {"market": v.get("price"), "pid": pid,
+                               "cond": (v.get("condition") or "").strip(),
+                               "printing": (v.get("printing") or "").strip(),
+                               "name": card.get("name") or ""}
+        time.sleep(0.7)
+    return out
 
 
-def fnum(v):
-    try: return float(str(v).replace("$", "").replace(",", "") or 0)
-    except Exception: return 0.0
+def mpapi_sold(pid, cond, printing):
+    """ACTUAL last-solds off TCGplayer mpapi, filtered to EXACT condition+printing,
+    last-5 non-outlier. Returns (avg, n_relevant, status). status: 'ok' | 'no_match'
+    | 'no_data' | 'error'. We only PRICE on 'ok' (>=2 exact matches); anything else
+    -> caller PARKS (must be certain we pulled real sold data)."""
+    if not pid:
+        return None, 0, "error"
+    try:
+        req = urllib.request.Request(f"https://mpapi.tcgplayer.com/v2/product/{pid}/latestsales",
+            method="POST", data=json.dumps({"listingType": "ListingWithoutPhotos", "limit": 25, "offset": 0}).encode(),
+            headers={"User-Agent": UA, "Origin": "https://www.tcgplayer.com", "Referer": "https://www.tcgplayer.com/",
+                     "Accept": "application/json", "Content-Type": "application/json"})
+        sales = json.loads(urllib.request.urlopen(req, timeout=20).read()).get("data")
+    except Exception:
+        return None, 0, "error"
+    if sales is None:
+        return None, 0, "error"
+    if not sales:
+        return None, 0, "no_data"
+    rel = [s.get("purchasePrice") for s in sales
+           if s.get("purchasePrice") and (s.get("condition") or "") == cond
+           and (s.get("variant") or "Normal") == (printing or "Normal")]
+    rel = [float(x) for x in rel if x][:5]
+    if len(rel) < 2:
+        return None, len(rel), "no_match"
+    # last-5 EXCLUDING OUTLIERS: drop high+low, average the middle. The SKU already
+    # pins the exact product+condition+printing, so these ARE the right card — the
+    # spread is normal sale noise; the outlier trim handles it (no parking for it).
+    p = sorted(rel)
+    if len(p) >= 5: p = p[1:-1]
+    return round(sum(p) / len(p), 2), len(rel), "ok"
 
 
 def main():
-    token = tok()
+    token = admin_tok()
     if not token: print("SK_ADMIN_TOKEN not set"); return 1
-    pathargs = [a for a in sys.argv[1:] if not a.startswith("-")]
-    exp = Path(pathargs[0]) if pathargs else newest_mypricing()
-    if not exp or not exp.exists(): print("no TCGplayer MyPricing export in Downloads"); return 1
-    idx = { (r.get("TCGplayer Id") or "").strip(): r
-            for r in csv.DictReader(exp.open(encoding="utf-8-sig")) }
-
     items = inspect_all(token)
-    rows = []
+    singles = []
     for it in items:
         d = it.get("item_data") or {}; nm = d.get("name", "") or ""; desc = d.get("description", "") or ""
         if not is_single(nm, desc): continue
         v = (d.get("variations") or [{}])[0]; vd = v.get("item_variation_data") or {}
         sku = (vd.get("sku") or "").strip()
-        r = idx.get(sku)
-        cur = price_of(it)
-        if not r:
-            rows.append(dict(sku=sku, name=nm, cur=cur, mkt=None, sell=None, delta=None, miss=True)); continue
-        mkt = fnum(r.get("TCG Market Price")); low = fnum(r.get("TCG Low Price"))
-        cond = (r.get("Condition") or "").strip()
-        pname = (r.get("Product Name") or "").strip()
-        # price = max(market, recent-sold) x1.03. recent_sold filters TCGplayer's
-        # last-solds to this card's EXACT variant + condition (last-5 non-outlier).
-        # No accurate exact-match sold -> Make Offer (don't show a market-only or
-        # cross-condition-averaged number). Works for NM AND played, as long as
-        # there are enough same-condition sales.
-        rs, sell, offer = None, None, False
-        if mkt > 0:
-            rs, _pid = recent_sold(pname, mkt, cond)
-            if rs:
-                sell = math.ceil(max(mkt, rs) * FEE)
-            else:
-                offer = True
+        if sku: singles.append({"sku": sku, "name": nm, "cur": price_of(it)})
+    print(f"SINGLES: {len(singles)} | market=JustTCG(SKU) · last-sold=mpapi(exact cond+printing) · price=max x{FEE}")
+    jt = justtcg_by_skus([s["sku"] for s in singles])
+
+    rows = []
+    for s in singles:
+        j = jt.get(s["sku"])
+        if not j or not j.get("market") or not j.get("pid"):
+            rows.append({**s, "park": True, "why": "no JustTCG market/pid"}); continue
+        market = float(j["market"]); cond = j["cond"]; printing = j["printing"]
+        sold, n, status = mpapi_sold(j["pid"], cond, printing)
+        if status != "ok":
+            rows.append({**s, "market": market, "park": True, "why": f"mpapi {status}", "cond": cond, "printing": printing})
         else:
-            offer = True
-        rows.append(dict(sku=sku, setn=(r.get("Set Name") or "").strip(), name=pname,
-            num=(r.get("Number") or "").strip(), cond=cond, mkt=mkt, low=low, recent=rs,
-            sell=sell, offer=offer, cur=cur,
-            delta=(sell - cur if (sell and cur is not None) else None), miss=False))
-    rows.sort(key=lambda z: -((z["cur"] or 0)))
-    miss = sum(1 for z in rows if z.get("miss"))
-    priced = [z for z in rows if z.get("sell")]
-    offers = [z for z in rows if z.get("offer")]
-    print(f"SINGLES via SKU->{exp.name}.  sell=max(market,recent-sold)x{FEE} | {len(rows)} items")
-    print(f"  priced {len(priced)} | make-offer {len(offers)} (no accurate recent-sold / non-NM) | SKU-miss {miss}")
-    print(f"  {'cur':>7} {'mkt':>7} {'recent':>7} {'NEW':>7}  card [cond]")
-    for z in priced:
-        rec = z.get("recent")
-        tag = " (recent>mkt)" if (rec and rec > z["mkt"]) else ""
-        print(f"  {(z['cur'] or 0):>7.0f} {z['mkt']:>7.0f} {(rec or 0):>7.0f} {z['sell']:>7}  {z['name'][:30]} [{z['cond'][:14]}]{tag}")
-    if offers:
-        print("  --- Make Offer (no accurate recent-sold) ---")
-        for z in offers: print(f"    {z['name'][:40]} [{z['cond'][:18]}]")
-    out = HERE / "_site_singles_review.csv"
-    with out.open("w", encoding="utf-8", newline="") as fh:
-        w = csv.writer(fh); w.writerow(["sku", "set", "name", "number", "condition", "market", "recent_sold", "suggested", "make_offer", "current"])
-        for z in rows:
-            w.writerow([z["sku"], z.get("setn", ""), z["name"], z.get("num", ""), z.get("cond", ""),
-                        z.get("mkt"), z.get("recent"), z.get("sell"), bool(z.get("offer")), z["cur"]])
-    print(f"\n  CSV -> {out.name}")
+            sell = math.ceil(max(market, sold) * FEE)
+            rows.append({**s, "market": market, "sold": sold, "n": n, "sell": sell,
+                         "cond": cond, "printing": printing, "park": False,
+                         "why": f"max(mkt {market:.0f}, sold {sold:.0f}) n={n}"})
+        time.sleep(0.25)
+
+    rows.sort(key=lambda r: -((r.get("cur") or 0)))
+    priced = [r for r in rows if not r["park"]]
+    parked = [r for r in rows if r["park"]]
+    print(f"  PRICED {len(priced)} | PARKED(make-offer) {len(parked)}")
+    print(f"  {'cur':>7} {'mkt':>7} {'sold':>7} {'NEW':>7}  card")
+    for r in priced:
+        tag = " (sold>mkt)" if r["sold"] > r["market"] else ""
+        print(f"  {(r['cur'] or 0):>7.0f} {r['market']:>7.0f} {r['sold']:>7.0f} {r['sell']:>7}  {r['name'][:34]}{tag}")
+    if parked:
+        print("  --- PARKED (no verified mpapi last-solds) ---")
+        for r in parked: print(f"    {r['name'][:40]}  [{r['why']}]")
+    with (HERE / "_site_singles_review.csv").open("w", encoding="utf-8", newline="") as fh:
+        import csv; w = csv.writer(fh)
+        w.writerow(["sku", "name", "cond", "printing", "market", "sold", "n", "suggested", "parked", "why", "current"])
+        for r in rows:
+            w.writerow([r["sku"], r["name"], r.get("cond", ""), r.get("printing", ""), r.get("market"),
+                        r.get("sold"), r.get("n"), r.get("sell"), r["park"], r["why"], r.get("cur")])
+    print("  CSV -> _site_singles_review.csv")
 
     if not LIVE:
-        print("  [dry-run] pass --live to push to Square")
-        return 0
-
-    # ===== LIVE: price-only update (max market/recent) OR clear-to-Make-Offer =====
-    print("\n=== APPLYING singles to Square ===")
-    ok = cleared = fail = skip = 0
-    import time as _t
-    for z in rows:
-        if z.get("miss"):
-            skip += 1; continue
+        print("  [dry-run] pass --live to push"); return 0
+    ok = parkn = fail = 0
+    for r in rows:
         try:
-            if z.get("sell"):
+            if not r["park"]:
                 req = urllib.request.Request(UPDATE, method="POST",
-                    data=json.dumps({"card_id": z["sku"], "price_cents": int(round(z["sell"] * 100))}).encode(),
+                    data=json.dumps({"card_id": r["sku"], "price_cents": int(round(r["sell"] * 100))}).encode(),
                     headers={"Content-Type": "application/json", "X-Sake-Admin-Token": token, "User-Agent": UA})
-                if json.loads(urllib.request.urlopen(req, timeout=60).read()).get("ok"): ok += 1
-                else: fail += 1
-            elif z.get("offer"):
-                req = urllib.request.Request(CLEAR, method="POST",
-                    data=json.dumps({"card_id": z["sku"]}).encode(),
-                    headers={"Content-Type": "application/json", "X-Sake-Admin-Token": token, "User-Agent": UA})
-                if json.loads(urllib.request.urlopen(req, timeout=60).read()).get("ok"): cleared += 1
-                else: fail += 1
+                ok += 1 if json.loads(urllib.request.urlopen(req, timeout=60).read()).get("ok") else 0
             else:
-                skip += 1
+                req = urllib.request.Request(CLEAR, method="POST",
+                    data=json.dumps({"card_id": r["sku"]}).encode(),
+                    headers={"Content-Type": "application/json", "X-Sake-Admin-Token": token, "User-Agent": UA})
+                parkn += 1 if json.loads(urllib.request.urlopen(req, timeout=60).read()).get("ok") else 0
         except Exception as e:
-            fail += 1; print(f"  ERR {z['sku']}: {str(e)[:120]}")
-        _t.sleep(0.3)
-    print(f"  singles: {ok} priced, {cleared} -> Make Offer (skip {skip}, fail {fail})")
+            fail += 1; print(f"  ERR {r['sku']}: {str(e)[:100]}")
+        time.sleep(0.25)
+    print(f"  singles: {ok} priced, {parkn} parked->Make Offer (fail {fail})")
     return 2 if fail else 0
 
 
