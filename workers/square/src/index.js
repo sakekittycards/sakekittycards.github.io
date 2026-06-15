@@ -322,7 +322,11 @@ async function listItems(base, headers, locationId, env) {
         .map(v => {
           const vd    = v.item_variation_data;
           const cents = vd?.price_money?.amount;
-          if (cents == null) return null;
+          // A null price means VARIABLE_PRICING = "Make Offer" (graded/raw/sealed
+          // are sold by negotiation). KEEP these — surface them with price 0 so the
+          // shop still renders the item (it shows a Make Offer pill, not $0). Only
+          // drop a variation that has no usable data at all. (Before 2026-06-15 we
+          // returned null here, which silently hid every Make-Offer item.)
           // Prefer Printful mockup (has the logo printed), fall back to per-variation
           // image in Square (rare), then to null.
           const printfulImg = printfulMockups[v.id] || null;
@@ -331,7 +335,7 @@ async function listItems(base, headers, locationId, env) {
           return {
             id:       v.id,
             name:     vd?.name || '',
-            price:    cents / 100,
+            price:    cents == null ? 0 : cents / 100,
             inStock:  stock === null || stock > 0,
             stock,
             imageUrl: printfulImg || squareVarImg || null,
