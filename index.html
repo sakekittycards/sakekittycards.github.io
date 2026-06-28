@@ -681,6 +681,48 @@
       .cta-banner.cta-tcg p { text-align: center; }
     }
 
+    /* Tertiary CTA (TCGenie) — same slim inline row as the TCGPlayer row,
+       but in TCGenie's own violet→teal brand so it reads as a separate beta
+       product, not a Sake Kitty section. Intentionally low-key — a heads-up
+       for fellow card sellers, not a main pitch. */
+    .cta-banner.cta-tcgenie {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 28px; flex-wrap: wrap; text-align: left;
+      padding: 26px 36px;
+      background: linear-gradient(135deg, rgba(123,47,255,0.13), rgba(0,212,255,0.07));
+      border: 1px solid rgba(140,110,255,0.30);
+      box-shadow: 0 0 28px rgba(123,47,255,0.10);
+    }
+    .cta-tcgenie-text { flex: 1; min-width: 240px; }
+    .cta-tcgenie-eyebrow {
+      display: inline-block; font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #bda6ff; margin: 0 0 7px;
+    }
+    .cta-banner.cta-tcgenie h2 {
+      font-size: clamp(20px, 2.6vw, 26px);
+      margin: 0 0 4px;
+      background: none;
+      -webkit-text-fill-color: rgba(255,255,255,0.96);
+      filter: none;
+    }
+    .cta-banner.cta-tcgenie p {
+      font-size: 14px; color: rgba(255,255,255,0.85);
+      margin: 0; max-width: none; text-align: left;
+    }
+    .cta-banner.cta-tcgenie .btn { flex-shrink: 0; }
+    .btn-tcgenie {
+      background: linear-gradient(135deg, #7b2fff, #00d4ff);
+      color: #fff; border: none;
+      box-shadow: 0 4px 16px rgba(123,47,255,0.28);
+    }
+    .btn-tcgenie:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    @media (max-width: 640px) {
+      .cta-banner.cta-tcgenie { flex-direction: column; text-align: center; padding: 28px 24px; }
+      .cta-tcgenie-text { text-align: center; }
+      .cta-banner.cta-tcgenie p { text-align: center; }
+    }
+
     .see-all {
       display: inline-flex; align-items: center; gap: 8px;
       margin: 32px auto 0;
@@ -1017,6 +1059,7 @@
         <li><a href="team.html">Our Team</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="reviews.html">Reviews</a></li>
+        <li><a href="watch.html">Watch</a></li>
         <li class="nav-dropdown">
           <a href="resources.html">Resources</a>
           <ul class="nav-dropdown-menu" aria-label="Resources">
@@ -1174,6 +1217,21 @@
       </div>
     </section>
 
+    <!-- Tertiary CTA — TCGenie, a separate beta app the same team built for
+         card sellers. Plugged tastefully in its own brand (slim row, violet
+         →teal); it's not a Sake Kitty product, just a heads-up for fellow
+         vendors. Kept low-key so it never competes with the SK pitch. -->
+    <section class="section" style="padding-top:0">
+      <div class="cta-banner cta-tcgenie">
+        <div class="cta-tcgenie-text">
+          <span class="cta-tcgenie-eyebrow">✦ Built by the same team · Now in beta</span>
+          <h2>TCGenie — scan, price, sell</h2>
+          <p>The pricing app we built for card sellers: scan a card, pull live market value, and list it in seconds. Now open in beta.</p>
+        </div>
+        <a href="https://tcgenie.nwilliams23999.workers.dev" target="_blank" rel="noopener" class="btn btn-tcgenie">Check it out ↗</a>
+      </div>
+    </section>
+
     <!-- Upcoming events preview — moved to bottom of the page so the
          commerce + social-proof sections lead, with shows as a closing
          "catch us in person" beat. -->
@@ -1213,6 +1271,7 @@
         <a href="trade-in.html">Sell / Trade</a>
         <a href="grading-prep.html">Grading Prep</a>
         <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
         <a href="resources.html">Resources</a>
         <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
@@ -1396,7 +1455,7 @@
             <div class="product-info">
               <div class="product-name">${esc(item.name)}</div>
               <div class="product-footer">
-                ${(cat === 'graded' || cat === 'singles')
+                ${(cat === 'graded' || cat === 'singles' || cat === 'sealed')
                   ? `<span class="product-price product-offer">Make Offer</span>`
                   : `<span class="product-price">${fmt(item.price)}</span>`}
               </div>

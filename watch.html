@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Watch — Sake Kitty Cards</title>
+  <meta name="description" content="Sake Kitty Cards on video — card-show vlogs, buying and grading tips, deals, and the day-to-day of running a Pokémon card shop. New Shorts and videos as we film them." />
+
+  <!-- Canonical + Social preview -->
+  <link rel="canonical" href="https://sakekittycards.com/watch.html" />
+  <meta property="og:title" content="Watch — Sake Kitty Cards" />
+  <meta property="og:description" content="Sake Kitty Cards on video — card-show vlogs, buying and grading tips, deals, and the day-to-day of running a Pokémon card shop." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/watch.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Watch — Sake Kitty Cards" />
+  <meta name="twitter:description" content="Sake Kitty Cards on video — card-show vlogs, buying and grading tips, deals, and the day-to-day of running a Pokémon card shop." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=178" />
+  <style>
+    /* ── Watch / content hub — scoped under .page-watch. ── */
+    .page-watch .bg-blob { opacity: 0.06; filter: blur(140px); }
+    .page-watch .page-hero { padding-bottom: 18px; }
+    .page-watch .page-hero > p {
+      font-size: clamp(15px, 2vw, 17px); line-height: 1.55;
+      color: rgba(255,255,255,0.85);
+      max-width: 640px;
+    }
+
+    /* Channel CTA row under the hero */
+    .watch-channel-row {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+      margin: 4px auto 8px;
+    }
+    .watch-channel-row a {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 20px;
+      border-radius: 999px;
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+      transition: filter 0.15s, transform 0.15s, border-color 0.15s;
+    }
+    .watch-channel-row a.primary {
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #06060a;
+    }
+    .watch-channel-row a.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .watch-channel-row a.secondary {
+      background: transparent;
+      color: var(--orange);
+      border: 1.5px solid rgba(255,106,0,0.6);
+    }
+    .watch-channel-row a.secondary:hover { transform: translateY(-1px); border-color: rgba(255,106,0,0.95); }
+
+    /* Optional section heading (matches resources.html cadence) */
+    .watch-section-heading {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(22px, 3vw, 30px); line-height: 1.2;
+      padding: 2px 0 6px;
+      margin: 30px auto 10px;
+      max-width: 1000px; text-align: center;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* ── Vertical Shorts gallery. ──
+       Flex (not grid) so a trailing partial row centers cleanly. Each card is
+       a 9:16 embed sized for Shorts. TO ADD A NEW SHORT: copy one
+       .watch-card block below and swap the YouTube id in the iframe src +
+       the title + blurb. No CSS changes needed. Newest first. */
+    .watch-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      max-width: 1000px; margin: 14px auto 50px;
+    }
+    .watch-card {
+      flex: 1 1 270px;
+      max-width: 300px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .watch-embed {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.025);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+    }
+    .watch-embed iframe {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
+    .watch-card-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--orange);
+      line-height: 1.3;
+    }
+    .watch-card-sub {
+      font-size: 13px; line-height: 1.55;
+      color: rgba(255,255,255,0.7);
+    }
+    /* aspect-ratio is widely supported; floor the height on old engines so
+       the embed never collapses to zero. */
+    @supports not (aspect-ratio: 9 / 16) {
+      .watch-embed { height: 480px; }
+    }
+
+    /* Long-form (16:9) card — for full YouTube videos, not Shorts. Drop a
+       .watch-card.is-wide block in its own row when you post a long video. */
+    .watch-card.is-wide { max-width: 560px; flex-basis: 480px; }
+    .watch-card.is-wide .watch-embed { aspect-ratio: 16 / 9; }
+    @supports not (aspect-ratio: 16 / 9) {
+      .watch-card.is-wide .watch-embed { height: 300px; }
+    }
+
+    /* Closing CTA — mirror the resources page pattern */
+    .watch-cta {
+      max-width: 880px; margin: 28px auto 60px;
+      padding: 28px 32px;
+      background: linear-gradient(135deg, rgba(255,106,0,0.06), rgba(255,0,128,0.05));
+      border: 1px solid rgba(255,106,0,0.25);
+      border-radius: 16px;
+      text-align: center;
+    }
+    .watch-cta h2 {
+      font-family: 'Bangers', cursive; letter-spacing: 0.04em;
+      font-size: clamp(20px, 3vw, 26px); line-height: 1.25;
+      padding: 2px 0 4px;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .watch-cta p {
+      color: rgba(255,255,255,0.82);
+      font-size: 14.5px; line-height: 1.6;
+      margin: 0 0 16px;
+    }
+    .watch-cta .watch-cta-row {
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+    }
+    .watch-cta a {
+      display: inline-block;
+      padding: 10px 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--orange), var(--pink));
+      color: #06060a;
+      font-weight: 700; font-size: 14px;
+      text-decoration: none;
+      transition: filter 0.15s, transform 0.15s;
+    }
+    .watch-cta a:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .watch-cta a.secondary {
+      background: transparent;
+      color: var(--orange);
+      border: 1.5px solid rgba(255,106,0,0.6);
+    }
+  </style>
+</head>
+<body class="page-watch">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- Lava-lamp goo + nav blobs are injected by main.js — keeps every page identical -->
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="reviews.html">Reviews</a></li>
+        <li><a href="watch.html" aria-current="page">Watch</a></li>
+        <li class="nav-dropdown">
+          <a href="resources.html">Resources</a>
+          <ul class="nav-dropdown-menu" aria-label="Resources">
+            <li><a href="shipping.html">Shipping &amp; Packing</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <div class="page-hero">
+      <h1>Watch</h1>
+      <p>Card-show vlogs, buying &amp; grading tips, deals, and the day-to-day of running a Pokémon card shop. New Shorts and videos as we film them.</p>
+    </div>
+
+    <div class="watch-channel-row">
+      <a class="primary" href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener">▶ Subscribe on YouTube</a>
+      <a class="secondary" href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">Follow on Instagram</a>
+    </div>
+
+    <!-- ── Shorts grid. Newest first. Add new videos by copying a .watch-card
+         block and swapping the YouTube id + title + blurb. ── -->
+    <div class="watch-grid">
+
+      <div class="watch-card">
+        <div class="watch-embed">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/OKxBOhu0StA"
+            title="Stop Pricing Your Pokémon Cards Off PriceCharting"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen></iframe>
+        </div>
+        <span class="watch-card-title">Stop Pricing Your Cards Off PriceCharting</span>
+        <span class="watch-card-sub">The pricing mistake that costs collectors money — and where to actually look for raw vs. graded values.</span>
+      </div>
+
+    </div>
+
+    <div class="watch-cta">
+      <h2>Never miss a drop</h2>
+      <p>We post deals, pulls, and show recaps across YouTube and Instagram. Subscribe so the next one lands in your feed.</p>
+      <div class="watch-cta-row">
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener">Subscribe on YouTube</a>
+        <a href="https://www.instagram.com/sakekittycards" class="secondary" target="_blank" rel="noopener">Follow on Instagram</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" id="siteFooter">
+    <div class="footer-inner">
+      <a href="index.html" class="footer-logo">
+        <img width="40" height="40" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <p class="footer-blurb">Pokémon cards, graded slabs, sealed product, and apparel — direct from a Florida-based shop.</p>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
+        <a href="resources.html">Resources</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=160"></script>
+</body>
+</html>
