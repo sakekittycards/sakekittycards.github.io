@@ -25,6 +25,18 @@
   <meta name="twitter:title" content="Florida Pokémon Card Shows & Events — Sake Kitty Cards" />
   <meta name="twitter:description" content="Upcoming Florida Pokémon card shows, pop-ups, and Whatnot streams from Sake Kitty Cards. Find us at the booth — graded slabs, sealed, raw singles, and trades." />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+  <!-- Breadcrumb structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sakekittycards.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Events", "item": "https://sakekittycards.com/events.html" }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -609,7 +621,7 @@
   </footer>
 
   <script src="main.js?v=160" defer></script>
-  <script src="assets/events-data.js?v=7"></script>
+  <script src="assets/events-data.js?v=8"></script>
   <script>
     // EVENTS data moved to assets/events-data.js so vendor-portal.html
     // can render the same calendar without duplicating the schedule.

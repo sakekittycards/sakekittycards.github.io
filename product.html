@@ -708,6 +708,34 @@
       const curVar0 = findVariant(selectedColor, selectedSize) || vars[0];
       const initialPrice = curVar0?.price != null ? curVar0.price : item.price;
 
+      // --- Dynamic SEO metadata (per product) ---------------------------------
+      // Googlebot renders JS, so it reads these updated tags. Note: non-JS social
+      // scrapers (Facebook/iMessage) still use the static fallbacks in <head>;
+      // true per-product social cards would need prerendering/SSR.
+      (function setProductSeo() {
+        const catWord = isGradedItem ? 'graded Pokémon slab'
+          : isSealedItem ? 'sealed Pokémon product'
+          : isSinglesItem ? 'raw Pokémon single'
+          : 'collector item';
+        const metaDesc = isOfferOnly
+          ? `${item.name} — ${catWord} at Sake Kitty Cards. Send your best offer and we reply within 24 hours. Packed with care, shipped fast and fully insured.`
+          : `${item.name} — ${fmt(initialPrice)} at Sake Kitty Cards. Free shipping over $100, flat $5 under. Secure checkout with Apple Pay, Google Pay, Venmo, PayPal & Cash App.`;
+        const canonUrl = `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`;
+        const ogImg = (initialGallery[0] && /^https?:\/\//.test(initialGallery[0]))
+          ? initialGallery[0] : 'https://sakekittycards.com/og-image.png';
+        const title = `${item.name} — Sake Kitty Cards`;
+        const set = (sel, attr, val) => { const el = document.head.querySelector(sel); if (el) el.setAttribute(attr, val); };
+        set('meta[name="description"]', 'content', metaDesc);
+        set('link[rel="canonical"]', 'href', canonUrl);
+        set('meta[property="og:title"]', 'content', title);
+        set('meta[property="og:description"]', 'content', metaDesc);
+        set('meta[property="og:url"]', 'content', canonUrl);
+        set('meta[property="og:image"]', 'content', ogImg);
+        set('meta[name="twitter:title"]', 'content', title);
+        set('meta[name="twitter:description"]', 'content', metaDesc);
+        set('meta[name="twitter:image"]', 'content', ogImg);
+      })();
+
       root.innerHTML = `
         <div class="pdp-breadcrumb">
           <a href="shop.html">Shop</a><span class="sep">›</span><span>${esc(item.name)}</span>
