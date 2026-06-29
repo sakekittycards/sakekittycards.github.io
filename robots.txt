@@ -1,4 +1,13 @@
+# Sake Kitty Cards — https://sakekittycards.com
+# All search + AI crawlers welcome. Utility/thank-you pages carry their own
+# <meta name="robots" content="noindex"> so they stay crawlable (so the
+# noindex is seen) but out of the index. Only non-content directories are
+# blocked below.
+
 User-agent: *
 Allow: /
+Disallow: /scripts/
+Disallow: /workers/
+Disallow: /assets/print/
 
 Sitemap: https://sakekittycards.com/sitemap.xml

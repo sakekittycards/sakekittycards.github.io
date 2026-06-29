@@ -25,6 +25,36 @@
   <meta name="twitter:title" content="Shop Pokémon Slabs, Sealed & Apparel — Sake Kitty Cards" />
   <meta name="twitter:description" content="Shop Pokémon graded slabs, sealed boxes, ETBs, raw singles, and apparel direct from Sake Kitty Cards. Free shipping over $100, cards & sealed ship insured." />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+
+  <!-- CollectionPage + Breadcrumb structured data for the storefront. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": "https://sakekittycards.com/shop.html#collection",
+        "url": "https://sakekittycards.com/shop.html",
+        "name": "Shop Pokémon Cards — Graded Slabs, Sealed, Singles & Apparel",
+        "description": "Sake Kitty Cards' direct storefront: PSA/CGC/BGS graded slabs, sealed Pokémon product (booster boxes, ETBs, tins), raw singles, and original apparel. Cards and sealed ship fully insured with free shipping over $100.",
+        "isPartOf": { "@id": "https://sakekittycards.com/#website" },
+        "about": [
+          { "@type": "Thing", "name": "Pokémon graded cards" },
+          { "@type": "Thing", "name": "Sealed Pokémon product" },
+          { "@type": "Thing", "name": "Pokémon single cards" }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sakekittycards.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://sakekittycards.com/shop.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -51,6 +81,21 @@
     .shop-trust-bullets strong { color: rgba(255,255,255,0.95); font-weight: 700; }
     .page-shop .page-hero { padding-bottom: 28px; }
     .page-shop .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.5; color: rgba(255,255,255,0.85); max-width: 640px; }
+
+    /* Breadcrumb (visible — mirrors the BreadcrumbList JSON-LD) */
+    .shop-breadcrumb { font-size: 13px; color: var(--dim); margin: 0 0 6px; }
+    .shop-breadcrumb a { color: var(--muted); text-decoration: none; }
+    .shop-breadcrumb a:hover { color: var(--orange); }
+
+    /* Buyer-education / SEO content block at the foot of the storefront */
+    .shop-about { padding-top: 8px; }
+    .shop-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 40px; max-width: 960px; margin: 6px auto 0; }
+    @media (max-width: 720px) { .shop-about-grid { grid-template-columns: 1fr; } }
+    .shop-about-grid h3 { font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 6px; }
+    .shop-about-grid p { font-size: 14px; line-height: 1.65; color: rgba(255,255,255,0.82); margin: 0; }
+    .shop-about-grid a, .shop-about-trust a { color: var(--orange); text-decoration: none; }
+    .shop-about-grid a:hover, .shop-about-trust a:hover { text-decoration: underline; }
+    .shop-about-trust { max-width: 960px; margin: 22px auto 0; font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.82); }
 
     /* Top-of-page rhythm */
     .page-shop .section { padding-bottom: 28px; }
@@ -168,8 +213,9 @@
 
   <main id="main" class="page-content">
     <div id="shopHero" class="page-hero">
-      <h1>Shop</h1>
-      <p id="shopHeroSub">Graded slabs, sealed, singles, and apparel — all direct from us. Packed with care, shipped fast and insured.</p>
+      <nav class="shop-breadcrumb" aria-label="Breadcrumb"><a href="index.html">Home</a> › <span aria-current="page">Shop</span></nav>
+      <h1>Shop Pokémon Cards</h1>
+      <p id="shopHeroSub">Graded slabs, sealed product, raw singles, and apparel — all direct from us. Packed with care, shipped fast and insured.</p>
     </div>
 
     <!-- Local-vendor inventory notice — site lags real-time in-person sales
@@ -333,6 +379,34 @@
         New inventory drops regularly — follow <a href="https://www.instagram.com/sakekittycards" target="_blank" style="color:var(--orange)">@sakekittycards</a> for restock alerts.
       </p>
     </div>
+
+    <!-- Buyer-education + SEO content: what each category includes, condition
+         expectations, who it's for, and why buy from us. Real info, no filler. -->
+    <section class="section shop-about" aria-labelledby="shop-about-heading">
+      <div class="section-header" style="text-align:left">
+        <h2 id="shop-about-heading" class="section-title" style="display:inline-block">What You'll Find in Our Shop</h2>
+        <div class="divider" style="margin:10px 0 0"></div>
+      </div>
+      <div class="shop-about-grid">
+        <div>
+          <h3>Graded slabs — PSA, CGC, BGS &amp; SGC</h3>
+          <p>Authenticated, professionally graded Pokémon cards, from vintage Base Set holos to modern alt arts and special illustration rares. Each slab is listed by its real cert grade and shown in its own photo, so what you see is what ships — best for collectors who want condition guaranteed. New to grading? Try our <a href="grading-prep.html">grading prep service</a> or read <a href="resources.html">when it's worth grading a card</a>.</p>
+        </div>
+        <div>
+          <h3>Sealed product — boxes, ETBs &amp; tins</h3>
+          <p>Factory-sealed English and Japanese Pokémon: booster boxes, Elite Trainer Boxes, collection boxes, tins, and bundles. Great for rippers chasing fresh pulls and for collectors holding sealed long-term. Sealed orders ship double-boxed and fully insured — see <a href="shipping.html">how we pack &amp; ship</a>.</p>
+        </div>
+        <div>
+          <h3>Raw singles</h3>
+          <p>Ungraded single cards — vintage holos, trainer gallery pulls, full arts, and budget playset staples. Every single is hand-inspected and described conservatively (we grade condition down, never up). Want more? Hundreds of additional singles live on our <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener">TCGplayer storefront</a>.</p>
+        </div>
+        <div>
+          <h3>Apparel &amp; merch</h3>
+          <p>Original Sake Kitty designs — tees and accessories made to order. This is the shop's fixed-price, add-to-cart category; graded slabs and singles are typically make-an-offer so you can name your price.</p>
+        </div>
+      </div>
+      <p class="shop-about-trust"><strong>Why buy from Sake Kitty Cards?</strong> We're collectors who run booths at Florida card shows and ship nationwide. Every order is hand-checked before it leaves, conditions are described honestly, and cards and sealed ship fully insured (free over $100). Questions first? <a href="contact.html">Contact us</a> or browse the <a href="faq.html">FAQ</a>. Looking to sell instead of buy? We <a href="trade-in.html">buy and trade</a> singles, sealed, graded, and bulk — cash or store credit.</p>
+    </section>
 </main>
 
   <footer class="site-footer">

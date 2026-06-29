@@ -42,6 +42,7 @@ window.SK_EVENTS = [
   { start: '2026-07-18', end: '2026-07-19', name: 'TCG Trade N Play SuperCon',  loc: 'Florida State Fairgrounds — Entertainment Hall · Tampa, FL', hours: '10am–6pm' },
   { start: '2026-07-19',                     name: '👀 Secret Show — Stay Tuned', loc: 'Location revealed soon', hours: '10am–4pm', revealAt: '2026-06-25', realName: 'Naples Card Show', realLoc: 'The White Rose · 2320 Moulder Drive, Naples, FL 34120' },
   { start: '2026-07-26',                     name: 'Card Party S. Florida 4',    loc: 'Broward County Convention Center · 1950 Eisenhower Blvd, Fort Lauderdale, FL 33316' },
+  { start: '2026-08-01', end: '2026-08-02', name: 'Collect-A-Con — Los Angeles', loc: 'Los Angeles Convention Center · 1201 S Figueroa St, Los Angeles, CA 90015', hours: 'Sat 10am–6pm · Sun 10am–5pm' },
   { start: '2026-08-01',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
   { start: '2026-08-02',                     name: 'PGA Card Show',              loc: 'Palm Beach Gardens, FL' },
   { start: '2026-08-08',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
