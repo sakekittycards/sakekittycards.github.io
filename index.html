@@ -1455,7 +1455,7 @@
             <div class="product-info">
               <div class="product-name">${esc(item.name)}</div>
               <div class="product-footer">
-                ${(cat === 'graded' || cat === 'singles' || cat === 'sealed')
+                ${((cat === 'graded' || cat === 'singles' || cat === 'sealed') && !(item.price > 0))
                   ? `<span class="product-price product-offer">Make Offer</span>`
                   : `<span class="product-price">${fmt(item.price)}</span>`}
               </div>
