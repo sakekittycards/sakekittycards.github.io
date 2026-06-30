@@ -519,6 +519,20 @@
       // Merch (apparel) is the only buy-now category.
       const isOfferOnly = isGradedItem || isSinglesItem || isSealedItem;
 
+      // Focused eBay SOLD query for the "recent sales" reference. The raw title
+      // carries the grade as "10pristine" (no space) + Card Ladder set codes
+      // ("Obf En-Obsidian Flames"), so a plain title search returns a confusing
+      // mix of grades. Space the grade out and strip the codes so the comps shown
+      // actually match the slab (CGC 10 Pristine, PSA 10, etc.).
+      const ebaySoldQ = String(item.name || '')
+        .replace(/\s*\(placeholder photo\)\s*/i, '')
+        .replace(/\b(\d+(?:\.\d)?)(pristine|gem\s*-?\s*mt|gem|mint|black\s*label|perfect)\b/ig, '$1 $2')
+        .replace(/\b[A-Za-z]{2,4}\s+En-/gi, ' ')
+        .replace(/\bEn-/gi, ' ')
+        .replace(/\s*-\s*[A-Za-z]{2,5}\s+EN\b/gi, ' ')
+        .replace(/\s*-\s*Unlimited\b/gi, ' ')
+        .replace(/\s+/g, ' ').trim();
+
       // Inject Product + BreadcrumbList JSON-LD so search engines + social
       // unfurls get the price, availability, image, and crumb path.  Built
       // from the loaded Square data so it always matches what the user sees.
@@ -760,7 +774,7 @@
             </div>
             ${isOfferOnly
               ? `<a class="pdp-ebay-link" target="_blank" rel="noopener noreferrer"
-                    href="https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(String(item.name || '').replace(/\s*\(placeholder photo\)\s*/i, '').trim())}&_sacat=0&LH_Sold=1&LH_Complete=1&_sop=13">
+                    href="https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(ebaySoldQ)}&_sacat=0&LH_Sold=1&LH_Complete=1&_sop=13">
                     See recent eBay sales →</a>`
               : ''}
             ${(!oos && !isGradedItem && typeof item.stock === 'number')
