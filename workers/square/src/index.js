@@ -28,7 +28,7 @@
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Sake-Admin-Token',
   'Access-Control-Max-Age': '86400',
 };
 
@@ -84,6 +84,26 @@ export default {
         const body = await request.json().catch(() => ({}));
         return await claimPromoCode(body, env, request);
       }
+      // Landing page pings this on load: records the scan + returns the code's
+      // discount % / expiry / status so the page can display it. Public (the
+      // code is already in the URL the customer scanned).
+      if (path === '/promo/scanned' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({}));
+        return await scanPromoCode(body, env);
+      }
+      // Admin: mint a fresh batch of unique single-use codes (print-app calls this).
+      if (path === '/admin/promo/mint' && request.method === 'POST') {
+        const tok = request.headers.get('X-Sake-Admin-Token') || '';
+        if (!env.ADMIN_TOKEN || !timingSafeEqual(tok, env.ADMIN_TOKEN)) return json({ error: 'unauthorized' }, 401);
+        const body = await request.json().catch(() => ({}));
+        return await mintPromoCodes(body, env);
+      }
+      // Admin: per-batch dashboard (created / scanned / used / unused / revenue).
+      if (path === '/admin/promo/dashboard' && request.method === 'GET') {
+        const tok = request.headers.get('X-Sake-Admin-Token') || '';
+        if (!env.ADMIN_TOKEN || !timingSafeEqual(tok, env.ADMIN_TOKEN)) return json({ error: 'unauthorized' }, 401);
+        return await promoDashboard(env);
+      }
 
       if (path === '/grading/submit' && request.method === 'POST') {
         const body = await request.json().catch(() => ({}));
@@ -134,6 +154,15 @@ export default {
 
       if (path === '/admin/clear-single-price' && request.method === 'POST') {
         return await updateSinglePrice(request, base, squareHeaders, env, true);
+      }
+
+      // Sealed products (booster boxes / ETBs) carry no "Cert #" or "Card ID" line, so they
+      // can't be found by description — update them by their Square catalog object id directly.
+      if (path === '/admin/update-item-price' && request.method === 'POST') {
+        return await updateItemPrice(request, base, squareHeaders, env);
+      }
+      if (path === '/admin/clear-item-price' && request.method === 'POST') {
+        return await updateItemPrice(request, base, squareHeaders, env, true);
       }
 
       if (path === '/admin/replace-graded-images' && request.method === 'POST') {
@@ -1737,6 +1766,46 @@ async function updateGradedPrice(request, base, squareHeaders, env, clear = fals
 }
 
 
+// Admin: update ONLY the price of ANY catalog item by its Square catalog object id.
+// Used by the hourly reprice for SEALED products (booster boxes / ETBs) which carry
+// neither a "Cert #" nor a "Card ID" line, so they can't be located by description.
+// Price-only: leaves name/description/images untouched, exactly like the graded/single paths.
+async function updateItemPrice(request, base, squareHeaders, env, clear = false) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'invalid_json' }, 400); }
+  const itemId = String(body.item_id || '').trim();
+  const priceCents = Number(body.price_cents);
+  if (!itemId) return json({ error: 'missing_item_id' }, 400);
+  if (!clear && (!Number.isFinite(priceCents) || priceCents <= 0)) return json({ error: 'invalid_price_cents' }, 400);
+
+  const readRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(itemId)}`, { headers: squareHeaders });
+  const readData = await readRes.json();
+  if (!readRes.ok || !readData.object) return json({ error: 'square_read_failed', detail: readData }, readRes.status);
+  const fullItem = readData.object;
+  if (fullItem.type !== 'ITEM') return json({ error: 'not_an_item', type: fullItem.type }, 422);
+  const variations = fullItem.item_data?.variations || [];
+  if (!variations.length) return json({ error: 'no_variations_on_item' }, 422);
+
+  const updatedVariations = variations.map(v => {
+    const vd = { ...(v.item_variation_data || {}) };
+    if (clear) { vd.pricing_type = 'VARIABLE_PRICING'; delete vd.price_money; }
+    else { vd.pricing_type = 'FIXED_PRICING'; vd.price_money = { amount: Math.round(priceCents), currency: 'USD' }; }
+    return { ...v, item_variation_data: vd };
+  });
+  const updated = { ...fullItem, item_data: { ...fullItem.item_data, variations: updatedVariations } };
+  const upRes = await fetch(`${base}/v2/catalog/object`, {
+    method: 'POST', headers: squareHeaders,
+    body: JSON.stringify({ idempotency_key: crypto.randomUUID(), object: updated }),
+  });
+  const upData = await upRes.json();
+  if (!upRes.ok) return json({ error: 'square_update_failed', detail: upData }, upRes.status);
+  return json({ ok: true, item_id: itemId, price_cents: clear ? null : Math.round(priceCents), variations_updated: variations.length });
+}
+
 // Admin: update ONLY the price of a raw-single listing, located by its
 // "Card ID: <sku>" description line (the TCGplayer SKU). Mirrors
 // updateGradedPrice exactly — price-only, leaves name/image/description
@@ -2990,4 +3059,122 @@ async function claimPromoCode(body, env, request) {
     // Race lost — another claim grabbed it. Try again.
   }
   return json({ ok: false, reason: 'race_exhausted' });
+}
+
+// ─── On-demand batch minting + scan tracking + dashboard ───────────────────
+// Codes: 8 chars, uppercase, no ambiguous glyphs (0/1/I/L/O/S) — matches
+// _gen_tcg_codes.py so printed codes are easy to hand-type as a backup.
+const PROMO_ALPHABET = '23456789ABCDEFGHJKMNPQRTUVWXYZ';
+function genPromoCode(len = 8) {
+  const bytes = crypto.getRandomValues(new Uint8Array(len));
+  let out = '';
+  for (let i = 0; i < len; i++) out += PROMO_ALPHABET[bytes[i] % PROMO_ALPHABET.length];
+  return out;
+}
+
+/**
+ * Mint N fresh single-use codes as a new batch. Percent discount (default 5%).
+ * Body: { n, discount_pct?=5, batch_label?, expires_days?=180, never_expires?, min_subtotal?=0 }
+ * Returns { ok, campaign, batch_label, discount_pct, expires_at, count, codes[] }.
+ */
+async function mintPromoCodes(body, env) {
+  if (!env.PROMO_DB) return json({ ok: false, reason: 'promo_disabled' }, 503);
+  const n = Math.max(1, Math.min(2000, Math.round(Number(body.n) || 0)));
+  if (!n) return json({ ok: false, reason: 'bad_count' }, 400);
+  const pct = Math.max(1, Math.min(100, Math.round(Number(body.discount_pct) || 5)));
+  const bps = pct * 100;                                   // 5% -> 500 basis points
+  const label = (body.batch_label || '').toString().slice(0, 80).trim()
+                || `Insert ${new Date().toISOString().slice(0, 10)}`;
+  const minSub = Math.max(0, Math.round(Number(body.min_subtotal) || 0));
+
+  // Expiry: explicit date > never_expires > expires_days (default 180 = ~6 mo).
+  let expires = null;
+  if (body.expires_at) {
+    expires = String(body.expires_at).slice(0, 10);
+  } else if (!body.never_expires) {
+    const days = Number.isFinite(Number(body.expires_days)) ? Number(body.expires_days) : 180;
+    const d = new Date(); d.setUTCDate(d.getUTCDate() + days);
+    expires = d.toISOString().slice(0, 10);
+  }
+
+  const stamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+  const campaign = `insert-${stamp}-${genPromoCode(4)}`;
+
+  const codes = new Set();
+  while (codes.size < n) codes.add(genPromoCode(8));
+  const arr = [...codes];
+
+  const stmt = env.PROMO_DB.prepare(
+    `INSERT OR IGNORE INTO promo_codes
+       (code, campaign, batch_label, offer_type, discount_kind, discount_value, min_subtotal, expires_at)
+     VALUES (?, ?, ?, 'any', 'percent', ?, ?, ?)`
+  );
+  const rows = arr.map(c => stmt.bind(c, campaign, label, bps, minSub, expires));
+  for (let i = 0; i < rows.length; i += 50) await env.PROMO_DB.batch(rows.slice(i, i + 50));
+
+  return json({ ok: true, campaign, batch_label: label, discount_pct: pct,
+                expires_at: expires, min_subtotal: minSub, count: arr.length, codes: arr });
+}
+
+/**
+ * Record a scan (landing page load) + return the code's display state.
+ * Body: { code }. Public — the code is already in the scanned URL.
+ */
+async function scanPromoCode(body, env) {
+  if (!env.PROMO_DB) return json({ ok: false, reason: 'promo_disabled' }, 503);
+  const code = normalizePromoCode(body.code);
+  if (!code) return json({ ok: false, reason: 'missing_code' }, 400);
+
+  const row = await env.PROMO_DB.prepare(
+    `SELECT code, discount_kind, discount_value, min_subtotal, expires_at, status
+       FROM promo_codes WHERE code = ?`
+  ).bind(code).first();
+  if (!row) return json({ ok: false, reason: 'not_found' });
+
+  try {
+    await env.PROMO_DB.prepare(
+      `UPDATE promo_codes
+          SET scanned_at = COALESCE(scanned_at, datetime('now')),
+              scan_count = COALESCE(scan_count, 0) + 1
+        WHERE code = ?`
+    ).bind(code).run();
+  } catch (e) { /* scan tracking must never break the reveal */ }
+
+  const expired = row.expires_at ? (new Date().toISOString().slice(0, 10) > row.expires_at) : false;
+  const pct = row.discount_kind === 'percent' ? Math.round(row.discount_value / 100) : null;
+  return json({
+    ok: true, code: row.code,
+    discount_kind: row.discount_kind, discount_value: row.discount_value, discount_pct: pct,
+    min_subtotal: row.min_subtotal, expires_at: row.expires_at, status: row.status,
+    used: row.status === 'used', expired, valid: row.status === 'active' && !expired,
+  });
+}
+
+/**
+ * Admin dashboard aggregates, grouped by batch (campaign).
+ * created / scanned / used / unused + revenue (sum of redeemed cart subtotals).
+ */
+async function promoDashboard(env) {
+  if (!env.PROMO_DB) return json({ ok: false, reason: 'promo_disabled' }, 503);
+  const { results } = await env.PROMO_DB.prepare(
+    `SELECT campaign,
+            MAX(batch_label)   AS batch_label,
+            MAX(discount_kind) AS discount_kind,
+            MAX(discount_value) AS discount_value,
+            MAX(expires_at)    AS expires_at,
+            MIN(created_at)    AS created_at,
+            COUNT(*)           AS created,
+            SUM(CASE WHEN scanned_at IS NOT NULL THEN 1 ELSE 0 END) AS scanned,
+            SUM(CASE WHEN status = 'used' THEN 1 ELSE 0 END)        AS used,
+            SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END)      AS unused,
+            SUM(COALESCE(used_amount, 0))                            AS revenue_cents
+       FROM promo_codes
+      GROUP BY campaign
+      ORDER BY created_at DESC`
+  ).all();
+  const t = (results || []).reduce((a, b) => ({
+    created: a.created + b.created, scanned: a.scanned + b.scanned,
+    used: a.used + b.used, unused: a.unused + b.unused, revenue_cents: a.revenue_cents + b.revenue_cents,
+  }), { created: 0, scanned: 0, used: 0, unused: 0, revenue_cents: 0 });
+  return json({ ok: true, batches: results || [], totals: t });
 }

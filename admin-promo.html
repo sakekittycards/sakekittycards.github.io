@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <title>Promo Batches — Sake Kitty Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#0b0b12; --card:#15151f; --line:rgba(255,255,255,.09); --text:#ececf6; --muted:#9aa3b2; --orange:#ff6a00; --cyan:#00d4ff; --green:#3cd685; --red:#ff5a5a; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif; padding:28px 18px 60px; }
+    .wrap { max-width:1080px; margin:0 auto; }
+    h1 { font-family:'Bangers',cursive; font-size:40px; letter-spacing:.03em; background:linear-gradient(135deg,var(--orange),#ff0080,#7b2fff); -webkit-background-clip:text; background-clip:text; color:transparent; padding:2px 0 8px; margin:0 0 2px; }
+    .sub { color:var(--muted); font-size:14px; margin:0 0 22px; }
+    .gate { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; max-width:460px; }
+    .gate label { display:block; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; font-weight:700; }
+    .gate input { width:100%; background:rgba(0,0,0,.3); border:1.5px solid var(--line); border-radius:10px; padding:13px 14px; color:var(--text); font:inherit; font-size:16px; }
+    .gate button, .refresh { margin-top:12px; background:linear-gradient(135deg,var(--orange),#ff0080); color:#fff; border:none; border-radius:10px; padding:13px 22px; font-family:'Bangers',cursive; font-size:18px; letter-spacing:.06em; cursor:pointer; }
+    .totals { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:0 0 20px; }
+    @media(max-width:720px){ .totals{ grid-template-columns:repeat(2,1fr); } }
+    .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+    .stat .k { font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); font-weight:700; }
+    .stat .v { font-family:'Bangers',cursive; font-size:30px; margin-top:4px; padding-right:.1em; }
+    .stat.rev .v { color:var(--green); } .stat.used .v { color:var(--cyan); }
+    table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:14px; }
+    th,td { padding:11px 14px; text-align:left; border-bottom:1px solid var(--line); }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    td.num,th.num { text-align:right; font-variant-numeric:tabular-nums; }
+    tr:last-child td { border-bottom:none; }
+    .batch { font-weight:700; } .batch small { display:block; color:var(--muted); font-weight:400; font-size:11.5px; }
+    .rev { color:var(--green); font-weight:700; } .used { color:var(--cyan); font-weight:700; } .unused { color:var(--muted); }
+    .msg { color:var(--red); margin-top:14px; }
+    .hidden { display:none; }
+    .barwrap { background:rgba(255,255,255,.06); border-radius:6px; height:7px; overflow:hidden; margin-top:5px; }
+    .bar { height:100%; background:linear-gradient(90deg,var(--orange),#ff0080); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Promo Batches</h1>
+    <p class="sub">Thank-you insert codes — created / scanned / used / unused + revenue. Live from the shop DB.</p>
+
+    <div class="gate" id="gate">
+      <label for="tok">Admin token</label>
+      <input id="tok" type="password" placeholder="worker ADMIN_TOKEN" autocomplete="off" />
+      <button id="load">Load dashboard</button>
+      <p class="msg hidden" id="err"></p>
+    </div>
+
+    <div id="dash" class="hidden">
+      <div class="totals" id="totals"></div>
+      <table>
+        <thead><tr>
+          <th>Batch</th><th class="num">Created</th><th class="num">Scanned</th>
+          <th class="num">Used</th><th class="num">Unused</th><th class="num">Revenue</th><th>Expires</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <button class="refresh" id="refresh" style="margin-top:16px">Refresh</button>
+    </div>
+  </div>
+
+  <script>
+    const WORKER = 'https://sakekitty-square.nwilliams23999.workers.dev';
+    const $ = id => document.getElementById(id);
+    const money = c => '$' + ((c || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    async function load() {
+      const tok = $('tok').value.trim();
+      if (!tok) return;
+      $('err').classList.add('hidden');
+      try {
+        const res = await fetch(WORKER + '/admin/promo/dashboard', { headers: { 'X-Sake-Admin-Token': tok } });
+        if (res.status === 401) throw new Error('Wrong admin token.');
+        if (!res.ok) throw new Error('Server error ' + res.status);
+        const d = await res.json();
+        sessionStorage.setItem('sk_promo_tok', tok);
+        render(d);
+      } catch (e) {
+        $('err').textContent = e.message; $('err').classList.remove('hidden');
+      }
+    }
+
+    function render(d) {
+      $('gate').classList.add('hidden'); $('dash').classList.remove('hidden');
+      const t = d.totals || {};
+      $('totals').innerHTML = [
+        ['Codes created', t.created, ''], ['Scanned', t.scanned, ''],
+        ['Used', t.used, 'used'], ['Unused', t.unused, ''], ['Revenue', money(t.revenue_cents), 'rev'],
+      ].map(([k, v, c]) => `<div class="stat ${c}"><div class="k">${k}</div><div class="v">${v ?? 0}</div></div>`).join('');
+      $('rows').innerHTML = (d.batches || []).map(b => {
+        const pct = b.discount_kind === 'percent' ? Math.round(b.discount_value / 100) + '%' : money(b.discount_value);
+        const usedPct = b.created ? Math.round((b.used / b.created) * 100) : 0;
+        return `<tr>
+          <td class="batch">${(b.batch_label || b.campaign || '').replace(/</g,'&lt;')}
+            <small>${pct} off · ${(b.created_at || '').slice(0,10)} · ${b.campaign}</small>
+            <div class="barwrap"><div class="bar" style="width:${usedPct}%"></div></div></td>
+          <td class="num">${b.created}</td>
+          <td class="num">${b.scanned}</td>
+          <td class="num used">${b.used}</td>
+          <td class="num unused">${b.unused}</td>
+          <td class="num rev">${money(b.revenue_cents)}</td>
+          <td>${b.expires_at || 'never'}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="7" style="color:var(--muted)">No batches yet — mint one from the print app.</td></tr>';
+    }
+
+    $('load').addEventListener('click', load);
+    $('tok').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+    $('refresh').addEventListener('click', load);
+    const saved = sessionStorage.getItem('sk_promo_tok');
+    if (saved) { $('tok').value = saved; load(); }
+  </script>
+</body>
+</html>
