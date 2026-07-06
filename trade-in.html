@@ -1766,9 +1766,9 @@
 
         <!-- Sealed row -->
         <div class="trm-row-label trm-sealed">Sealed</div>
-        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">70</span><span class="trm-slash">/</span><span class="trm-credit">80</span></span></div>
         <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">80</span><span class="trm-slash">/</span><span class="trm-credit">90</span></span></div>
-        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">85</span><span class="trm-slash">/</span><span class="trm-credit">95</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">83</span><span class="trm-slash">/</span><span class="trm-credit">93</span></span></div>
+        <div class="trm-cell"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">86</span><span class="trm-slash">/</span><span class="trm-credit">96</span></span></div>
         <div class="trm-cell trm-cell-top"><span class="trm-upto">Up to</span><span class="trm-rate"><span class="trm-cash">90</span><span class="trm-slash">/</span><span class="trm-credit">100</span></span></div>
 
         <!-- Graded row -->
@@ -1782,7 +1782,7 @@
         <li><strong>Cash / Trade Credit</strong> per item.</li>
         <li>Rates based on recent verified market sales and liquidity.</li>
         <li>Premium rates reserved for highly liquid inventory.</li>
-        <li>Singles &amp; sealed under $5 are bought at 65% cash.</li>
+        <li>Sealed products earn a premium rate at every band.</li>
         <li>Graded cards under $100 not accepted.</li>
       </ul>
     </details>
@@ -2238,27 +2238,28 @@
     // Credit unchanged (only cash moved). Graded under $100 isn't accepted as policy
     // (slab cost outweighs the card) — matrix shows ✕; form falls through to base if bypassed.
     const RATES = {
-      low:  { cash: 0.65, credit: 0.80 },   // singles + sealed under $5
-      base: { cash: 0.70, credit: 0.80 },   // singles + sealed $5–$99
-      mid:  { cash: 0.80, credit: 0.90 },   // all types $100–$499
-      high: { cash: 0.85, credit: 0.95 },   // all types $500–$999
+      base: { cash: 0.70, credit: 0.80 },   // singles <$100
+      mid:  { cash: 0.80, credit: 0.90 },   // singles/graded $100–$499
+      high: { cash: 0.85, credit: 0.95 },   // singles/graded $500–$999
       top:  { cash: 0.90, credit: 1.00 },   // all types ≥$1,000
+      sealedBase: { cash: 0.80, credit: 0.90 },   // sealed <$100
+      sealedMid:  { cash: 0.83, credit: 0.93 },   // sealed $100–$499
+      sealedHigh: { cash: 0.86, credit: 0.96 },   // sealed $500–$999
     };
     function ratesFor(item) {
       const m = item.market;
-      if (item.type === 'sealed' || item.type === 'graded') {
-        if (m != null && m >= 1000) return RATES.top;
-        if (m != null && m >= 500)  return RATES.high;
-        if (m != null && m >= 100)  return RATES.mid;
-        if (m != null && m < 5)     return RATES.low;   // sub-$5 → 65% cash
-        return RATES.base;   // graded <$100 not policy-accepted; fall through
+      if (item.type === 'sealed') {                        // sealed = premium ladder
+        if (m != null && m >= 1000) return RATES.top;        // 90 / 100
+        if (m != null && m >= 500)  return RATES.sealedHigh; // 86 / 96
+        if (m != null && m >= 100)  return RATES.sealedMid;  // 83 / 93
+        return RATES.sealedBase;                             // 80 / 90 (incl. <$100)
       }
-      // Raw singles
-      if (m != null && m >= 1000) return RATES.top;
-      if (m != null && m >= 500)  return RATES.high;
-      if (m != null && m >= 100)  return RATES.mid;
-      if (m != null && m < 5)     return RATES.low;   // sub-$5 → 65% cash
-      return RATES.base;
+      // singles + graded share the ladder (graded <$100 shown as not-accepted in the UI,
+      // falls through to base so quotes stay sane if the policy is bypassed)
+      if (m != null && m >= 1000) return RATES.top;   // 90 / 100
+      if (m != null && m >= 500)  return RATES.high;  // 85 / 95
+      if (m != null && m >= 100)  return RATES.mid;   // 80 / 90
+      return RATES.base;                              // 70 / 80 (singles <$100)
     }
     const COND_MULT = {
       NM: 1.0, LP: 0.85, MP: 0.70, HP: 0.50, DMG: 0.30,
