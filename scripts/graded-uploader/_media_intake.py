@@ -154,6 +154,34 @@ _IMG_PROMPT = (
 )
 
 
+_TXT_PROMPT = (
+    "The following TEXT was extracted from a document/list a person sent while SELLING Pokemon "
+    "cards to a card shop (e.g. a Collectr/TCGplayer export, a PDF, or a typed list). Extract EVERY "
+    "distinct card/product. Return ONLY this JSON:\n"
+    '{"items":[{"name":str,"set":str,"number":str,"grade":str,"kind":"graded|raw|sealed","qty":int}]}\n'
+    "Rules: name = card or sealed-product name (expand abbreviations). number = collector number as "
+    "printed ('58','199/165','SV107') or ''. grade = 'PSA 10'/'CGC 9.5' or '' if raw. kind = 'graded' "
+    "with a company+grade, 'sealed' for boxes/ETBs/tins/packs, else 'raw'. qty = per-row quantity "
+    "(default 1); IGNORE any prices. Only real cards you can read — do NOT invent. Output ONLY the JSON.\n\n"
+    "TEXT:\n")
+
+
+def extract_from_text(text, label="text"):
+    """LLM-parse a block of extracted text (PDF text layer, etc.) into items. Layout-agnostic —
+    handles tables/lists a regex would choke on."""
+    client = _anthropic()
+    if not client or not (text or "").strip():
+        return []
+    try:
+        m = client.messages.create(
+            model=_MODEL, max_tokens=4000,
+            messages=[{"role": "user", "content": _TXT_PROMPT + (text or "")[:20000]}])
+        return _parse_items_json(m.content[0].text)
+    except Exception as e:
+        print(f"[media] {label}: text extract failed: {e}")
+        return []
+
+
 def extract_from_image(data, content_type="", suffix="", label="image"):
     client = _anthropic()
     if not client:
@@ -276,43 +304,46 @@ def extract_from_xlsx(data, label="xlsx"):
 
 
 def extract_from_pdf(data, label="pdf"):
-    """Text PDFs -> pull rows from extracted text/tables. Scanned/image PDFs (no text
-    layer) -> render each page to an image and run vision (capped)."""
+    """Handle every PDF shape:
+      • text layer   -> LLM-parse it (layout-agnostic, cheap, exact)
+      • image-only pages (scans / photo pages with little/no text) -> vision-render them
+      • MIXED (text-listed cards AND separate image-only cards) -> do BOTH and dedupe
+    so image-only cards inside an otherwise-text PDF are never dropped."""
     try:
         import fitz
         doc = fitz.open(stream=data, filetype="pdf")
     except Exception as e:
         print(f"[media] {label}: pdf open failed: {e}")
         return []
-    text_lines = []
-    for page in doc:
-        text_lines += [ln for ln in (page.get_text() or "").splitlines() if ln.strip()]
-    if len(text_lines) >= 3:
-        # crude line-parser: "<name> ... PSA 10" or "<name> #123" — let vision-free heuristics
-        # catch cert/grade lines; anything richer falls through to the image path below.
-        items = []
-        for ln in text_lines:
-            g = re.search(r"\b(PSA|CGC|BGS|SGC|TAG|ACE)\s*\d+(?:\.\d)?\b", ln, re.I)
-            num = re.search(r"#\s*([A-Za-z0-9/\-]+)", ln)
-            nm = re.sub(r"\s{2,}.*$", "", ln).strip()
-            if len(nm) >= 3 and (g or num):
-                items.append({"name": re.split(r"\s+(?:PSA|CGC|BGS|SGC|TAG|ACE)\b", nm, flags=re.I)[0].strip(),
-                              "number": num.group(1) if num else "",
-                              "grade": g.group(0) if g else ""})
-        norm = _norm_items(items)
-        if norm:
-            return norm
-    # no usable text -> render pages to images and vision them (cap pages)
+
     items, seen = [], set()
-    for i, page in enumerate(doc):
-        if i >= 8:
-            break
-        pix = page.get_pixmap(dpi=150)
-        for it in extract_from_image(pix.tobytes("png"), content_type="image/png", label=f"{label} p{i}"):
+
+    def _add(new):
+        for it in new:
             key = (it["name"].lower(), it.get("number", ""), it.get("grade", ""))
             if key not in seen:
                 seen.add(key)
                 items.append(it)
+
+    # 1) text layer (whole doc) → LLM extract
+    text = "\n".join((page.get_text() or "") for page in doc).strip()
+    if len(text) >= 40:
+        _add(extract_from_text(text, label=label))
+
+    # 2) vision any page that is essentially an image with no text of its own (cap 8)
+    img_pages = [p for p in doc if len((p.get_text() or "").strip()) < 20 and p.get_images()]
+    for page in img_pages[:8]:
+        pix = page.get_pixmap(dpi=150)
+        _add(extract_from_image(pix.tobytes("png"), content_type="image/png", label=f"{label} p{page.number}"))
+
+    # 3) safety net: nothing yet (e.g. a scan with no detectable embedded image) → render all pages
+    if not items:
+        for i, page in enumerate(doc):
+            if i >= 8:
+                break
+            pix = page.get_pixmap(dpi=150)
+            _add(extract_from_image(pix.tobytes("png"), content_type="image/png", label=f"{label} p{i}"))
+
     return items
 
 
