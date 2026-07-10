@@ -20,9 +20,14 @@ Returns an OfferResult dict:
     "review":    [need a human: missing grade, low confidence, no price found],
     "totals":    {"market","cash","credit"},
     "auto_ok":   bool   # safe to auto-send? (all rows priced, none in review)
+    "deal_rating":     1-10 int|None  # Nick-facing BUY quality (10=amazing, 1=pass) — INTERNAL
+    "deal_label":      "Amazing".."Pass"|None
+    "liquidity_rating":"S1".."S9"|None # value-weighted flip velocity
     "pdf_path", "html_path": str|None,
     "summary":   one-line text for the chat reply,
   }
+  deal_rating/deal_label/liquidity_rating are INTERNAL (Nick's review only) — never put
+  them in the seller-facing reply or on the offer PDF.
 
 Pricing per card (multi-source MAX, per feedback_multi_source_max_pricing):
   market = max(eBay PSA last-sold, PriceCharting per-grade, caller override)
@@ -452,8 +457,39 @@ def make_offer(items, *, date=None, label=None, out_stem="SakeKitty_GradedBuyOff
 
     auto_ok = bool(accepted) and not review and not rejected
     summary = _summary(accepted, rejected, review, totals)
+
+    # Nick-facing 1-10 BUY-QUALITY rating (INTERNAL — never on the seller reply/PDF). Blends how far
+    # below market the cash offer sits with a liquidity estimate. When the caller already computed an
+    # accurate liquidity (the Collectr flow passes `rating`), reuse it; otherwise estimate from the
+    # priced rows (velocity signals we don't have here fall back to liquidity_score's conservative
+    # defaults, so the number leans on the buy-margin we DO know). Wrapped so a rating hiccup can
+    # never break an offer.
+    deal_rating = deal_label_txt = liquidity_rating = None
+    try:
+        from _collectr_offer import liquidity_score, deal_score, deal_label
+        if rating is not None:
+            liq = rating
+        elif accepted:
+            _lq_raw = [dict(qty=r.get("qty", 1), market=r.get("market"), ts_market=r.get("market"),
+                            is_sealed=(r.get("type") == "sealed"),
+                            _ts_src=("tcgsearch" if r.get("market") else None))
+                       for r in accepted if r.get("type") in ("raw", "sealed")]
+            _lq_grd = [dict(qty=r.get("qty", 1), market=r.get("market"))
+                       for r in accepted if r.get("type") == "graded"]
+            liq = liquidity_score(_lq_raw, _lq_grd)
+        else:
+            liq = None
+        if liq is not None:
+            deal_rating = deal_score(totals, liq)
+            deal_label_txt = deal_label(deal_rating)
+            liquidity_rating = f"S{liq}"
+    except Exception as e:
+        print("[engine] deal-rating skipped:", e)
+
     return {"rows": rows, "accepted": accepted, "rejected": rejected, "review": review,
             "totals": totals, "auto_ok": auto_ok,
+            "liquidity_rating": liquidity_rating,
+            "deal_rating": deal_rating, "deal_label": deal_label_txt,
             "html_path": str(html_path) if html_path else None,
             "pdf_path": str(pdf_path) if pdf_path else None, "summary": summary}
 
