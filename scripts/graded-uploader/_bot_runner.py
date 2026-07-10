@@ -68,7 +68,7 @@ def handle_one(m):
     sender = m.get("sender") or "ig"
     out = handle_message(m.get("text", ""), sender=sender,
                          out_stem=f"SakeKitty_Offer_{sender}_{m.get('mid','x')[:8]}",
-                         use_ebay=True)
+                         use_ebay=True, attachments=m.get("attachments"))
     reply = out["reply"]
     pdf_url = _host_pdf(out.get("pdf_path"))
     if pdf_url:

@@ -150,13 +150,26 @@ def compose_reply(res, source, meta=None):
 
 
 # ── main entry ───────────────────────────────────────────────────────────────
-def handle_message(text, sender=None, out_stem="SakeKitty_Offer_incoming", use_ebay=True):
+def handle_message(text, sender=None, out_stem="SakeKitty_Offer_incoming", use_ebay=True,
+                   attachments=None):
     items, source = gather_items(text)
     meta = {}
     if not items:                       # no link/cert → understand the free text
         meta = _understand(text)
         items = meta.get("items", [])
         source = f"{len(items)} parsed item(s)" if items else "free-text"
+
+    # media attachments (screenshots of lists, card photos, fan-through videos, csv/xlsx/pdf)
+    # → more items, merged with anything the text gave us.
+    if attachments:
+        try:
+            from _media_intake import gather_media
+            m_items, m_src = gather_media(attachments)
+            if m_items:
+                items = items + m_items
+                source = m_src if source in ("none", "free-text") else f"{source} + {m_src}"
+        except Exception as e:
+            print("[bot] media intake failed:", e)
 
     if not items:
         return {"action": "need_input", "reply": compose_reply(None, source, meta),
