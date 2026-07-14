@@ -290,7 +290,14 @@ export function igEmbed(item) {
 async function postDiscord(webhook, payload) {
   const res = await fetch(webhook, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // Send an explicit User-Agent: Discord blocklists some library defaults at the
+    // edge — a real post with `Python-urllib/3.14` got a 403 while the identical
+    // body with any other UA got a 200. Absence of a UA is fine, and so is curl's
+    // default, so this is insurance against that class of block, not a requirement.
+    headers: {
+      "content-type": "application/json",
+      "user-agent": "sakekitty-feeds/1.0 (+https://sakekittycards.com)",
+    },
     body: JSON.stringify(payload),
   });
   if (res.status === 429) {
