@@ -1,0 +1,3 @@
+_secrets.local.txt
+node_modules/
+.wrangler/
