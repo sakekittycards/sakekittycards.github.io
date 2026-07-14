@@ -39,7 +39,24 @@ export default {
     // ── inbound message events ──
     if (pathname === "/webhook" && request.method === "POST") {
       const body = await request.text();
-      // TODO(verify): validate X-Hub-Signature-256 against APP_SECRET before trusting.
+
+      // Meta signs every webhook body with the app secret. Without this check the
+      // endpoint takes anyone's JSON: a forged payload picks its own sender id, and
+      // the local runner will price it and DM that person back. Verify before trust.
+      //
+      // When APP_SECRET is unset we accept-and-warn rather than reject, because that
+      // is exactly today's deployed behaviour — this must not black-hole real DMs the
+      // moment it ships. Setting the secret is what turns enforcement on.
+      if (env.APP_SECRET) {
+        const sig = request.headers.get("x-hub-signature-256");
+        if (!(await verifySignature(body, sig, env.APP_SECRET))) {
+          console.warn("webhook: bad or missing signature — rejected");
+          return json({ ok: false, error: "bad signature" }, 403);
+        }
+      } else {
+        console.warn("webhook: APP_SECRET unset — accepting UNVERIFIED payload");
+      }
+
       let data;
       try { data = JSON.parse(body); } catch { return json({ ok: false }, 400); }
       const msgs = extractMessages(data);
@@ -76,6 +93,34 @@ export default {
     return json({ ok: false, error: "not found" }, 404);
   },
 };
+
+/**
+ * Verify Meta's `X-Hub-Signature-256: sha256=<hex>` — an HMAC-SHA256 of the RAW
+ * request body under the app secret. It must be the raw text: re-serializing the
+ * parsed JSON would change the bytes (key order, spacing) and never match.
+ */
+export async function verifySignature(rawBody, header, secret) {
+  if (!header || !secret) return false;
+  const [algo, sent] = header.split("=");
+  if (algo !== "sha256" || !sent) return false;
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const mac = await crypto.subtle.sign("HMAC", key, enc.encode(rawBody));
+  const expected = [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return timingSafeEqual(expected, sent.toLowerCase());
+}
+
+// Constant-time compare: a plain === leaks how much of the digest matched via
+// early exit, which is enough to forge a signature byte by byte.
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 // Flatten IG/Messenger webhook payload -> [{mid, sender, text, attachments}]
 // Messenger/IG deliver media as message.attachments[{type:"image|video|file|audio",

@@ -1,0 +1,15 @@
+name = "sakekitty-ig-bot"
+main = "worker.js"
+compatibility_date = "2026-06-01"
+
+# Inbound-message queue. Create with:
+#   wrangler kv namespace create QUEUE
+# then paste the id below.
+[[kv_namespaces]]
+binding = "QUEUE"
+id = "546d294657934fee97d48e47983228f6"
+
+# Secrets (never in this file — set with `wrangler secret put <NAME>`):
+#   VERIFY_TOKEN  — the token you type into the Meta webhook setup
+#   APP_SECRET    — Meta app secret, for X-Hub-Signature-256 validation
+#   BOT_KEY       — shared key the local runner sends as X-Bot-Key
