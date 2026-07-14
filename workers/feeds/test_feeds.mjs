@@ -1,7 +1,7 @@
 // Verifies the REAL feeds worker (imported, not re-implemented) against the live
 // YouTube RSS plus a fake KV and an injected poster.
 import {
-  parseYouTube, syncFeed, igEmbed, ytEmbed,
+  parseYouTube, syncFeed, syncSquare, igEmbed, ytEmbed, squareEmbed,
 } from "./worker.js";
 
 let fails = 0;
@@ -90,6 +90,70 @@ ok(e.embeds[0].description.length <= 500, `description truncated to ${e.embeds[0
 ok(e.embeds[0].url === "https://instagram.com/p/abc", "permalink preserved");
 const noThumb = igEmbed({ id: "2", title: "t", caption: "", url: "u", thumb: null, published: 0 });
 ok(noThumb.embeds[0].image === undefined, "missing thumb omits the image field entirely");
+
+// ── 7. shop feed: new product + restock transitions ──────────────────────────
+console.log("\n[7] syncSquare new-product / restock transitions");
+const P = (id, inStock, createdAt = 1) => ({ id, name: `item ${id}`, description: "d", price: 10, image: null, inStock, createdAt });
+const kvS = makeKV();
+const envS = { FEEDS: kvS };
+posted = [];
+
+// baseline: 2 in stock, 1 out
+const base = [P("a", true), P("b", true), P("c", false)];
+await syncSquare(envS, feed(base), "http://hook", spy);
+ok(posted.length === 0, `bootstrap posts nothing — posted ${posted.length}`);
+ok(kvS._m.get("sq:c") === "0", "out-of-stock item recorded as 0 at baseline");
+
+// nothing changed
+posted = [];
+await syncSquare(envS, feed(base), "http://hook", spy);
+ok(posted.length === 0, "no changes => no posts");
+
+// c comes back in stock -> restock
+posted = [];
+await syncSquare(envS, feed([P("a", true), P("b", true), P("c", true)]), "http://hook", spy);
+ok(posted.length === 1, `restock posts once — posted ${posted.length}`);
+ok(posted[0].content.includes("Back in stock"), "restock uses the restock copy");
+ok(kvS._m.get("sq:c") === "1", "restock updates stored stock state");
+
+posted = [];
+await syncSquare(envS, feed([P("a", true), P("b", true), P("c", true)]), "http://hook", spy);
+ok(posted.length === 0, "restock does not re-post while it stays in stock");
+
+// a brand-new product id appears
+posted = [];
+await syncSquare(envS, feed([...base, P("d", true, 999)]), "http://hook", spy);
+ok(posted.length === 1, `new product posts once — posted ${posted.length}`);
+ok(posted[0].content.includes("New in the shop"), "new product uses the new-product copy");
+
+posted = [];
+await syncSquare(envS, feed([...base, P("d", true, 999)]), "http://hook", spy);
+ok(posted.length === 0, "new product does not post twice");
+
+// a product going OUT of stock is silent, but arms the next restock
+posted = [];
+await syncSquare(envS, feed([P("a", false), P("b", true), P("c", false), P("d", true, 999)]), "http://hook", spy);
+ok(posted.length === 0, "going out of stock is silent (no 'sold out' spam)");
+ok(kvS._m.get("sq:a") === "0", "…but the OOS state is recorded");
+posted = [];
+await syncSquare(envS, feed([P("a", true), P("b", true), P("c", false), P("d", true, 999)]), "http://hook", spy);
+ok(posted.length === 1 && posted[0].content.includes("Back in stock"), "…so its return fires a restock");
+
+// unconfigured shop feed
+const kvS2 = makeKV();
+posted = [];
+await syncSquare({ FEEDS: kvS2 }, feed(base), undefined, spy);
+ok(posted.length === 0 && kvS2._m.size === 0, "no site webhook => inert, no KV writes");
+
+// ── 8. squareEmbed shape ─────────────────────────────────────────────────────
+console.log("\n[8] squareEmbed payload shape");
+const se = squareEmbed({ kind: "new", item: { id: "XYZ", name: "n".repeat(300), description: "d".repeat(400), price: 59.99, image: "https://i/1.jpg", createdAt: 0 } });
+ok(se.embeds[0].url === "https://sakekittycards.com/product.html?id=XYZ", "links to the product page");
+ok(se.embeds[0].title.length <= 240, `title truncated to ${se.embeds[0].title.length}`);
+ok(se.embeds[0].description.length <= 300, `description truncated to ${se.embeds[0].description.length}`);
+ok(se.embeds[0].fields[0].value === "$59.99", "price rendered");
+const noImg = squareEmbed({ kind: "restock", item: { id: "Q", name: "q", description: "", price: null, image: null, createdAt: 0 } });
+ok(noImg.embeds[0].image === undefined && noImg.embeds[0].fields === undefined, "missing image/price omit their fields");
 
 console.log(fails === 0 ? "\nALL PASS\n" : `\n${fails} FAILURE(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

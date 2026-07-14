@@ -31,6 +31,10 @@
 const YT_FEED = (id) => `https://www.youtube.com/feeds/videos.xml?channel_id=${id}`;
 const IG_FIELDS = "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp";
 const IG_FEED = (t) => `https://graph.instagram.com/me/media?fields=${IG_FIELDS}&limit=10&access_token=${t}`;
+// The square worker's /items is already public (shop.html fetches it straight from
+// the browser), so the shop feed needs no Square token and no webhook subscription.
+const SQUARE_ITEMS = "https://sakekitty-square.nwilliams23999.workers.dev/items";
+const SHOP_URL = (id) => `https://sakekittycards.com/product.html?id=${id}`;
 
 // Never fire more than this many posts in one run. A backlog (or a bad bootstrap)
 // should not dump 40 messages into the channel.
@@ -47,6 +51,7 @@ export default {
         ok: true,
         instagram: Boolean(env.IG_TOKEN && env.DISCORD_IG_WEBHOOK_URL),
         youtube: Boolean(env.YT_CHANNEL_ID && env.DISCORD_YT_WEBHOOK_URL),
+        shop: Boolean(env.DISCORD_SITE_WEBHOOK_URL),
       });
     }
 
@@ -54,8 +59,12 @@ export default {
       if (!env.FEED_KEY || url.searchParams.get("key") !== env.FEED_KEY) {
         return json({ ok: false }, 401);
       }
-      const [yt, ig] = await Promise.all([fetchYouTube(env), fetchInstagram(env)]);
-      return json({ ok: true, youtube: yt, instagram: ig });
+      const [yt, ig, sq] = await Promise.all([
+        fetchYouTube(env),
+        fetchInstagram(env),
+        fetchSquare(env),
+      ]);
+      return json({ ok: true, youtube: yt, instagram: ig, shop: sq });
     }
 
     return json({ ok: false, error: "not found" }, 404);
@@ -70,10 +79,103 @@ async function runAll(env) {
   const results = await Promise.allSettled([
     syncFeed(env, "yt", fetchYouTube, env.DISCORD_YT_WEBHOOK_URL, ytEmbed),
     syncFeed(env, "ig", fetchInstagram, env.DISCORD_IG_WEBHOOK_URL, igEmbed),
+    syncSquare(env, fetchSquare, env.DISCORD_SITE_WEBHOOK_URL),
   ]);
   for (const r of results) {
     if (r.status === "rejected") console.error("feed run failed:", r.reason);
   }
+}
+
+/**
+ * Shop feed -> #site-updates. Two events, not one:
+ *   - a product id we've never seen  -> "New in the shop"
+ *   - a known product going out-of-stock -> in-stock -> "Back in stock"
+ *
+ * The restock case is why this can't reuse syncFeed: that one de-dupes on "have I
+ * seen this id", which by definition never fires twice for the same product. Here
+ * we track each item's last known stock state and post on the transition.
+ *
+ * Merch is print-on-demand and never goes OOS, so restocks are effectively cards
+ * and sealed — which is the interesting signal anyway.
+ */
+export async function syncSquare(env, fetcher, webhook, post = postDiscord) {
+  if (!webhook) return;
+  const items = await fetcher(env);
+  if (!items.length) return;
+
+  const bootstrapped = await env.FEEDS.get("bootstrap:sq");
+  const events = [];
+
+  for (const item of items) {
+    const prev = await env.FEEDS.get(`sq:${item.id}`);
+    const now = item.inStock ? "1" : "0";
+    if (prev === null) {
+      if (bootstrapped) events.push({ item, kind: "new" });
+    } else if (prev === "0" && now === "1") {
+      events.push({ item, kind: "restock" });
+    }
+  }
+
+  if (!bootstrapped) {
+    // Record the whole catalogue as the baseline; announce none of it.
+    await Promise.all(items.map((i) => env.FEEDS.put(`sq:${i.id}`, i.inStock ? "1" : "0")));
+    await env.FEEDS.put("bootstrap:sq", new Date().toISOString());
+    console.log(`sq: bootstrapped ${items.length} products (not posted)`);
+    return;
+  }
+
+  const batch = events.sort((a, b) => a.item.createdAt - b.item.createdAt).slice(-MAX_PER_RUN);
+  for (const ev of batch) {
+    await post(webhook, squareEmbed(ev));
+    await env.FEEDS.put(`sq:${ev.item.id}`, ev.item.inStock ? "1" : "0");
+    console.log(`sq: posted ${ev.kind} ${ev.item.id}`);
+  }
+  // Track stock for everything else too, so an OOS now is a restock later. Items
+  // that dropped out of the catalogue keep their key; harmless and cheap.
+  await Promise.all(
+    items
+      .filter((i) => !batch.some((e) => e.item.id === i.id))
+      .map((i) => env.FEEDS.put(`sq:${i.id}`, i.inStock ? "1" : "0"))
+  );
+}
+
+async function fetchSquare(env) {
+  const res = await fetch(env.SQUARE_ITEMS_URL || SQUARE_ITEMS, {
+    headers: { "user-agent": "sakekitty-feeds/1.0" },
+  });
+  if (!res.ok) throw new Error(`square items ${res.status}`);
+  const body = await res.json();
+  return (body.items || []).map((i) => ({
+    id: i.id,
+    name: i.name,
+    description: i.description || "",
+    price: i.price,
+    currency: i.currency || "USD",
+    image: i.imageUrl || (i.imageUrls && i.imageUrls[0]) || null,
+    inStock: Boolean(i.inStock),
+    createdAt: i.createdAt ? Date.parse(i.createdAt) : 0,
+  }));
+}
+
+export function squareEmbed({ item, kind }) {
+  const isNew = kind === "new";
+  return {
+    content: isNew ? "🛍️ **New in the shop!**" : "♻️ **Back in stock!**",
+    embeds: [
+      {
+        title: truncate(item.name, 240),
+        description: truncate(item.description, 300),
+        url: SHOP_URL(item.id),
+        color: isNew ? 0x2ecc71 : 0x3498db,
+        image: item.image ? { url: item.image } : undefined,
+        fields:
+          item.price != null
+            ? [{ name: "Price", value: `$${item.price}`, inline: true }]
+            : undefined,
+        footer: { text: "sakekittycards.com" },
+      },
+    ],
+  };
 }
 
 /**
