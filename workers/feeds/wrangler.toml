@@ -1,0 +1,26 @@
+name = "sakekitty-feeds"
+main = "worker.js"
+compatibility_date = "2026-06-01"
+
+# Resolved from youtube.com/@SakeKittyCards — the RSS feed only accepts the UC… id,
+# not the handle. Not a secret (it's public on the channel page).
+[vars]
+YT_CHANNEL_ID = "UCAwRh1yzSzU4SW4ecEdmbDw"
+
+# Every 15 min. YouTube RSS updates within a few minutes of publish; Instagram's
+# Graph API is comfortably inside its rate limit at this rate.
+[triggers]
+crons = ["*/15 * * * *"]
+
+# De-dupe state (seen:<src>:<id> + bootstrap:<src>). Create with:
+#   wrangler kv namespace create FEEDS
+# then paste the id below.
+[[kv_namespaces]]
+binding = "FEEDS"
+id = "REPLACE_WITH_KV_ID"
+
+# Secrets (never in this file — set with `wrangler secret put <NAME>`):
+#   DISCORD_YT_WEBHOOK_URL — #youtube webhook     (from ~/.claude/sk_discord_webhooks.json)
+#   DISCORD_IG_WEBHOOK_URL — #instagram webhook   (same file)
+#   IG_TOKEN               — Instagram Graph long-lived token; IG feed stays off until set
+#   FEED_KEY               — any random string; guards /debug
