@@ -21,6 +21,9 @@
  * Secrets (wrangler secret put):
  *   DISCORD_IG_WEBHOOK_URL   — #instagram channel webhook
  *   DISCORD_YT_WEBHOOK_URL   — #youtube channel webhook
+ *   DISCORD_SITE_WEBHOOK_URL — #site-updates channel webhook, for the shop feed
+ *                              (new products + restocks). The shop feed is skipped
+ *                              when absent, exactly like IG without IG_TOKEN.
  *   IG_TOKEN                 — Instagram Graph API long-lived token (IG feed is
  *                              skipped when absent, so YT can ship without it)
  *   FEED_KEY                 — shared key for /debug
