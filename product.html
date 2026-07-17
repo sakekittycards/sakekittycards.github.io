@@ -768,7 +768,7 @@
           <div class="pdp-info">
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
-              ${(isOfferOnly && !(initialPrice > 0))
+              ${(isGradedItem || (isOfferOnly && !(initialPrice > 0)))
                 ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
                 : `${fmt(initialPrice)}${isOfferOnly ? ` <span style="font-size:.55em;font-weight:600;color:var(--muted);letter-spacing:.3px">or best offer</span>` : ''}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
             </div>

@@ -641,11 +641,11 @@
             <div class="product-info">
               <div class="product-name">${esc(item.name)}</div>
               <div class="product-footer">
-                ${((isGraded || isSealed || isSingles) && !(item.price > 0))
+                ${(isGraded || ((isSealed || isSingles) && !(item.price > 0)))
                   ? `<span class="product-price product-offer">Make Offer</span>`
                   : `<span class="product-price">${fmt(item.price)}</span>`}
               </div>
-              <div class="product-cta">${((isGraded || isSealed || isSingles) && !(item.price > 0)) ? 'Make Offer →' : ((isGraded || isSealed || isSingles) ? 'View / Make Offer →' : 'More Details →')}</div>
+              <div class="product-cta">${(isGraded || ((isSealed || isSingles) && !(item.price > 0))) ? 'Make Offer →' : ((isSealed || isSingles) ? 'View / Make Offer →' : 'More Details →')}</div>
             </div>
           </a>`;
       };
