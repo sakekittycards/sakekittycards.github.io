@@ -502,6 +502,17 @@
       const isGradedItem = GRADER_RX.test(String(item.name || ''));
       if (isGradedItem) item.stock = 1;
 
+      // Committed PriceCharting-derived graded price (assets/graded-prices.json, keyed by Square id).
+      // Square's own graded price is set by an inflating CardLadder pipeline, so we don't trust it. Only
+      // cleanly-identified modern-English Pokemon slabs are in the file; foreign/vintage -> Make-Offer.
+      let gradedListPrice = null;
+      if (isGradedItem) {
+        try {
+          const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
+          if (gpRes.ok) { const gp = (await gpRes.json())[item.id]; if (gp && gp.price > 0) gradedListPrice = gp.price; }
+        } catch (_) { /* Make-Offer fallback */ }
+      }
+
       // Singles (raw single cards) are detected the same way the shop grid
       // categorizes them: year prefix ("1999 Charizard Holo") or an internal
       // "Card ID: SK-####" stamp in the description.
@@ -768,7 +779,9 @@
           <div class="pdp-info">
             <h1 class="pdp-name">${esc(item.name)}</h1>
             <div class="pdp-price" id="pdpPrice">
-              ${(isGradedItem || (isOfferOnly && !(initialPrice > 0)))
+              ${gradedListPrice
+                ? `${fmt(gradedListPrice)} <span style="font-size:.55em;font-weight:600;color:var(--muted);letter-spacing:.3px">or best offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
+                : (isGradedItem || (isOfferOnly && !(initialPrice > 0)))
                 ? `<span class="pdp-price-offer">Make Offer</span>${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`
                 : `${fmt(initialPrice)}${isOfferOnly ? ` <span style="font-size:.55em;font-weight:600;color:var(--muted);letter-spacing:.3px">or best offer</span>` : ''}${oos ? ` <span class="oos-flag">${availFlag}</span>` : ''}`}
             </div>
