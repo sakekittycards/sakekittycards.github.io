@@ -2153,7 +2153,15 @@
         const tableBlock = profitable.length
           ? `<div class="gp-profit-table">${baselineRow}${tableRows}</div>`
           : (ungraded ? `<div class="gp-profit-table">${baselineRow}</div>` : '');
-        return kpiBlock + tableBlock;
+        /* Required attribution. PriceCharting's terms bar their price data from software entirely, but do allow
+           it on an external WEBSITE on two conditions: "PriceCharting is clearly cited as the source, and a
+           visible hyperlink to PriceCharting is included on the external site." We were citing them by name in
+           copy and never linking, which meets one of the two. Both, now — and it renders wherever the numbers do,
+           not buried in a footer, since it's the grade values themselves that come from them. */
+        const attribution = (profitable.length || ungraded)
+          ? `<div class="gp-attrib" style="margin-top:8px;font-size:11.5px;color:var(--dim);line-height:1.5">Grade values sourced from <a href="https://www.pricecharting.com/" target="_blank" rel="noopener" style="color:var(--dim);text-decoration:underline">PriceCharting</a>.</div>`
+          : '';
+        return kpiBlock + tableBlock + attribution;
       }
       // Lightweight summary used when the card is collapsed — just enough
       // for the customer to scan the list without expanding (best grade +
