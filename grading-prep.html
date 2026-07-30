@@ -1361,6 +1361,25 @@
 
   <script src="main.js?v=160" defer></script>
   <script>
+
+    /* pokemontcg.io went unreliable after the Scrydex acquisition — measured 20 of 30 requests failing with
+       HTTP 500 on 2026-07-30. Promise.allSettled means a failure degrades quietly to the static indexes rather
+       than breaking the form, which is worse in its own way: the customer just silently gets fewer cards and a
+       weaker price. Three quick tries turns a ~66% single-shot failure into a few percent. If it still fails we
+       fall through exactly as before. */
+    async function pokeFetch(url, tries = 3) {
+      let last;
+      for (let i = 0; i < tries; i++) {
+        try {
+          const r = await fetch(url);
+          if (r.ok) return await r.json();
+          last = 'HTTP ' + r.status;
+        } catch (e) { last = e && e.message || String(e); }
+        if (i < tries - 1) await new Promise(res => setTimeout(res, 250 * (i + 1)));
+      }
+      throw new Error('pokemontcg.io unavailable (' + last + ')');
+    }
+
     (function () {
       const WEB3FORMS_KEY = 'd42c7cee-c136-4450-989f-6ec666f79d3a';
       // svc values: 'standard' (screen $3), 'detailed' (screen $5),
@@ -2404,7 +2423,7 @@
           //   PC fallback             — final safety net (e.g. Chinese)
           const enUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=25&orderBy=-set.releaseDate`;
           const [enRes, enStaticRes, jpRes, fbRes] = await Promise.allSettled([
-            fetch(enUrl).then(r => r.ok ? r.json() : Promise.reject('en error')),
+            pokeFetch(enUrl),
             searchEnglish(tokens),
             searchJapanese(tokens),
             searchAllCardsFallbackForGrading(tokens, new Set()),
