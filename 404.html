@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- This document is also served for deep paths — a scanned price tag lands on /C/<pid>*NM*H*272/217,
+       which has directory segments. Without a base, every relative URL on the page (style.css, main.js,
+       logo.png, and every nav link) resolves against /C/<pid>*NM*H*272/ and 404s, so the customer gets a
+       completely unstyled page. Pin them all to the site root. -->
+  <base href="/" />
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="apple-touch-icon" href="logo.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -47,7 +52,49 @@
     .e404-link:hover { transform: translateY(-2px); border-color: rgba(255,106,0,0.4); box-shadow: 0 8px 24px rgba(255,106,0,0.12); }
     .e404-link strong { display: block; font-size: 15.5px; color: #fff; margin-bottom: 3px; }
     .e404-link span { font-size: 13px; color: rgba(255,255,255,0.7); }
+
+    /* ── Scanned price-tag landing ────────────────────────────────────────────────────────────────
+       Our price labels carry a QR. It used to bounce the customer to tcgsearch/eBay — off our site,
+       onto a page inviting them to price-shop the card they're already holding. Now the label points
+       here: /C/<payload> (raw) or /G/<payload> (graded). GitHub Pages has no server-side routing, so
+       those paths land on this 404 document; we detect them before paint and render the card instead. */
+    html.is-card .e404-only { display: none !important; }
+    .card-scan { display: none; }
+    html.is-card .card-scan { display: block; }
+    .card-scan .cs-eyebrow {
+      font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--dim); margin: 0 0 10px;
+    }
+    .card-scan h1 { font-size: clamp(24px, 5.4vw, 38px); margin: 0 0 6px; padding-bottom: 6px; }
+    .card-scan .cs-meta { font-size: 15px; color: var(--muted); margin: 0 0 4px; }
+    .card-scan .cs-cond { font-size: 14px; color: var(--dim); margin: 0; }
+    .card-scan .cs-pricebox {
+      margin: 26px auto 0; max-width: 420px; padding: 22px 20px; border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(135deg, rgba(255,106,0,0.07), rgba(123,47,255,0.07));
+    }
+    .card-scan .cs-price {
+      font-family: 'Bangers', cursive; font-size: clamp(38px, 10vw, 58px); line-height: 1;
+      letter-spacing: .03em; margin: 0; padding-bottom: 6px;
+      background: linear-gradient(135deg, #ff6a00, #ff0080, #7b2fff, #00d4ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .card-scan .cs-stock { font-size: 13.5px; color: var(--muted); margin: 2px 0 0; }
+    .card-scan .cs-note { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.5; }
+    .card-scan .cs-links { margin-top: 30px; }
+    .card-scan .cs-foot { margin-top: 26px; font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+    .cs-skel { display: inline-block; border-radius: 6px; background: rgba(255,255,255,0.09);
+      animation: csPulse 1.2s ease-in-out infinite; }
+    @keyframes csPulse { 0%,100% { opacity: .45 } 50% { opacity: .9 } }
+    @media (prefers-reduced-motion: reduce) { .cs-skel { animation: none } }
   </style>
+  <script>
+    /* Runs before paint so a scanned tag never flashes "404" at a customer standing at the case. */
+    (function () {
+      var m = location.pathname.match(/^\/([cg])\/(.+)$/i);
+      if (m) document.documentElement.className += ' is-card';
+    })();
+  </script>
 </head>
 <body class="page-404">
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -94,7 +141,24 @@
   </nav>
 
   <main id="main" class="page-content">
-    <div class="page-hero">
+    <div class="page-hero card-scan" id="cardScan">
+      <p class="cs-eyebrow">Sake Kitty Cards</p>
+      <h1 id="csName"><span class="cs-skel" style="width:11ch;height:.8em"></span></h1>
+      <p class="cs-meta" id="csMeta"><span class="cs-skel" style="width:16ch;height:.7em"></span></p>
+      <p class="cs-cond" id="csCond"></p>
+      <div class="cs-pricebox" id="csPriceBox">
+        <p class="cs-note" id="csNote">Checking the case&hellip;</p>
+      </div>
+      <div class="e404-links cs-links">
+        <a href="shop.html" class="e404-link"><strong>Shop Pok&eacute;mon Cards &rarr;</strong><span>Graded slabs, sealed product &amp; apparel.</span></a>
+        <a href="trade-in.html" class="e404-link"><strong>Sell or Trade &rarr;</strong><span>Up to 90% cash or 100% trade credit for your cards.</span></a>
+        <a href="grading-prep.html" class="e404-link"><strong>Grading Prep &rarr;</strong><span>PSA / CGC / BGS pre-screening and submission.</span></a>
+        <a href="contact.html" class="e404-link"><strong>Ask About This Card &rarr;</strong><span>Questions on condition, holds, or trades?</span></a>
+      </div>
+      <p class="cs-foot">You scanned the tag on this card. Prices at shows are cash-and-carry &mdash; if it's still in the case, it's still available.</p>
+    </div>
+
+    <div class="page-hero e404-only">
       <p class="e404-code">404</p>
       <h1>This card isn't in the binder</h1>
       <p>The page you're after moved, sold, or never existed. No worries — here's where collectors usually want to go next.</p>
@@ -143,5 +207,56 @@
   </footer>
 
   <script src="main.js?v=160" defer></script>
+  <script>
+  /* Scanned price tag → card page. The QR payload is everything after /C/ or /G/ and is deliberately
+     terse so the printed code stays small and scannable: pid*COND*PRINTING*number for raw, and
+     pid*GRADER*GRADE*number for slabs (a card with no TCGplayer id carries name+set inline instead).
+     Only TCGenie can turn that back into a card and our shelf price, so we ask it — and it answers
+     with identity + asking price only, which is what's printed on the tag the customer is holding. */
+  (function () {
+    var m = location.pathname.match(/^\/([cg])\/(.+)$/i);
+    if (!m) return;
+    var kind = m[1].toLowerCase(), payload = decodeURIComponent(m[2]);
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var money = function (v) { return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* A tag that can't be read still has to land somewhere useful — never a dead end in front of a customer. */
+    function fallback(msg) {
+      $('csName').textContent = 'This card';
+      $('csMeta').textContent = '';
+      $('csCond').textContent = '';
+      $('csPriceBox').innerHTML = '<p class="cs-note">' + esc(msg) + '</p>';
+      document.title = 'Card — Sake Kitty Cards';
+    }
+
+    fetch('https://tcgenie.io/pub/label?host=sakekittycards.com&k=' + kind + '&p=' + encodeURIComponent(payload))
+      .then(function (r) { if (!r.ok) throw new Error('lookup failed'); return r.json(); })
+      .then(function (d) {
+        if (!d || !d.name) { fallback('Ask us about this one — we can pull it up in seconds.'); return; }
+        $('csName').textContent = d.name;
+        var meta = [d.set, d.number ? '#' + d.number : ''].filter(Boolean).join(' · ');
+        $('csMeta').textContent = meta;
+        $('csCond').textContent = d.graded
+          ? [d.grader, d.grade].filter(Boolean).join(' ')
+          : [d.sealed ? 'Sealed' : d.cond, d.printing].filter(Boolean).join(' · ');
+        document.title = d.name + (meta ? ' — ' + meta : '') + ' — Sake Kitty Cards';
+
+        if (d.price > 0 && d.in_stock) {
+          $('csPriceBox').innerHTML = '<p class="cs-price">' + esc(money(d.price)) + '</p>'
+            + '<p class="cs-stock">In the case now</p>';
+        } else if (d.price > 0) {
+          /* Priced but not in stock: the tag outlived the card. Say so plainly rather than quoting a
+             price we can't honor — then point at the thing we CAN do, which is find another. */
+          $('csPriceBox').innerHTML = '<p class="cs-price">' + esc(money(d.price)) + '</p>'
+            + '<p class="cs-stock">Last listed at this price — ask us, we may have another</p>';
+        } else {
+          $('csPriceBox').innerHTML = '<p class="cs-note">Ask us for a price on this one — or check the tag in the case.</p>';
+        }
+      })
+      .catch(function () { fallback('We couldn’t reach our pricing just now. Ask us and we’ll pull it up.'); });
+  })();
+  </script>
 </body>
 </html>
