@@ -1841,7 +1841,7 @@
           <div class="ti-hwp-card">
             <h3>1. We check live market data</h3>
             <p>
-              For each card, we pull <strong>pokemontcg.io</strong> Market Price, <strong>TCG CSV</strong> for sets the first source misses, and our <strong>TCGplayer worker</strong> for the published Market Price plus recent sold-listing average. Graded slabs add a <strong>PriceCharting</strong> grade-aware lookup. Whichever source has the freshest data wins.
+              For each card, we pull <strong>pokemontcg.io</strong> Market Price, <strong>TCG CSV</strong> for sets the first source misses, and our <strong>TCGplayer worker</strong> for the published Market Price plus recent sold-listing average. Graded slabs add a grade-aware lookup from <a href="https://www.pricecharting.com/" target="_blank" rel="noopener"><strong>PriceCharting</strong></a>. Whichever source has the freshest data wins.
             </p>
           </div>
           <div class="ti-hwp-card">
@@ -1953,7 +1953,9 @@
             </div>
             <div style="display:flex;align-items:center;gap:10px;margin:-2px 0 8px;flex-wrap:wrap">
               <button type="button" id="gradedLookupBtn" class="btn btn-outline btn-sm" style="font-size:12px;padding:6px 12px">🔎 Check recent sold prices on eBay</button>
-              <span style="font-size:11px;color:var(--dim);line-height:1.5;flex:1;min-width:200px">Opens eBay sold listings in a new tab. Other references: Alt, Card Ladder, PriceCharting. Paste a value back here — we verify on intake.</span>
+<!-- PriceCharting's terms allow their price data on an external WEBSITE on two conditions: cited as the source,
+     AND a visible hyperlink. We named them in copy and never linked, which is one of the two. Both, now. -->
+              <span style="font-size:11px;color:var(--dim);line-height:1.5;flex:1;min-width:200px">Opens eBay sold listings in a new tab. Other references: Alt, Card Ladder, <a href="https://www.pricecharting.com/" target="_blank" rel="noopener" style="color:var(--dim);text-decoration:underline">PriceCharting</a>. Paste a value back here — we verify on intake.</span>
             </div>
             <div class="ti-sealed-actions">
               <button type="button" class="btn btn-primary btn-sm" id="gradedAddBtn">Add to List</button>
@@ -2161,6 +2163,25 @@
     })();
   </script>
   <script>
+
+    /* pokemontcg.io went unreliable after the Scrydex acquisition — measured 20 of 30 requests failing with
+       HTTP 500 on 2026-07-30. Promise.allSettled means a failure degrades quietly to the static indexes rather
+       than breaking the form, which is worse in its own way: the customer just silently gets fewer cards and a
+       weaker price. Three quick tries turns a ~66% single-shot failure into a few percent. If it still fails we
+       fall through exactly as before. */
+    async function pokeFetch(url, tries = 3) {
+      let last;
+      for (let i = 0; i < tries; i++) {
+        try {
+          const r = await fetch(url);
+          if (r.ok) return await r.json();
+          last = 'HTTP ' + r.status;
+        } catch (e) { last = e && e.message || String(e); }
+        if (i < tries - 1) await new Promise(res => setTimeout(res, 250 * (i + 1)));
+      }
+      throw new Error('pokemontcg.io unavailable (' + last + ')');
+    }
+
     // Bulk-per-card rates (used by the bulk section below the card search).
     // `img` and `note` power the click-to-expand example panel under each row
     // — image URLs are pokemontcg.io CDN paths (already a primary data source
@@ -3161,7 +3182,7 @@
       try {
         const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
         const [cardRes, sealedRes, jpNameRes, enNameRes] = await Promise.allSettled([
-          fetch(cardUrl).then(r => r.ok ? r.json() : Promise.reject('card error')),
+          pokeFetch(cardUrl),
           searchSealed(searchTokens.join(' ')),
           searchJpByName(searchTokens),   // character-name JP search via static index
           searchEnByName(searchTokens),   // character-name EN search via static index (TCG CSV)
