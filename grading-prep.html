@@ -1365,17 +1365,31 @@
     /* pokemontcg.io went unreliable after the Scrydex acquisition — measured 20 of 30 requests failing with
        HTTP 500 on 2026-07-30. Promise.allSettled means a failure degrades quietly to the static indexes rather
        than breaking the form, which is worse in its own way: the customer just silently gets fewer cards and a
-       weaker price. Three quick tries turns a ~66% single-shot failure into a few percent. If it still fails we
-       fall through exactly as before. */
-    async function pokeFetch(url, tries = 3) {
+       weaker price.
+       Retry count is measured, not guessed: a 40-sample run on 2026-07-30 put the single-try failure at 57%,
+       so 3 tries would still drop ~19% of searches (0.57^3) — not good enough for the form we quote money on.
+       Six tries puts it at ~3.6%. Backoff is capped so the worst case stays a few seconds rather than
+       compounding. If it still fails we fall through exactly as before. */
+    async function pokeFetch(url, tries = 6, budgetMs = 8000) {
+      const deadline = Date.now() + budgetMs;
       let last;
       for (let i = 0; i < tries; i++) {
+        if (Date.now() >= deadline) { last = last || 'timed out'; break; }
+        const ac = new AbortController();
+        // Per-attempt cap AND an overall budget. Without the per-attempt abort a single hung request pins the
+        // whole search: measured worst case was 51s across 6 tries, which is a differently-broken experience,
+        // not a fixed one. The other three sources return fast and the form works without this one, so it is
+        // never worth making someone wait. Whatever is left of the budget, capped at 3s, is all any try gets.
+        const t = setTimeout(() => ac.abort(), Math.min(3000, Math.max(500, deadline - Date.now())));
         try {
-          const r = await fetch(url);
-          if (r.ok) return await r.json();
+          const r = await fetch(url, { signal: ac.signal });
+          if (r.ok) { clearTimeout(t); return await r.json(); }
           last = 'HTTP ' + r.status;
-        } catch (e) { last = e && e.message || String(e); }
-        if (i < tries - 1) await new Promise(res => setTimeout(res, 250 * (i + 1)));
+        } catch (e) { last = (e && e.name === 'AbortError') ? 'timed out' : (e && e.message || String(e)); }
+        clearTimeout(t);
+        if (i < tries - 1 && Date.now() < deadline) {
+          await new Promise(res => setTimeout(res, Math.min(250 * (i + 1), 900)));
+        }
       }
       throw new Error('pokemontcg.io unavailable (' + last + ')');
     }
