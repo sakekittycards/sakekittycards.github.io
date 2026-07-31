@@ -10,7 +10,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 - **Cache-buster:** `?v=N` on style.css and main.js. Bump when shipping CSS/JS.
 - **Fonts:** Bangers (display) + Inter (body), Google Fonts
 - **Forms:** Web3Forms (access key is inline in trade-in.html, grading-prep.html, contact.html) → routes to sakekittycards@gmail.com inbox under the hood, but customer-facing display always uses nick@sakekittycards.com
-- **Card data:** pokemontcg.io (English singles) + TCG CSV via our Cloudflare Worker proxy at `https://tcgcsv-proxy.nwilliams23999.workers.dev` (English sealed + Japanese)
+- **Card data:** TCGdex (`api.tcgdex.net`, MIT — English catalog: names/numbers/sets/images ONLY, its `pricing` block is never read because TCGdex can't sublicense TCGplayer/Cardmarket data) + TCG CSV via our Cloudflare Worker proxy at `https://tcgcsv-proxy.nwilliams23999.workers.dev` (English sealed + Japanese + price backfill). pokemontcg.io was dropped 2026-07-30 (57% failure rate after the Scrydex acquisition).
 
 ## Pages
 
@@ -44,7 +44,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 
 | Language | Search source(s) | Notes |
 |---|---|---|
-| English | pokemontcg.io API (live) + `assets/en-cards.json` (TCG CSV cat 3, ~12k entries) + `assets/all-cards-fallback.json` (PC, tertiary safety net) | All three fire in parallel; deduped by lowercased name+number. pokemontcg.io wins for shared cards (nicer images + variant-key pricing); en-static fills gaps pokemontcg.io misses (newer promos like Victini #208, oddballs); PC catches what neither has. |
+| English | TCGdex API (live, `dexSearch()` — catalog only, rows carry `tcgplayer.prices: {}` and `_dex: true`) + `assets/en-cards.json` (TCG CSV cat 3, ~12k entries) + `assets/all-cards-fallback.json` (PC, tertiary safety net) | All three fire in parallel; deduped by lowercased name+number. TCGdex wins for shared cards (nicer images); when an en-static row collides with a dex row, the dex row inherits `_enStaticProductId` from the static twin (dex rows are priceless — without the graft they'd fall out of the pricing chain). Pokémon TCG *Pocket* (digital) sets are excluded via the `tcgp` serie list + hardcoded snapshot. en-static fills gaps TCGdex misses; PC catches what neither has. |
 | Japanese | pre-built `assets/jp-cards.json` (~15k entries from `tcgcsv.com/tcgplayer/85`) + TCG CSV groups via the `tcgcsv-proxy` worker for set-name search | Static index is character-name searchable; worker path handles set-hint searches |
 | English sealed | TCG CSV groups via `tcgcsv-proxy` | — |
 | Chinese | **EXCLUDED from raw search and Grading Prep entirely.** Allowed ONLY in the Sell/Trade graded card form (autocomplete pulls from PC fallback with CN badge, `[CN]` prefix on add). | Per user policy 2026-05-04 |
@@ -53,8 +53,8 @@ Sealed JP (booster boxes, ETBs) — included in the Japanese dropdown section si
 
 ### Pricing chain (raw cards, in order — first hit wins)
 
-1. **pokemontcg.io's `tcgplayer.prices.market`** — embedded in pokemontcg.io payload, daily refresh
-2. **TCG CSV `marketPrice`** by set+number — same TCGplayer Market Price the reprice pipeline anchors on
+1. **`_enStaticProductId` / `_fallbackProductId`** resolved via `/tcg/market` — dex/static rows that carry a productId (including the en-static→dex collision graft) go straight to TCGplayer's published Market Price
+2. **TCG CSV `marketPrice`** by set+number (`lookupTcgCsvSinglePrice`) — same TCGplayer Market Price the reprice pipeline anchors on. Number matching handles exact, promo-prefix-stripped, and slash/zero-pad forms ("74" ↔ "74/73" ↔ "074"); TCGdex promo set names map to TCG CSV group names via `_SET_NAME_ALIASES` ("SVP Black Star Promos" → "SV: Scarlet & Violet Promo Cards")
 3. **TCGplayer `/v2/product/{id}/pricepoints`** via the `sakekitty-prices` worker (`/tcg/market`) — TCGplayer's PUBLISHED Market Price (same number their product page shows). Edge-cached 6h.
 4. **TCGplayer `/v2/product/{id}/latestsales`** via the `sakekitty-prices` worker (`/tcg/lastsold`) — trimmed avg of last ~10 sold transactions. Drops `ListingWithPhotos` rows (off-center copies). Edge-cached 6h.
 5. **PriceCharting `loose-price`** from `assets/pc-graded.json` — final fallback only. PC's loose-price diverges from TCGplayer in some cases; never overrides a TCGplayer number.
@@ -108,7 +108,7 @@ Edge-cached 6h via `caches.default`. Deploy: `cd workers/prices && wrangler depl
 
 - `assets/en-cards.json` (~830 KB) — 12,818 EN non-sealed cards from TCG CSV (categoryId 3) at $3 floor. Built 2026-05-07. Build: `python scripts/build_en_card_index.py` (~10 min).
 - `assets/jp-cards.json` (~1.0 MB) — 15,567 JP non-sealed cards from TCG CSV (categoryId 85) at $3 floor. Build: `python scripts/build_jp_card_index.py` (~8 min).
-- `assets/all-cards-fallback.json` (~1.5 MB) — 27,262 unique-by-productId Pokemon entries from PriceCharting (English + Japanese + Chinese) at $3 floor. Tertiary safety net — fires when neither pokemontcg.io nor en-static had the card. Build: `python scripts/build_all_cards_index.py`.
+- `assets/all-cards-fallback.json` (~1.5 MB) — 27,262 unique-by-productId Pokemon entries from PriceCharting (English + Japanese + Chinese) at $3 floor. Tertiary safety net — fires when neither TCGdex nor en-static had the card. Build: `python scripts/build_all_cards_index.py`.
 - `assets/pc-graded.json` (~2.0 MB) — 47,020 entries with per-grade values keyed by productId (or `pc:<id>` for Chinese). Build: `python scripts/build_pc_graded_index.py`.
 
 All three build scripts auto-download a fresh PriceCharting CSV from the user's saved subscription URL at `~/.claude/pricecharting_csv_url.txt`. Re-run scripts after PC publishes a new CSV; commit the regenerated JSONs.
@@ -161,8 +161,8 @@ Bangers' character feet sit further below the baseline than a normal line-box al
 ## Known gotchas
 
 - `trade-in.html` is ~1.7k lines — Read tool errors on full-file reads. Use `offset`/`limit` or Grep.
-- pokemontcg.io only tracks "holofoil" for Base Set Charizard — no 1st Edition / Shadowless distinction. API limitation, not a bug.
-- Variant keywords ("1st", "unlimited", "shadowless") in the trade-in search re-sort the pokemontcg.io query to vintage-first, since modern cards don't have those variants.
+- TCGdex collapses printings: one row per card, no 1st Edition / Shadowless / Holo distinction (same limitation pokemontcg.io had). Variant-specific rows come from en-static / the printings expansion.
+- Variant keywords ("1st", "unlimited", "shadowless") in the trade-in search flip `dexSearch` to oldest-first ordering (`oldestFirst`), since modern cards don't have those variants. TCGdex has no release dates, so "oldest" is a hardcoded series ladder (`_DEX_SERIES`) — coarse, sort-preference only.
 - OneDrive + git: you'll see benign CRLF / LF warnings on every add. Ignore them.
 - Wake up script: `main.js` injects the lava-lamp SVG goo filter + nav blobs on every page. Easter egg: click same nav blob 5 times to unlock one page-drip animation.
 
@@ -174,7 +174,7 @@ Bangers' character feet sit further below the baseline than a normal line-box al
 
 - Repo: https://github.com/sakekittycards/sakekittycards.github.io
 - Every push to `main` triggers GitHub Pages build (~1–3 min). No CI, no tests, no linting.
-- Cloudflare Worker (`tcgcsv-proxy`) is deployed separately from its own small project. Not in this repo.
+- Cloudflare Worker (`tcgcsv-proxy`) lives at `workers/tcgcsv/` (promoted 2026-07-30 from a dashboard-pasted `cloudflare-worker.js`; deploy with `npx wrangler deploy` from that folder). Its upstream fetches MUST send the custom `User-Agent` — tcgcsv.com 401-blocks unidentified clients, which took the proxy down for everyone on 2026-07-30. Error responses are `no-store` (the old worker stamped public/6h on 401s and browsers cached the outage); the site calls it with `?b=2` to bust those poisoned browser caches.
 
 ## Email templates
 

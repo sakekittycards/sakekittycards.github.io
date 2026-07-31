@@ -1841,7 +1841,7 @@
           <div class="ti-hwp-card">
             <h3>1. We check live market data</h3>
             <p>
-              For each card, we pull <strong>pokemontcg.io</strong> Market Price, <strong>TCG CSV</strong> for sets the first source misses, and our <strong>TCGplayer worker</strong> for the published Market Price plus recent sold-listing average. Graded slabs add a grade-aware lookup from <a href="https://www.pricecharting.com/" target="_blank" rel="noopener"><strong>PriceCharting</strong></a>. Whichever source has the freshest data wins.
+              For each card, we pull the <strong>TCGplayer</strong> Market Price, <strong>TCG CSV</strong> for sets the first source misses, and our <strong>TCGplayer worker</strong> for the published Market Price plus recent sold-listing average. Graded slabs add a grade-aware lookup from <a href="https://www.pricecharting.com/" target="_blank" rel="noopener"><strong>PriceCharting</strong></a>. Whichever source has the freshest data wins.
             </p>
           </div>
           <div class="ti-hwp-card">
@@ -2164,36 +2164,95 @@
   </script>
   <script>
 
-    /* pokemontcg.io went unreliable after the Scrydex acquisition — measured 20 of 30 requests failing with
-       HTTP 500 on 2026-07-30. Promise.allSettled means a failure degrades quietly to the static indexes rather
-       than breaking the form, which is worse in its own way: the customer just silently gets fewer cards and a
-       weaker price.
-       Retry count is measured, not guessed: a 40-sample run on 2026-07-30 put the single-try failure at 57%,
-       so 3 tries would still drop ~19% of searches (0.57^3) — not good enough for the form we quote money on.
-       Six tries puts it at ~3.6%. Backoff is capped so the worst case stays a few seconds rather than
-       compounding. If it still fails we fall through exactly as before. */
-    async function pokeFetch(url, tries = 6, budgetMs = 8000) {
-      const deadline = Date.now() + budgetMs;
-      let last;
-      for (let i = 0; i < tries; i++) {
-        if (Date.now() >= deadline) { last = last || 'timed out'; break; }
-        const ac = new AbortController();
-        // Per-attempt cap AND an overall budget. Without the per-attempt abort a single hung request pins the
-        // whole search: measured worst case was 51s across 6 tries, which is a differently-broken experience,
-        // not a fixed one. The other three sources return fast and the form works without this one, so it is
-        // never worth making someone wait. Whatever is left of the budget, capped at 3s, is all any try gets.
-        const t = setTimeout(() => ac.abort(), Math.min(3000, Math.max(500, deadline - Date.now())));
-        try {
-          const r = await fetch(url, { signal: ac.signal });
-          if (r.ok) { clearTimeout(t); return await r.json(); }
-          last = 'HTTP ' + r.status;
-        } catch (e) { last = (e && e.name === 'AbortError') ? 'timed out' : (e && e.message || String(e)); }
-        clearTimeout(t);
-        if (i < tries - 1 && Date.now() < deadline) {
-          await new Promise(res => setTimeout(res, Math.min(250 * (i + 1), 900)));
-        }
+    /* CATALOG SOURCE: TCGdex (swapped from pokemontcg.io 2026-07-31, task #16).
+       pokemontcg.io failed 57% of single tries after the Scrydex acquisition — we were carrying a 6-retry
+       wrapper just to keep the money-quoting form alive. TCGdex (MIT, api.tcgdex.net) replaces it for
+       CATALOG data only: names, numbers, sets, images. Its `pricing` block is deliberately NEVER read —
+       it passes through TCGplayer/Cardmarket data that MIT cannot sublicense to us; prices for these rows
+       come from the existing chain (TCG CSV market → worker /tcg/market → PC fallback), the same way
+       en-static rows have always priced. Query semantics: params AND together, `name` is contains (single
+       substring — so we query the longest word and enforce the rest client-side), `localId` tolerates
+       leading zeros and letter prefixes by digit-substring. No release dates in the index, so vintage
+       ordering uses the series ladder below — coarse but honest, and only affects sort preference. */
+    const _DEX_SERIES = ['base','gym','neo','lc','ecard','ex','pop','tk','dp','pl','hgss','col','mc','bw','xy','sm','swsh','sv','me'];
+    function _dexSeriesRank(setCode){
+      for (let i = _DEX_SERIES.length - 1; i >= 0; i--)
+        if (setCode.startsWith(_DEX_SERIES[i])) return i;
+      return null;   // unknown era (misc promos etc.) — sorts LAST either direction
+    }
+    /* TCGdex also indexes Pokémon TCG POCKET (digital-only) — those cards must never
+       appear in a buy/grading form. Exclusion list is fetched live from the `tcgp`
+       serie and unioned with a hardcoded snapshot (2026-07) so a failed fetch still
+       filters every Pocket set that exists today. */
+    const _DEX_POCKET = new Set(['a1','p-a','a1a','a2','a2a','a2b','a3','a3a','a3b','a4','a4a','b1','b1a','b2','b2a']);
+    let _dexSetsP = null;
+    function _dexSets(){
+      if (!_dexSetsP) _dexSetsP = Promise.all([
+        fetch('https://api.tcgdex.net/v2/en/sets').then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('https://api.tcgdex.net/v2/en/series/tcgp').then(r => r.ok ? r.json() : null).catch(() => null),
+      ]).then(([sets, tcgp]) => {
+        const names = {};
+        for (const s of sets) names[s.id] = s.name;
+        if (tcgp && Array.isArray(tcgp.sets)) for (const s of tcgp.sets) _DEX_POCKET.add(String(s.id).toLowerCase());
+        return names;
+      });
+      return _dexSetsP;
+    }
+    async function dexSearch(tokens, { pageSize = 25, oldestFirst = false } = {}) {
+      let num = null; const words = [];
+      for (let tok of tokens) {
+        const slashed = tok.match(/^([a-z]*\d+)\s*\/\s*\d+/i);
+        if (slashed) tok = slashed[1];
+        tok = tok.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
+        const clean = tok.replace(/[^\w&.-]/g, '');
+        if (!clean) continue;
+        const m = clean.match(/^([a-z]*)(\d+)$/i);
+        if (m && num == null) num = m[2];          // digits only — substring-matches "027" and "SWSH273" alike
+        else if (m && !m[1]) continue;             // extra pure-digit token = the "/102" set-total half (callers pre-split slashes) — never a name word
+        else words.push(clean.toLowerCase());
       }
-      throw new Error('pokemontcg.io unavailable (' + last + ')');
+      if (num == null && !words.length) return { data: [] };
+      const qs = [];
+      if (words.length) {
+        const longest = words.reduce((a, b) => (b.length > a.length ? b : a), '');
+        qs.push('name=' + encodeURIComponent(longest));
+      }
+      if (num != null) qs.push('localId=' + encodeURIComponent(num));
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 6000);
+      let briefs;
+      try {
+        const r = await fetch('https://api.tcgdex.net/v2/en/cards?' + qs.join('&'), { signal: ac.signal });
+        if (!r.ok) throw new Error('TCGdex HTTP ' + r.status);
+        briefs = await r.json();
+      } finally { clearTimeout(t); }
+      if (!Array.isArray(briefs)) briefs = [];
+      // enforce the remaining name words client-side (API only took the longest one)
+      if (words.length > 1) {
+        briefs = briefs.filter(c => { const n = (c.name || '').toLowerCase(); return words.every(w => n.includes(w)); });
+      }
+      const setMap = await _dexSets();
+      const rows = briefs
+        .filter(c => c && c.id && c.image)   // no image = no usable dropdown row; static sources still cover it
+        .map(c => {
+          const setCode = String(c.id).slice(0, String(c.id).lastIndexOf('-')).toLowerCase();
+          return { c, setCode, rank: _dexSeriesRank(setCode) };
+        })
+        .filter(r => !_DEX_POCKET.has(r.setCode));   // digital Pocket cards: not sellable, not gradable
+      const _r = x => x.rank == null ? -1 : x.rank;         // unknown era → end of list
+      rows.sort((a, b) => (a.rank == null) - (b.rank == null)
+        || (oldestFirst ? _r(a) - _r(b) : _r(b) - _r(a))
+        || a.setCode.localeCompare(b.setCode)
+        || String(a.c.localId).localeCompare(String(b.c.localId), undefined, { numeric: true }));
+      return { data: rows.slice(0, pageSize).map(({ c, setCode }) => ({
+        id: 'dex_' + c.id,
+        name: c.name,
+        number: String(c.localId || ''),
+        images: { small: c.image + '/low.webp' },
+        set: { name: setMap[setCode] || setCode.toUpperCase() },
+        tcgplayer: { prices: {} },   // priced by the chain below, never by TCGdex
+        _dex: true,
+      })) };
     }
 
     // Bulk-per-card rates (used by the bulk section below the card search).
@@ -2376,7 +2435,12 @@
     // through our own Cloudflare Worker for proper CORS + edge caching.
     const TCGCSV_BASE = 'https://tcgcsv-proxy.nwilliams23999.workers.dev';
     function tcgcsvUrl(path) {
-      return `${TCGCSV_BASE}/${path}`;
+      // ?b=2 busts browser HTTP caches poisoned during the 2026-07-30 outage:
+      // the old worker stamped `Cache-Control: public, max-age=21600` on its
+      // 401 responses, so browsers that hit the outage kept re-serving the
+      // cached 401 for 6h even after the worker was fixed. The worker routes
+      // on pathname only, so the query is ignored server-side.
+      return `${TCGCSV_BASE}/${path}?b=2`;
     }
     // Token-level search aliases — applied to BOTH query and haystack so they
     // converge in canonical form. Lets customers type "M Lucario" or "mega lucario"
@@ -2645,9 +2709,26 @@
     // NEVER use cardmarket data — see feedback_no_cardmarket_pricing.md.
     const _stripApos = s => s.replace(/[‘’']s\b/gi, '').replace(/[‘’']/g, '');
     const _norm = s => _stripApos(String(s || '').toLowerCase()).replace(/[-:.]/g, '').replace(/\s+/g, ' ').trim();
+    // TCGdex promo-set names never fuzzy-match TCG CSV's group names
+    // ("SVP Black Star Promos" vs "SV: Scarlet & Violet Promo Cards"), so
+    // promo-era cards were falling out of the price backfill entirely.
+    // Keys are _norm()-normalized TCGdex names; values are TCG CSV group names.
+    const _SET_NAME_ALIASES = {
+      'svp black star promos':     'SV: Scarlet & Violet Promo Cards',
+      'swsh black star promos':    'SWSH: Sword & Shield Promo Cards',
+      'sm black star promos':      'SM Promos',
+      'xy black star promos':      'XY Promos',
+      'bw black star promos':      'Black and White Promos',
+      'hgss black star promos':    'HGSS Promos',
+      'dp black star promos':      'Diamond and Pearl Promos',
+      'wizards black star promos': 'WoTC Promo',
+      'nintendo black star promos':'Nintendo Promos',
+      'me black star promos':      'ME: Mega Evolution Promo',
+    };
     function _findEnGroupBySetName(groups, setName) {
       if (!setName) return null;
-      const target = _norm(setName);
+      let target = _norm(setName);
+      if (_SET_NAME_ALIASES[target]) target = _norm(_SET_NAME_ALIASES[target]);
       // Exact normalized match first; then a contains-match either direction
       // ("Sword & Shield Promo" vs "SWSH Black Star Promos" etc.)
       let g = groups.find(x => x.lang === 'en' && _norm(x.name) === target);
@@ -2669,6 +2750,16 @@
       // for some sets — try matching a numeric suffix on the extendedData value.
       hit = products.find(p =>
         (p.extendedData || []).some(d => d.name === 'Number' && String(d.value).replace(/^\D+/, '') === num.replace(/^\D+/, ''))
+      );
+      if (hit) return hit;
+      // Slash/zero-pad fallback: TCG CSV writes secret rares as "74/73" and
+      // some sets zero-pad ("074") while the catalog side says plain "74".
+      // Compare only the digits of the left-of-slash side of both values.
+      const _numCore = v => String(v).split('/')[0].replace(/^\D+/, '').replace(/^0+/, '');
+      const core = _numCore(num);
+      if (!core) return null;
+      hit = products.find(p =>
+        (p.extendedData || []).some(d => d.name === 'Number' && _numCore(d.value) === core)
       );
       return hit || null;
     }
@@ -3190,13 +3281,11 @@
         'unlimited', 'unlimitedHolofoil',
       ]);
       const wantsVintage = variantFilter && [...variantFilter].some(v => VINTAGE_VARIANT_KEYS.has(v));
-      const orderBy  = wantsVintage ? 'set.releaseDate' : '-set.releaseDate';
-      const pageSize = wantsVintage ? 40 : 25;   // bumped from 12 — show more variants
+        const pageSize = wantsVintage ? 40 : 25;   // bumped from 12 — show more variants
 
       try {
-        const cardUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=${pageSize}&orderBy=${orderBy}`;
         const [cardRes, sealedRes, jpNameRes, enNameRes] = await Promise.allSettled([
-          pokeFetch(cardUrl),
+          dexSearch(searchTokens, { pageSize, oldestFirst: wantsVintage }),
           searchSealed(searchTokens.join(' ')),
           searchJpByName(searchTokens),   // character-name JP search via static index
           searchEnByName(searchTokens),   // character-name EN search via static index (TCG CSV)
@@ -3232,7 +3321,15 @@
         for (const e of enStatic) {
           const nameClean = _stripVariantSuffix(e.name) || e.name;
           const nnKey = _dedupKey(e.name, e.number);
-          if (enKeysSeen.has(nnKey)) continue;
+          if (enKeysSeen.has(nnKey)) {
+            /* TCGdex rows carry NO prices (catalog-only by license), so unlike the pokemontcg.io era the
+               surviving row must inherit its static twin's productId — that's what the priceless-row
+               backfill below resolves through /tcg/market. Skipping outright would silently orphan the
+               card from the whole pricing chain. */
+            const twin = cards.find(c => c._dex && !c._enStaticProductId && _dedupKey(c.name, c.number) === nnKey);
+            if (twin) twin._enStaticProductId = e.productId;
+            continue;
+          }
           cards.push({
             id: `en_${e.productId}`,
             name: nameClean,
@@ -4277,14 +4374,13 @@
       gradedResults.innerHTML = '<div class="ti-status">Searching…</div>';
       gradedResults.classList.add('open');
       try {
-        const url = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(lucene)}&pageSize=10&orderBy=-set.releaseDate`;
         // Four sources in parallel:
-        //   pokemontcg.io   — nicest images, one row per card (collapses variants)
+        //   TCGdex          — nicest images, one row per card (collapses variants)
         //   en-static       — TCG CSV singles index, has a row PER VARIANT (Holo, Reverse Holo, etc.)
         //   PC fallback     — final safety net for older promos / oddballs
-        //   Chinese (PC)    — separate path (Chinese excluded from pokemontcg.io)
+        //   Chinese (PC)    — separate path (Chinese excluded from the EN catalog sources)
         const [enRes, enStaticRes, fbRes, cnRes] = await Promise.allSettled([
-          fetch(url).then(r => r.ok ? r.json() : Promise.reject('en error')),
+          dexSearch(tokens, { pageSize: 10 }),
           searchEnByName(tokens),
           searchAllCardsFallback(tokens, new Set(), new Set()),
           searchChineseGradedCandidates(tokens),
