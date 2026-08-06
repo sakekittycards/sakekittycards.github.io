@@ -187,8 +187,6 @@
           <a href="shop.html">Shop</a>
           <ul class="nav-dropdown-menu" aria-label="Shop categories">
             <li><a href="shop.html?cat=graded">Graded Cards</a></li>
-            <li><a href="shop.html?cat=sealed">Sealed</a></li>
-            <li><a href="shop.html?cat=singles">Singles</a></li>
             <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
           </ul>
         </li>
@@ -452,12 +450,12 @@
       // always stays live. The granular flags below pause individual buckets
       // while the rest of the shop stays live.
       //
-      // Current state (2026-06-10): store FULLY LIVE — graded, sealed, and
-      // singles all online; restocking poster off. Flip a granular flag back
-      // to true only to pull an individual bucket while a show is out.
+      // Current state (2026-08-06): GRADED + MERCH ONLY — Nick pulled sealed
+      // and raw singles from the site ("should just be graded and retail for
+      // now"). Flip the granular flags back to false to restore those buckets.
       const SK_INVENTORY_PAUSED = false;
-      const SEALED_PAUSED  = false;  // Sealed live (store re-opened 2026-06-10)
-      const SINGLES_PAUSED = false;  // raw Singles live (rebuilt 2026-06-10)
+      const SEALED_PAUSED  = true;   // Sealed off-site per Nick 2026-08-06
+      const SINGLES_PAUSED = true;   // raw Singles off-site per Nick 2026-08-06
 
       if (SK_INVENTORY_PAUSED) {
         document.getElementById('tcgplayerBanner').hidden = true;
@@ -470,6 +468,10 @@
       // restock poster too, so those sections don't just silently vanish.
       if (!SK_INVENTORY_PAUSED && (SEALED_PAUSED || SINGLES_PAUSED)) {
         document.getElementById('inventoryPaused').hidden = false;
+        if (SEALED_PAUSED && SINGLES_PAUSED) {
+          const heroSub = document.getElementById('shopHeroSub');
+          if (heroSub) heroSub.textContent = 'Graded slabs and apparel — all direct from us. Packed with care, shipped fast and insured.';
+        }
       }
 
       // === FEATURE FLAG: graded inventory at a show ===
