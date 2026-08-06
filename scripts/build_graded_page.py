@@ -47,15 +47,21 @@ def verify_url(s):
     return f"https://www.cgccards.com/certlookup/{s['cert']}/"
 
 
+def fmt_price(s):
+    return f"${s['price']:,.0f}" if s.get("price") else ""
+
+
 def offer_mailto(s):
     number = f" {s['number']}" if s["number"] else ""
     subject = f"Offer: {s['name']} {s['grade_label']} (Cert {s['cert']})"
+    asking = f"Asking: {fmt_price(s)}\n" if s.get("price") else ""
     body = (
         "Hi Nick,\n\nI'd like to make an offer on this graded card:\n\n"
         f"Card: {s['name']}{number}\n"
         f"Set: {s['set']}\n"
         f"Grade: {s['grade_label']}\n"
-        f"Cert #: {s['cert']}\n\n"
+        f"Cert #: {s['cert']}\n"
+        f"{asking}\n"
         "My offer: $"
     )
     return ("mailto:nick@sakekittycards.com?subject="
@@ -86,6 +92,7 @@ def card_html(s):
             <div class="single-tags">
               <span class="slab-grade {grade_class(s)}">{e(s['grade_label'])}</span>
             </div>
+            <p class="slab-price">{fmt_price(s)}</p>
             <p class="slab-cert">Cert #{s['cert']} · <a href="{verify_url(s)}" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/{s['cert']}b.jpg" target="_blank" rel="noopener">Back</a></p>
             <a class="btn make-offer" href="{mailto}">Make Offer</a>
           </div>
@@ -192,6 +199,11 @@ PAGE = """<!DOCTYPE html>
     .slab-grade.grade-10 { background: rgba(255,210,122,0.18); color: #ffd27a; }
     .slab-grade.grade-9 { background: rgba(0,212,255,0.16); color: #67d8ff; }
     .slab-grade.grade-8 { background: rgba(255,184,77,0.16); color: #ffce85; }
+    .slab-price {
+      font-size: 21px; font-weight: 800; margin: 2px 0 0;
+      color: var(--orange); letter-spacing: -0.2px;
+      filter: drop-shadow(0 0 8px rgba(255,106,0,0.20));
+    }
     .slab-cert { font-size: 11.5px; color: var(--dim); margin: 0; }
     .slab-cert a { color: var(--cyan); text-decoration: none; }
     .slab-cert a:hover { text-decoration: underline; }
@@ -255,7 +267,7 @@ PAGE = """<!DOCTYPE html>
   <main id="main" class="page-content">
     <div class="page-hero">
       <h1>Graded Vault</h1>
-      <p>Our slab showcase — __COUNT__ PSA &amp; CGC certified cards, from Shadowless Base Set to the newest Special Illustration Rares. Every photo is the exact slab you'll receive. No fixed price: send your best offer.</p>
+      <p>Our slab showcase — __COUNT__ PSA &amp; CGC certified cards, from Shadowless Base Set to the newest Special Illustration Rares. Every photo is the exact slab you'll receive. Buy at the listed price in <a href="shop.html?cat=graded" style="color:var(--cyan);text-decoration:none">our shop</a>, or send your best offer.</p>
       <p class="singles-tagline">Certified <span class="ok">Slabs</span> · Best <span class="pop">Offer</span></p>
       <div class="singles-note">
         <span aria-hidden="true">📍</span>
