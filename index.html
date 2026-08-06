@@ -1048,8 +1048,6 @@
           <a href="shop.html">Shop</a>
           <ul class="nav-dropdown-menu" aria-label="Shop categories">
             <li><a href="shop.html?cat=graded">Graded Cards</a></li>
-            <li><a href="shop.html?cat=sealed">Sealed</a></li>
-            <li><a href="shop.html?cat=singles">Singles</a></li>
             <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
           </ul>
         </li>
@@ -1110,7 +1108,7 @@
         </defs>
       </svg>
       <h1 class="hero-title">Built by Collectors.</h1>
-      <p class="hero-tagline">Trusted sealed product, graded slabs, and more from collectors who love the hobby as much as you do.</p>
+      <p class="hero-tagline">Trusted graded slabs, collectibles, and more from collectors who love the hobby as much as you do.</p>
     </section>
 
     <!-- Just Listed — newest arrivals from the Square catalog. Populated
@@ -1379,10 +1377,12 @@
       // CARD arrivals, so with everything out at a show there's nothing to
       // feature and a merch-only "Just Listed" would misread.
       //
-      // Current state (2026-06-10): store fully live — graded, sealed, and
-      // singles all back. Just Listed surfaces all card arrivals again.
+      // Current state (2026-08-06): GRADED + MERCH ONLY — sealed and raw
+      // singles pulled from the site per Nick ("just graded and retail for
+      // now"). Just Listed gates to graded arrivals; mirrors the
+      // SEALED_PAUSED/SINGLES_PAUSED flags in shop.html.
       const SK_INVENTORY_PAUSED = false;
-      const JUST_LISTED_GRADED_ONLY = false;
+      const JUST_LISTED_GRADED_ONLY = true;
       if (SK_INVENTORY_PAUSED) { section.classList.add('is-empty'); return; }
 
       const WORKER_BASE = (window.SK && window.SK.WORKER_BASE) || 'https://sakekitty-square.nwilliams23999.workers.dev';
