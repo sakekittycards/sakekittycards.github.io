@@ -8,7 +8,8 @@
   "set": "ME01: Mega Evolution",
   "number": "177/132",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 275.0
  },
  {
   "cert": "148603144",
@@ -19,7 +20,8 @@
   "set": "SV Promos (Surging Sparks PC ETB)",
   "number": "159",
   "variant": "Pokemon Center stamped promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 70.0
  },
  {
   "cert": "119392108",
@@ -30,7 +32,8 @@
   "set": "SV08: Surging Sparks",
   "number": "238/191",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 995.0
  },
  {
   "cert": "148603134",
@@ -41,7 +44,8 @@
   "set": "SV08: Surging Sparks",
   "number": "238/191",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 325.0
  },
  {
   "cert": "143575878",
@@ -52,7 +56,8 @@
   "set": "ME01: Mega Evolution",
   "number": "187/132",
   "variant": "Hyper Rare (Gold)",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 695.0
  },
  {
   "cert": "4186032020",
@@ -63,7 +68,8 @@
   "set": "Base Set (Shadowless)",
   "number": "14/102",
   "variant": "Holo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 475.0
  },
  {
   "cert": "157919116",
@@ -74,7 +80,8 @@
   "set": "Crown Zenith: Galarian Gallery",
   "number": "GG45/GG70",
   "variant": "Full Art",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 225.0
  },
  {
   "cert": "126995875",
@@ -85,7 +92,8 @@
   "set": "SV04: Paradox Rift",
   "number": "208/182",
   "variant": "Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 210.0
  },
  {
   "cert": "164010463",
@@ -96,7 +104,8 @@
   "set": "SV: Prismatic Evolutions",
   "number": "156/131",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1650.0
  },
  {
   "cert": "91415603",
@@ -107,7 +116,8 @@
   "set": "Japanese 25th Anniversary Promo",
   "number": "007/025",
   "variant": "Holo",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 725.0
  },
  {
   "cert": "148603150",
@@ -118,7 +128,8 @@
   "set": "SV Promos (Obsidian Flames ETB)",
   "number": "044",
   "variant": "ETB promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 140.0
  },
  {
   "cert": "76542633",
@@ -129,7 +140,8 @@
   "set": "SWSH08: Fusion Strike",
   "number": "270/264",
   "variant": "Alternate Art Secret",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 825.0
  },
  {
   "cert": "160102484",
@@ -140,7 +152,8 @@
   "set": "ME02: Phantasmal Flames",
   "number": "119/088",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 225.0
  },
  {
   "cert": "91475431",
@@ -151,7 +164,8 @@
   "set": "SWSH08: Fusion Strike",
   "number": "271/264",
   "variant": "Alternate Art Secret",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 2895.0
  },
  {
   "cert": "154934548",
@@ -162,7 +176,8 @@
   "set": "SM: Team Up",
   "number": "191/181",
   "variant": "Rainbow Rare Tag Team",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1795.0
  },
  {
   "cert": "102799492",
@@ -173,7 +188,8 @@
   "set": "SV08: Surging Sparks",
   "number": "247/191",
   "variant": "Hyper Rare (Gold)",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 450.0
  },
  {
   "cert": "140354444",
@@ -184,7 +200,8 @@
   "set": "SV10: Destined Rivals",
   "number": "231/182",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1395.0
  },
  {
   "cert": "101150130",
@@ -195,7 +212,8 @@
   "set": "SM: Shining Legends",
   "number": "78/73",
   "variant": "Secret Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1995.0
  },
  {
   "cert": "84385464",
@@ -206,7 +224,8 @@
   "set": "SV04: Paradox Rift",
   "number": "249/182",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 165.0
  },
  {
   "cert": "60398307",
@@ -217,7 +236,8 @@
   "set": "SM Promos (I Choose You!)",
   "number": "SM108",
   "variant": "Movie promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 695.0
  },
  {
   "cert": "112218092",
@@ -228,7 +248,8 @@
   "set": "SV: Shrouded Fable",
   "number": "068/064",
   "variant": "Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 350.0
  },
  {
   "cert": "159583788",
@@ -239,7 +260,8 @@
   "set": "SV: Prismatic Evolutions",
   "number": "153/131",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 795.0
  },
  {
   "cert": "157432592",
@@ -250,7 +272,8 @@
   "set": "ME02: Phantasmal Flames",
   "number": "125/094",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 2395.0
  },
  {
   "cert": "157947546",
@@ -261,7 +284,8 @@
   "set": "SV: White Flare",
   "number": "105/086",
   "variant": "Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1295.0
  },
  {
   "cert": "117439549",
@@ -272,7 +296,8 @@
   "set": "SV: Shrouded Fable",
   "number": "078/064",
   "variant": "Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 395.0
  },
  {
   "cert": "88601098",
@@ -283,7 +308,8 @@
   "set": "Japanese Miracle Twins (sm11)",
   "number": "104/094",
   "variant": "Full Art Trainer SR",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 595.0
  },
  {
   "cert": "99269828",
@@ -294,7 +320,8 @@
   "set": "151 Ultra-Premium Collection",
   "number": "205/165",
   "variant": "Metal collector's card",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 375.0
  },
  {
   "cert": "151124022",
@@ -305,7 +332,8 @@
   "set": "ME: Ascended Heroes",
   "number": "274/217",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 395.0
  },
  {
   "cert": "3914522049",
@@ -316,7 +344,8 @@
   "set": "Neo Genesis",
   "number": "5/111",
   "variant": "Holo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 225.0
  },
  {
   "cert": "123815112",
@@ -327,7 +356,8 @@
   "set": "SV Promos (Marnie Rival Battle Deck)",
   "number": "206",
   "variant": "Deck promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 425.0
  },
  {
   "cert": "68398083",
@@ -338,7 +368,8 @@
   "set": "Japanese Neo Genesis",
   "number": "157",
   "variant": "Holo",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 250.0
  },
  {
   "cert": "158314356",
@@ -349,7 +380,8 @@
   "set": "Japanese SWSH Pre-Order Promo",
   "number": "001/S-P",
   "variant": "Promo",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 1200.0
  },
  {
   "cert": "01465851",
@@ -360,7 +392,8 @@
   "set": "Japanese Movie Promo (1999)",
   "number": "",
   "variant": "Movie promo",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 2900.0
  },
  {
   "cert": "143497925",
@@ -371,7 +404,8 @@
   "set": "SV: Scarlet & Violet 151",
   "number": "199/165",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1650.0
  },
  {
   "cert": "6092232015",
@@ -382,7 +416,8 @@
   "set": "SV: Paldean Fates",
   "number": "234/091",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 995.0
  },
  {
   "cert": "40893356",
@@ -393,7 +428,8 @@
   "set": "XY Promos (Shiny Mega Gyarados box)",
   "number": "XY143",
   "variant": "Holo promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 2900.0
  },
  {
   "cert": "106820051",
@@ -404,7 +440,8 @@
   "set": "Crown Zenith: Galarian Gallery",
   "number": "GG38/GG70",
   "variant": "Full Art",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 275.0
  },
  {
   "cert": "143497924",
@@ -415,7 +452,8 @@
   "set": "SV: Scarlet & Violet 151",
   "number": "199/165",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1650.0
  },
  {
   "cert": "72528005",
@@ -426,7 +464,8 @@
   "set": "Japanese Collection Pack (2009)",
   "number": "011/012",
   "variant": "Holo",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 2600.0
  },
  {
   "cert": "80206632",
@@ -437,7 +476,8 @@
   "set": "Japanese Shining Legends (sm3+)",
   "number": "082/072",
   "variant": "Secret Rare",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 6250.0
  },
  {
   "cert": "131806960",
@@ -448,7 +488,8 @@
   "set": "Japanese PokeKyun Collection 1st Ed.",
   "number": "019/032",
   "variant": "Full Art",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 1400.0
  },
  {
   "cert": "106373315",
@@ -459,7 +500,8 @@
   "set": "SV08: Surging Sparks",
   "number": "237/191",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 350.0
  },
  {
   "cert": "147856867",
@@ -470,7 +512,8 @@
   "set": "ME01: Mega Evolution",
   "number": "133/132",
   "variant": "Enhanced Booster Box Topper",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 700.0
  },
  {
   "cert": "119887060",
@@ -481,7 +524,8 @@
   "set": "SV Promos (Paldean Fates PC ETB)",
   "number": "075",
   "variant": "Pokemon Center ETB promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 400.0
  },
  {
   "cert": "55860410",
@@ -492,7 +536,8 @@
   "set": "Gym Heroes 1st Edition",
   "number": "1/132",
   "variant": "Holo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 1100.0
  },
  {
   "cert": "89239190",
@@ -503,7 +548,8 @@
   "set": "SWSH Promos (Pokemon Center UK)",
   "number": "SWSH075",
   "variant": "Holo promo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 2700.0
  },
  {
   "cert": "96719202",
@@ -514,7 +560,8 @@
   "set": "SV: Paldean Fates",
   "number": "232/091",
   "variant": "Special Illustration Rare",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 3500.0
  },
  {
   "cert": "55630352",
@@ -525,7 +572,8 @@
   "set": "Japanese VS 1st Edition",
   "number": "092/141",
   "variant": "1st Edition",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 650.0
  },
  {
   "cert": "85341167",
@@ -536,7 +584,8 @@
   "set": "Japanese Mysterious Mountains 1st Ed.",
   "number": "031/088",
   "variant": "Holo e-series",
-  "lang": "JP"
+  "lang": "JP",
+  "price": 2000.0
  },
  {
   "cert": "73467609",
@@ -547,6 +596,7 @@
   "set": "Base Set 2",
   "number": "4/130",
   "variant": "Holo",
-  "lang": "EN"
+  "lang": "EN",
+  "price": 900.0
  }
 ]
