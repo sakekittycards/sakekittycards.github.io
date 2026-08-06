@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#06060a" />
+  <meta name="color-scheme" content="dark" />
+  <title>Graded Vault — Make an Offer | Sake Kitty Cards</title>
+  <meta name="description" content="Our graded slab showcase — PSA and CGC certified Pokémon cards, vintage to modern chase. No fixed price: send your best offer and we'll reply." />
+
+  <link rel="canonical" href="https://sakekittycards.com/graded.html" />
+  <meta property="og:title" content="Graded Vault — Make an Offer | Sake Kitty Cards" />
+  <meta property="og:description" content="PSA and CGC certified Pokémon slabs, vintage to modern chase. No fixed price — send your best offer and we'll reply." />
+  <meta property="og:site_name" content="Sake Kitty Cards" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://sakekittycards.com/graded.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Graded Vault — Make an Offer | Sake Kitty Cards" />
+  <meta name="twitter:description" content="PSA and CGC certified Pokémon slabs, vintage to modern chase. No fixed price — send your best offer and we'll reply." />
+  <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+  <!-- Breadcrumb structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://sakekittycards.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Graded Vault", "item": "https://sakekittycards.com/graded.html" }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=178" />
+  <style>
+    .page-singles .page-hero { padding-bottom: 18px; }
+    .page-singles .page-hero h1 { font-size: clamp(38px, 7vw, 60px); }
+    .singles-tagline {
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: clamp(13px, 2.2vw, 16px); letter-spacing: 0.05em;
+      text-transform: uppercase; margin-top: 12px;
+    }
+    .singles-tagline .ok { color: var(--cyan); }
+    .singles-tagline .pop { color: var(--pink); }
+    .singles-note {
+      display: flex; gap: 10px; align-items: flex-start;
+      max-width: 760px; margin: 16px auto 0;
+      padding: 12px 16px; border-radius: 12px;
+      background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.28);
+      color: rgba(255,255,255,0.88); font-size: 14px; line-height: 1.55; text-align: left;
+    }
+    .singles-note strong { color: var(--cyan); }
+
+    .singles-grid {
+      display: grid; gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    }
+    .single-card {
+      position: relative;
+      display: flex; flex-direction: column;
+      background: var(--panel, #12121c); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      transition: transform .2s ease, border-color .2s, box-shadow .2s;
+    }
+    .single-card:hover {
+      transform: translateY(-4px); border-color: rgba(255,106,0,0.55);
+      box-shadow: 0 14px 34px rgba(255,106,0,0.18), 0 0 26px rgba(123,47,255,0.12);
+    }
+    .single-imgwrap {
+      position: relative; display: block; padding: 14px 14px 6px;
+      background: radial-gradient(circle at 50% 35%, rgba(123,47,255,0.14), transparent 70%);
+    }
+    .single-imgwrap img {
+      display: block; width: 100%; height: auto; border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+    .slab-lang {
+      position: absolute; top: 20px; right: 20px;
+      font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
+      background: #4a2540; color: #ffb6e6;
+    }
+    .single-meta { padding: 4px 14px 14px; display: flex; flex-direction: column; gap: 7px; flex: 1; }
+    .single-name { font-size: 16px; font-weight: 700; margin: 0; line-height: 1.2; }
+    .single-sub { font-size: 12.5px; color: var(--dim); margin: 0; }
+    .single-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+    .slab-grade {
+      font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+      letter-spacing: .02em;
+    }
+    .slab-grade.grade-10 { background: rgba(255,210,122,0.18); color: #ffd27a; }
+    .slab-grade.grade-9 { background: rgba(0,212,255,0.16); color: #67d8ff; }
+    .slab-grade.grade-8 { background: rgba(255,184,77,0.16); color: #ffce85; }
+    .slab-cert { font-size: 11.5px; color: var(--dim); margin: 0; }
+    .slab-cert a { color: var(--cyan); text-decoration: none; }
+    .slab-cert a:hover { text-decoration: underline; }
+    .make-offer { margin-top: auto; width: 100%; justify-content: center; }
+    .singles-tcg {
+      max-width: 720px; margin: 30px auto 0; padding: 22px 24px; border-radius: 16px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(255,106,0,0.12), rgba(123,47,255,0.12));
+      border: 1px solid rgba(255,106,0,0.35);
+    }
+    .singles-tcg h2 { margin: 0 0 6px; font-size: clamp(20px,4vw,26px); }
+    .singles-tcg p { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    @media (max-width: 560px) {
+      .singles-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+      .single-name { font-size: 15px; }
+    }
+  </style>
+</head>
+<body class="page-singles">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="bg-blob bg-blob-1"></div>
+  <div class="bg-blob bg-blob-2"></div>
+
+  <nav class="site-nav" id="siteNav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img width="32" height="32" src="logo.png" alt="Sake Kitty Cards" />
+        <span>Sake Kitty Cards</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <ul class="nav-dropdown-menu" aria-label="Shop categories">
+            <li><a href="shop.html?cat=graded">Graded Cards</a></li>
+            <li><a href="shop.html?cat=sealed">Sealed</a></li>
+            <li><a href="shop.html?cat=singles">Singles</a></li>
+            <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+          </ul>
+        </li>
+        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li><a href="grading-prep.html">Grading Prep</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="team.html">Our Team</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="reviews.html">Reviews</a></li>
+        <li><a href="watch.html">Watch</a></li>
+        <li class="nav-dropdown">
+          <a href="resources.html">Resources</a>
+          <ul class="nav-dropdown-menu" aria-label="Resources">
+            <li><a href="shipping.html">Shipping &amp; Packing</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
+        <li><a href="contact.html" class="nav-cta">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main" class="page-content">
+    <div class="page-hero">
+      <h1>Graded Vault</h1>
+      <p>Our slab showcase — 51 PSA &amp; CGC certified cards, from Shadowless Base Set to the newest Special Illustration Rares. Every photo is the exact slab you'll receive. No fixed price: send your best offer.</p>
+      <p class="singles-tagline">Certified <span class="ok">Slabs</span> · Best <span class="pop">Offer</span></p>
+      <div class="singles-note">
+        <span aria-hidden="true">📍</span>
+        <span>We're local vendors — these also sell in person and at shows, so availability can change. <strong>We'll confirm a slab is still here before anything's finalized.</strong> Tap any card to send an offer straight to Nick.</span>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top:0">
+      <div class="singles-grid">
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Venusaur%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20157919140%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Venusaur%20ex%20177/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157919140%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mega Venusaur ex PSA 10 GEM MINT">
+            <img src="assets/graded/157919140.jpg" alt="Mega Venusaur ex PSA 10 GEM MINT — ME01: Mega Evolution" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mega Venusaur ex</h3>
+            <p class="single-sub">ME01: Mega Evolution · #177/132</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #157919140 · <a href="https://www.psacard.com/cert/157919140" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/157919140b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Venusaur%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20157919140%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Venusaur%20ex%20177/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157919140%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Magneton%20PSA%209%20MINT%20%28Cert%20148603144%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Magneton%20159%0ASet%3A%20SV%20Promos%20%28Surging%20Sparks%20PC%20ETB%29%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603144%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Magneton PSA 9 MINT">
+            <img src="assets/graded/148603144.jpg" alt="Magneton PSA 9 MINT — SV Promos (Surging Sparks PC ETB)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Magneton</h3>
+            <p class="single-sub">SV Promos (Surging Sparks PC ETB) · #159</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #148603144 · <a href="https://www.psacard.com/cert/148603144" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/148603144b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Magneton%20PSA%209%20MINT%20%28Cert%20148603144%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Magneton%20159%0ASet%3A%20SV%20Promos%20%28Surging%20Sparks%20PC%20ETB%29%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603144%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20119392108%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20238/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20119392108%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Pikachu ex PSA 10 GEM MINT">
+            <img src="assets/graded/119392108.jpg" alt="Pikachu ex PSA 10 GEM MINT — SV08: Surging Sparks" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Pikachu ex</h3>
+            <p class="single-sub">SV08: Surging Sparks · #238/191</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #119392108 · <a href="https://www.psacard.com/cert/119392108" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/119392108b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20119392108%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20238/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20119392108%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%209%20MINT%20%28Cert%20148603134%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20238/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603134%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Pikachu ex PSA 9 MINT">
+            <img src="assets/graded/148603134.jpg" alt="Pikachu ex PSA 9 MINT — SV08: Surging Sparks" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Pikachu ex</h3>
+            <p class="single-sub">SV08: Surging Sparks · #238/191</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #148603134 · <a href="https://www.psacard.com/cert/148603134" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/148603134b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%209%20MINT%20%28Cert%20148603134%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20238/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603134%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Gardevoir%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143575878%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Gardevoir%20ex%20187/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143575878%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mega Gardevoir ex PSA 10 GEM MINT">
+            <img src="assets/graded/143575878.jpg" alt="Mega Gardevoir ex PSA 10 GEM MINT — ME01: Mega Evolution" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mega Gardevoir ex</h3>
+            <p class="single-sub">ME01: Mega Evolution · #187/132</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #143575878 · <a href="https://www.psacard.com/cert/143575878" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/143575878b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Gardevoir%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143575878%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Gardevoir%20ex%20187/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143575878%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Raichu%20CGC%209%20MINT%20%28Cert%204186032020%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Raichu%2014/102%0ASet%3A%20Base%20Set%20%28Shadowless%29%0AGrade%3A%20CGC%209%20MINT%0ACert%20%23%3A%204186032020%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Raichu CGC 9 MINT">
+            <img src="assets/graded/4186032020.jpg" alt="Raichu CGC 9 MINT — Base Set (Shadowless)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Raichu</h3>
+            <p class="single-sub">Base Set (Shadowless) · #14/102</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">CGC 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #4186032020 · <a href="https://www.cgccards.com/certlookup/4186032020/" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/4186032020b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Raichu%20CGC%209%20MINT%20%28Cert%204186032020%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Raichu%2014/102%0ASet%3A%20Base%20Set%20%28Shadowless%29%0AGrade%3A%20CGC%209%20MINT%0ACert%20%23%3A%204186032020%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Deoxys%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%20157919116%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Deoxys%20VMAX%20GG45/GG70%0ASet%3A%20Crown%20Zenith%3A%20Galarian%20Gallery%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157919116%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Deoxys VMAX PSA 10 GEM MINT">
+            <img src="assets/graded/157919116.jpg" alt="Deoxys VMAX PSA 10 GEM MINT — Crown Zenith: Galarian Gallery" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Deoxys VMAX</h3>
+            <p class="single-sub">Crown Zenith: Galarian Gallery · #GG45/GG70</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #157919116 · <a href="https://www.psacard.com/cert/157919116" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/157919116b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Deoxys%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%20157919116%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Deoxys%20VMAX%20GG45/GG70%0ASet%3A%20Crown%20Zenith%3A%20Galarian%20Gallery%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157919116%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Steelix%20PSA%2010%20GEM%20MINT%20%28Cert%20126995875%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Steelix%20208/182%0ASet%3A%20SV04%3A%20Paradox%20Rift%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20126995875%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Steelix PSA 10 GEM MINT">
+            <img src="assets/graded/126995875.jpg" alt="Steelix PSA 10 GEM MINT — SV04: Paradox Rift" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Steelix</h3>
+            <p class="single-sub">SV04: Paradox Rift · #208/182</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #126995875 · <a href="https://www.psacard.com/cert/126995875" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/126995875b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Steelix%20PSA%2010%20GEM%20MINT%20%28Cert%20126995875%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Steelix%20208/182%0ASet%3A%20SV04%3A%20Paradox%20Rift%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20126995875%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Sylveon%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20164010463%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Sylveon%20ex%20156/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20164010463%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Sylveon ex PSA 10 GEM MINT">
+            <img src="assets/graded/164010463.jpg" alt="Sylveon ex PSA 10 GEM MINT — SV: Prismatic Evolutions" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Sylveon ex</h3>
+            <p class="single-sub">SV: Prismatic Evolutions · #156/131</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #164010463 · <a href="https://www.psacard.com/cert/164010463" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/164010463b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Sylveon%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20164010463%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Sylveon%20ex%20156/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20164010463%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Birthday%20Pikachu%20PSA%2010%20GEM%20MINT%20%28Cert%2091415603%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Birthday%20Pikachu%20007/025%0ASet%3A%20Japanese%2025th%20Anniversary%20Promo%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2091415603%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Birthday Pikachu PSA 10 GEM MINT">
+            <img src="assets/graded/91415603.jpg" alt="Birthday Pikachu PSA 10 GEM MINT — Japanese 25th Anniversary Promo" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Birthday Pikachu</h3>
+            <p class="single-sub">Japanese 25th Anniversary Promo · #007/025</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #91415603 · <a href="https://www.psacard.com/cert/91415603" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/91415603b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Birthday%20Pikachu%20PSA%2010%20GEM%20MINT%20%28Cert%2091415603%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Birthday%20Pikachu%20007/025%0ASet%3A%20Japanese%2025th%20Anniversary%20Promo%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2091415603%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charmander%20PSA%209%20MINT%20%28Cert%20148603150%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charmander%20044%0ASet%3A%20SV%20Promos%20%28Obsidian%20Flames%20ETB%29%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603150%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Charmander PSA 9 MINT">
+            <img src="assets/graded/148603150.jpg" alt="Charmander PSA 9 MINT — SV Promos (Obsidian Flames ETB)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Charmander</h3>
+            <p class="single-sub">SV Promos (Obsidian Flames ETB) · #044</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #148603150 · <a href="https://www.psacard.com/cert/148603150" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/148603150b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charmander%20PSA%209%20MINT%20%28Cert%20148603150%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charmander%20044%0ASet%3A%20SV%20Promos%20%28Obsidian%20Flames%20ETB%29%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20148603150%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Espeon%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%2076542633%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Espeon%20VMAX%20270/264%0ASet%3A%20SWSH08%3A%20Fusion%20Strike%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2076542633%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Espeon VMAX PSA 10 GEM MINT">
+            <img src="assets/graded/76542633.jpg" alt="Espeon VMAX PSA 10 GEM MINT — SWSH08: Fusion Strike" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Espeon VMAX</h3>
+            <p class="single-sub">SWSH08: Fusion Strike · #270/264</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #76542633 · <a href="https://www.psacard.com/cert/76542633" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/76542633b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Espeon%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%2076542633%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Espeon%20VMAX%20270/264%0ASet%3A%20SWSH08%3A%20Fusion%20Strike%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2076542633%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Clefable%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20160102484%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Clefable%20ex%20119/088%0ASet%3A%20ME02%3A%20Phantasmal%20Flames%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20160102484%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mega Clefable ex PSA 10 GEM MINT">
+            <img src="assets/graded/160102484.jpg" alt="Mega Clefable ex PSA 10 GEM MINT — ME02: Phantasmal Flames" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mega Clefable ex</h3>
+            <p class="single-sub">ME02: Phantasmal Flames · #119/088</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #160102484 · <a href="https://www.psacard.com/cert/160102484" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/160102484b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Clefable%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20160102484%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Clefable%20ex%20119/088%0ASet%3A%20ME02%3A%20Phantasmal%20Flames%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20160102484%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Eevee%20ex%20PSA%209%20MINT%20%28Cert%20129115658%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Eevee%20ex%20167/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20129115658%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Eevee ex PSA 9 MINT">
+            <img src="assets/graded/129115658.jpg" alt="Eevee ex PSA 9 MINT — SV: Prismatic Evolutions" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Eevee ex</h3>
+            <p class="single-sub">SV: Prismatic Evolutions · #167/131</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #129115658 · <a href="https://www.psacard.com/cert/129115658" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/129115658b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Eevee%20ex%20PSA%209%20MINT%20%28Cert%20129115658%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Eevee%20ex%20167/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20129115658%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Gengar%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%2091475431%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Gengar%20VMAX%20271/264%0ASet%3A%20SWSH08%3A%20Fusion%20Strike%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2091475431%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Gengar VMAX PSA 10 GEM MINT">
+            <img src="assets/graded/91475431.jpg" alt="Gengar VMAX PSA 10 GEM MINT — SWSH08: Fusion Strike" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Gengar VMAX</h3>
+            <p class="single-sub">SWSH08: Fusion Strike · #271/264</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #91475431 · <a href="https://www.psacard.com/cert/91475431" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/91475431b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Gengar%20VMAX%20PSA%2010%20GEM%20MINT%20%28Cert%2091475431%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Gengar%20VMAX%20271/264%0ASet%3A%20SWSH08%3A%20Fusion%20Strike%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2091475431%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Eevee%20%26%20Snorlax%20GX%20PSA%2010%20GEM%20MINT%20%28Cert%20154934548%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Eevee%20%26%20Snorlax%20GX%20191/181%0ASet%3A%20SM%3A%20Team%20Up%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20154934548%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Eevee &amp; Snorlax GX PSA 10 GEM MINT">
+            <img src="assets/graded/154934548.jpg" alt="Eevee &amp; Snorlax GX PSA 10 GEM MINT — SM: Team Up" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Eevee &amp; Snorlax GX</h3>
+            <p class="single-sub">SM: Team Up · #191/181</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #154934548 · <a href="https://www.psacard.com/cert/154934548" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/154934548b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Eevee%20%26%20Snorlax%20GX%20PSA%2010%20GEM%20MINT%20%28Cert%20154934548%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Eevee%20%26%20Snorlax%20GX%20191/181%0ASet%3A%20SM%3A%20Team%20Up%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20154934548%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20102799492%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20247/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20102799492%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Pikachu ex PSA 10 GEM MINT">
+            <img src="assets/graded/102799492.jpg" alt="Pikachu ex PSA 10 GEM MINT — SV08: Surging Sparks" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Pikachu ex</h3>
+            <p class="single-sub">SV08: Surging Sparks · #247/191</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #102799492 · <a href="https://www.psacard.com/cert/102799492" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/102799492b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20102799492%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20ex%20247/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20102799492%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Team%20Rocket%27s%20Mewtwo%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20140354444%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Team%20Rocket%27s%20Mewtwo%20ex%20231/182%0ASet%3A%20SV10%3A%20Destined%20Rivals%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20140354444%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Team Rocket&#x27;s Mewtwo ex PSA 10 GEM MINT">
+            <img src="assets/graded/140354444.jpg" alt="Team Rocket&#x27;s Mewtwo ex PSA 10 GEM MINT — SV10: Destined Rivals" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Team Rocket&#x27;s Mewtwo ex</h3>
+            <p class="single-sub">SV10: Destined Rivals · #231/182</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #140354444 · <a href="https://www.psacard.com/cert/140354444" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/140354444b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Team%20Rocket%27s%20Mewtwo%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20140354444%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Team%20Rocket%27s%20Mewtwo%20ex%20231/182%0ASet%3A%20SV10%3A%20Destined%20Rivals%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20140354444%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mewtwo%20GX%20PSA%209%20MINT%20%28Cert%20101150130%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mewtwo%20GX%2078/73%0ASet%3A%20SM%3A%20Shining%20Legends%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20101150130%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mewtwo GX PSA 9 MINT">
+            <img src="assets/graded/101150130.jpg" alt="Mewtwo GX PSA 9 MINT — SM: Shining Legends" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mewtwo GX</h3>
+            <p class="single-sub">SM: Shining Legends · #78/73</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #101150130 · <a href="https://www.psacard.com/cert/101150130" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/101150130b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mewtwo%20GX%20PSA%209%20MINT%20%28Cert%20101150130%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mewtwo%20GX%2078/73%0ASet%3A%20SM%3A%20Shining%20Legends%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%20101150130%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Iron%20Valiant%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%2084385464%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Iron%20Valiant%20ex%20249/182%0ASet%3A%20SV04%3A%20Paradox%20Rift%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2084385464%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Iron Valiant ex PSA 10 GEM MINT">
+            <img src="assets/graded/84385464.jpg" alt="Iron Valiant ex PSA 10 GEM MINT — SV04: Paradox Rift" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Iron Valiant ex</h3>
+            <p class="single-sub">SV04: Paradox Rift · #249/182</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #84385464 · <a href="https://www.psacard.com/cert/84385464" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/84385464b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Iron%20Valiant%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%2084385464%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Iron%20Valiant%20ex%20249/182%0ASet%3A%20SV04%3A%20Paradox%20Rift%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2084385464%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Ash%27s%20Pikachu%20PSA%2010%20GEM%20MINT%20%28Cert%2060398307%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Ash%27s%20Pikachu%20SM108%0ASet%3A%20SM%20Promos%20%28I%20Choose%20You%21%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2060398307%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Ash&#x27;s Pikachu PSA 10 GEM MINT">
+            <img src="assets/graded/60398307.jpg" alt="Ash&#x27;s Pikachu PSA 10 GEM MINT — SM Promos (I Choose You!)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Ash&#x27;s Pikachu</h3>
+            <p class="single-sub">SM Promos (I Choose You!) · #SM108</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #60398307 · <a href="https://www.psacard.com/cert/60398307" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/60398307b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Ash%27s%20Pikachu%20PSA%2010%20GEM%20MINT%20%28Cert%2060398307%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Ash%27s%20Pikachu%20SM108%0ASet%3A%20SM%20Promos%20%28I%20Choose%20You%21%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2060398307%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Duskull%20PSA%2010%20GEM%20MINT%20%28Cert%20112218092%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Duskull%20068/064%0ASet%3A%20SV%3A%20Shrouded%20Fable%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20112218092%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Duskull PSA 10 GEM MINT">
+            <img src="assets/graded/112218092.jpg" alt="Duskull PSA 10 GEM MINT — SV: Shrouded Fable" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Duskull</h3>
+            <p class="single-sub">SV: Shrouded Fable · #068/064</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #112218092 · <a href="https://www.psacard.com/cert/112218092" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/112218092b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Duskull%20PSA%2010%20GEM%20MINT%20%28Cert%20112218092%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Duskull%20068/064%0ASet%3A%20SV%3A%20Shrouded%20Fable%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20112218092%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Jolteon%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20159583788%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Jolteon%20ex%20153/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20159583788%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Jolteon ex PSA 10 GEM MINT">
+            <img src="assets/graded/159583788.jpg" alt="Jolteon ex PSA 10 GEM MINT — SV: Prismatic Evolutions" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Jolteon ex</h3>
+            <p class="single-sub">SV: Prismatic Evolutions · #153/131</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #159583788 · <a href="https://www.psacard.com/cert/159583788" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/159583788b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Jolteon%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20159583788%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Jolteon%20ex%20153/131%0ASet%3A%20SV%3A%20Prismatic%20Evolutions%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20159583788%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Charizard%20X%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20157432592%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Charizard%20X%20ex%20125/094%0ASet%3A%20ME02%3A%20Phantasmal%20Flames%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157432592%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mega Charizard X ex PSA 10 GEM MINT">
+            <img src="assets/graded/157432592.jpg" alt="Mega Charizard X ex PSA 10 GEM MINT — ME02: Phantasmal Flames" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mega Charizard X ex</h3>
+            <p class="single-sub">ME02: Phantasmal Flames · #125/094</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #157432592 · <a href="https://www.psacard.com/cert/157432592" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/157432592b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Charizard%20X%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20157432592%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Charizard%20X%20ex%20125/094%0ASet%3A%20ME02%3A%20Phantasmal%20Flames%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157432592%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Oshawott%20PSA%2010%20GEM%20MINT%20%28Cert%20157947546%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Oshawott%20105/086%0ASet%3A%20SV%3A%20White%20Flare%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157947546%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Oshawott PSA 10 GEM MINT">
+            <img src="assets/graded/157947546.jpg" alt="Oshawott PSA 10 GEM MINT — SV: White Flare" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Oshawott</h3>
+            <p class="single-sub">SV: White Flare · #105/086</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #157947546 · <a href="https://www.psacard.com/cert/157947546" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/157947546b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Oshawott%20PSA%2010%20GEM%20MINT%20%28Cert%20157947546%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Oshawott%20105/086%0ASet%3A%20SV%3A%20White%20Flare%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20157947546%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Persian%20PSA%2010%20GEM%20MINT%20%28Cert%20117439549%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Persian%20078/064%0ASet%3A%20SV%3A%20Shrouded%20Fable%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20117439549%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Persian PSA 10 GEM MINT">
+            <img src="assets/graded/117439549.jpg" alt="Persian PSA 10 GEM MINT — SV: Shrouded Fable" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Persian</h3>
+            <p class="single-sub">SV: Shrouded Fable · #078/064</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #117439549 · <a href="https://www.psacard.com/cert/117439549" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/117439549b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Persian%20PSA%2010%20GEM%20MINT%20%28Cert%20117439549%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Persian%20078/064%0ASet%3A%20SV%3A%20Shrouded%20Fable%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20117439549%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Misty%27s%20Favor%20PSA%2010%20GEM%20MINT%20%28Cert%2088601098%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Misty%27s%20Favor%20104/094%0ASet%3A%20Japanese%20Miracle%20Twins%20%28sm11%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2088601098%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Misty&#x27;s Favor PSA 10 GEM MINT">
+            <img src="assets/graded/88601098.jpg" alt="Misty&#x27;s Favor PSA 10 GEM MINT — Japanese Miracle Twins (sm11)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Misty&#x27;s Favor</h3>
+            <p class="single-sub">Japanese Miracle Twins (sm11) · #104/094</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #88601098 · <a href="https://www.psacard.com/cert/88601098" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/88601098b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Misty%27s%20Favor%20PSA%2010%20GEM%20MINT%20%28Cert%2088601098%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Misty%27s%20Favor%20104/094%0ASet%3A%20Japanese%20Miracle%20Twins%20%28sm11%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2088601098%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mew%20ex%20%28Gold%20Metal%29%20PSA%2010%20GEM%20MINT%20%28Cert%2099269828%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mew%20ex%20%28Gold%20Metal%29%20205/165%0ASet%3A%20151%20Ultra-Premium%20Collection%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2099269828%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mew ex (Gold Metal) PSA 10 GEM MINT">
+            <img src="assets/graded/99269828.jpg" alt="Mew ex (Gold Metal) PSA 10 GEM MINT — 151 Ultra-Premium Collection" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mew ex (Gold Metal)</h3>
+            <p class="single-sub">151 Ultra-Premium Collection · #205/165</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #99269828 · <a href="https://www.psacard.com/cert/99269828" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/99269828b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mew%20ex%20%28Gold%20Metal%29%20PSA%2010%20GEM%20MINT%20%28Cert%2099269828%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mew%20ex%20%28Gold%20Metal%29%20205/165%0ASet%3A%20151%20Ultra-Premium%20Collection%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2099269828%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Feraligatr%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20151124022%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Feraligatr%20ex%20274/217%0ASet%3A%20ME%3A%20Ascended%20Heroes%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20151124022%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mega Feraligatr ex PSA 10 GEM MINT">
+            <img src="assets/graded/151124022.jpg" alt="Mega Feraligatr ex PSA 10 GEM MINT — ME: Ascended Heroes" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mega Feraligatr ex</h3>
+            <p class="single-sub">ME: Ascended Heroes · #274/217</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #151124022 · <a href="https://www.psacard.com/cert/151124022" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/151124022b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mega%20Feraligatr%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20151124022%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mega%20Feraligatr%20ex%20274/217%0ASet%3A%20ME%3A%20Ascended%20Heroes%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20151124022%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Feraligatr%20CGC%208.5%20NM/MINT%2B%20%28Cert%203914522049%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Feraligatr%205/111%0ASet%3A%20Neo%20Genesis%0AGrade%3A%20CGC%208.5%20NM/MINT%2B%0ACert%20%23%3A%203914522049%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Feraligatr CGC 8.5 NM/MINT+">
+            <img src="assets/graded/3914522049.jpg" alt="Feraligatr CGC 8.5 NM/MINT+ — Neo Genesis" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Feraligatr</h3>
+            <p class="single-sub">Neo Genesis · #5/111</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-8">CGC 8.5 NM/MINT+</span>
+            </div>
+            <p class="slab-cert">Cert #3914522049 · <a href="https://www.cgccards.com/certlookup/3914522049/" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/3914522049b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Feraligatr%20CGC%208.5%20NM/MINT%2B%20%28Cert%203914522049%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Feraligatr%205/111%0ASet%3A%20Neo%20Genesis%0AGrade%3A%20CGC%208.5%20NM/MINT%2B%0ACert%20%23%3A%203914522049%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Marnie%27s%20Morpeko%20PSA%2010%20GEM%20MINT%20%28Cert%20123815112%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Marnie%27s%20Morpeko%20206%0ASet%3A%20SV%20Promos%20%28Marnie%20Rival%20Battle%20Deck%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20123815112%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Marnie&#x27;s Morpeko PSA 10 GEM MINT">
+            <img src="assets/graded/123815112.jpg" alt="Marnie&#x27;s Morpeko PSA 10 GEM MINT — SV Promos (Marnie Rival Battle Deck)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Marnie&#x27;s Morpeko</h3>
+            <p class="single-sub">SV Promos (Marnie Rival Battle Deck) · #206</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #123815112 · <a href="https://www.psacard.com/cert/123815112" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/123815112b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Marnie%27s%20Morpeko%20PSA%2010%20GEM%20MINT%20%28Cert%20123815112%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Marnie%27s%20Morpeko%20206%0ASet%3A%20SV%20Promos%20%28Marnie%20Rival%20Battle%20Deck%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20123815112%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Typhlosion%20PSA%209%20MINT%20%28Cert%2068398083%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Typhlosion%20157%0ASet%3A%20Japanese%20Neo%20Genesis%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%2068398083%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Typhlosion PSA 9 MINT">
+            <img src="assets/graded/68398083.jpg" alt="Typhlosion PSA 9 MINT — Japanese Neo Genesis" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Typhlosion</h3>
+            <p class="single-sub">Japanese Neo Genesis · #157</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #68398083 · <a href="https://www.psacard.com/cert/68398083" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/68398083b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Typhlosion%20PSA%209%20MINT%20%28Cert%2068398083%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Typhlosion%20157%0ASet%3A%20Japanese%20Neo%20Genesis%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%2068398083%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20%28Full%20Art%29%20PSA%2010%20GEM%20MINT%20%28Cert%20158314356%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20%28Full%20Art%29%20001/S-P%0ASet%3A%20Japanese%20SWSH%20Pre-Order%20Promo%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20158314356%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Pikachu (Full Art) PSA 10 GEM MINT">
+            <img src="assets/graded/158314356.jpg" alt="Pikachu (Full Art) PSA 10 GEM MINT — Japanese SWSH Pre-Order Promo" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Pikachu (Full Art)</h3>
+            <p class="single-sub">Japanese SWSH Pre-Order Promo · #001/S-P</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #158314356 · <a href="https://www.psacard.com/cert/158314356" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/158314356b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Pikachu%20%28Full%20Art%29%20PSA%2010%20GEM%20MINT%20%28Cert%20158314356%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Pikachu%20%28Full%20Art%29%20001/S-P%0ASet%3A%20Japanese%20SWSH%20Pre-Order%20Promo%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20158314356%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Ancient%20Mew%20II%20PSA%2010%20GEM%20MINT%20%28Cert%2001465851%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Ancient%20Mew%20II%0ASet%3A%20Japanese%20Movie%20Promo%20%281999%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2001465851%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Ancient Mew II PSA 10 GEM MINT">
+            <img src="assets/graded/01465851.jpg" alt="Ancient Mew II PSA 10 GEM MINT — Japanese Movie Promo (1999)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Ancient Mew II</h3>
+            <p class="single-sub">Japanese Movie Promo (1999)</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #01465851 · <a href="https://www.psacard.com/cert/01465851" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/01465851b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Ancient%20Mew%20II%20PSA%2010%20GEM%20MINT%20%28Cert%2001465851%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Ancient%20Mew%20II%0ASet%3A%20Japanese%20Movie%20Promo%20%281999%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2001465851%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143497925%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20199/165%0ASet%3A%20SV%3A%20Scarlet%20%26%20Violet%20151%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143497925%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Charizard ex PSA 10 GEM MINT">
+            <img src="assets/graded/143497925.jpg" alt="Charizard ex PSA 10 GEM MINT — SV: Scarlet &amp; Violet 151" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Charizard ex</h3>
+            <p class="single-sub">SV: Scarlet &amp; Violet 151 · #199/165</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #143497925 · <a href="https://www.psacard.com/cert/143497925" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/143497925b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143497925%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20199/165%0ASet%3A%20SV%3A%20Scarlet%20%26%20Violet%20151%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143497925%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20%28Shiny%29%20CGC%20PRISTINE%2010%20%28Cert%206092232015%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20%28Shiny%29%20234/091%0ASet%3A%20SV%3A%20Paldean%20Fates%0AGrade%3A%20CGC%20PRISTINE%2010%0ACert%20%23%3A%206092232015%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Charizard ex (Shiny) CGC PRISTINE 10">
+            <img src="assets/graded/6092232015.jpg" alt="Charizard ex (Shiny) CGC PRISTINE 10 — SV: Paldean Fates" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Charizard ex (Shiny)</h3>
+            <p class="single-sub">SV: Paldean Fates · #234/091</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">CGC PRISTINE 10</span>
+            </div>
+            <p class="slab-cert">Cert #6092232015 · <a href="https://www.cgccards.com/certlookup/6092232015/" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/6092232015b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20%28Shiny%29%20CGC%20PRISTINE%2010%20%28Cert%206092232015%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20%28Shiny%29%20234/091%0ASet%3A%20SV%3A%20Paldean%20Fates%0AGrade%3A%20CGC%20PRISTINE%2010%0ACert%20%23%3A%206092232015%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Magikarp%20PSA%2010%20GEM%20MINT%20%28Cert%2040893356%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Magikarp%20XY143%0ASet%3A%20XY%20Promos%20%28Shiny%20Mega%20Gyarados%20box%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2040893356%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Magikarp PSA 10 GEM MINT">
+            <img src="assets/graded/40893356.jpg" alt="Magikarp PSA 10 GEM MINT — XY Promos (Shiny Mega Gyarados box)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Magikarp</h3>
+            <p class="single-sub">XY Promos (Shiny Mega Gyarados box) · #XY143</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #40893356 · <a href="https://www.psacard.com/cert/40893356" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/40893356b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Magikarp%20PSA%2010%20GEM%20MINT%20%28Cert%2040893356%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Magikarp%20XY143%0ASet%3A%20XY%20Promos%20%28Shiny%20Mega%20Gyarados%20box%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2040893356%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Suicune%20V%20PSA%2010%20GEM%20MINT%20%28Cert%20106820051%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Suicune%20V%20GG38/GG70%0ASet%3A%20Crown%20Zenith%3A%20Galarian%20Gallery%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20106820051%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Suicune V PSA 10 GEM MINT">
+            <img src="assets/graded/106820051.jpg" alt="Suicune V PSA 10 GEM MINT — Crown Zenith: Galarian Gallery" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Suicune V</h3>
+            <p class="single-sub">Crown Zenith: Galarian Gallery · #GG38/GG70</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #106820051 · <a href="https://www.psacard.com/cert/106820051" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/106820051b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Suicune%20V%20PSA%2010%20GEM%20MINT%20%28Cert%20106820051%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Suicune%20V%20GG38/GG70%0ASet%3A%20Crown%20Zenith%3A%20Galarian%20Gallery%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20106820051%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143497924%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20199/165%0ASet%3A%20SV%3A%20Scarlet%20%26%20Violet%20151%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143497924%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Charizard ex PSA 10 GEM MINT">
+            <img src="assets/graded/143497924.jpg" alt="Charizard ex PSA 10 GEM MINT — SV: Scarlet &amp; Violet 151" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Charizard ex</h3>
+            <p class="single-sub">SV: Scarlet &amp; Violet 151 · #199/165</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #143497924 · <a href="https://www.psacard.com/cert/143497924" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/143497924b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20143497924%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%20ex%20199/165%0ASet%3A%20SV%3A%20Scarlet%20%26%20Violet%20151%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20143497924%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Regigigas%20LV.X%20PSA%2010%20GEM%20MINT%20%28Cert%2072528005%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Regigigas%20LV.X%20011/012%0ASet%3A%20Japanese%20Collection%20Pack%20%282009%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2072528005%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Regigigas LV.X PSA 10 GEM MINT">
+            <img src="assets/graded/72528005.jpg" alt="Regigigas LV.X PSA 10 GEM MINT — Japanese Collection Pack (2009)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Regigigas LV.X</h3>
+            <p class="single-sub">Japanese Collection Pack (2009) · #011/012</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #72528005 · <a href="https://www.psacard.com/cert/72528005" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/72528005b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Regigigas%20LV.X%20PSA%2010%20GEM%20MINT%20%28Cert%2072528005%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Regigigas%20LV.X%20011/012%0ASet%3A%20Japanese%20Collection%20Pack%20%282009%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2072528005%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mewtwo%20GX%20PSA%2010%20GEM%20MINT%20%28Cert%2080206632%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mewtwo%20GX%20082/072%0ASet%3A%20Japanese%20Shining%20Legends%20%28sm3%2B%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2080206632%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mewtwo GX PSA 10 GEM MINT">
+            <img src="assets/graded/80206632.jpg" alt="Mewtwo GX PSA 10 GEM MINT — Japanese Shining Legends (sm3+)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Mewtwo GX</h3>
+            <p class="single-sub">Japanese Shining Legends (sm3+) · #082/072</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #80206632 · <a href="https://www.psacard.com/cert/80206632" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/80206632b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mewtwo%20GX%20PSA%2010%20GEM%20MINT%20%28Cert%2080206632%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mewtwo%20GX%20082/072%0ASet%3A%20Japanese%20Shining%20Legends%20%28sm3%2B%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2080206632%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Gardevoir%20EX%20PSA%2010%20GEM%20MINT%20%28Cert%20131806960%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Gardevoir%20EX%20019/032%0ASet%3A%20Japanese%20PokeKyun%20Collection%201st%20Ed.%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20131806960%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Gardevoir EX PSA 10 GEM MINT">
+            <img src="assets/graded/131806960.jpg" alt="Gardevoir EX PSA 10 GEM MINT — Japanese PokeKyun Collection 1st Ed." loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Gardevoir EX</h3>
+            <p class="single-sub">Japanese PokeKyun Collection 1st Ed. · #019/032</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #131806960 · <a href="https://www.psacard.com/cert/131806960" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/131806960b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Gardevoir%20EX%20PSA%2010%20GEM%20MINT%20%28Cert%20131806960%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Gardevoir%20EX%20019/032%0ASet%3A%20Japanese%20PokeKyun%20Collection%201st%20Ed.%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20131806960%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Milotic%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20106373315%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Milotic%20ex%20237/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20106373315%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Milotic ex PSA 10 GEM MINT">
+            <img src="assets/graded/106373315.jpg" alt="Milotic ex PSA 10 GEM MINT — SV08: Surging Sparks" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Milotic ex</h3>
+            <p class="single-sub">SV08: Surging Sparks · #237/191</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #106373315 · <a href="https://www.psacard.com/cert/106373315" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/106373315b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Milotic%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%20106373315%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Milotic%20ex%20237/191%0ASet%3A%20SV08%3A%20Surging%20Sparks%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20106373315%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Bulbasaur%20PSA%2010%20GEM%20MINT%20%28Cert%20147856867%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Bulbasaur%20133/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20147856867%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Bulbasaur PSA 10 GEM MINT">
+            <img src="assets/graded/147856867.jpg" alt="Bulbasaur PSA 10 GEM MINT — ME01: Mega Evolution" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Bulbasaur</h3>
+            <p class="single-sub">ME01: Mega Evolution · #133/132</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #147856867 · <a href="https://www.psacard.com/cert/147856867" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/147856867b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Bulbasaur%20PSA%2010%20GEM%20MINT%20%28Cert%20147856867%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Bulbasaur%20133/132%0ASet%3A%20ME01%3A%20Mega%20Evolution%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20147856867%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mimikyu%20PSA%2010%20GEM%20MINT%20%28Cert%20119887060%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mimikyu%20075%0ASet%3A%20SV%20Promos%20%28Paldean%20Fates%20PC%20ETB%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20119887060%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mimikyu PSA 10 GEM MINT">
+            <img src="assets/graded/119887060.jpg" alt="Mimikyu PSA 10 GEM MINT — SV Promos (Paldean Fates PC ETB)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mimikyu</h3>
+            <p class="single-sub">SV Promos (Paldean Fates PC ETB) · #075</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #119887060 · <a href="https://www.psacard.com/cert/119887060" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/119887060b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mimikyu%20PSA%2010%20GEM%20MINT%20%28Cert%20119887060%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mimikyu%20075%0ASet%3A%20SV%20Promos%20%28Paldean%20Fates%20PC%20ETB%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%20119887060%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Blaine%27s%20Moltres%20PSA%209%20MINT%20%28Cert%2055860410%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Blaine%27s%20Moltres%201/132%0ASet%3A%20Gym%20Heroes%201st%20Edition%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%2055860410%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Blaine&#x27;s Moltres PSA 9 MINT">
+            <img src="assets/graded/55860410.jpg" alt="Blaine&#x27;s Moltres PSA 9 MINT — Gym Heroes 1st Edition" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Blaine&#x27;s Moltres</h3>
+            <p class="single-sub">Gym Heroes 1st Edition · #1/132</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-9">PSA 9 MINT</span>
+            </div>
+            <p class="slab-cert">Cert #55860410 · <a href="https://www.psacard.com/cert/55860410" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/55860410b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Blaine%27s%20Moltres%20PSA%209%20MINT%20%28Cert%2055860410%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Blaine%27s%20Moltres%201/132%0ASet%3A%20Gym%20Heroes%201st%20Edition%0AGrade%3A%20PSA%209%20MINT%0ACert%20%23%3A%2055860410%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Special%20Delivery%20Charizard%20PSA%2010%20GEM%20MINT%20%28Cert%2089239190%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Special%20Delivery%20Charizard%20SWSH075%0ASet%3A%20SWSH%20Promos%20%28Pokemon%20Center%20UK%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2089239190%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Special Delivery Charizard PSA 10 GEM MINT">
+            <img src="assets/graded/89239190.jpg" alt="Special Delivery Charizard PSA 10 GEM MINT — SWSH Promos (Pokemon Center UK)" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Special Delivery Charizard</h3>
+            <p class="single-sub">SWSH Promos (Pokemon Center UK) · #SWSH075</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #89239190 · <a href="https://www.psacard.com/cert/89239190" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/89239190b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Special%20Delivery%20Charizard%20PSA%2010%20GEM%20MINT%20%28Cert%2089239190%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Special%20Delivery%20Charizard%20SWSH075%0ASet%3A%20SWSH%20Promos%20%28Pokemon%20Center%20UK%29%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2089239190%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mew%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%2096719202%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mew%20ex%20232/091%0ASet%3A%20SV%3A%20Paldean%20Fates%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2096719202%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Mew ex PSA 10 GEM MINT">
+            <img src="assets/graded/96719202.jpg" alt="Mew ex PSA 10 GEM MINT — SV: Paldean Fates" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Mew ex</h3>
+            <p class="single-sub">SV: Paldean Fates · #232/091</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #96719202 · <a href="https://www.psacard.com/cert/96719202" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/96719202b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Mew%20ex%20PSA%2010%20GEM%20MINT%20%28Cert%2096719202%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Mew%20ex%20232/091%0ASet%3A%20SV%3A%20Paldean%20Fates%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2096719202%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Karen%27s%20Houndoom%20PSA%2010%20GEM%20MINT%20%28Cert%2055630352%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Karen%27s%20Houndoom%20092/141%0ASet%3A%20Japanese%20VS%201st%20Edition%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2055630352%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Karen&#x27;s Houndoom PSA 10 GEM MINT">
+            <img src="assets/graded/55630352.jpg" alt="Karen&#x27;s Houndoom PSA 10 GEM MINT — Japanese VS 1st Edition" loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Karen&#x27;s Houndoom</h3>
+            <p class="single-sub">Japanese VS 1st Edition · #092/141</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #55630352 · <a href="https://www.psacard.com/cert/55630352" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/55630352b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Karen%27s%20Houndoom%20PSA%2010%20GEM%20MINT%20%28Cert%2055630352%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Karen%27s%20Houndoom%20092/141%0ASet%3A%20Japanese%20VS%201st%20Edition%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2055630352%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Articuno%20PSA%2010%20GEM%20MINT%20%28Cert%2085341167%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Articuno%20031/088%0ASet%3A%20Japanese%20Mysterious%20Mountains%201st%20Ed.%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2085341167%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Articuno PSA 10 GEM MINT">
+            <img src="assets/graded/85341167.jpg" alt="Articuno PSA 10 GEM MINT — Japanese Mysterious Mountains 1st Ed." loading="lazy" decoding="async" width="500" height="1000" />
+          </a><span class="slab-lang">JP</span>
+          <div class="single-meta">
+            <h3 class="single-name">Articuno</h3>
+            <p class="single-sub">Japanese Mysterious Mountains 1st Ed. · #031/088</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-10">PSA 10 GEM MINT</span>
+            </div>
+            <p class="slab-cert">Cert #85341167 · <a href="https://www.psacard.com/cert/85341167" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/85341167b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Articuno%20PSA%2010%20GEM%20MINT%20%28Cert%2085341167%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Articuno%20031/088%0ASet%3A%20Japanese%20Mysterious%20Mountains%201st%20Ed.%0AGrade%3A%20PSA%2010%20GEM%20MINT%0ACert%20%23%3A%2085341167%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+        <article class="single-card">
+          <a class="single-imgwrap slab-imgwrap" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20PSA%208%20NM-MT%20%28Cert%2073467609%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%204/130%0ASet%3A%20Base%20Set%202%0AGrade%3A%20PSA%208%20NM-MT%0ACert%20%23%3A%2073467609%0A%0AMy%20offer%3A%20%24" aria-label="Make an offer on Charizard PSA 8 NM-MT">
+            <img src="assets/graded/73467609.jpg" alt="Charizard PSA 8 NM-MT — Base Set 2" loading="lazy" decoding="async" width="500" height="1000" />
+          </a>
+          <div class="single-meta">
+            <h3 class="single-name">Charizard</h3>
+            <p class="single-sub">Base Set 2 · #4/130</p>
+            <div class="single-tags">
+              <span class="slab-grade grade-8">PSA 8 NM-MT</span>
+            </div>
+            <p class="slab-cert">Cert #73467609 · <a href="https://www.psacard.com/cert/73467609" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/73467609b.jpg" target="_blank" rel="noopener">Back</a></p>
+            <a class="btn make-offer" href="mailto:nick@sakekittycards.com?subject=Offer%3A%20Charizard%20PSA%208%20NM-MT%20%28Cert%2073467609%29&amp;body=Hi%20Nick%2C%0A%0AI%27d%20like%20to%20make%20an%20offer%20on%20this%20graded%20card%3A%0A%0ACard%3A%20Charizard%204/130%0ASet%3A%20Base%20Set%202%0AGrade%3A%20PSA%208%20NM-MT%0ACert%20%23%3A%2073467609%0A%0AMy%20offer%3A%20%24">Make Offer</a>
+          </div>
+        </article>
+      </div>
+      <div class="singles-tcg">
+        <h2>Have slabs to sell?</h2>
+        <p>We buy graded cards too — up to 90% cash or 100% trade credit. Look up your card and get an instant quote on our Sell / Trade page.</p>
+        <a class="btn btn-lg" href="trade-in.html">Sell or trade your slabs →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img width="44" height="44" src="logo.png" alt="Sake Kitty Cards" class="footer-logo-img" />
+        <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener" class="footer-ig">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          @sakekittycards
+        </a>
+        <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener" class="footer-yt">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          @SakeKittyCards
+        </a>
+      </div>
+      <nav class="footer-nav">
+        <a href="shop.html">Shop</a>
+        <a href="events.html">Events</a>
+        <a href="team.html">Our Team</a>
+        <a href="trade-in.html">Sell / Trade</a>
+        <a href="grading-prep.html">Grading Prep</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
+        <a href="resources.html">Resources</a>
+        <a href="shipping.html">Shipping Guide</a>
+        <a href="faq.html">FAQ</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="track.html">Track Order</a>
+        <a href="gift-cards.html">Gift Cards</a>
+      </nav>
+    </div>
+    <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
+  </footer>
+
+  <script src="main.js?v=160" defer></script>
+</body>
+</html>
