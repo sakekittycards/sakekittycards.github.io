@@ -464,13 +464,26 @@
         if (heroSub) heroSub.textContent = 'Card inventory is out at an upcoming show — fresh stock drops back here next week. Apparel & merch still available below.';
       }
 
-      // Granular pause (singles/sealed out, graded still online): show the
-      // restock poster too, so those sections don't just silently vanish.
+      // Granular pause (singles/sealed out, graded still online). When BOTH
+      // are paused the shop presents as graded + merch only — no restock
+      // poster, no singles banner, no sealed/singles copy (Nick 2026-08-07:
+      // "no reason to show sealed and raw when nothing is stocked in them").
+      // A single-bucket pause keeps the poster so the gap explains itself.
       if (!SK_INVENTORY_PAUSED && (SEALED_PAUSED || SINGLES_PAUSED)) {
-        document.getElementById('inventoryPaused').hidden = false;
         if (SEALED_PAUSED && SINGLES_PAUSED) {
           const heroSub = document.getElementById('shopHeroSub');
           if (heroSub) heroSub.textContent = 'Graded slabs and apparel — all direct from us. Packed with care, shipped fast and insured.';
+          document.getElementById('tcgplayerBanner').hidden = true;
+          const sub = document.querySelector('#shopDirect .section-sub');
+          if (sub) sub.textContent = 'Curated slabs and collector inventory.';
+          const insured = document.querySelector('.shop-trust-bullets li:nth-child(2) strong');
+          if (insured) insured.textContent = 'Cards ship insured';
+          // Buyer-education blurbs for the unstocked categories (grid children
+          // 2 = sealed, 3 = raw singles) come off with them.
+          document.querySelectorAll('.shop-about-grid > div:nth-child(2), .shop-about-grid > div:nth-child(3)')
+            .forEach((el) => { el.hidden = true; });
+        } else {
+          document.getElementById('inventoryPaused').hidden = false;
         }
       }
 
