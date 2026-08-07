@@ -56,9 +56,11 @@ window.SK_EVENTS = [
   { start: '2026-09-19',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
   { start: '2026-09-20',                     name: 'PGA Card Show',              loc: 'Palm Beach Gardens, FL' },
   { start: '2026-09-26',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
+  { start: '2026-10-04',                     name: 'Florida Regional Card Expo', loc: 'Caloosa Sound Convention Center · 1375 Monroe St, Fort Myers, FL 33901' },
   { start: '2026-10-10',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
   { start: '2026-10-24',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
   { start: '2026-10-31', end: '2026-11-01', name: 'Fairgrounds Card Expo Convention', loc: 'South Florida Fairgrounds · Southern Blvd, West Palm Beach, FL' },
   { start: '2026-11-13', end: '2026-11-15', name: 'Palm Beach Card Show',       loc: 'Palm Beach County Convention Center · 650 Okeechobee Blvd, West Palm Beach, FL 33401' },
+  { start: '2026-11-21', end: '2026-11-22', name: 'Florida Regional Card Expo', loc: 'Caloosa Sound Convention Center · 1375 Monroe St, Fort Myers, FL 33901' },
   { start: '2026-12-26',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
 ];
