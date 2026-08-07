@@ -54,6 +54,7 @@ window.SK_EVENTS = [
   { start: '2026-09-11', end: '2026-09-13', name: 'SWFL Super Card Show X2',    loc: 'Lee Civic Center · 11831 Bayshore Road, North Ft. Myers, FL 33917', hours: 'Fri 5pm setup · Sat 10am–6pm · Sun 10am–5pm' },
   { start: '2026-09-12', end: '2026-09-13', name: 'Collect-A-Con — San Francisco', loc: 'San Mateo County Convention Center · San Mateo, CA', hours: 'Sat 10am–6pm · Sun 10am–5pm' },
   { start: '2026-09-19',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
+  { start: '2026-09-20',                     name: 'PGA Card Show',              loc: 'Palm Beach Gardens, FL' },
   { start: '2026-09-26',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
   { start: '2026-10-10',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
   { start: '2026-10-24',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
