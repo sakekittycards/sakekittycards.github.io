@@ -500,15 +500,17 @@
       const isGradedItem = GRADER_RX.test(String(item.name || ''));
       if (isGradedItem) item.stock = 1;
 
-      // Committed PriceCharting-derived graded price (assets/graded-prices.json, keyed by Square id).
-      // Square's own graded price is set by an inflating CardLadder pipeline, so we don't trust it. Only
-      // cleanly-identified modern-English Pokemon slabs are in the file; foreign/vintage -> Make-Offer.
+      // Graded asking price: assets/graded-prices.json (keyed by Square id, regenerated from Nick's
+      // per-cert asks — the old distrust-Square-price rationale is retired since 2026-08-06, when
+      // Nick's own prices were pushed straight to Square). File first, Square price as fallback so a
+      // fresh listing never silently degrades to Make-Offer while the file lags a push.
       let gradedListPrice = null;
       if (isGradedItem) {
         try {
           const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
           if (gpRes.ok) { const gp = (await gpRes.json())[item.id]; if (gp && gp.price > 0) gradedListPrice = gp.price; }
-        } catch (_) { /* Make-Offer fallback */ }
+        } catch (_) { /* fall through to Square price */ }
+        if (!gradedListPrice && item.price > 0) gradedListPrice = item.price;
       }
 
       // Singles (raw single cards) are detected the same way the shop grid
