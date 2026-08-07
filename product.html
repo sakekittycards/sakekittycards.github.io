@@ -533,7 +533,7 @@
       // ("Obf En-Obsidian Flames"), so a plain title search returns a confusing
       // mix of grades. Space the grade out and strip the codes so the comps shown
       // actually match the slab (CGC 10 Pristine, PSA 10, etc.).
-      const ebaySoldQ = String(item.name || '')
+      const _ebayQ0 = String(item.name || '')
         .replace(/\s*\(placeholder photo\)\s*/i, '')
         .replace(/\b(\d+(?:\.\d)?)(pristine|gem\s*-?\s*mt|gem|mint|black\s*label|perfect)\b/ig, '$1 $2')
         .replace(/\b[A-Za-z]{2,4}\s+En-/gi, ' ')
@@ -541,6 +541,15 @@
         .replace(/\s*-\s*[A-Za-z]{2,5}\s+EN\b/gi, ' ')
         .replace(/\s*-\s*Unlimited\b/gi, ' ')
         .replace(/\s+/g, ' ').trim();
+      // Graded items are named with the PSA cert title ("PSA 10 2024 SV Promos (Paldean Fates PC ETB)
+      // Mimikyu #075") — unsearchable on eBay as-is: the year, the parenthesized set and the '#' return
+      // 0 results (Nick hit exactly this 8/06). When grader+grade and a "name #number" tail both parse,
+      // rebuild the proven recipe name-first ("Mimikyu 075 PSA 10"); otherwise strip the killers.
+      const _gm = _ebayQ0.match(/\b(PSA|CGC|BGS|SGC|TAG|ACE)\s*(\d+(?:\.\d)?)\b/i);
+      const _nm = _ebayQ0.match(/([A-Za-z][A-Za-z'.!\- ]{1,40}?)\s*#\s*([A-Za-z0-9/-]+)/);
+      const ebaySoldQ = (_gm && _nm)
+        ? (_nm[1].trim() + ' ' + _nm[2] + ' ' + _gm[1].toUpperCase() + ' ' + _gm[2])
+        : _ebayQ0.replace(/\([^)]*\)/g, ' ').replace(/\b(19|20)\d{2}\b/g, ' ').replace(/#/g, ' ').replace(/\s+/g, ' ').trim();
 
       // Inject Product + BreadcrumbList JSON-LD so search engines + social
       // unfurls get the price, availability, image, and crumb path.  Built
