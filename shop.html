@@ -582,10 +582,11 @@
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
 
-      // Graded slabs are priced from a committed PriceCharting-derived asset (assets/graded-prices.json,
-      // keyed by Square item id) instead of the Square price — the Square graded price is set by a CardLadder
-      // pipeline that has inflated it (and something still re-inflates it), so we don't trust it. Only cleanly
-      // identified modern-English Pokemon are in the file; foreign/vintage slabs are absent -> Make-Offer.
+      // Graded asking prices come from assets/graded-prices.json (keyed by Square item id), regenerated
+      // 2026-08-06 from Nick's per-cert asks — the same numbers pushed to Square, so the old
+      // distrust-Square-price rationale (inflating CardLadder pipeline) is retired. The Square price is
+      // the FALLBACK when an item id is missing from the file, so a fresh listing never silently
+      // renders Make-Offer while the file lags a catalog push.
       let GRADED_PRICES = {};
       const gradedListPrice = (item) => {
         const g = GRADED_PRICES[item && item.id];
@@ -656,13 +657,14 @@
                 ${(() => {
                   const gp = isGraded ? gradedListPrice(item) : null;
                   if (gp) return `<span class="product-price">${fmt(gp)}</span>`;
+                  if (isGraded && item.price > 0) return `<span class="product-price">${fmt(item.price)}</span>`;
                   if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return `<span class="product-price product-offer">Make Offer</span>`;
                   return `<span class="product-price">${fmt(item.price)}</span>`;
                 })()}
               </div>
               <div class="product-cta">${(() => {
                   const gp = isGraded ? gradedListPrice(item) : null;
-                  if (gp) return 'View / Make Offer →';
+                  if (gp || (isGraded && item.price > 0)) return 'View / Make Offer →';
                   if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return 'Make Offer →';
                   return (isSealed || isSingles) ? 'View / Make Offer →' : 'More Details →';
                 })()}</div>
