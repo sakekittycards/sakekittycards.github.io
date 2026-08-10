@@ -62,5 +62,7 @@ window.SK_EVENTS = [
   { start: '2026-10-31', end: '2026-11-01', name: 'Fairgrounds Card Expo Convention', loc: 'South Florida Fairgrounds · Southern Blvd, West Palm Beach, FL' },
   { start: '2026-11-13', end: '2026-11-15', name: 'Palm Beach Card Show',       loc: 'Palm Beach County Convention Center · 650 Okeechobee Blvd, West Palm Beach, FL 33401' },
   { start: '2026-11-21', end: '2026-11-22', name: 'Florida Regional Card Expo', loc: 'Caloosa Sound Convention Center · 1375 Monroe St, Fort Myers, FL 33901', hours: 'Sat & Sun 10am–6pm' },
+  { start: '2026-12-12',                     name: 'PokeKon Fest — Miami',       loc: 'Miami Airport Convention Center (DoubleTree by Hilton) — MACC-1 Ballroom · 711 NW 72nd Ave, Miami, FL 33126', hours: '10am–5pm · Cosplay contest 4pm' },
   { start: '2026-12-26',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
+  { start: '2026-12-27',                     name: 'PokeKon Fest — Fort Myers',  loc: 'DoubleTree by Hilton Fort Myers at Bell Tower Shops · 13051 Bell Tower Drive, Fort Myers, FL 33907', hours: '10am–5pm · Free parking · Kids under 11 free' },
 ];
