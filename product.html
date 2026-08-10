@@ -504,8 +504,10 @@
       // per-cert asks — the old distrust-Square-price rationale is retired since 2026-08-06, when
       // Nick's own prices were pushed straight to Square). File first, Square price as fallback so a
       // fresh listing never silently degrades to Make-Offer while the file lags a push.
+      // 2026-08-10: prices pulled down (Nick) — graded is pure make-offer while this flag is on.
+      const GRADED_MAKE_OFFER = true;
       let gradedListPrice = null;
-      if (isGradedItem) {
+      if (isGradedItem && !GRADED_MAKE_OFFER) {
         try {
           const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
           if (gpRes.ok) { const gp = (await gpRes.json())[item.id]; if (gp && gp.price > 0) gradedListPrice = gp.price; }

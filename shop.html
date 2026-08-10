@@ -600,8 +600,11 @@
       // distrust-Square-price rationale (inflating CardLadder pipeline) is retired. The Square price is
       // the FALLBACK when an item id is missing from the file, so a fresh listing never silently
       // renders Make-Offer while the file lags a catalog push.
+      // 2026-08-10: prices pulled down (Nick) — graded is pure make-offer while this flag is on.
+      const GRADED_MAKE_OFFER = true;
       let GRADED_PRICES = {};
       const gradedListPrice = (item) => {
+        if (GRADED_MAKE_OFFER) return null;
         const g = GRADED_PRICES[item && item.id];
         return (g && g.price > 0) ? g.price : null;
       };
@@ -670,14 +673,14 @@
                 ${(() => {
                   const gp = isGraded ? gradedListPrice(item) : null;
                   if (gp) return `<span class="product-price">${fmt(gp)}</span>`;
-                  if (isGraded && item.price > 0) return `<span class="product-price">${fmt(item.price)}</span>`;
+                  if (isGraded && !GRADED_MAKE_OFFER && item.price > 0) return `<span class="product-price">${fmt(item.price)}</span>`;
                   if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return `<span class="product-price product-offer">Make Offer</span>`;
                   return `<span class="product-price">${fmt(item.price)}</span>`;
                 })()}
               </div>
               <div class="product-cta">${(() => {
                   const gp = isGraded ? gradedListPrice(item) : null;
-                  if (gp || (isGraded && item.price > 0)) return 'View / Make Offer →';
+                  if (gp || (isGraded && !GRADED_MAKE_OFFER && item.price > 0)) return 'View / Make Offer →';
                   if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return 'Make Offer →';
                   return (isSealed || isSingles) ? 'View / Make Offer →' : 'More Details →';
                 })()}</div>
@@ -696,11 +699,14 @@
         const data  = await res.json();
         const items = Array.isArray(data.items) ? data.items : [];
 
-        // Committed graded prices (PriceCharting x1.15). Fail-open: if the file is missing, graded falls back to Make-Offer.
-        try {
-          const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
-          if (gpRes.ok) GRADED_PRICES = await gpRes.json();
-        } catch (_) { /* Make-Offer fallback */ }
+        // Committed graded asks. Fail-open: if the file is missing, graded falls back to Make-Offer.
+        // Skipped entirely while GRADED_MAKE_OFFER is on — nothing reads the prices then.
+        if (!GRADED_MAKE_OFFER) {
+          try {
+            const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
+            if (gpRes.ok) GRADED_PRICES = await gpRes.json();
+          } catch (_) { /* Make-Offer fallback */ }
+        }
 
         if (items.length === 0) {
           status.innerHTML = `

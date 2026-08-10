@@ -47,14 +47,21 @@ def verify_url(s):
     return f"https://www.cgccards.com/certlookup/{s['cert']}/"
 
 
+# Prices pulled down 2026-08-10 (Nick: make-offer only). Price data stays in
+# graded-slabs.json untouched — flip to False to show asks again.
+MAKE_OFFER_ONLY = True
+
+
 def fmt_price(s):
+    if MAKE_OFFER_ONLY:
+        return ""
     return f"${s['price']:,.0f}" if s.get("price") else ""
 
 
 def offer_mailto(s):
     number = f" {s['number']}" if s["number"] else ""
     subject = f"Offer: {s['name']} {s['grade_label']} (Cert {s['cert']})"
-    asking = f"Asking: {fmt_price(s)}\n" if s.get("price") else ""
+    asking = f"Asking: {fmt_price(s)}\n" if fmt_price(s) else ""
     body = (
         "Hi Nick,\n\nI'd like to make an offer on this graded card:\n\n"
         f"Card: {s['name']}{number}\n"
@@ -79,6 +86,9 @@ def grade_class(s):
 def card_html(s):
     e = html.escape
     mailto = e(offer_mailto(s), quote=True)
+    price_line = (
+        f'\n            <p class="slab-price">{fmt_price(s)}</p>' if fmt_price(s) else ""
+    )
     number = f" · #{e(s['number'])}" if s["number"] else ""
     jp = '<span class="slab-lang">JP</span>' if s["lang"] == "JP" else ""
     alt = e(f"{s['name']} {s['grade_label']} — {s['set']}")
@@ -91,8 +101,7 @@ def card_html(s):
             <p class="single-sub">{e(s['set'])}{number}</p>
             <div class="single-tags">
               <span class="slab-grade {grade_class(s)}">{e(s['grade_label'])}</span>
-            </div>
-            <p class="slab-price">{fmt_price(s)}</p>
+            </div>{price_line}
             <p class="slab-cert">Cert #{s['cert']} · <a href="{verify_url(s)}" target="_blank" rel="noopener">Verify</a> · <a href="assets/graded/{s['cert']}b.jpg" target="_blank" rel="noopener">Back</a></p>
             <a class="btn make-offer" href="{mailto}">Make Offer</a>
           </div>
@@ -267,7 +276,7 @@ PAGE = """<!DOCTYPE html>
   <main id="main" class="page-content">
     <div class="page-hero">
       <h1>Graded Vault</h1>
-      <p>Our slab showcase — __COUNT__ PSA &amp; CGC certified cards, from Shadowless Base Set to the newest Special Illustration Rares. Every photo is the exact slab you'll receive. Buy at the listed price in <a href="shop.html?cat=graded" style="color:var(--cyan);text-decoration:none">our shop</a>, or send your best offer.</p>
+      <p>Our slab showcase — __COUNT__ PSA &amp; CGC certified cards, from Shadowless Base Set to the newest Special Illustration Rares. Every photo is the exact slab you'll receive. No fixed prices — send your best offer and we'll reply.</p>
       <p class="singles-tagline">Certified <span class="ok">Slabs</span> · Best <span class="pop">Offer</span></p>
       <div class="singles-note">
         <span aria-hidden="true">📍</span>
