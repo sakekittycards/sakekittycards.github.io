@@ -25,6 +25,7 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 - `track.html` — customer-facing grading-prep order tracker. Takes `?order=SK-YYYY-XXXXXX`, shows an 8-stage status bar, card list, and PSA cert numbers once graded. Hits `GET /grading/track` on the worker.
 - `shipping.html` — "How to Pack Your Cards" guide. Pure content page (no forms/data). Four packing tiers (1 / up-to-10 / 10-19 / 20+), DO NOT rules, clear-sleeve rules, shipping/extra tips. Visuals are cropped photo strips at `assets/shipping/tier{1-4}.png` (extracted from the original ChatGPT infographic). Linked from nav and footer between Sell/Trade and Grading Prep on every page.
 - `faq.html`, `about.html`, `contact.html` — info pages
+- `wholesale.html` — **hidden** Pokémon CN sealed wholesale price list (cases). Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS (no style.css/main.js, no cache-buster). Prices = supplier cost +10%, rounded up to nearest $10. Keep it unlinked.
 
 ## Conventions
 

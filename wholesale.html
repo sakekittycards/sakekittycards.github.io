@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sake Kitty Cards — Pokémon CN Wholesale List</title>
+  <!-- Hidden page: unlinked from nav/footer, kept out of search indexes on purpose. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap');
+    :root {
+      --bg:        #060608;
+      --bg-card:   rgba(255,255,255,0.04);
+      --bg-card-h: rgba(255,255,255,0.07);
+      --orange:    #ff6a00;
+      --pink:      #ff0080;
+      --purple:    #7b2fff;
+      --cyan:      #00d4ff;
+      --gold:      #ffd166;
+      --text:      #ffffff;
+      --muted:     rgba(255,255,255,0.85);
+      --dim:       rgba(255,255,255,0.65);
+      --border:    rgba(255,255,255,0.08);
+      --r:         14px;
+      --r-pill:    100px;
+    }
+    * { box-sizing: border-box; }
+    html, body { overflow-x: hidden; max-width: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px 64px; position: relative; }
+
+    /* ── ambient glow ── */
+    .glow {
+      position: absolute; pointer-events: none; z-index: 0;
+      width: 560px; height: 560px; border-radius: 50%;
+      filter: blur(90px); opacity: 0.16;
+    }
+    .glow-pink   { background: var(--pink);   top: -120px; left: -160px; }
+    .glow-purple { background: var(--purple); top: 60px;  right: -200px; }
+
+    /* ── hero ── */
+    header { position: relative; text-align: center; padding: 56px 16px 8px; z-index: 1; }
+    header img.logo {
+      width: 132px; height: auto; max-width: 100%;
+      filter: drop-shadow(0 0 24px rgba(255,0,128,0.35));
+    }
+    h1 {
+      font-family: 'Bangers', cursive;
+      font-weight: 400;
+      font-size: clamp(42px, 8vw, 76px);
+      letter-spacing: 2px;
+      margin: 8px 0 0;
+      line-height: 1.25;
+      padding: 2px 0 8px;
+      background: linear-gradient(100deg, var(--orange) 0%, var(--pink) 38%, var(--purple) 72%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      text-wrap: balance;
+    }
+    .hero-sub {
+      color: var(--muted);
+      font-size: 16px;
+      margin: 2px 0 0;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      border: 1px solid rgba(0,212,255,0.35);
+      border-radius: var(--r-pill);
+      padding: 6px 16px;
+      background: rgba(0,212,255,0.07);
+    }
+    .hero-note { color: var(--dim); font-size: 13px; margin-top: 14px; }
+
+    /* ── legend ── */
+    .legend {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+      margin: 26px 0 6px; position: relative; z-index: 1;
+    }
+
+    /* ── sections ── */
+    section { position: relative; z-index: 1; margin-top: 48px; }
+    .sec-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    h2 {
+      font-family: 'Bangers', cursive;
+      font-weight: 400;
+      font-size: clamp(28px, 4.5vw, 40px);
+      letter-spacing: 1.5px;
+      margin: 0;
+      line-height: 1.25;
+      padding: 2px 0 8px;
+      background: linear-gradient(100deg, var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    section.sec-boxes h2 { background: linear-gradient(100deg, var(--cyan), var(--purple)); -webkit-background-clip: text; background-clip: text; }
+    section.sec-gift  h2 { background: linear-gradient(100deg, var(--orange), var(--pink)); -webkit-background-clip: text; background-clip: text; }
+    .sec-count { color: var(--dim); font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    /* ── product card ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 18px 18px 16px;
+      display: flex; flex-direction: column; gap: 12px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0 auto 0 0; width: 4px;
+      background: var(--card-accent, var(--pink));
+      opacity: 0.85;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      background: var(--bg-card-h);
+      border-color: rgba(255,255,255,0.16);
+    }
+    .card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .pname { font-weight: 700; font-size: 15.5px; line-height: 1.35; margin: 0; }
+    .pname .brand { display: block; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
+
+    .pill {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      border-radius: var(--r-pill); padding: 4px 11px; white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .pill-stock    { color: var(--cyan);   background: rgba(0,212,255,0.10);  border: 1px solid rgba(0,212,255,0.35); }
+    .pill-low      { color: var(--orange); background: rgba(255,106,0,0.12);  border: 1px solid rgba(255,106,0,0.4); }
+    .pill-arriving { color: #c9a2ff;       background: rgba(123,47,255,0.14); border: 1px solid rgba(123,47,255,0.45); }
+
+    .price-row { display: flex; align-items: baseline; gap: 8px; }
+    .price {
+      font-weight: 800;
+      font-size: 30px;
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .price-unit { color: var(--dim); font-size: 13px; font-weight: 600; }
+    .price-tba {
+      font-weight: 700; font-size: 16px; color: var(--dim);
+      border: 1px dashed rgba(255,255,255,0.22); border-radius: 8px; padding: 4px 12px;
+    }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+    .chip {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 3px 9px;
+      font-variant-numeric: tabular-nums;
+    }
+    .chip-qty { color: var(--gold); border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.07); }
+
+    /* ── footer ── */
+    footer { position: relative; z-index: 1; text-align: center; margin-top: 64px; }
+    footer .bar {
+      height: 6px; border-radius: 3px;
+      background: linear-gradient(90deg, var(--orange), var(--pink), var(--purple), var(--cyan));
+      box-shadow: 0 0 18px rgba(255,0,128,0.45);
+    }
+    footer p { color: var(--dim); font-size: 13px; margin: 16px 0 0; }
+    footer a { color: var(--cyan); text-decoration: none; }
+    footer a:focus-visible, .card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { transition: none; }
+      .card:hover { transform: none; }
+    }
+    @media (max-width: 480px) {
+      .price { font-size: 26px; }
+      header { padding-top: 40px; }
+    }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main" style="position:absolute;left:-9999px;">Skip to main content</a>
+<main id="main">
+<div class="wrap">
+  <div class="glow glow-pink"></div>
+  <div class="glow glow-purple"></div>
+
+  <header>
+    <img class="logo" src="logo-transparent.png" alt="Sake Kitty Cards logo" width="132" height="132">
+    <h1>Sake Kitty Cards</h1>
+    <p class="hero-sub">Pokémon CN · Sealed Product List</p>
+    <span class="hero-eyebrow">Wholesale · By the Case</span>
+    <p class="hero-note">Prices per case · Updated August 2026</p>
+  </header>
+
+  <div class="legend">
+    <span class="pill pill-stock">In Stock</span>
+    <span class="pill pill-low">Low Stock</span>
+    <span class="pill pill-arriving">Arriving Soon</span>
+  </div>
+
+  <!-- ══ Gem Packs ══ -->
+  <section class="sec-gem">
+    <div class="sec-head"><h2>Gem Packs</h2><span class="sec-count">3 products</span></div>
+    <div class="grid">
+
+      <div class="card" style="--card-accent: var(--pink)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards</span>Gem Pack Vol.5 Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$710</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">162 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">18 packs/box</span><span class="chip">4 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--purple)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards</span>Gem Pack Vol.4 Case</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price-tba">Pricing soon</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">40 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">4 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--pink)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards</span>Gem Pack Vol.2 Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$1,210</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">105 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">4 cards/pack</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ Booster Box Cases ══ -->
+  <section class="sec-boxes">
+    <div class="sec-head"><h2>Booster Box Cases</h2><span class="sec-count">10 products</span></div>
+    <div class="grid">
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV5</span>Black Crystal Blaze — Slim Booster Box Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$420</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">37 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">24 packs/box</span><span class="chip">5 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV5</span>Black Crystal Blaze — Jumbo Booster Box Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$490</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">20 cases</span>
+          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV6</span>True Mystery — Slim Booster Box Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$420</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">42 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">24 packs/box</span><span class="chip">5 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--orange)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV7</span>Sharp Blade Awakening — Jumbo Booster Box Case</p>
+          <span class="pill pill-low">Low Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$490</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">15 cases</span>
+          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--orange)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV8</span>Brilliant Illusion — Slim Booster Box Case</p>
+          <span class="pill pill-low">Low Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$420</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">2 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">20 packs/box</span><span class="chip">5 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV8</span>Brilliant Illusion — Jumbo Booster Box Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$490</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">20 cases</span>
+          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--purple)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV9</span>Stellar Glass — Slim Booster Box Case</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price-tba">Pricing soon</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">80 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">20 packs/box</span><span class="chip">5 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV9.5</span>Terastal Grand Gathering — Booster Box Case</p>
+          <span class="pill pill-stock">In Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$1,540</span><span class="price-unit">/ case</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">16 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">10 packs/box</span><span class="chip">10 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--purple)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV10</span>Pursue Glory Together — Slim Booster Box Case</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price-tba">Pricing soon</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">100 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">5 cards/pack</span>
+        </div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--purple)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · CSV10</span>Pursue Glory Together — Jumbo Booster Box Case</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price-tba">Pricing soon</span></div>
+        <div class="meta">
+          <span class="chip chip-qty">50 cases</span>
+          <span class="chip">20 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ Gift & Collection Boxes ══ -->
+  <section class="sec-gift">
+    <div class="sec-head"><h2>Gift &amp; Collection Boxes</h2><span class="sec-count">4 products</span></div>
+    <div class="grid">
+
+      <div class="card" style="--card-accent: var(--cyan)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · Eevee Advanced</span>Gift Box Case — Vaporeon 💧</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price">$390</span><span class="price-unit">/ case</span></div>
+        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--orange)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · Eevee Advanced</span>Gift Box Case — Flareon 🔥</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price">$390</span><span class="price-unit">/ case</span></div>
+        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--gold)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards · Eevee Advanced</span>Gift Box Case — Jolteon ⚡</p>
+          <span class="pill pill-arriving">Arriving Soon</span>
+        </div>
+        <div class="price-row"><span class="price">$390</span><span class="price-unit">/ case</span></div>
+        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
+      </div>
+
+      <div class="card" style="--card-accent: var(--pink)">
+        <div class="card-top">
+          <p class="pname"><span class="brand">Sake Kitty Cards</span>Trainer Collection Box Case</p>
+          <span class="pill pill-low">Low Stock</span>
+        </div>
+        <div class="price-row"><span class="price">$260</span><span class="price-unit">/ case</span></div>
+        <div class="meta"><span class="chip chip-qty">10 cases</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <div class="bar"></div>
+    <p>Sake Kitty Cards · <a href="index.html">sakekittycards.com</a> · nick@sakekittycards.com · IG @sakekittycards</p>
+  </footer>
+</div>
+</main>
+</body>
+</html>
