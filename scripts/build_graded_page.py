@@ -337,11 +337,24 @@ __CARDS__
 
 def main():
     slabs = json.loads(DATA.read_text(encoding="utf-8"))
-    export_images(slabs)
-    cards = "\n".join(card_html(s) for s in slabs)
-    page = PAGE.replace("__COUNT__", str(len(slabs))).replace("__CARDS__", cards)
+    # 2026-08-14: graded-slabs.json is now rebuilt from TCGenie acct-54 stock, which includes slabs newer than
+    # the 8/5 shoot. A slab with no photo (neither exported to assets/graded nor available in PROCESSED_DIR)
+    # must NOT render a broken card on the live page — hold it off until it's photographed (task #50).
+    have, held = [], []
+    for s in slabs:
+        if (IMG_DIR / f"{s['cert']}.jpg").exists() or (PROCESSED_DIR / f"{s['cert']}F.jpg").exists():
+            have.append(s)
+        else:
+            held.append(s)
+    export_images(have)
+    cards = "\n".join(card_html(s) for s in have)
+    page = PAGE.replace("__COUNT__", str(len(have))).replace("__CARDS__", cards)
     OUT.write_text(page, encoding="utf-8")
-    print(f"graded.html written with {len(slabs)} slabs; images in {IMG_DIR}")
+    print(f"graded.html written with {len(have)} slabs; images in {IMG_DIR}")
+    if held:
+        print(f"HELD OFF the page ({len(held)} — no photo yet):")
+        for s in held:
+            print(f"  ! {s['cert']}  {s.get('name','')}")
 
 
 if __name__ == "__main__":
