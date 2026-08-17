@@ -65,4 +65,5 @@ window.SK_EVENTS = [
   { start: '2026-12-12',                     name: 'PokeKon Fest — Miami',       loc: 'Miami Airport Convention Center (DoubleTree by Hilton) — MACC-1 Ballroom · 711 NW 72nd Ave, Miami, FL 33126', hours: '10am–5pm · Cosplay contest 4pm' },
   { start: '2026-12-26',                     name: 'Delray Card Show',           loc: 'Delray Beach, FL' },
   { start: '2026-12-27',                     name: 'PokeKon Fest — Fort Myers',  loc: 'DoubleTree by Hilton Fort Myers at Bell Tower Shops · 13051 Bell Tower Drive, Fort Myers, FL 33907', hours: '10am–5pm · Free parking · Kids under 11 free' },
+  { start: '2027-01-09', end: '2027-01-10', name: 'The Hobby Card Show',        loc: 'Broward County Convention Center · 1950 Eisenhower Blvd, Fort Lauderdale, FL 33316' },
 ];
