@@ -37,6 +37,82 @@
   }
   </script>
 
+  <!-- Service structured data — prices and copy mirror what is visible on this
+       page. If a tier price or turnaround changes above, change it here too. -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": "https://sakekittycards.com/grading-prep.html#service",
+  "serviceType": "Trading card grading pre-screening and preparation",
+  "name": "Pokémon Grading Prep & Pre-Screening (PSA, CGC, Beckett)",
+  "description": "Pass/fail pre-screening and professional card prep for PSA, CGC and Beckett submissions. Screening results are emailed within 2–3 business days. Mail in from anywhere, or hand off in person at a Florida card show. Screening does not guarantee a specific grade — final grades are determined by PSA, CGC, or Beckett.",
+  "provider": {
+    "@id": "https://sakekittycards.com/#organization"
+  },
+  "areaServed": [
+    {
+      "@type": "Country",
+      "name": "United States"
+    },
+    {
+      "@type": "State",
+      "name": "Florida"
+    }
+  ],
+  "url": "https://sakekittycards.com/grading-prep.html",
+  "termsOfService": "https://sakekittycards.com/grading-terms.html",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Grading Prep Services",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Standard Screen",
+          "description": "Simple pass/fail verdict on each card, evaluated against PSA, CGC and Beckett standards."
+        },
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "3.00",
+          "priceCurrency": "USD",
+          "unitText": "per card evaluated"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Detailed Screen",
+          "description": "Everything in Standard Screen, plus written notes and photos documenting exactly why a card fails and where."
+        },
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "5.00",
+          "priceCurrency": "USD",
+          "unitText": "per card evaluated"
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Card Prep",
+          "description": "Microfiber dust-off (no substances or alterations), penny sleeve and card saver. Available standalone or added to a screen. Refunded if the card fails screening."
+        },
+        "priceSpecification": {
+          "@type": "UnitPriceSpecification",
+          "price": "5.00",
+          "priceCurrency": "USD",
+          "unitText": "per card"
+        }
+      }
+    ]
+  }
+}
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
