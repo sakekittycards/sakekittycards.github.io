@@ -947,7 +947,11 @@
   <!-- JSON-LD bundle — three nodes so each schema type is independently
        discoverable: Organization (brand identity + social links), WebSite
        (enables Google sitelinks searchbox), Store (Florida service area +
-       payment methods + price range, optimizes for local-search). -->
+       payment methods + price range, optimizes for local-search).
+       ⚠️ The SearchAction urlTemplate below points at shop.html?q=<term>, which
+       shop.html actually implements (see FILTER_Q / matchesQuery there). If that
+       param is ever renamed or removed, fix it here too — otherwise Google's
+       sitelinks search box silently dumps people on an unfiltered shop page. -->
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",

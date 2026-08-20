@@ -83,6 +83,23 @@
     .page-shop .page-hero > p { font-size: clamp(15px, 2vw, 17px); line-height: 1.5; color: rgba(255,255,255,0.85); max-width: 640px; }
 
     /* Breadcrumb (visible — mirrors the BreadcrumbList JSON-LD) */
+    /* Active ?q= search banner. */
+    .shop-qbar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      margin: 0 0 22px; padding: 12px 16px;
+      border: 1px solid rgba(255,106,0,.34);
+      background: rgba(255,106,0,.09);
+      border-radius: 10px;
+      font-size: 14px; color: var(--muted);
+    }
+    .shop-qbar strong { color: #fff; font-weight: 700; }
+    .shop-qbar a {
+      margin-left: auto; color: var(--orange); font-weight: 600;
+      text-decoration: none; white-space: nowrap;
+    }
+    .shop-qbar a:hover { text-decoration: underline; }
+    @media (max-width: 520px) { .shop-qbar a { margin-left: 0; } }
+
     .shop-breadcrumb { font-size: 13px; color: var(--dim); margin: 0 0 6px; }
     .shop-breadcrumb a { color: var(--muted); text-decoration: none; }
     .shop-breadcrumb a:hover { color: var(--orange); }
@@ -300,6 +317,11 @@
           <p>Our slabs are coming with us to the booth. Fresh listings (plus anything new from the show) drop here <strong>Monday</strong>. Catch us in person if you're local — see the <a href="events.html">events page</a> for where.</p>
         </div>
       </div>
+
+      <!-- Active-search banner. Only shown when ?q= is present, so a visitor
+           arriving from Google's sitelinks search box can see what they're
+           filtered to and get back out. -->
+      <div class="shop-qbar" id="shopQBar" hidden role="status"></div>
 
       <nav class="shop-cat-nav" id="shopCatNav" hidden aria-label="Shop categories"></nav>
 
@@ -536,6 +558,19 @@
       const ALLOWED_CATS = ['graded','sealed','singles','merch'];
       const activeCat = ALLOWED_CATS.includes(FILTER_CAT) ? FILTER_CAT : null;
 
+      // ?q= free-text search. This is the target of the WebSite/SearchAction
+      // JSON-LD on index.html (the Google sitelinks search box) — if you change
+      // the param name here, change urlTemplate there too or the box goes dead.
+      // Every whitespace-separated term must appear somewhere in the item name,
+      // so "psa charizard" matches regardless of word order.
+      const FILTER_Q = (new URLSearchParams(location.search).get('q') || '').trim();
+      const qTerms = FILTER_Q.toLowerCase().split(/\s+/).filter(Boolean).slice(0, 8);
+      const matchesQuery = (item) => {
+        if (!qTerms.length) return true;
+        const hay = `${item.name || ''} ${item.description || ''}`.toLowerCase();
+        return qTerms.every(t => hay.includes(t));
+      };
+
       // Parse a graded card title for filter/sort. Format we render to:
       //   "<GRADER> <GRADE> <YEAR> <SET> <NAME> #<NUMBER>"
       // Examples:
@@ -721,7 +756,10 @@
         }
 
         const buckets = { graded: [], sealed: [], singles: [], merch: [] };
-        for (const item of items) buckets[categorize(item)].push(item);
+        for (const item of items) {
+          if (!matchesQuery(item)) continue;
+          buckets[categorize(item)].push(item);
+        }
 
         // Honor ?cat= filter — zero out every bucket except the active one,
         // then suppress the multi-section category nav for a focused page.
@@ -757,6 +795,24 @@
         // category nav, so no further wiring is needed.
         if (SEALED_PAUSED)  buckets.sealed  = [];
         if (SINGLES_PAUSED) buckets.singles = [];
+
+        if (qTerms.length) {
+          const qbar = document.getElementById('shopQBar');
+          const hits = Object.values(buckets).reduce((n, b) => n + b.length, 0);
+          qbar.innerHTML = `<span>Showing <strong>${hits}</strong> result${hits === 1 ? '' : 's'} for <strong>&ldquo;${esc(FILTER_Q)}&rdquo;</strong></span><a href="shop.html">Clear search &times;</a>`;
+          qbar.hidden = false;
+        }
+
+        // Query matched nothing: say so plainly instead of showing four empty grids.
+        if (qTerms.length && !Object.values(buckets).some(b => b.length)) {
+          status.innerHTML = `
+            <div class="shop-empty">
+              <div class="shop-empty-icon"><svg class="lc lc-purple"><use href="#lc-package"/></svg></div>
+              <h3>No matches for &ldquo;${esc(FILTER_Q)}&rdquo;</h3>
+              <p>Nothing in the current listings matches that. <a href="shop.html" style="color:var(--orange)">Browse everything</a>, or try our <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener" style="color:var(--orange)">TCGplayer store</a> for singles.</p>
+            </div>`;
+          return;
+        }
 
         const sectionMap = {
           graded:  ['shopSectionGraded',  'shopGridGraded'],
@@ -864,7 +920,7 @@
           .map(c => `<a href="#${c.sec}" class="shop-cat-pill" data-cat="${c.key}">${c.label}<span class="shop-cat-count">${buckets[c.key].length}</span></a>`)
           .join('');
 
-        if (pillsHtml && !activeCat) {
+        if (pillsHtml && !activeCat && !qTerms.length) {
           catNav.innerHTML = pillsHtml;
           catNav.hidden = false;
 
