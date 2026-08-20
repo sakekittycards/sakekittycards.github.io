@@ -1255,7 +1255,7 @@ window.skConfirm = function skConfirm(opts) {
         transform:scale(0.96);
         transition:transform .18s ease;
       ">
-        <img src="logo.png" alt="Sake Kitty Cards" style="width:54px;height:54px;border-radius:50%;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,106,0,0.35)" />
+        <img src="logo-sm.webp" alt="Sake Kitty Cards" style="width:54px;height:54px;border-radius:50%;margin-bottom:12px;box-shadow:0 4px 20px rgba(255,106,0,0.35)" />
         <h3 style="
           font-family:'Bangers',cursive;
           font-size:30px; letter-spacing:.04em;
