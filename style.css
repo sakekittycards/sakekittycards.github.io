@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap');
+/* Fonts are loaded by a <link rel="stylesheet"> in each page's <head>, which sits
+   behind a preconnect and requests a superset of these weights (adds 500).
+   An @import here would be a SECOND, non-dedupable request chained behind this
+   stylesheet: browser fetches style.css, parses, discovers the import, fetches
+   again — all before first paint. Don't reintroduce it. */
 
 /* ── Variables ── */
 :root {
