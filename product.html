@@ -477,7 +477,29 @@
           <p style="margin-top:14px"><a href="shop.html">← Back to shop</a></p>`;
       };
 
-      if (!id) { renderError('Product not found', 'No product ID was provided.'); return; }
+      // Soft-404 guard. GitHub Pages serves this file as 200 OK for ANY ?id=,
+      // so a sold or deleted SKU would otherwise sit in Google's index forever
+      // as a thin "Product not found" page, and 68 dead ids would all look like
+      // near-duplicates of each other.
+      //
+      // We can't change the HTTP status from a static host, but we CAN tell
+      // Google not to keep it. Googlebot honours a robots meta injected before
+      // it finishes rendering.
+      //
+      // ONLY call this when the product definitely does not exist. A transient
+      // worker outage must NOT deindex a perfectly good product page — see the
+      // fetch catch below, which deliberately does not call this.
+      const markNoIndex = () => {
+        if (document.querySelector('meta[name="robots"][data-soft404]')) return;
+        const m = document.createElement('meta');
+        m.name = 'robots';
+        m.content = 'noindex, follow';
+        m.setAttribute('data-soft404', '1');
+        document.head.appendChild(m);
+        document.title = 'Product not available — Sake Kitty Cards';
+      };
+
+      if (!id) { markNoIndex(); renderError('Product not found', 'No product ID was provided.'); return; }
 
       let items;
       try {
@@ -488,12 +510,16 @@
         const data = await res.json();
         items = Array.isArray(data.items) ? data.items : [];
       } catch (err) {
+        // Deliberately NOT markNoIndex(): this is a transient worker/network
+        // failure, not a missing product. Deindexing a live SKU because the
+        // Square worker blipped during a crawl would be far worse than a
+        // temporarily unhelpful page.
         renderError('Could not load product', 'Please try again in a moment.');
         return;
       }
 
       const item = items.find(i => i.id === id);
-      if (!item) { renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
+      if (!item) { markNoIndex(); renderError('Product not found', 'This product may have been removed or is no longer available.'); return; }
 
       // Graded slabs (PSA/BGS/CGC/SGC) are 1-of-1 by cert. Detect early so
       // the stock indicator + add-to-cart cap can hard-cap qty at 1 even
