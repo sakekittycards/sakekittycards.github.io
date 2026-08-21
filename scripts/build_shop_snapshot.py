@@ -281,8 +281,6 @@ def build_snapshot(items, stamp, flags):
     return "\n".join(parts), buckets
 
 
-GRID_RX_TMPL = r'(<div class="product-grid" id="{gid}">)(.*?)(</div>)'
-
 
 def fill_grids(src, buckets):
     """Write the snapshot cards straight into the real grid divs.
@@ -291,19 +289,125 @@ def fill_grids(src, buckets):
     still see an empty shop. These go into the live grids, which shop.html's own
     JS overwrites via innerHTML the moment the Square fetch resolves — so this
     markup is only ever seen by something that didn't run the script.
+
+    Card markup contains nested <div>s (product-info > product-name), so a
+    non-greedy match up to the first </div> would stop INSIDE the first card on
+    a re-run and duplicate the whole grid. (It did: 56 cards became 110.) The
+    snapshot region is therefore fenced by explicit comment markers, which can't
+    nest and make the rewrite idempotent.
     """
     filled = 0
     for key, gid in GRID_IDS.items():
         rows = buckets.get(key) or []
         cat = "sealed" if key.startswith("sealed") else key
         cards = "".join(build_card(i, cat) for i in rows)
-        rx = re.compile(GRID_RX_TMPL.format(gid=re.escape(gid)), re.S)
-        m = rx.search(src)
-        if not m:
-            raise SystemExit(f"grid div #{gid} not found in shop.html")
-        src = src[:m.start()] + m.group(1) + cards + m.group(3) + src[m.end():]
+        fence_open, fence_close = f"<!--SNAP:{gid}-->", f"<!--/SNAP:{gid}-->"
+        payload = fence_open + cards + fence_close
+
+        fenced = re.compile(re.escape(fence_open) + ".*?" + re.escape(fence_close), re.S)
+        if fenced.search(src):
+            # Re-run: replace only what's between our own fences.
+            src = fenced.sub(lambda _m: payload, src, count=1)
+        else:
+            # First run: the grid is empty in the committed source.
+            empty = f'<div class="product-grid" id="{gid}"></div>'
+            if empty not in src:
+                raise SystemExit(
+                    f"grid #{gid} is neither empty nor fenced — refusing to guess. "
+                    "Revert shop.html to a clean state and re-run."
+                )
+            src = src.replace(empty, f'<div class="product-grid" id="{gid}">{payload}</div>', 1)
         filled += 1
     return src, filled
+
+
+FLAG_RX = {
+    "SK_INVENTORY_PAUSED": re.compile(r"const\s+SK_INVENTORY_PAUSED\s*=\s*(true|false)"),
+    "SEALED_PAUSED": re.compile(r"const\s+SEALED_PAUSED\s*=\s*(true|false)"),
+    "SINGLES_PAUSED": re.compile(r"const\s+SINGLES_PAUSED\s*=\s*(true|false)"),
+    "GRADED_AT_SHOW": re.compile(r"const\s+GRADED_AT_SHOW\s*=\s*(true|false)"),
+}
+
+
+def read_flags(src):
+    """Read the live pause flags straight out of shop.html.
+
+    THIS IS NOT OPTIONAL. shop.html zeroes whole buckets when these are set —
+    sealed and raw singles are currently paused because Nick pulled them off the
+    site (2026-08-06), and CLAUDE.md records "no direct-sale singles on the site"
+    as a locked business rule.
+
+    A snapshot that ignored them would bake deliberately-withdrawn inventory into
+    the raw HTML, where Google and every AI crawler would read it, while the live
+    page showed nothing. Parsing the flags from source instead of duplicating them
+    means they cannot drift apart.
+    """
+    flags = {}
+    for name, rx in FLAG_RX.items():
+        m = rx.search(src)
+        if not m:
+            raise SystemExit(
+                f"could not find {name} in shop.html — refusing to build a snapshot "
+                "that might publish paused inventory"
+            )
+        flags[name] = m.group(1) == "true"
+    return flags
+
+
+def apply_gates(buckets, flags):
+    """Mirror shop.html's bucket-zeroing exactly."""
+    dropped = {}
+    if flags["GRADED_AT_SHOW"]:
+        dropped["graded (at show)"] = len(buckets["graded"]); buckets["graded"] = []
+    if flags["SK_INVENTORY_PAUSED"]:
+        for k in ("graded", "sealedEn", "sealedJp", "singles"):
+            if buckets[k]:
+                dropped[f"{k} (inventory paused)"] = len(buckets[k]); buckets[k] = []
+    if flags["SEALED_PAUSED"]:
+        for k in ("sealedEn", "sealedJp"):
+            if buckets[k]:
+                dropped[f"{k} (sealed paused)"] = len(buckets[k]); buckets[k] = []
+    if flags["SINGLES_PAUSED"]:
+        if buckets["singles"]:
+            dropped["singles (singles paused)"] = len(buckets["singles"]); buckets["singles"] = []
+    return buckets, dropped
+
+
+def build_snapshot(items, stamp, flags):
+    buckets = {k: [] for k in GRID_IDS}
+    for it in items:
+        c = categorize(it)
+        if c == "sealed":
+            key = "sealedJp" if JP_RX.search(it.get("name") or "") else "sealedEn"
+        else:
+            key = c
+        buckets[key].append(it)
+
+    # Respect the live pause flags before anything is rendered.
+    buckets, dropped = apply_gates(buckets, flags)
+    for label, n in dropped.items():
+        print(f"  gated out: {n} {label}")
+
+    parts = [
+        "",
+        f"      <!-- Catalog snapshot generated {stamp} by scripts/build_shop_snapshot.py.",
+        "           DO NOT HAND-EDIT: regenerated on every run. This exists only so",
+        "           crawlers that don't execute JavaScript can see the catalog; page JS",
+        "           overwrites every grid below with live Square data on load. -->",
+        '      <noscript>',
+        "        <style>",
+        "          #shopStatus{display:none!important}",
+        "          #shopSections{display:block!important}",
+        "          #shopSections .shop-section[hidden],",
+        "          #shopSections .shop-subsection[hidden]{display:block!important}",
+        "        </style>",
+        '        <p class="shop-snapshot-note">This is a saved snapshot of our catalog from '
+        f"{stamp[:10]}. Turn on JavaScript for live stock and pricing, or browse our "
+        '<a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" rel="noopener">TCGplayer store</a>.</p>',
+        "      </noscript>",
+    ]
+    parts.append("")
+    return "\n".join(parts), buckets
 
 
 def replace_block(src, start, end, payload, label):
