@@ -54,6 +54,7 @@ window.SK_EVENTS = [
   { start: '2026-08-30',                     name: 'Cardichu — Pompano Beach',   loc: 'D1 · 1401 Green Road, Pompano Beach, FL 33064', hours: '9am–5pm' },
   { start: '2026-09-05', end: '2026-09-06', name: 'TCG Takeover — Orlando',     loc: 'Dezerland Orlando · 5250 International Drive, Orlando, FL 32819' },
   { start: '2026-09-11', end: '2026-09-13', name: 'SWFL Super Card Show X2',    loc: 'Lee Civic Center · 11831 Bayshore Road, North Ft. Myers, FL 33917', hours: 'Fri 5pm setup · Sat 10am–6pm · Sun 10am–5pm' },
+  { start: '2026-09-12',                     name: 'Cardichu — West Palm Beach', loc: 'West Palm Beach, FL' },
   { start: '2026-09-12', end: '2026-09-13', name: 'Collect-A-Con — San Francisco', loc: 'San Mateo County Convention Center · San Mateo, CA', hours: 'Sat 10am–6pm · Sun 10am–5pm' },
   { start: '2026-09-19', end: '2026-09-20', name: 'Lakeland TCG Trade-N-Play',  loc: 'RP Funding Center · 701 W Lime St, Lakeland, FL 33815' },
   { start: '2026-09-19',                     name: 'Stuart Card Show',           loc: 'The Flagler · 201 SW Flagler Ave, Stuart, FL 34994', hours: '10am–5pm' },
