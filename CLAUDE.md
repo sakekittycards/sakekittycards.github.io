@@ -63,6 +63,19 @@ Sealed JP (booster boxes, ETBs) — included in the Japanese dropdown section si
 
 `COND_MULT` then discounts by condition (NM 1.0 / LP 0.85 / MP 0.70 / HP 0.50 / DMG 0.30) for the Market display + Cash + Credit offers (all three move in lockstep).
 
+### Graded prices + listings (shop, product, home, Graded Vault)
+
+Square is a **mirror of Nick's TCGenie inventory (account 54)**, refreshed once a day at 13:00 UTC by the
+TCGenie Worker's `skDailyRun` (`POST /admin/reprice-sk?dry=1` on the TCGenie worker previews it). Truth flows
+app → Square → site, never the other way: edit prices/inventory in TCGenie; Square hand edits are overwritten on
+the next run. Graded pricing in the app = the Graded Audit booth engine on CardLadder comps only. `/items` exposes
+`cert` and `sold` for graded items; sold cards are omitted (`Status: sold` description line, set via
+`POST /admin/set-item-status` — never deleted). Pages read `item.price` directly (0/null = Make Offer).
+`assets/graded-prices.json` and `scripts/build_graded_page.py` are gone (2026-08-31); `graded.html` renders live
+from `/items` and prefers `assets/graded/<cert>.jpg` (shoot photo) over the Square image (capture-tool photo).
+`scripts/graded-uploader/_build_graded_prices_pc.py` is legacy from the retired pipeline. Spec: tcgenie
+`docs/superpowers/specs/2026-08-31-sk-site-inventory-mirror-design.md`.
+
 ### Pricing chain (graded cards, Sell/Trade graded form)
 
 `assets/pc-graded.json` (~47k entries keyed by TCGplayer productId) — auto-fills the "Estimated value" field when the customer picks a graded card from the autocomplete + selects a grade. Switching grades after picking a card re-fills. Never overwrites a value the user typed. Column mapping (verified 2026-05-02 against PC's web pages):
