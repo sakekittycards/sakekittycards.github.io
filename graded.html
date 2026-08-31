@@ -54,6 +54,13 @@
     }
     .singles-tagline .ok { color: var(--cyan); }
     .singles-tagline .pop { color: var(--pink); }
+    .vault-signup { margin: 18px auto 0; max-width: 520px; text-align: left; }
+    .vault-signup-label { display: block; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .vault-signup-row { display: flex; gap: 8px; }
+    .vault-signup-row input { flex: 1; min-width: 0; padding: 11px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); color: #fff; font: inherit; font-size: 15px; }
+    .vault-signup-row .btn { padding: 11px 16px; white-space: nowrap; }
+    .vault-signup small { display: block; color: var(--dim); margin-top: 6px; font-size: 13px; }
+    .vault-signup-msg { margin: 8px 0 0; color: var(--cyan); font-size: 14px; min-height: 1.2em; }
     .singles-note {
       display: flex; gap: 10px; align-items: flex-start;
       max-width: 760px; margin: 16px auto 0;
@@ -178,6 +185,15 @@
         <span aria-hidden="true">📍</span>
         <span>We're local vendors — these also sell in person and at shows, so availability can change. <strong>We'll confirm a slab is still here before anything's finalized.</strong> Tap any card to send an offer straight to Nick.</span>
       </div>
+      <form class="vault-signup" data-src="vault" novalidate>
+        <label for="vsEmailvault" class="vault-signup-label">Vault updates by email</label>
+        <div class="vault-signup-row">
+          <input id="vsEmailvault" type="email" name="email" required autocomplete="email" placeholder="you@email.com" />
+          <button type="submit" class="btn">Sign up</button>
+        </div>
+        <small>One email a week at most, and only when something in the Vault changed. Unsubscribe any time.</small>
+        <p class="vault-signup-msg" role="status" aria-live="polite"></p>
+      </form>
     </div>
 
     <div class="section" style="padding-top:0">
@@ -293,6 +309,26 @@
     }
   })();
   </script>
+<script>
+(() => {
+  // Collector list: one-line signup → TCGenie worker (double opt-in; the confirm email carries the real link).
+  const BASE = 'https://tcgenie.nwilliams23999.workers.dev';
+  document.querySelectorAll('form.vault-signup').forEach(f => {
+    f.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const input = f.querySelector('input[type=email]'), msg = f.querySelector('.vault-signup-msg'), btn = f.querySelector('button');
+      const email = (input.value || '').trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { msg.textContent = 'That email does not look right.'; input.focus(); return; }
+      btn.disabled = true; msg.textContent = 'Sending your confirmation link…';
+      try {
+        await fetch(BASE + '/sk/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, source: 'site:' + (f.dataset.src || 'page') }) });
+        msg.textContent = 'Check your inbox for a one-click confirmation.'; input.value = '';
+      } catch (e) { msg.textContent = 'Could not reach the list right now. Try again in a minute.'; }
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
   <script src="main.js?v=161" defer></script>
 </body>
 </html>
