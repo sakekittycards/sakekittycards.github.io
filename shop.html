@@ -655,19 +655,9 @@
         return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=400&h=400&fit=cover&output=webp&q=80`;
       };
 
-      // Graded asking prices come from assets/graded-prices.json (keyed by Square item id), regenerated
-      // 2026-08-06 from Nick's per-cert asks — the same numbers pushed to Square, so the old
-      // distrust-Square-price rationale (inflating CardLadder pipeline) is retired. The Square price is
-      // the FALLBACK when an item id is missing from the file, so a fresh listing never silently
-      // renders Make-Offer while the file lags a catalog push.
-      // 2026-08-10: prices pulled down (Nick) — graded is pure make-offer while this flag is on.
-      const GRADED_MAKE_OFFER = true;
-      let GRADED_PRICES = {};
-      const gradedListPrice = (item) => {
-        if (GRADED_MAKE_OFFER) return null;
-        const g = GRADED_PRICES[item && item.id];
-        return (g && g.price > 0) ? g.price : null;
-      };
+      // Graded prices come straight from Square, which mirrors Nick's TCGenie inventory once a day
+      // (CLAUDE.md "Graded prices + listings"). Null/0 = Make Offer. The old graded-prices.json override is gone.
+      const gradedListPrice = (item) => (item && item.price > 0) ? item.price : null;
 
       const renderCard = (item) => {
         // "Claimed" = a graded slab that's reserved/sale-pending (Nick marks it
@@ -731,18 +721,15 @@
               <div class="product-name">${esc(item.name)}</div>
               <div class="product-footer">
                 ${(() => {
-                  const gp = isGraded ? gradedListPrice(item) : null;
-                  if (gp) return `<span class="product-price">${fmt(gp)}</span>`;
-                  if (isGraded && !GRADED_MAKE_OFFER && item.price > 0) return `<span class="product-price">${fmt(item.price)}</span>`;
-                  if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return `<span class="product-price product-offer">Make Offer</span>`;
-                  return `<span class="product-price">${fmt(item.price)}</span>`;
+                  const p = item.price > 0 ? item.price : null;
+                  if (p) return `<span class="product-price">${fmt(p)}</span>`;
+                  return `<span class="product-price product-offer">Make Offer</span>`;
                 })()}
               </div>
               <div class="product-cta">${(() => {
-                  const gp = isGraded ? gradedListPrice(item) : null;
-                  if (gp || (isGraded && !GRADED_MAKE_OFFER && item.price > 0)) return 'View / Make Offer →';
-                  if (isGraded || ((isSealed || isSingles) && !(item.price > 0))) return 'Make Offer →';
-                  return (isSealed || isSingles) ? 'View / Make Offer →' : 'More Details →';
+                  const p = item.price > 0 ? item.price : null;
+                  if (isGraded || isSealed || isSingles) return p ? 'View / Make Offer →' : 'Make Offer →';
+                  return 'More Details →';
                 })()}</div>
             </div>
           </a>`;
@@ -758,15 +745,6 @@
         if (!res.ok) throw new Error(`worker ${res.status}`);
         const data  = await res.json();
         const items = Array.isArray(data.items) ? data.items : [];
-
-        // Committed graded asks. Fail-open: if the file is missing, graded falls back to Make-Offer.
-        // Skipped entirely while GRADED_MAKE_OFFER is on — nothing reads the prices then.
-        if (!GRADED_MAKE_OFFER) {
-          try {
-            const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
-            if (gpRes.ok) GRADED_PRICES = await gpRes.json();
-          } catch (_) { /* Make-Offer fallback */ }
-        }
 
         if (items.length === 0) {
           status.innerHTML = `

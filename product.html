@@ -528,20 +528,8 @@
       const isGradedItem = GRADER_RX.test(String(item.name || ''));
       if (isGradedItem) item.stock = 1;
 
-      // Graded asking price: assets/graded-prices.json (keyed by Square id, regenerated from Nick's
-      // per-cert asks — the old distrust-Square-price rationale is retired since 2026-08-06, when
-      // Nick's own prices were pushed straight to Square). File first, Square price as fallback so a
-      // fresh listing never silently degrades to Make-Offer while the file lags a push.
-      // 2026-08-10: prices pulled down (Nick) — graded is pure make-offer while this flag is on.
-      const GRADED_MAKE_OFFER = true;
-      let gradedListPrice = null;
-      if (isGradedItem && !GRADED_MAKE_OFFER) {
-        try {
-          const gpRes = await fetch('assets/graded-prices.json', { cache: 'no-cache' });
-          if (gpRes.ok) { const gp = (await gpRes.json())[item.id]; if (gp && gp.price > 0) gradedListPrice = gp.price; }
-        } catch (_) { /* fall through to Square price */ }
-        if (!gradedListPrice && item.price > 0) gradedListPrice = item.price;
-      }
+      // Graded asking price = Square item.price (Square mirrors TCGenie acct-54 daily). 0/null = Make Offer.
+      let gradedListPrice = (isGradedItem && item.price > 0) ? item.price : null;
 
       // Singles (raw single cards) are detected the same way the shop grid
       // categorizes them: year prefix ("1999 Charizard Holo") or an internal
