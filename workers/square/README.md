@@ -9,6 +9,10 @@ The site calls this Worker instead of talking to Square directly, so the Square 
 - `GET  /health`   — liveness check
 - `GET  /items`    — list products from Square catalog
 - `POST /checkout` — create a Square Payment Link from a cart; body: `{ items: [{ name, price, quantity }], shippingCost?, note?, returnUrl? }`
+- `GET  /items` graded items also carry `cert` (digits from the `Cert #:` description line) and `sold`. Card items (cert, `Card ID:`, or `SEAL-*` SKU) whose description holds a `Status: sold` line are **omitted** — merch never carries the marker.
+- `POST /admin/set-item-status` — `{ item_id, status: 'sold' | 'live' }` (X-Sake-Admin-Token). Adds/removes the `Status: sold` description line; never deletes the item.
+
+**The Square catalog is a mirror of Nick's TCGenie inventory (account 54).** TCGenie's daily run (13:00 UTC, `POST /admin/reprice-sk` on the TCGenie worker) creates slabs, syncs prices/photos and marks sold items here. Edit inventory and prices in TCGenie — Square-side hand edits are overwritten on the next run.
 
 ## First-time deploy
 
