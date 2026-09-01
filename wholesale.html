@@ -813,6 +813,17 @@
 
   /* ── quote sheet ─────────────────────────────────────────── */
   var sheet = $('sheet'), lastFocus = null, sending = false;
+  // One id per basket, kept across retries. If a send times out the buyer cannot
+  // know whether it landed; resending the SAME id lets the worker recognise the
+  // retry instead of quoting the same order twice. Cleared only on a confirmed send.
+  var reqId = null;
+  function requestId() {
+    if (!reqId) {
+      reqId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+        : 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    }
+    return reqId;
+  }
 
   function paintReview() {
     var t = totals(), tb = $('revRows');
@@ -944,7 +955,8 @@
         return { name: l.p.name, qty: l.qty, unit: l.p.unit, price: l.p.price, id: l.p.id, lineTotal: l.line };
       }),
       orderTotal: totals().value,
-      catalogDate: UPDATED
+      catalogDate: UPDATED,
+      requestId: requestId()
     };
 
     var ctl = ('AbortController' in window) ? new AbortController() : null;
@@ -966,7 +978,7 @@
         }).join('') + '<li class="sum"><span>Estimated total</span><b>' + money(sentTotal) + '</b></li>';
         $('stepForm').hidden = true; $('stepDone').hidden = false;
         $('doneClose').focus();
-        order = {}; save(); render(); paintDock();
+        order = {}; reqId = null; save(); render(); paintDock();
         announce('Request sent. Reference ' + (res.d.ref || ''));
       })
       .catch(function (e) {
