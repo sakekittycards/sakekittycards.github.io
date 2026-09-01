@@ -2081,7 +2081,10 @@ body.cart-open { overflow: hidden; }
 .footer-ig, .footer-yt { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: var(--muted); text-decoration: none; transition: color .15s; }
 .footer-ig:hover, .footer-yt:hover { color: var(--orange); }
 .footer-ig svg, .footer-yt svg { width: 18px; height: 18px; fill: currentColor; }
-.footer-nav { display: flex; flex-direction: column; gap: 10px; }
+/* Footer nav grew 15 -> 20 links with the 2026-09 SEO landing pages. A single
+   20-item column made the footer ~500px tall and mostly whitespace; two
+   columns keep it compact. Row-wise flow, so reading order == DOM order. */
+.footer-nav { display: grid; grid-template-columns: repeat(2, minmax(120px, max-content)); gap: 10px 44px; }
 .footer-nav a { font-size: 15px; color: var(--dim); text-decoration: none; transition: color .15s; }
 .footer-nav a:hover { color: var(--orange); }
 .footer-copy { max-width: var(--max-w); margin: 0 auto; font-size: 14px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 24px; }
@@ -2223,6 +2226,7 @@ body.drip-unlocked { position: relative; }
   .values-grid { grid-template-columns: 1fr; }
   .contact-split { grid-template-columns: 1fr; }
   .footer-inner { grid-template-columns: 1fr; gap: 28px; }
+  .footer-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
   .notify-bar { flex-direction: column; padding: 26px; }
   .notify-bar-form { width: 100%; }
   .notify-bar-form input { flex: 1; width: auto; }

@@ -10,4 +10,53 @@ Disallow: /scripts/
 Disallow: /workers/
 Disallow: /assets/print/
 
+# Answer engines and AI crawlers are explicitly welcome. Stated per-agent
+# rather than relying on the wildcard, because some of these treat an absent
+# named group differently, and because it makes the intent unambiguous if
+# anyone later tightens the wildcard.
+#
+# ⚠️ robots.txt is NOT the only control. The Cloudflare zone for this domain
+# has "Block AI training bots" ARMED in the dashboard. It is inert today only
+# because the DNS records are grey-cloud (DNS-only, unproxied). The moment
+# anyone flips the apex or www record to orange cloud, Cloudflare will block
+# GPTBot / ClaudeBot / PerplexityBot AT THE EDGE and silently override
+# everything below, with no trace in this file. Check Cloudflare → AI Crawl
+# Control before proxying. See project_sk_seo_audit_2026-08 in memory.
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
 Sitemap: https://sakekittycards.com/sitemap.xml
