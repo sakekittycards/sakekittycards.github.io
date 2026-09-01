@@ -279,6 +279,32 @@ async function main() {
     eq(r.renamed.length, 0, 'and is not mistaken for a rename');
   }
 
+  suite('a cancelled show cannot leave an approvable post behind');
+  {
+    const env = makeEnv();
+    const media = await storeMedia(env, new TextEncoder().encode('g'), {
+      kind: 'image', contentType: 'image/jpeg', at: AT });
+    await ingestEvents(env, SAMPLE_EVENTS, { at: AT });
+    const evId = await eventId('Stuart Card Show', '2026-09-19');
+    const id = await items.createEventItem(env, {
+      eventId: evId, opportunityId: 'opp_cancel', kind: 'UPCOMING',
+      caption: 'come see us', hashtags: [], mediaId: media.id, at: AT });
+    await items.approveItem(env, id, { by: 'nick', at: AT });
+    await items.scheduleItem(env, id, AT + 86400e3, { at: AT });
+
+    // The show comes off the website.
+    await ingestEvents(env, SAMPLE_EVENTS.filter((e) => e.title !== 'Stuart Card Show'),
+      { at: AT + 1000 });
+    const r = await opps.refreshOpportunities(env, P(), { at: AT + 1000 });
+    ok(r.cancelledItems >= 1, `${r.cancelledItems} queued post(s) removed`);
+
+    const row = await items.getItem(env, id);
+    eq(row.status, 'rejected', 'the approved post is out of the queue entirely');
+    eq(row.scheduled_for, null, 'and off the calendar');
+    await throws(() => items.approveItem(env, id, { by: 'nick', at: AT + 2000 }),
+      'item is rejected', 'and it can no longer be approved');
+  }
+
   suite('a video that vanishes from disk after approval can still publish');
   {
     // The R2 copy is the thing Instagram fetches. The source file disappearing

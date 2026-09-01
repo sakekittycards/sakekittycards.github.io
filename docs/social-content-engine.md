@@ -160,6 +160,29 @@ would: video "The Kid's Binder" is REVIEW, not approved — Instagram ingestion 
 
 ---
 
+## 4b. What guarantee we can actually give
+
+**Not exactly-once. Instagram's Content Publishing API does not offer one.**
+`media_publish` takes no client idempotency key, so there is no way to tell Meta
+"this is a retry of that request". Anyone claiming exactly-once on top of this
+API is claiming something the API cannot support.
+
+What we can give is **at-most-once in every case we can observe, and never a
+silent double post.** The mechanism:
+
+1. The container id is written to the database *before* `media_publish` is called.
+2. Any retry that finds a container id asks Meta for that container's
+   `status_code` before doing anything else. `PUBLISHED` means it already went
+   out, and we adopt it instead of publishing again.
+3. If that question cannot be answered, the item is parked as `needs_review` with
+   "Instagram publish state is uncertain — check the account before retrying".
+   We do not guess. Retrying could double-post; giving up could silently drop it.
+
+The residual risk is a genuinely ambiguous window: Meta accepted the publish, and
+then their API is unreachable for as long as we keep asking. In that case the
+item sits in the queue with a loud, specific explanation and a human decides. It
+does not post twice on its own.
+
 ## 5. Cadence
 
 Configured in `policy.windows`, not in code.

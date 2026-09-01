@@ -36,7 +36,7 @@ export async function opportunityId(eventId, kind) {
  */
 export async function refreshOpportunities(env, policy, { at = nowMs() } = {}) {
   const today = isoDate(at);
-  const summary = { created: 0, retired: 0, expired: 0, skipped: 0 };
+  const summary = { created: 0, retired: 0, expired: 0, skipped: 0, cancelledItems: 0 };
 
   // When the calendar was first mirrored. Everything already present at that
   // moment is history, not news — see the ANNOUNCEMENT branch of planWindow().
@@ -61,6 +61,25 @@ export async function refreshOpportunities(env, policy, { at = nowMs() } = {}) {
           await setStatus(env, opp.id, 'retired', 'event cancelled', at);
           summary.retired += 1;
         }
+      }
+
+      // Retiring the opportunities is not enough. Any draft or approved post
+      // already built for this show has to leave the queue too — otherwise it
+      // sits in 'needs_review' where a human can still approve it, and posting
+      // "come see us at X" for a cancelled show is the single most damaging
+      // thing this system could do. Published items are left alone; that
+      // already happened and rewriting it would make the post log lie.
+      const killed = await env.DB.prepare(
+        `UPDATE content_items
+            SET status='rejected', scheduled_for=NULL, failure_reason=?, updated_at=?
+          WHERE event_id=? AND status IN ('draft','needs_review','approved','scheduled','failed')`
+      ).bind('the show was cancelled or removed from the website', at, ev.id).run();
+      const n = killed.meta ? killed.meta.changes : 0;
+      if (n) {
+        summary.cancelledItems += n;
+        await log(env, 'warn', 'items', ev.id,
+          `${n} queued post(s) removed from the queue — "${ev.title}" is no longer on the website. `
+          + 'They cannot be approved or published.', null, at);
       }
       continue;
     }
