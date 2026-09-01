@@ -32,6 +32,21 @@ So the committed file is a crawlable BASELINE, and the browser is always the
 source of truth. Regenerating keeps the schema fresh; not regenerating degrades
 gracefully instead of lying.
 
+LIFECYCLE GUARANTEES (each verified by a test, see the suite in the commit)
+--------------------------------------------------------------------------
+  * URLs are PINNED per SKU. The manifest is the URL registry: a SKU keeps the
+    slug it was first given even if its name is edited in Square. Before this,
+    a rename silently moved the URL and threw away any accumulated equity.
+  * Obsolete pages cannot accumulate: anything not in the current feed is
+    deleted from p/ on every run.
+  * A sold SKU leaves the SITEMAP in the same run that deletes its page —
+    sync_sitemap() rewrites the fenced Products block from the manifest, so the
+    sitemap can never advertise a 404.
+  * Static schema cannot go stale indefinitely: every Offer carries
+    priceValidUntil (30 days), and hydration rewrites price + availability in
+    the JSON-LD as well as in the visible UI, including flipping a vanished SKU
+    to SoldOut.
+
 SAFE-BY-CONSTRUCTION
 --------------------
   * Writes only into p/ and assets/product-slugs.json. Touches no existing page.
@@ -52,6 +67,7 @@ USAGE
 from __future__ import annotations
 
 import argparse
+import datetime as _dt
 import html
 import json
 import os
@@ -67,7 +83,15 @@ from _seo_page_kit import NAV, FOOTER, CSS_V, JS_V, SKIP, SITE  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / 'p'
 MANIFEST = ROOT / 'assets' / 'product-slugs.json'
+SITEMAP = ROOT / 'sitemap.xml'
+SM_OPEN = '  <!--PRODUCTS:start-->'
+SM_CLOSE = '  <!--PRODUCTS:end-->'
 ITEMS_URL = 'https://sakekitty-square.nwilliams23999.workers.dev/items'
+
+# How long a build-time price is asserted as valid. Short on purpose: inventory
+# is a daily mirror, so a month is already generous. Expiring is the desired
+# behaviour — it tells a crawler to re-fetch rather than trust an old number.
+PRICE_VALID_DAYS = 30
 
 # Mirrors shop.html's categorize() exactly. If that changes, change this.
 GRADER_RX = re.compile(r'\b(PSA|BGS|CGC|SGC)\b', re.I)
@@ -89,13 +113,54 @@ def categorize(item):
     return 'merch'
 
 
-def slugify(name, sku):
-    """Readable, stable, collision-proof.
+def load_manifest():
+    """Existing SKU -> slug map, or {} on first run.
 
-    Collision-proofing matters more than prettiness here: two slabs of the same
-    card in the same grade are genuinely different products (different certs),
-    and they must not fight over one URL. The 6-char SKU suffix guarantees that
-    while keeping the slug human-readable for click-through.
+    This is the URL registry, not a cache. See assign_slugs().
+    """
+    try:
+        return json.loads(MANIFEST.read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+
+
+def assign_slugs(items, existing):
+    """Slugs are PINNED to the SKU on first sight and never change afterwards.
+
+    Names get edited in Square all the time — a reprice note appended, a set
+    name tidied. Deriving the slug from the current name every run meant a
+    rename silently moved the product's URL: the old file was pruned, a new one
+    appeared, and whatever ranking or inbound links the old URL had accumulated
+    were thrown away with no redirect. Verified: one SKU with three name
+    variants produced three different URLs.
+
+    So the manifest is the authority. A SKU keeps the slug it was first given,
+    for life. Only genuinely new SKUs mint a new one.
+    """
+    slugs = {}
+    taken = set()
+    for it in items:
+        sku = it['id']
+        if sku in existing:                 # pinned — keep the URL it already has
+            slugs[sku] = existing[sku]
+            taken.add(existing[sku])
+    for it in items:
+        sku = it['id']
+        if sku in slugs:
+            continue
+        base = slugify(it['name'], sku)
+        cand, n = base, 2
+        while cand in taken:                # cannot collide with a pinned slug
+            cand = '%s-%d' % (base, n)
+            n += 1
+        slugs[sku] = cand
+        taken.add(cand)
+    return slugs
+
+
+def slugify(name, sku):
+    """Readable, collision-proof. Only ever called when MINTING a new slug —
+    an existing SKU keeps its pinned slug regardless of what this would return.
     """
     s = unicodedata.normalize('NFKD', name or 'item')
     s = s.encode('ascii', 'ignore').decode('ascii').lower()
@@ -270,12 +335,41 @@ PAGE = '''<!DOCTYPE html>
           m.name = 'robots'; m.content = 'noindex, follow';
           document.head.appendChild(m);
           document.title = 'Sold \\u2014 ' + document.title;
+          try {{
+            var ldGone = document.getElementById('productSchema');
+            if (ldGone) {{
+              var g = JSON.parse(ldGone.textContent);
+              if (g.offers) {{
+                g.offers.availability = 'https://schema.org/SoldOut';
+                delete g.offers.price;
+                ldGone.textContent = JSON.stringify(g, null, 2);
+              }}
+            }}
+          }} catch (e) {{ /* leave it */ }}
           var sold = document.getElementById('pdSold');
           var buy = document.getElementById('pdBuy');
           if (sold) sold.style.display = 'block';
           if (buy) buy.style.display = 'none';
           return;
         }}
+
+        // Correct the structured data as well as the visible price. Google
+        // renders JS and reads the rewritten node, so a stale committed price
+        // never reaches a rich result. Non-JS crawlers fall back to
+        // priceValidUntil, which expires rather than lying indefinitely.
+        try {{
+          var ldEl = document.getElementById('productSchema');
+          if (ldEl) {{
+            var ld = JSON.parse(ldEl.textContent);
+            if (ld.offers) {{
+              if (live.price) {{ ld.offers.price = Number(live.price).toFixed(2); }}
+              else {{ delete ld.offers.price; }}
+              ld.offers.availability = (live.stock === null || live.stock === undefined || live.stock > 0)
+                ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+              ldEl.textContent = JSON.stringify(ld, null, 2);
+            }}
+          }}
+        }} catch (e) {{ /* malformed node: leave the build-time schema alone */ }}
 
         var priceEl = document.getElementById('pdPrice');
         var stockEl = document.getElementById('pdStock');
@@ -307,6 +401,10 @@ def build_schema(item, cat, url, image, price, desc):
     offer = {
         '@type': 'Offer',
         'url': url,
+        # Bounds how long a crawler should trust a build-time price. Without it
+        # a stale committed price is asserted as current forever. JS-capable
+        # crawlers get the live value anyway (hydration rewrites this node).
+        'priceValidUntil': PRICE_VALID_UNTIL,
         'availability': avail,
         'itemCondition': ('https://schema.org/UsedCondition' if cat in ('graded', 'singles')
                           else 'https://schema.org/NewCondition'),
@@ -358,8 +456,9 @@ def build_schema(item, cat, url, image, price, desc):
         ],
     }
     out = ''
-    for node in (product, breadcrumb):
-        out += '  <script type="application/ld+json">\n%s\n  </script>\n' % json.dumps(node, indent=2, ensure_ascii=False)
+    for node, node_id in ((product, ' id="productSchema"'), (breadcrumb, '')):
+        out += ('  <script type="application/ld+json"%s>\n%s\n  </script>\n'
+                % (node_id, json.dumps(node, indent=2, ensure_ascii=False)))
     return out
 
 
@@ -385,7 +484,59 @@ def related_html(item, cat, all_items, slugs):
     return '\n'.join(out) if out else '        <p style="color:var(--dim)">Nothing else in this category right now.</p>'
 
 
+def sync_sitemap(slugs, today, dry_run=False):
+    """Rewrite the fenced Products block so it exactly matches what exists.
+
+    Fenced rather than pattern-matched: a fence cannot nest, so re-running
+    replaces the region instead of appending to it. (build_shop_snapshot.py
+    once tripled a catalog by matching on a non-greedy div instead of a fence.)
+
+    Deliberately derives from `slugs`, not from a directory listing, so a stray
+    file in p/ can never smuggle a URL into the sitemap.
+    """
+    if not SITEMAP.exists():
+        print('  !! sitemap.xml missing — skipped')
+        return 0
+    xml = SITEMAP.read_text(encoding='utf-8')
+    rows = ''.join(
+        '  <url>\n'
+        '    <loc>https://sakekittycards.com/p/%s.html</loc>\n'
+        '    <lastmod>%s</lastmod>\n'
+        '    <changefreq>weekly</changefreq>\n'
+        '    <priority>0.6</priority>\n'
+        '  </url>\n' % (slug, today)
+        for slug in sorted(slugs.values()))
+    block = (SM_OPEN + '\n'
+             '  <!-- Product URLs, owned by scripts/build_product_pages.py.\n'
+             '       Do not hand-edit: the generator rewrites this whole region so a\n'
+             '       sold SKU leaves the sitemap in the same run that deletes its page. -->\n'
+             + rows + SM_CLOSE)
+
+    if SM_OPEN in xml and SM_CLOSE in xml:
+        new = xml[:xml.index(SM_OPEN)] + block + xml[xml.index(SM_CLOSE) + len(SM_CLOSE):]
+    else:
+        # first run, or the old ad-hoc comment block is still there — replace it
+        old = re.search(r'\n  <!-- ── Products.*?(?=\n</urlset>)', xml, re.S)
+        if old:
+            xml = xml[:old.start()] + xml[old.end():]
+        new = xml.replace('\n</urlset>', '\n' + block + '\n</urlset>')
+
+    assert new.count(SM_OPEN) == 1 and new.count(SM_CLOSE) == 1
+    locs = re.findall(r'<loc>https://sakekittycards\.com/p/([^<]+)\.html</loc>', new)
+    assert sorted(locs) == sorted(slugs.values()), 'sitemap products drifted from the manifest'
+    import xml.dom.minidom as _md
+    _md.parseString(new)          # never write a malformed sitemap
+
+    if not dry_run:
+        tmp = str(SITEMAP) + '.tmp'
+        Path(tmp).write_text(new, encoding='utf-8', newline='')
+        os.replace(tmp, SITEMAP)
+    return len(locs)
+
+
 def main():
+    global PRICE_VALID_UNTIL
+    PRICE_VALID_UNTIL = (_dt.date.today() + _dt.timedelta(days=PRICE_VALID_DAYS)).isoformat()
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--from', dest='src', help='read items from a local JSON file')
@@ -402,11 +553,12 @@ def main():
     if not items:
         sys.exit('refusing to build: /items returned no usable rows')
 
-    slugs = {}
-    for it in items:
-        slugs[it['id']] = slugify(it['name'], it['id'])
+    existing = load_manifest()
+    slugs = assign_slugs(items, existing)
     if len(set(slugs.values())) != len(slugs):
-        sys.exit('slug collision — fix slugify()')
+        sys.exit('slug collision — fix assign_slugs()')
+    minted = [k for k in slugs if k not in existing]
+    kept = len(slugs) - len(minted)
 
     plural = {'graded': 'graded slabs', 'sealed': 'sealed product',
               'singles': 'singles', 'merch': 'apparel &amp; merch'}
@@ -512,9 +664,14 @@ def main():
     if not args.dry_run:
         MANIFEST.parent.mkdir(exist_ok=True)
         MANIFEST.write_text(json.dumps(slugs, indent=0, sort_keys=True), encoding='utf-8', newline='\n')
+    n_sm = sync_sitemap(slugs, _dt.date.today().isoformat(), args.dry_run)
 
-    print('items: %d   pages %s: %d   pruned: %d'
-          % (len(items), 'that would be written' if args.dry_run else 'written', written, len(pruned)))
+    print('items: %d   pages %s: %d   pruned: %d   slugs kept: %d, minted: %d'
+          % (len(items), 'that would be written' if args.dry_run else 'written',
+             written, len(pruned), kept, len(minted)))
+    print('sitemap product URLs: %d' % n_sm)
+    if minted:
+        print('  new URLs: %s' % ', '.join(slugs[k] for k in minted[:4]))
     if pruned:
         print('  pruned: %s' % ', '.join(pruned[:6]))
     by = {}

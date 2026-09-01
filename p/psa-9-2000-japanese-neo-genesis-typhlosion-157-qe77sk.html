@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="PSA 9 2000 Japanese Neo Genesis Typhlosion #157" />
   <meta name="twitter:description" content="PSA 9 2000 Japanese Neo Genesis Typhlosion #157 — $175.00 at Sake Kitty Cards. Graded pokémon slab, shipped insured. Free shipping over $100." />
   <meta name="twitter:image" content="https://items-images-production.s3.us-west-2.amazonaws.com/files/0da2b5f8c5ed786fefe7ab2795e7ad71d1249a90/original.jpeg" />
-  <script type="application/ld+json">
+  <script type="application/ld+json" id="productSchema">
 {
   "@context": "https://schema.org",
   "@type": "Product",
@@ -37,6 +37,7 @@
   "offers": {
     "@type": "Offer",
     "url": "https://sakekittycards.com/p/psa-9-2000-japanese-neo-genesis-typhlosion-157-qe77sk.html",
+    "priceValidUntil": "2026-10-01",
     "availability": "https://schema.org/InStock",
     "itemCondition": "https://schema.org/UsedCondition",
     "priceCurrency": "USD",
@@ -305,12 +306,41 @@ Card Number: 157</p></div>
           m.name = 'robots'; m.content = 'noindex, follow';
           document.head.appendChild(m);
           document.title = 'Sold \u2014 ' + document.title;
+          try {
+            var ldGone = document.getElementById('productSchema');
+            if (ldGone) {
+              var g = JSON.parse(ldGone.textContent);
+              if (g.offers) {
+                g.offers.availability = 'https://schema.org/SoldOut';
+                delete g.offers.price;
+                ldGone.textContent = JSON.stringify(g, null, 2);
+              }
+            }
+          } catch (e) { /* leave it */ }
           var sold = document.getElementById('pdSold');
           var buy = document.getElementById('pdBuy');
           if (sold) sold.style.display = 'block';
           if (buy) buy.style.display = 'none';
           return;
         }
+
+        // Correct the structured data as well as the visible price. Google
+        // renders JS and reads the rewritten node, so a stale committed price
+        // never reaches a rich result. Non-JS crawlers fall back to
+        // priceValidUntil, which expires rather than lying indefinitely.
+        try {
+          var ldEl = document.getElementById('productSchema');
+          if (ldEl) {
+            var ld = JSON.parse(ldEl.textContent);
+            if (ld.offers) {
+              if (live.price) { ld.offers.price = Number(live.price).toFixed(2); }
+              else { delete ld.offers.price; }
+              ld.offers.availability = (live.stock === null || live.stock === undefined || live.stock > 0)
+                ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+              ldEl.textContent = JSON.stringify(ld, null, 2);
+            }
+          }
+        } catch (e) { /* malformed node: leave the build-time schema alone */ }
 
         var priceEl = document.getElementById('pdPrice');
         var stockEl = document.getElementById('pdStock');
