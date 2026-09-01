@@ -59,6 +59,28 @@ rate ladder ← `trade-in.html` `RATES` · condition ← `COND_MULT` · service 
 `grading-prep.html` service cards · shipping ← `main.js` constants · venues ←
 `assets/events-data.js`.
 
+### Per-SKU product pages — `p/<slug>.html` (added 2026-09-01)
+
+`product.html` is a single JS shell: its real title/description/canonical/Product
+schema only exist after JS runs, so Bing, social scrapers and most AI crawlers saw
+nothing for 55 SKUs. `scripts/build_product_pages.py` emits one crawlable static page
+per SKU into `p/`, plus `assets/product-slugs.json` (SKU -> slug).
+
+- **Staleness is handled in the page, not by the build cadence.** Each page re-fetches
+  `/items` on load and overwrites price + stock, so a committed number is never shown
+  stale. If the SKU has gone (sold), the page injects `noindex, follow`, retitles to
+  "Sold — …" and swaps the buy panel for a sold state. Both paths verified in Chromium.
+- **Links degrade safely.** `shop.html` / `graded.html` / the snapshot builder look the
+  SKU up in the manifest and fall back to `product.html?id=` when it isn't there, so a
+  SKU added to Square after the last build can never 404. Both pages `await
+  skSlugsReady` before first paint — without that the map lands after render and every
+  link silently falls back.
+- `product.html` stays the universal shell and now canonicalises to the static page
+  when the manifest knows the SKU.
+- **Re-run after inventory changes:** `python scripts/build_product_pages.py`. Idempotent
+  (verified byte-stable over 3 runs), prunes pages whose SKU vanished. Regenerate the
+  sitemap Products block too.
+
 ### Other pages
 
 - `wholesale.html` — **hidden** B2B wholesale sealed price list + quote-request tool. Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS/JS (no style.css/main.js, no cache-buster). Keep it unlinked.
@@ -87,6 +109,27 @@ rate ladder ← `trade-in.html` `RATES` · condition ← `COND_MULT` · service 
   `aria-current="page"`, asserts tag balance, and is idempotent. Do not hand-edit nav or footer
   on individual pages — the old blind-replace approach injected into dropdown parents and the
   PDP breadcrumb.
+- **Generated artifacts and the scripts that own them.** All are idempotent and assert
+  before writing. If you change one, run it 3x and diff.
+  | Script | Owns | Re-run when |
+  |---|---|---|
+  | `build_product_pages.py` | `p/*.html`, `assets/product-slugs.json` | inventory changes |
+  | `build_event_schema.py` | fenced static Event JSON-LD in `events.html` | `assets/events-data.js` changes |
+  | `build_shop_snapshot.py` | the `<!--SNAP:*-->` grids in `shop.html` | catalog changes |
+  | `_seo_update_chrome.py` | nav + footer on all 34 chrome pages | nav/footer changes |
+  | `verify_psa_multiple.py` | re-measures the published PSA-multiple table | before changing those numbers |
+  | `seo_audit.py` | nothing — it is the gate | every SEO-touching PR |
+- **`robots.txt` has exactly ONE `User-agent: *` group, deliberately.** Do not add
+  per-agent groups to "welcome" a crawler: a crawler obeys only its most specific
+  matching group, so a named group containing just `Allow: /` cancels the `Disallow`
+  rules for that crawler. A 2026-09-01 revision did this for 12 agents and silently
+  un-blocked `/scripts/` and `/workers/` for Googlebot and every AI crawler. Fixed —
+  don't reintroduce it.
+- **Analytics event layer**: `window.skTrack(name, props)` in `main.js`, vendor-neutral.
+  Buffers until a vendor attaches via `skTrack.use(fn)`, and mirrors every event to
+  `window.dataLayer` so GA4/GTM can be installed with zero further code. Canonical event
+  names live in `skTrack.EVENTS` — add new ones there. No personal data goes through it;
+  values are banded (`skPriceBand`) rather than exact.
 - Typography baseline: body copy 14–15px, headings use Bangers with gradient fill. Don't drop below 13px for readable copy.
 
 ## Customer-facing forms — Sell/Trade and Grading Prep are paired

@@ -1234,7 +1234,7 @@
       <div class="card" style="padding:30px 32px;background:linear-gradient(135deg,rgba(255,106,0,.07),rgba(123,47,255,.07));border-color:rgba(255,106,0,.18)">
         <h2 style="font-family:'Bangers',cursive;font-size:26px;letter-spacing:.04em;padding-bottom:8px">Not sure grading is the right call?</h2>
         <ul style="line-height:2.05;padding-left:20px;color:var(--muted)">
-          <li><strong><a href="guide-should-you-grade.html">Should you grade it at all?</a></strong> The break-even math, including our own measurement of the PSA 10 to Grade 9 price ratio across 58,152 cards. Sometimes the answer is no, and we would rather you knew that before you paid us.</li>
+          <li><strong><a href="guide-should-you-grade.html">Should you grade it at all?</a></strong> The break-even math, including our own measurement of the PSA 10 to Grade 9 price ratio across 58,533 cards. Sometimes the answer is no, and we would rather you knew that before you paid us.</li>
           <li><strong><a href="guide-psa-vs-cgc.html">PSA vs CGC vs BGS</a></strong> &mdash; which grader to send it to, and why it changes what the slab is worth afterwards.</li>
           <li><strong><a href="guide-grade-your-own-cards.html">Read the card yourself first</a></strong> &mdash; the four checks that catch the flaws which cost a 10.</li>
           <li><strong><a href="sell-graded-pokemon-cards.html">Already have slabs you want to sell?</a></strong> We buy PSA, CGC, BGS and SGC from $100 up.</li>
@@ -1472,7 +1472,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
   <script>
 
     /* CATALOG SOURCE: TCGdex (swapped from pokemontcg.io 2026-07-31, task #16).
@@ -3056,6 +3056,10 @@
           return r.ok ? d : null;
         }).catch(() => null);
 
+        if (window.skTrack) window.skTrack('grading_submission_completed', {
+          cards: gpCards.length,
+          handoff: handoffLabel,
+        });
         const emailPromise = fetch('https://api.web3forms.com/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },

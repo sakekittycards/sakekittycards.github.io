@@ -47,6 +47,15 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+# SKU -> static-page slug, written by scripts/build_product_pages.py. Absent or
+# stale is fine: every lookup falls back to product.html?id=.
+try:
+    import json as _json, pathlib as _pl
+    _SLUGS = _json.loads((_pl.Path(__file__).resolve().parent.parent /
+                          "assets" / "product-slugs.json").read_text(encoding="utf-8"))
+except Exception:
+    _SLUGS = {}
+
 ROOT = Path(__file__).resolve().parent.parent
 SHOP = ROOT / "shop.html"
 WORKER = "https://sakekitty-square.nwilliams23999.workers.dev/items"
@@ -118,7 +127,12 @@ def build_card(item, cat):
     """
     e = html.escape
     name = e(item.get("name") or "Untitled")
-    href = "product.html?id=" + urllib.parse.quote(item.get("id") or "", safe="")
+    # Prefer the static per-SKU page so the no-JS snapshot and the live
+    # renderer point at the same canonical URL. Falls back to the shell for a
+    # SKU that postdates the last build_product_pages.py run.
+    _slug = _SLUGS.get(item.get("id") or "")
+    href = ("p/%s.html" % _slug) if _slug else (
+        "product.html?id=" + urllib.parse.quote(item.get("id") or "", safe=""))
     raw = (item.get("imageUrl") or "") or ((item.get("imageUrls") or [None])[0] or "")
     src = thumb(raw)
     img = (
@@ -143,7 +157,8 @@ def build_schema(buckets):
         if it.get("inStock") is False:
             continue
         pos += 1
-        url = f"{SITE}/product.html?id={it.get('id')}"
+        _s = _SLUGS.get(it.get("id") or "")
+        url = f"{SITE}/p/{_s}.html" if _s else f"{SITE}/product.html?id={it.get('id')}"
         offer = {
             "@type": "Offer",
             "url": url,

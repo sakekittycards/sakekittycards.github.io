@@ -1,3 +1,115 @@
+// ─── Conversion event layer (vendor-neutral) ────────────────────────────────
+// There is deliberately NO analytics vendor installed. This is the seam a
+// vendor plugs into later without touching a single page again.
+//
+// Call it from anywhere:      window.skTrack('trade_started', { source: 'search' })
+// Attach a vendor later:      window.skTrack.use(fn)   // fn(name, props, meta)
+//
+// Three things make this safe to ship before a vendor exists:
+//   1. Events fired before a vendor attaches are BUFFERED (capped), then
+//      replayed on attach — so nothing that happens during page load is lost.
+//   2. Every event is also pushed to window.dataLayer, which is the GA4 /
+//      Google Tag Manager convention. Installing GTM alone will therefore
+//      start receiving all of these with zero further code.
+//   3. A vendor callback that throws can never break the page.
+//
+// NO personal data goes through here. Props are counts, categories and page
+// identifiers only — never names, emails, message bodies or card lists.
+// Keep it that way: this layer feeding a third party is exactly where a
+// privacy problem would start.
+(function skAnalytics() {
+  if (window.skTrack) return;
+
+  var BUFFER_MAX = 50;
+  var buffer = [];
+  var sinks = [];
+
+  window.dataLayer = window.dataLayer || [];
+
+  function emit(name, props, meta) {
+    for (var i = 0; i < sinks.length; i++) {
+      try {
+        sinks[i](name, props, meta);
+      } catch (err) {
+        // A broken vendor tag must never take the site down with it.
+        if (window.console && console.warn) console.warn('[skTrack] sink failed:', err);
+      }
+    }
+  }
+
+  function track(name, props) {
+    if (!name) return;
+    props = props || {};
+    var meta = {
+      page: location.pathname.replace(/^\//, '') || 'index.html',
+      ts: Date.now(),
+    };
+    // GA4 / GTM convention — a tag manager can consume this untouched.
+    try {
+      window.dataLayer.push(Object.assign({ event: name }, props, meta));
+    } catch (e) { /* dataLayer proxied by a tag manager that rejects it */ }
+
+    if (!sinks.length) {
+      if (buffer.length < BUFFER_MAX) buffer.push([name, props, meta]);
+      return;
+    }
+    emit(name, props, meta);
+  }
+
+  // Attach a vendor. Replays anything buffered before attachment.
+  track.use = function (fn) {
+    if (typeof fn !== 'function') return;
+    sinks.push(fn);
+    var pending = buffer.splice(0, buffer.length);
+    for (var i = 0; i < pending.length; i++) {
+      emit(pending[i][0], pending[i][1], pending[i][2]);
+    }
+  };
+
+  // The canonical event names. Documented here so a future vendor mapping has
+  // one authoritative list, and so nobody invents a second name for the same
+  // action. Adding one? Add it here too.
+  track.EVENTS = [
+    'collection_submission_started',   // began filling the collection offer form
+    'collection_submission_completed', // collection offer form sent
+    'appraisal_started',               // engaged the valuation path
+    'trade_started',                   // added a first card to the sell/trade list
+    'trade_submitted',                 // sell/trade request sent
+    'grading_submission_started',      // added a first card to grading prep
+    'grading_submission_completed',    // grading prep request sent
+    'wholesale_inquiry',               // wholesale price-list request clicked
+    'product_view',                    // a PDP was actually rendered for a real SKU
+    'add_to_cart',
+    'begin_checkout',
+    'outbound_contact',                // mailto / Instagram / phone click
+    'quote_calculated',                // a live market value was shown to a visitor
+  ];
+
+  window.skTrack = track;
+
+  // ── Zero-config instrumentation ───────────────────────────────────────────
+  // Delegated listeners, so pages don't each need wiring and nothing breaks
+  // when markup moves.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+
+    if (href.indexOf('mailto:') === 0) {
+      track('outbound_contact', { channel: 'email' });
+      if (/wholesale/i.test(href)) track('wholesale_inquiry', { channel: 'email' });
+      return;
+    }
+    if (href.indexOf('tel:') === 0) { track('outbound_contact', { channel: 'phone' }); return; }
+    if (/instagram\.com/.test(href))  { track('outbound_contact', { channel: 'instagram' }); return; }
+    if (/youtube\.com/.test(href))    { track('outbound_contact', { channel: 'youtube' }); return; }
+    if (/whatnot\.com/.test(href) || href === '/whatnot' || href === 'whatnot.html') {
+      track('outbound_contact', { channel: 'whatnot' }); return;
+    }
+    if (/tcgplayer\.com/.test(href))  { track('outbound_contact', { channel: 'tcgplayer' }); return; }
+  }, true);
+})();
+
 // ── Lucide icon sprite ──
 // Injected once on every page via main.js. Pages reference icons via:
 //   <svg class="lc"><use href="#lc-shield-check"/></svg>
@@ -450,8 +562,25 @@ function skToast(message) {
   }, 2400);
 }
 
+// Coarse value bands. Deliberately not exact prices: the event layer may end
+// up at a third party, and a band answers every question analytics actually
+// needs ("are big orders converting?") without shipping order values offsite.
+function skPriceBand(v) {
+  var n = Number(v) || 0;
+  if (n <= 0)   return 'unpriced';
+  if (n < 25)   return 'under_25';
+  if (n < 100)  return '25_99';
+  if (n < 500)  return '100_499';
+  if (n < 1000) return '500_999';
+  return '1000_plus';
+}
+
 function skAddToCart(product) {
   if (!product || !product.id) return;
+  if (window.skTrack) window.skTrack('add_to_cart', {
+    category: product.category || 'unknown',
+    price_band: skPriceBand(product.price),
+  });
   const cart = skGetCart();
   const existing = cart.find(item => item.id === product.id);
   // Graded slabs are 1-of-1 by cert. Hard-cap at 1 even if Square's
@@ -991,6 +1120,10 @@ window.SK = {
   async function payWithSquare(cart, shipping, shippingState, insurance = 0) {
     const btn = document.getElementById('payWithSquare');
     if (!btn) return;
+    if (window.skTrack) window.skTrack('begin_checkout', {
+      items: cart.length,
+      subtotal_band: skPriceBand(skCartSubtotal()),
+    });
     btn.disabled = true;
     const originalHTML = btn.innerHTML;
     btn.innerHTML = '<span class="pay-label">Connecting to Square…</span>';

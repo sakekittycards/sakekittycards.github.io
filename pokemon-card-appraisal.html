@@ -346,6 +346,17 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
+  <script>
+    // Appraisal intent = clicking through to a valuation route, not merely
+    // landing here. Deferred so skTrack from main.js exists first.
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('a[href^="trade-in.html"], a[href^="grading-prep.html"], a[href^="contact.html?topic=Card+Appraisal"]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          if (window.skTrack) window.skTrack('appraisal_started', { route: a.getAttribute('href').split('?')[0] });
+        });
+      });
+    });
+  </script>
 </body>
 </html>

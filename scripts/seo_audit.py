@@ -10,7 +10,7 @@ against the real set of indexable pages.
 Run before every SEO-touching PR:  python scripts/seo_audit.py
 Exit code is non-zero if any ERROR fires, so it can gate CI later.
 """
-import glob, json, os, re, sys
+import glob, html as _html, json, os, re, sys
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,7 +25,9 @@ def strip_code(h):
     h = re.sub(r'<script.*?</script>', '', h, flags=re.S)
     return re.sub(r'<style.*?</style>', '', h, flags=re.S)
 
-files = sorted(glob.glob('*.html'))
+# Root pages plus the generated per-SKU product pages. The p/ pages are real
+# indexable URLs and must be held to the same bar as everything else.
+files = sorted(glob.glob('*.html')) + sorted(glob.glob('p/*.html'))
 pages = {}
 for f in files:
     pages[f] = open(f, encoding='utf-8').read()
@@ -76,7 +78,9 @@ for f, h in pages.items():
     elif not t:
         err('%s: no <title>' % f)
     else:
-        title = re.sub(r'\s+', ' ', t.group(1)).strip()
+        # Measure what a SERP actually renders: '&amp;' is one character on
+        # screen, not five. Counting the raw entity flags titles that are fine.
+        title = _html.unescape(re.sub(r'\s+', ' ', t.group(1)).strip())
         titles[title].append(f)
         if not noindex:
             if len(title) > 65:
@@ -86,7 +90,7 @@ for f, h in pages.items():
     if not redirect and not d:
         (warn if noindex else err)('%s: no meta description' % f)
     elif d:
-        desc = d.group(1).strip()
+        desc = _html.unescape(d.group(1).strip())
         descs[desc].append(f)
         if not noindex:
             if len(desc) > 165:
@@ -100,7 +104,7 @@ for f, h in pages.items():
         if not can:
             err('%s: no canonical' % f)
         else:
-            want = SITE if f == 'index.html' else SITE + f
+            want = SITE if f == 'index.html' else SITE + f.replace(os.sep, '/')
             if can.group(1) != want:
                 # product.html rewrites its canonical per-SKU in JS; expected.
                 if f != 'product.html':
@@ -188,7 +192,11 @@ for f, h in pages.items():
         if re.match(r'^(https?:|mailto:|tel:|//|#|data:)', href):
             continue
         target = href.split('#')[0].split('?')[0]
-        target = target.lstrip('/')   # root-relative -> repo-relative
+        if target.startswith('/'):
+            target = target.lstrip('/')          # root-relative -> repo-relative
+        else:
+            # resolve against the page's own directory (matters for p/*.html)
+            target = os.path.normpath(os.path.join(os.path.dirname(f), target))
         if not target:
             continue
         # GitHub Pages resolves an extensionless path to the .html file
@@ -211,7 +219,7 @@ for loc in locs:
         continue
     path = loc[len(SITE):] or 'index.html'
     listed.add(path)
-    if path not in on_disk:
+    if not os.path.exists(path):
         err('sitemap: %s does not exist on disk' % path)
     elif path in pages and path not in indexable:
         err('sitemap: %s is noindex/redirect but is listed' % path)
@@ -224,7 +232,7 @@ for m in re.findall(r'<lastmod>([^<]+)</lastmod>', sm):
 EXEMPT = {'product.html',        # template, not a page — SKUs crawl from shop.html
           '404.html'}
 for f in sorted(indexable):
-    if f in EXEMPT or f in listed:
+    if f.replace(os.sep, '/') in EXEMPT or f.replace(os.sep, '/') in listed:
         continue
     warn('sitemap: indexable page %s is NOT listed' % f)
 

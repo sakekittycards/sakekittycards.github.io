@@ -8,11 +8,11 @@
   <meta name="theme-color" content="#06060a" />
   <meta name="color-scheme" content="dark" />
   <title>Should You Grade Your Pokémon Card? The Break-Even Math</title>
-  <meta name="description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a 9 (measured across 58,152 cards), and when submitting loses you money." />
+  <meta name="description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a Grade 9 (measured across 58,533 cards), and when submitting loses money." />
 
   <link rel="canonical" href="https://sakekittycards.com/guide-should-you-grade.html" />
   <meta property="og:title" content="Should You Grade Your Pokémon Card? The Break-Even Math" />
-  <meta property="og:description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a 9 (measured across 58,152 cards), and when submitting loses you money." />
+  <meta property="og:description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a Grade 9 (measured across 58,533 cards), and when submitting loses money." />
   <meta property="og:site_name" content="Sake Kitty Cards" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
@@ -23,7 +23,7 @@
   <meta property="og:type" content="article" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Should You Grade Your Pokémon Card? The Break-Even Math" />
-  <meta name="twitter:description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a 9 (measured across 58,152 cards), and when submitting loses you money." />
+  <meta name="twitter:description" content="The real numbers behind grading: what it costs, what a PSA 10 is actually worth versus a Grade 9 (measured across 58,533 cards), and when submitting loses money." />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
   <script type="application/ld+json">
   {
@@ -41,7 +41,7 @@
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": "Should You Grade Your Pokemon Card? The Break-Even Math",
-    "description": "What grading costs, what a PSA 10 is worth versus a PSA 9 measured across 58,152 cards, and when submitting loses money.",
+    "description": "What grading costs, what a PSA 10 is worth versus a Grade 9 measured across 58,533 Pokemon cards, and when submitting loses money.",
     "articleSection": "Grading guides",
     "inLanguage": "en-US",
     "datePublished": "2026-09-01",
@@ -69,8 +69,8 @@
       },
       {
         "@type": "Question",
-        "name": "How much more is a PSA 10 worth than a PSA 9?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Across 58,152 Pokemon cards where both a Grade 9 and a PSA 10 price exist, the median ratio is 3.0x. Modern cards from 2020 onward cluster very tightly around 2.97x. Pre-2004 vintage runs a median 4.26x and a volume-weighted 5.37x, because the vintage distribution has a much fatter tail." }
+        "name": "How much more is a PSA 10 worth than a Grade 9?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Across 58,533 Pokemon cards where both a Grade 9 and a PSA 10 price exist, the median ratio is 3.00x. Modern cards from 2020 onward cluster tightly around 2.98x. Pre-2004 vintage runs a median 4.42x and a volume-weighted 5.40x, because the vintage distribution has a much fatter tail. Note this is PSA 10 against a generic Grade 9, not specifically a PSA 9." }
       },
       {
         "@type": "Question",
@@ -164,13 +164,14 @@
 
     <div class="section" style="padding-top:0">
       <div class="section-header">
-        <h2 class="section-title">What a PSA 10 is actually worth versus a PSA 9</h2>
+        <h2 class="section-title">What a PSA 10 is actually worth versus a Grade 9</h2>
         <p class="section-sub">This is our own measurement, not a repeated internet figure. Here is the method and the data.</p>
       </div>
       <p style="max-width:780px;margin-bottom:20px">You will see a lot of confident claims about this
       ratio online, most of them repeating a single unsourced figure. So we measured it. Taking every Pok&eacute;mon
-      card where both a Grade 9 price and a PSA 10 price exist &mdash; <strong>58,152 matched pairs</strong> &mdash;
-      here is the actual distribution of the PSA 10 to Grade 9 ratio.</p>
+      card where both a Grade 9 price and a PSA 10 price exist &mdash; <strong>58,533 matched pairs</strong> &mdash;
+      here is the actual distribution of the PSA 10 to Grade 9 ratio. Full method is at the bottom of this
+      section; you can reproduce it.</p>
       <div class="card" style="overflow-x:auto;border-radius:var(--r)">
         <table class="buylist-table">
           <caption class="visually-hidden">Measured PSA 10 to Grade 9 price ratio for Pokemon cards, by segment</caption>
@@ -178,27 +179,64 @@
             <tr><th scope="col">Segment</th><th scope="col">Cards measured</th><th scope="col">Median ratio</th><th scope="col">Weighted by sales volume</th></tr>
           </thead>
           <tbody>
-            <tr><td>All Pok&eacute;mon cards</td><td>58,152</td><td class="buy-price">3.00&times;</td><td class="credit-price">3.28&times;</td></tr>
-            <tr><td>Modern (2020 onward)</td><td>20,126</td><td class="buy-price">2.97&times;</td><td class="credit-price">3.01&times;</td></tr>
-            <tr><td>Vintage (pre-2004)</td><td>8,595</td><td class="buy-price">4.26&times;</td><td class="credit-price">5.37&times;</td></tr>
-            <tr><td>Grade 9 worth $10 &ndash; $25</td><td>30,290</td><td class="buy-price">2.94&times;</td><td class="credit-price">3.01&times;</td></tr>
-            <tr><td>Grade 9 worth $50 &ndash; $100</td><td>5,961</td><td class="buy-price">3.56&times;</td><td class="credit-price">3.97&times;</td></tr>
-            <tr><td>Grade 9 worth $250+</td><td>3,660</td><td class="buy-price">3.86&times;</td><td class="credit-price">4.69&times;</td></tr>
+            <tr><td>All Pok&eacute;mon cards</td><td>58,533</td><td class="buy-price">3.00&times;</td><td class="credit-price">3.27&times;</td></tr>
+            <tr><td>Vintage (released pre-2004)</td><td>8,717</td><td class="buy-price">4.42&times;</td><td class="credit-price">5.40&times;</td></tr>
+            <tr><td>Middle era (2004&ndash;2019)</td><td>23,775</td><td class="buy-price">2.89&times;</td><td class="credit-price">3.49&times;</td></tr>
+            <tr><td>Modern (2020 onward)</td><td>22,468</td><td class="buy-price">2.98&times;</td><td class="credit-price">3.02&times;</td></tr>
+            <tr><td>Grade 9 worth $10 &ndash; $25</td><td>30,200</td><td class="buy-price">2.94&times;</td><td class="credit-price">3.00&times;</td></tr>
+            <tr><td>Grade 9 worth $50 &ndash; $100</td><td>6,029</td><td class="buy-price">3.62&times;</td><td class="credit-price">4.08&times;</td></tr>
+            <tr><td>Grade 9 worth $250+</td><td>3,834</td><td class="buy-price">4.02&times;</td><td class="credit-price">4.76&times;</td></tr>
           </tbody>
         </table>
       </div>
-      <p style="font-size:13.5px;color:var(--dim);margin-top:14px;max-width:780px">
-        Our own analysis, run August 2026 against per-grade Pok&eacute;mon pricing data licensed from PriceCharting.
-        Every row is the median of the per-card ratio, not a ratio of medians. The volume-weighted column
-        reweights by how often each card actually sells, which is closer to what you will personally encounter.
-        Re-measured periodically; the market moves.</p>
+      <details class="faq-item" style="margin-top:18px;max-width:780px;border:1px solid var(--border);border-radius:var(--r);padding:0 18px">
+        <summary class="faq-q" style="padding:16px 0">Method, sample and limitations <span class="faq-icon">+</span></summary>
+        <div class="faq-a" style="padding-bottom:18px">
+          <p><strong>Source.</strong> The full Pok&eacute;mon per-grade price file we license from PriceCharting,
+          re-downloaded and re-measured on <strong>1 September 2026</strong>. That file held 92,785 product rows
+          on the day of measurement.</p>
+          <p style="margin-top:12px"><strong>What was matched.</strong> Every row carrying both a Grade 9 price
+          and a PSA 10 price above zero &mdash; <strong>58,533 rows</strong>. The ratio is computed
+          <em>per card</em> and then the median is taken across cards; it is not a ratio of two medians, which
+          would be dominated by a handful of expensive cards.</p>
+          <p style="margin-top:12px"><strong>An asymmetry worth knowing.</strong> PriceCharting&rsquo;s Grade 9
+          column is a <em>generic</em> Grade 9 &mdash; PSA, BGS and CGC blended &mdash; while the PSA 10 column is
+          specifically PSA 10. So this is a PSA-10-to-Grade-9 ratio. A strict PSA-10-to-PSA-9 ratio would likely
+          run slightly higher, since PSA slabs carry a resale premium at the same nominal grade.</p>
+          <p style="margin-top:12px"><strong>Era definitions.</strong> Taken from each card&rsquo;s release date,
+          not from set names: vintage = released 2003 or earlier, modern = 2020 or later, middle = in between.
+          <strong>Vintage and modern together are only 53% of the sample.</strong> The middle era is the single
+          largest bucket and medians <em>below</em> modern, so the fat multiple is specific to genuine vintage
+          rather than to "older cards" generally. 3,573 rows (6.1%) carry no release date and appear only in the
+          ALL row.</p>
+          <p style="margin-top:12px"><strong>Exclusions.</strong> 48 rows were dropped where the PSA 10 priced
+          below its own Grade 9 or above 100&times; it. Those are data artifacts &mdash; a stale one-off sale or a
+          mispriced row &mdash; not market signal.</p>
+          <p style="margin-top:12px"><strong>Known limitations.</strong> These are PriceCharting&rsquo;s modelled
+          prices, not our own transaction record, so any error in their inputs is inherited. Thin-volume cards
+          have noisy prices; the volume-weighted column exists to show what happens when you reweight toward
+          cards that actually change hands. And the spread widens sharply with value &mdash; in the $250+ band the
+          middle half of cards runs 2.3&times; to 7.0&times;, so the median there describes the population, not
+          your particular card.</p>
+          <p style="margin-top:12px"><strong>Reproduce it.</strong> The measurement script is
+          <code>scripts/verify_psa_multiple.py</code> in our site repository. It prints the table above. If the
+          script and this page ever disagree, the script is right and this page is stale.</p>
+        </div>
+      </details>
       <p style="max-width:780px;margin-top:22px">Three things fall out of this that change how you should
       think about submitting:</p>
       <ul style="line-height:2.05;padding-left:20px;color:var(--muted);max-width:780px">
         <li><strong>Modern is remarkably predictable.</strong> The middle half of modern cards sits between
-        2.6&times; and 3.1&times;. If you are grading a 2020-or-later card, 3&times; is a safe planning number.</li>
-        <li><strong>Vintage is a different asset class.</strong> A median 4.26&times; and a volume-weighted
-        5.37&times; means a vintage card justifies grading at a materially lower raw value than a modern one.</li>
+        2.6&times; and 3.3&times;. If you are grading a 2020-or-later card, <strong>3&times; is a safe planning
+        number</strong> &mdash; and that tightness is the useful part, because it means the estimate is worth
+        trusting.</li>
+        <li><strong>Only genuine vintage breaks the pattern.</strong> Pre-2004 medians 4.42&times; with a
+        volume-weighted 5.40&times;, so a vintage card justifies grading at a materially lower raw value. But
+        "old" is not the same as vintage: the 2004&ndash;2019 middle era medians <strong>2.89&times;</strong>,
+        slightly <em>below</em> modern. A 2011 card is not a vintage card.</li>
+        <li><strong>The multiple climbs with the card&rsquo;s value, and so does the uncertainty.</strong> The
+        $250+ band medians 4.02&times;, but its middle half spans 2.3&times; to 7.0&times;. On expensive cards the
+        average stops being a useful prediction for your specific card.</li>
         <li><strong>The commonly repeated 6.8&times; figure is a tail value, not an average.</strong> It exists,
         but it lives out at the extreme of the distribution. Planning a submission around it is how people end
         up disappointed.</li>
@@ -211,7 +249,7 @@
       </div>
       <div class="card" style="padding:32px 34px;max-width:840px">
         <p style="margin-bottom:16px">Take a modern card worth <strong>$120 raw</strong> in Near Mint. Assume the
-        PSA 9 sells for $150 and, at the measured modern 3&times;, the PSA 10 sells for around $450.</p>
+        Grade 9 sells for $150 and, at the measured modern 3&times;, the PSA 10 sells for around $450.</p>
         <ul style="line-height:2.05;padding-left:20px;color:var(--muted);margin-bottom:16px">
           <li><strong>It comes back a 10:</strong> $450 minus $30 in fees = $420 against $120 raw. Excellent.</li>
           <li><strong>It comes back a 9:</strong> $150 minus $30 = $120 against $120 raw. You broke even and
@@ -270,8 +308,8 @@
           <div class="faq-a">As a rough gate: modern cards need to be worth enough that a 10 covers the fee and beats the raw card, which in practice means a raw value in the low hundreds unless you are very confident of the grade. Vintage justifies grading at lower raw values because the PSA 10 multiple is larger.</div>
         </details>
         <details class="faq-item">
-          <summary class="faq-q">How much more is a PSA 10 worth than a PSA 9? <span class="faq-icon">+</span></summary>
-          <div class="faq-a">Across 58,152 Pokemon cards where both a Grade 9 and a PSA 10 price exist, the median ratio is 3.0x. Modern cards from 2020 onward cluster very tightly around 2.97x. Pre-2004 vintage runs a median 4.26x and a volume-weighted 5.37x, because the vintage distribution has a much fatter tail.</div>
+          <summary class="faq-q">How much more is a PSA 10 worth than a Grade 9? <span class="faq-icon">+</span></summary>
+          <div class="faq-a">Across 58,533 Pokemon cards where both a Grade 9 and a PSA 10 price exist, the median ratio is 3.00x. Modern cards from 2020 onward cluster tightly around 2.98x. Pre-2004 vintage runs a median 4.42x and a volume-weighted 5.40x, because the vintage distribution has a much fatter tail. Note this is PSA 10 against a generic Grade 9, not specifically a PSA 9.</div>
         </details>
         <details class="faq-item">
           <summary class="faq-q">Is it worth grading a card I am not confident is a 10? <span class="faq-icon">+</span></summary>
@@ -336,6 +374,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
 </body>
 </html>

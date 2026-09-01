@@ -478,7 +478,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
   <script>
     (async function loadProduct() {
       const statusEl = document.getElementById('pdpStatus');
@@ -775,6 +775,11 @@
       })();
 
       document.title = `${item.name} — Sake Kitty Cards`;
+      if (window.skTrack) window.skTrack('product_view', {
+        sku: item.id,
+        category: item.category || 'unknown',
+        in_stock: !!(item.stock === null || item.stock > 0),
+      });
 
       const initialGallery = galleryForColor(selectedColor);
       const curVar0 = findVariant(selectedColor, selectedSize) || vars[0];
@@ -784,7 +789,7 @@
       // Googlebot renders JS, so it reads these updated tags. Note: non-JS social
       // scrapers (Facebook/iMessage) still use the static fallbacks in <head>;
       // true per-product social cards would need prerendering/SSR.
-      (function setProductSeo() {
+      await (async function setProductSeo() {
         const catWord = isGradedItem ? 'graded Pokémon slab'
           : isSealedItem ? 'sealed Pokémon product'
           : isSinglesItem ? 'raw Pokémon single'
@@ -792,7 +797,16 @@
         const metaDesc = isOfferOnly
           ? `${item.name} — ${catWord} at Sake Kitty Cards. Send your best offer and we reply within 24 hours. Packed with care, shipped fast and fully insured.`
           : `${item.name} — ${fmt(initialPrice)} at Sake Kitty Cards. Free shipping over $100, flat $5 under. Secure checkout with Apple Pay, Google Pay, Venmo, PayPal & Cash App.`;
-        const canonUrl = `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`;
+        // Canonical prefers the static per-SKU page (p/<slug>.html) when the
+        // manifest knows this SKU — that page is server-visible to crawlers that
+        // don't run JS, so it's the version that should be indexed. Unknown SKU
+        // (added since the last build) self-canonicalises here instead.
+        let canonUrl = `https://sakekittycards.com/product.html?id=${encodeURIComponent(item.id)}`;
+        try {
+          const slugMap = await fetch('assets/product-slugs.json', { cache: 'no-cache' })
+            .then(r => r.ok ? r.json() : null).catch(() => null);
+          if (slugMap && slugMap[item.id]) canonUrl = `https://sakekittycards.com/p/${slugMap[item.id]}.html`;
+        } catch (e) { /* keep the self-canonical */ }
         const ogImg = (initialGallery[0] && /^https?:\/\//.test(initialGallery[0]))
           ? initialGallery[0] : 'https://sakekittycards.com/og-image.png';
         const title = `${item.name} — Sake Kitty Cards`;

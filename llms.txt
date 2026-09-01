@@ -84,12 +84,13 @@ Mail-in service covers all fifty states.
 
 ## Guides
 
-- [How to sell a Pokémon collection without getting lowballed](https://sakekittycards.com/guide-sell-pokemon-collection.html)
 - [What percentage of market value do Pokémon dealers pay?](https://sakekittycards.com/guide-what-dealers-pay.html)
 - [Should you grade your Pokémon card? The break-even math](https://sakekittycards.com/guide-should-you-grade.html) —
   includes Sake Kitty Cards' own measurement of the PSA 10 to Grade 9 price ratio across
-  58,152 matched Pokémon cards: median 3.00× overall, 2.97× modern (2020+),
-  4.26× vintage (pre-2004).
+  58,533 matched Pokémon cards, re-measured 2026-09-01: median 3.00× overall, 2.98× modern
+  (released 2020+), 4.42× vintage (pre-2004), 2.89× middle era (2004-2019). Note the
+  denominator is PriceCharting's generic Grade 9, not specifically PSA 9. Methodology,
+  sample size, exclusions and limitations are published on the page.
 - [PSA vs CGC vs BGS for Pokémon cards](https://sakekittycards.com/guide-psa-vs-cgc.html)
 - [How to grade your own cards before you sell or submit](https://sakekittycards.com/guide-grade-your-own-cards.html)
 - [How to spot fake Pokémon cards](https://sakekittycards.com/guide-spot-fake-pokemon-cards.html)

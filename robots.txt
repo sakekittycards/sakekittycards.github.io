@@ -1,8 +1,15 @@
 # Sake Kitty Cards — https://sakekittycards.com
-# All search + AI crawlers welcome. Utility/thank-you pages carry their own
-# <meta name="robots" content="noindex"> so they stay crawlable (so the
-# noindex is seen) but out of the index. Only non-content directories are
-# blocked below.
+#
+# One group, deliberately. Every search and AI crawler is welcome on all
+# content; only non-content directories are blocked.
+#
+# ⚠️ DO NOT add per-agent groups (User-agent: Googlebot, GPTBot, …) just to
+# "welcome" a crawler. A crawler obeys ONLY the most specific User-agent group
+# that matches it and ignores every other group — so a named group containing
+# just "Allow: /" silently cancels the Disallow rules below FOR THAT CRAWLER.
+# A 2026-09-01 revision of this file did exactly that for 12 agents, which
+# un-blocked /scripts/ and /workers/ for Googlebot and every AI crawler. The
+# wildcard already welcomes them. Naming them adds nothing and breaks things.
 
 User-agent: *
 Allow: /
@@ -10,53 +17,13 @@ Disallow: /scripts/
 Disallow: /workers/
 Disallow: /assets/print/
 
-# Answer engines and AI crawlers are explicitly welcome. Stated per-agent
-# rather than relying on the wildcard, because some of these treat an absent
-# named group differently, and because it makes the intent unambiguous if
-# anyone later tightens the wildcard.
-#
-# ⚠️ robots.txt is NOT the only control. The Cloudflare zone for this domain
-# has "Block AI training bots" ARMED in the dashboard. It is inert today only
-# because the DNS records are grey-cloud (DNS-only, unproxied). The moment
-# anyone flips the apex or www record to orange cloud, Cloudflare will block
-# GPTBot / ClaudeBot / PerplexityBot AT THE EDGE and silently override
-# everything below, with no trace in this file. Check Cloudflare → AI Crawl
-# Control before proxying. See project_sk_seo_audit_2026-08 in memory.
-
-User-agent: Googlebot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Applebot
-Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
-
-User-agent: CCBot
-Allow: /
+# ⚠️ robots.txt is NOT the only control on AI crawlers here. The Cloudflare zone
+# for this domain has "Block AI training bots" ARMED in the dashboard. It is
+# inert today only because the DNS records are grey-cloud (DNS-only, unproxied).
+# The moment anyone flips the apex or www record to orange cloud, Cloudflare
+# will block GPTBot / ClaudeBot / PerplexityBot AT THE EDGE and silently
+# override this file, with no trace here. Check Cloudflare → AI Crawl Control
+# before proxying, and set SSL/TLS to Full (strict) first or GitHub Pages will
+# redirect-loop. See project_sk_seo_audit_2026-08 in memory.
 
 Sitemap: https://sakekittycards.com/sitemap.xml

@@ -1915,7 +1915,7 @@
             <li><strong><a href="pokemon-card-appraisal.html">Just want to know what it&rsquo;s worth?</a></strong> Use this tool purely as a valuation tool &mdash; that&rsquo;s a completely legitimate use of it and you never have to contact us.</li>
             <li><strong><a href="pokemon-card-buyer-florida.html">Rather do it in person?</a></strong> We vend shows on both Florida coasts most weekends. Same rates, paid the same day.</li>
           </ul>
-          <p style="margin-top:16px;color:var(--dim);font-size:13.5px">Background reading: <a href="guide-what-dealers-pay.html">what percentage of market dealers actually pay</a> &middot; <a href="guide-sell-pokemon-collection.html">how to sell a collection without getting lowballed</a> &middot; <a href="guide-grade-your-own-cards.html">how to read your own cards&rsquo; condition</a> &middot; <a href="shipping.html">how to pack them</a>.</p>
+          <p style="margin-top:16px;color:var(--dim);font-size:13.5px">Background reading: <a href="guide-what-dealers-pay.html">what percentage of market dealers actually pay</a> &middot; <a href="sell-pokemon-collection.html">how to sell a collection without getting lowballed</a> &middot; <a href="guide-grade-your-own-cards.html">how to read your own cards&rsquo; condition</a> &middot; <a href="shipping.html">how to pack them</a>.</p>
         </div>
       </section>
 
@@ -2191,7 +2191,7 @@
     </div>
   </div>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
   <script>
     // Conditioning standards modal — open/close/zoom wiring
     (function() {
@@ -3828,6 +3828,12 @@
     }
 
     function addCard(card, variantKey, variantLabel, price) {
+      // First card added is the intent signal — the visitor has gone from
+      // browsing to actually building a list.
+      if (window.skTrack && !addCard._started) {
+        addCard._started = true;
+        window.skTrack('trade_started', { source: 'card_search' });
+      }
       const fullName = variantLabel ? `${card.name} · ${variantLabel}` : card.name;
       // PC-fallback English entries already carry _fallbackProductId; pokemontcg.io
       // primary results don't ship a productId, so resolve async via the all-cards
@@ -4880,6 +4886,9 @@
       sendBtn.disabled = true;
       const origText = sendBtn.textContent;
       sendBtn.textContent = 'Sending…';
+      if (window.skTrack) window.skTrack('trade_submitted', {
+        cards: (typeof cards !== 'undefined' && cards) ? cards.length : 0,
+      });
 
       // Prefer Web3Forms if an access key is configured, else fall back to FormSubmit
       const hasWeb3Key = WEB3FORMS_KEY && WEB3FORMS_KEY !== 'YOUR_WEB3FORMS_ACCESS_KEY';
