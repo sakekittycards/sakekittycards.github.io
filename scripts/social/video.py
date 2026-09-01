@@ -64,6 +64,36 @@ def ffprobe_path() -> str:
     raise SystemExit("ffprobe not found on PATH")
 
 
+def ffmpeg_path() -> str:
+    exe = shutil.which("ffmpeg")
+    if exe:
+        return exe
+    guess = os.path.expandvars(
+        r"%LOCALAPPDATA%\Microsoft\WinGet\Packages"
+        r"\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe"
+        r"fmpeg-8.1-full_buildinfmpeg.exe")
+    if os.path.exists(guess):
+        return guess
+    raise SystemExit("ffmpeg not found on PATH")
+
+
+def poster_frame(path: str, at_s: float) -> bytes:
+    """A single JPEG frame, for the reviewer to look at.
+
+    Approving a video you cannot see is the exact failure this system exists to
+    prevent, so the console has to show something. The frame is taken a little
+    way in rather than at 0s — the first frames of these shorts are usually a
+    fade-in from black, which would give every row an identical black tile.
+    """
+    out = subprocess.run(
+        [ffmpeg_path(), "-nostdin", "-v", "error", "-ss", f"{at_s:.2f}", "-i", path,
+         "-frames:v", "1", "-vf", "scale=360:-2", "-q:v", "5", "-f", "image2", "-"],
+        capture_output=True)
+    if out.returncode != 0 or not out.stdout:
+        raise RuntimeError(out.stderr.decode(errors="replace")[:200] or "no frame")
+    return out.stdout
+
+
 def sha256_file(path: str, chunk: int = 1 << 20) -> str:
     """Hash the whole file.
 
@@ -207,6 +237,39 @@ def cmd_scan(args):
     return 0
 
 
+def cmd_posters(args):
+    """Generate and attach a poster frame for every video still in REVIEW."""
+    c = Client()
+    vids = c.get("/video", state="REVIEW")["videos"]
+    todo = [v for v in vids if not v.get("cover_media_id")][: args.limit]
+    print(f"{len(todo)} video(s) without a poster frame")
+    done = 0
+    for v in todo:
+        path = v.get("final_path") or v["source_path"]
+        if not os.path.exists(path):
+            print(f"  !! {v['title'][:44]:46s} file is gone")
+            continue
+        try:
+            # A fifth of the way in, capped, so we land on real content.
+            at_s = min(max((v.get("duration_s") or 10) * 0.2, 1.5), 12.0)
+            jpg = poster_frame(path, at_s)
+            import base64
+            media = c.post("/media/upload", {
+                "data_b64": base64.b64encode(jpg).decode(),
+                "kind": "image", "content_type": "image/jpeg",
+                "source_kind": "video-poster", "acquisition": "ffmpeg-frame",
+                "original_name": os.path.basename(path),
+                "provenance": {"video_id": v["id"], "frame_at_s": round(at_s, 2)},
+            })["media"]
+            c.post("/video/poster", {"id": v["id"], "media_id": media["id"]})
+            done += 1
+            print(f"  {v['title'][:44]:46s} frame @ {at_s:4.1f}s  {media['id']}")
+        except Exception as e:
+            print(f"  !! {v['title'][:44]:46s} {e}")
+    print(f"{done} poster frame(s) attached — the console can now show what it is asking you to approve.")
+    return 0
+
+
 def cmd_list(args):
     c = Client()
     res = c.get("/video", state=args.state)
@@ -324,6 +387,8 @@ def main() -> int:
 
     s = sub.add_parser("scan"); s.add_argument("--dir"); s.add_argument("--dry-run", action="store_true")
     s.set_defaults(fn=cmd_scan)
+    s = sub.add_parser("posters"); s.add_argument("--limit", type=int, default=60)
+    s.set_defaults(fn=cmd_posters)
     s = sub.add_parser("list"); s.add_argument("--state"); s.set_defaults(fn=cmd_list)
     s = sub.add_parser("show"); s.add_argument("id"); s.set_defaults(fn=cmd_show)
     s = sub.add_parser("approve")

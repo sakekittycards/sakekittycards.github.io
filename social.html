@@ -229,6 +229,17 @@
   }
 
   // ── chrome ────────────────────────────────────────────────────────────────
+  // A scheduled time in the past means the item is waiting on a retry window or
+  // on the next cron tick, not that it is "going out at" a moment that has been
+  // and gone. Saying so avoids a dashboard that quietly reads as broken.
+  function nextLabel(next) {
+    if (!next) return 'Next out: <b>—</b>';
+    const overdue = next.at && next.at < Date.now();
+    return overdue
+      ? `Next out: <b style="color:var(--amber)">due now</b> (${esc(next.when)})`
+      : `Next out: <b>${esc(next.when)}</b>`;
+  }
+
   function renderBar() {
     const q = STATE.queue;
     const th = q.token_health || {};
@@ -242,7 +253,7 @@
     $('bar').innerHTML = `
       <span class="mode ${q.mode}">${q.mode === 'live' ? 'LIVE — posting for real' : 'Dry run — nothing is posted'}</span>
       ${tokenChip}
-      <span class="chip">Next out: <b>${next ? esc(next.when) : '—'}</b></span>
+      <span class="chip">${nextLabel(next)}</span>
       <span class="chip">Unpromoted shows: <b>${q.unpromoted}</b></span>
       <span class="spacer"></span>
       <button id="btn-refresh">Refresh</button>
@@ -555,8 +566,19 @@
             ? `<button data-v="draft" data-id="${v.id}">Make a post</button>
                <button class="danger" data-v="revoke" data-id="${v.id}">Revoke</button>`
             : `<button data-v="show" data-id="${v.id}">History</button>`;
+        // A still frame, so the reviewer can see what they are approving.
+        // Approving a video you cannot see is the failure this whole gate exists
+        // to prevent, so a row without one says so rather than staying blank.
+        const poster = v.poster_url
+          ? `<img src="${esc(v.poster_url)}" alt="" loading="lazy"
+                  style="width:74px;aspect-ratio:9/16;object-fit:cover;border-radius:6px;
+                         background:#000;flex:none" />`
+          : `<div style="width:74px;aspect-ratio:9/16;border-radius:6px;background:rgba(255,255,255,.05);
+                  border:1px dashed var(--line);display:grid;place-items:center;flex:none;
+                  font-size:10px;color:var(--dim);text-align:center;line-height:1.25">no<br>preview</div>`;
         return `<tr>
-          <td><b>${esc(v.title)}</b><br><span style="color:var(--dim);font-size:11.5px">${esc(v.source_path)}</span></td>
+          <td><div style="display:flex;gap:11px;align-items:flex-start">${poster}
+            <div><b>${esc(v.title)}</b><br><span style="color:var(--dim);font-size:11.5px">${esc(v.source_path)}</span></div></div></td>
           <td><span class="st ${v.state === 'REVIEW' ? 'needs_review' : v.state === 'REJECTED' ? 'failed' : 'approved'}">${esc(v.state)}</span></td>
           <td class="num">${v.duration_s ? v.duration_s.toFixed(1) + 's' : '—'}</td>
           <td>${v.width}×${v.height}</td>

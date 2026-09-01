@@ -76,42 +76,91 @@ def og_image(page_url: str, timeout: int = 20) -> str | None:
     return None
 
 
+# Filename markers that mean "this is the site's branding", not a show flyer.
+# Observed on the real organizer sites for shows on this calendar: Collect-A-Con's
+# homepage advertises `cropped-cropped-CAC-Logo-2024-1.png` and Dezerland's
+# advertises `dezer-Facebook.jpg`. Both are perfectly good og:images and neither
+# is event artwork; posting them as "the official flyer" would put a venue's
+# Facebook banner out as if it were the show's poster.
+_BRAND_MARKERS = (
+    "logo", "favicon", "icon", "cropped", "default", "share", "facebook",
+    "og-", "og_", "header", "avatar", "profile", "placeholder", "thumb",
+)
+
+
+def looks_like_event_artwork(url: str, page_url: str) -> tuple[bool, str]:
+    """Would a person call this the show's flyer? Reasons, not just a verdict.
+
+    Deliberately strict. A false negative costs us nothing — we generate our own
+    graphic, which we know is ours and which is on-brand. A false positive posts
+    somebody else's logo to our feed captioned as their event.
+    """
+    name = url.rsplit("/", 1)[-1].split("?")[0].lower()
+    for marker in _BRAND_MARKERS:
+        if marker in name:
+            return False, f"filename contains {marker!r} — site branding, not event artwork"
+
+    # A homepage's og:image is, by definition, the brand's picture of itself.
+    # Event artwork lives on an event page.
+    path = page_url.split("://", 1)[-1].split("/", 1)
+    if len(path) < 2 or not path[1].strip("/"):
+        return False, "taken from a site homepage — that og:image is the brand's, not a show's"
+
+    return True, "from an event-specific page and not named as site branding"
+
+
 def resolve(client, ev: dict) -> dict | None:
     """Return a stored media row for this event's official flyer, or None.
 
-    `client` is a scripts.social.client.Client; the actual fetch and validation
-    happen worker-side so that provenance is recorded in one place.
+    Returning None is a perfectly good outcome — it means we render our own
+    branded graphic instead of republishing something that only looked official.
     """
     event_id = ev.get("id")
+    trace = []
 
-    # 1 — already attached
+    # 1 — a flyer explicitly attached to the event record. Someone chose this
+    #     deliberately, so it skips the heuristics.
     if ev.get("flyer_url"):
         got = _try_fetch(client, ev["flyer_url"], event_id, "attached-flyer")
+        trace.append((ev["flyer_url"], "accepted" if got else "fetch/validation failed",
+                      "explicitly attached to the event"))
         if got:
+            got["trace"] = trace
             return got
 
-    # 2 — already in our library for this event
-    #     (the worker dedupes by content hash, so a repeat fetch is free anyway;
-    #      this is the offline path when the organizer's site is down.)
+    # 2 — already in our library for this event.
     if ev.get("flyer_media_id"):
         try:
-            return client.get("/media", id=ev["flyer_media_id"])["media"]
+            m = client.get("/media", id=ev["flyer_media_id"])["media"]
+            m["trace"] = trace + [(m.get("source_url"), "accepted", "already stored")]
+            return m
         except Exception:
             pass
 
-    # 3 — the event page's own preview image
+    # 3 — the event page's own preview image, then the organizer's.
     for field, method in (("event_url", "event-page-og"), ("social_url", "organizer-og")):
         page = ev.get(field)
         if not page:
             continue
         try:
             img_url = og_image(page)
-        except Exception:
+        except Exception as e:
+            trace.append((page, "rejected", f"could not read the page ({type(e).__name__})"))
             continue
         if not img_url:
+            trace.append((page, "rejected", "page declares no og:image"))
             continue
+
+        okay, why = looks_like_event_artwork(img_url, page)
+        if not okay:
+            trace.append((img_url, "rejected", why))
+            continue
+
         got = _try_fetch(client, img_url, event_id, method, referer=page)
+        trace.append((img_url, "accepted" if got else "rejected",
+                      why if got else "failed the worker's validation (size/type/redirect)"))
         if got:
+            got["trace"] = trace
             return got
 
     return None

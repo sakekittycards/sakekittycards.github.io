@@ -18,6 +18,7 @@ import urllib.error
 import urllib.request
 
 DEFAULT_BASE = "https://sakekitty-social.nwilliams23999.workers.dev"
+USER_AGENT = "sakekitty-social-agent/1.0 (+https://sakekittycards.com)"
 
 TOKEN_FILES = [
     os.path.expanduser("~/.claude/sk_social_admin_token.txt"),
@@ -60,6 +61,12 @@ class Client:
         for attempt in range(retries + 1):
             req = urllib.request.Request(url, data=data, method=method)
             req.add_header("X-Sake-Admin-Token", self._token)
+            # Identify ourselves. Cloudflare's edge answers urllib's default
+            # User-Agent with a 1010 browser-signature block, which surfaces as a
+            # baffling 403 from our own worker. The repo already hit this with
+            # tcgcsv; same fix, same reason.
+            req.add_header("User-Agent", USER_AGENT)
+            req.add_header("Accept", "application/json")
             if data:
                 req.add_header("Content-Type", "application/json")
             try:
@@ -113,5 +120,6 @@ class Client:
 
     def health(self):
         req = urllib.request.Request(self.base + "/health")
+        req.add_header("User-Agent", USER_AGENT)
         with urllib.request.urlopen(req, timeout=30) as res:
             return json.loads(res.read().decode())

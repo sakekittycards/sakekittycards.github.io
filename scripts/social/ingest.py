@@ -255,8 +255,10 @@ def main() -> int:
     res = c.post("/events/ingest", {"events": normalized})
     ev = res["events"]
     print(f"\ningested: {len(ev['added'])} new · {len(ev['updated'])} updated "
-          f"({len(ev['material'])} materially) · {len(ev['cancelled'])} cancelled "
-          f"· {ev['unchanged']} unchanged")
+          f"({len(ev['material'])} materially) · {len(ev.get('renamed', []))} renamed "
+          f"· {len(ev['cancelled'])} cancelled · {ev['unchanged']} unchanged")
+    for rn in ev.get('renamed', []):
+        print(f"  ~ RENAMED: {rn['from']!r} -> {rn['to']!r} (kept its history)")
     for eid in ev["added"]:
         print(f"  + {eid}")
     for m in ev["material"]:

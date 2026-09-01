@@ -243,10 +243,16 @@ async function route(request, env, ctx, path, url, at) {
 
   if (path === '/video' && method === 'GET') {
     const list = await video.listVideos(env, { state: url.searchParams.get('state') });
-    return json({
-      ok: true,
-      videos: list.map((v) => ({ ...v, compatibility: video.compatibility(v) })),
-    });
+    const out = [];
+    for (const v of list) {
+      const cover = v.cover_media_id ? await mediaStore.getMedia(env, v.cover_media_id) : null;
+      out.push({
+        ...v,
+        compatibility: video.compatibility(v),
+        poster_url: cover ? mediaStore.mediaUrl(env, cover) : null,
+      });
+    }
+    return json({ ok: true, videos: out });
   }
 
   if (path === '/video/detail' && method === 'GET') {
@@ -282,6 +288,15 @@ async function route(request, env, ctx, path, url, at) {
    * different cut could be delivered under an approved row, which is the whole
    * attack this system is built to prevent.
    */
+  if (path === '/video/poster' && method === 'POST') {
+    // A still frame for the reviewer. Unlike /video/attach-media this does not
+    // touch approval state and does not require the video to be approved — you
+    // need to SEE a video before you can decide about it.
+    await env.DB.prepare('UPDATE video_assets SET cover_media_id=?, updated_at=? WHERE id=?')
+      .bind(body.media_id, at, body.id).run();
+    return json({ ok: true });
+  }
+
   if (path === '/video/attach-media' && method === 'POST') {
     const v = await video.assertPublishable(env, body.id);
     const m = await mediaStore.getMedia(env, body.media_id);
@@ -412,10 +427,22 @@ async function route(request, env, ctx, path, url, at) {
     // If the scheduler claimed it between the check above and here, zero rows
     // change and publishItem's own claim() will decline, which is the outcome
     // we want.
-    await env.DB.prepare(
-      `UPDATE content_items SET status='scheduled', scheduled_for=?, next_retry_at=NULL, updated_at=?
-        WHERE id=? AND status IN ('approved','scheduled','failed')`
-    ).bind(at - 1000, at, body.id).run();
+    //
+    // An already-scheduled item keeps its scheduled_for. claim() gates on status
+    // and the lease, never on the clock, so "now" does not require rewriting the
+    // calendar — and rewriting it meant a dry-run rehearsal left a real post
+    // showing a time in the past on the dashboard afterwards.
+    if (item.status === 'scheduled') {
+      await env.DB.prepare(
+        `UPDATE content_items SET next_retry_at=NULL, updated_at=?
+          WHERE id=? AND status='scheduled'`
+      ).bind(at, body.id).run();
+    } else {
+      await env.DB.prepare(
+        `UPDATE content_items SET status='scheduled', scheduled_for=?, next_retry_at=NULL, updated_at=?
+          WHERE id=? AND status IN ('approved','failed')`
+      ).bind(at - 1000, at, body.id).run();
+    }
     const res = await pub.publishItem(env, body.id, policy, { at, force: Boolean(body.force_live) });
     return json({ ok: res.ok, ...res });
   }
@@ -573,7 +600,9 @@ async function queueSummary(env, policy, at) {
     items: byStatus,
     videos: Object.fromEntries((vcounts.results || []).map((r) => [r.state, r.n])),
     unpromoted: (await opps.unpromotedEvents(env, { at })).length,
-    next_up: (next.results || []).map((r) => ({ ...r, when: utcToEastern(r.scheduled_for).label })),
+    next_up: (next.results || []).map((r) => ({
+      ...r, at: r.scheduled_for, when: utcToEastern(r.scheduled_for).label,
+    })),
     token_health: health ? JSON.parse(health.v) : { ok: null },
   };
 }
