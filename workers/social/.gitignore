@@ -2,3 +2,4 @@
 .wrangler/
 node_modules/
 _local_token.txt
+_admin_token.tmp

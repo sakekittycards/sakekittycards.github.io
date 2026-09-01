@@ -29,7 +29,7 @@ crons = ["*/15 * * * *"]
 [[d1_databases]]
 binding       = "DB"
 database_name = "sk-social"
-database_id   = "00000000-0000-0000-0000-000000000000"  # replace after `wrangler d1 create sk-social`
+database_id   = "e0d63770-3267-45ee-8959-2cce7b29b806"
 
 # Generated graphics and prepared video. Private bucket: objects are served only
 # through GET /m/<token> on this worker, addressed by a random token, never by
