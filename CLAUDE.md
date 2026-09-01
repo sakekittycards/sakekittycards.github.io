@@ -59,6 +59,51 @@ rate ladder ← `trade-in.html` `RATES` · condition ← `COND_MULT` · service 
 `grading-prep.html` service cards · shipping ← `main.js` constants · venues ←
 `assets/events-data.js`.
 
+### Social content engine (added 2026-09-01)
+
+`social.html` — **hidden** Content Command Center for the Instagram pipeline.
+Unlinked from nav/footer, `noindex`, token-gated the same way `admin-promo.html` is.
+Standalone inline CSS/JS, no style.css/main.js, no cache-buster. Keep it unlinked.
+`?api=<url>` points it at a local `wrangler dev` worker.
+
+Full design notes: **`docs/social-content-engine.md`** — read that before touching any of it.
+
+- **Source of truth is still `assets/events-data.js`.** The engine mirrors it and never
+  writes back. Add a show the way you always have; the engine notices on the next ingest.
+- **`workers/social/`** (`sakekitty-social`) is the system of record: D1 `sk-social`,
+  R2 `sk-social-media`, 15-minute cron, the admin API, and every Instagram call.
+- **`scripts/social/`** is the local half — Pillow renders the graphics, ffprobe reads the
+  videos, and it files drafts. It decides nothing.
+
+⚠️ **The one invariant: an unapproved video can never reach the Instagram publish
+function.** Enforced in `workers/social/src/video.js` `assertPublishable()`, called at both
+choke points (`items.createReelItem` and the first line of `publish.buildPayload`). Approval
+is a database row **plus a content hash** — a folder, a filename, an export location and a
+successful render are all worthless as evidence, because since 2026-08-31 builds land
+directly in `SHORT FORM FINAL/` alongside unreviewed and killed shorts. Re-rendering an
+approved short drops its approval on the next scan. 59 of the 158 tests exist to attack this
+one claim; do not weaken it.
+
+⚠️ **Live posting needs BOTH switches**: `PUBLISH_MODE = "live"` in `workers/social/wrangler.toml`
+*and* `policy.mode = "live"` in the database. Either at `dry` keeps everything in dry run.
+It ships in dry run with no Instagram credentials set.
+
+⚠️ **Brand colours are sampled from the mascot, never invented**: gold `#f2b905` (the
+outline colour, 8% of pixels), orange `#f04800`, magenta `#d81860`, cobalt `#0060c0`.
+Cyan `#22c8ff` and violet `#7b2fff` appear nowhere in the artwork — they are in the older
+`gen_og.py` / `_make_ig_*.py` scripts and are what made that output read as a generic neon
+rainbow. `scripts/social/sk_brand.py` is the single source; don't re-hardcode colours.
+
+- Tests: `node workers/social/test/run_all.mjs` (158 checks). Run before any PR that
+  touches the engine.
+- Superseded one-offs kept as historical record: `scripts/_make_ig_stuart.py`,
+  `_make_ig_stuart_video.py`, `_make_ig_live.py`. Don't extend them — extend
+  `scripts/social/templates.py`.
+- **Open (Nick-gated):** the D1 database does not exist yet — `~/.cf-deploy-token` lacks
+  D1:Edit, so `wrangler d1 create sk-social` needs a token with that permission. And
+  Instagram publishing needs `instagram_content_publish` through Meta App Review on the
+  existing "Sake Kitty Worker" app (ID `1663513611433623`).
+
 ### Other pages
 
 - `wholesale.html` — **hidden** B2B wholesale sealed price list + quote-request tool. Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS/JS (no style.css/main.js, no cache-buster). Keep it unlinked.

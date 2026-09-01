@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" type="image/png" href="logo-icon.png" />
+  <title>Social Content — Sake Kitty Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!--
+    Content Command Center.
+
+    Standalone like admin-promo.html and wholesale.html: no style.css, no
+    main.js, no cache-buster. It is unlinked from nav and footer everywhere and
+    noindex — reachable by direct URL with the worker's admin token, which is
+    held in sessionStorage for the tab and never written to localStorage.
+
+    The layout answers, in order, the five questions worth opening it for:
+    what needs approval, what is going out next, what have we not promoted,
+    what failed, and what did the system just do. Everything else is one click
+    deeper.
+  -->
+  <style>
+    :root{
+      --bg:#0b0b12; --panel:#15151f; --panel-2:#1b1b27; --line:rgba(255,255,255,.09);
+      --text:#ececf6; --muted:rgba(255,255,255,.72); --dim:rgba(255,255,255,.52);
+      --gold:#f2b905; --orange:#f04800; --magenta:#d81860; --cobalt:#0060c0; --azure:#0090d8;
+      --green:#3cd685; --red:#ff5a5a; --amber:#ffb020;
+      --r:14px; --r-sm:9px;
+    }
+    *{box-sizing:border-box}
+    html,body{overflow-x:hidden;max-width:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5;
+      padding:24px 18px 80px}
+    .wrap{max-width:1320px;margin:0 auto}
+    h1{font-family:'Bangers',cursive;font-size:42px;letter-spacing:.03em;margin:0 0 2px;
+      background:linear-gradient(120deg,#ffcf3a,#ff5a10,#e0246e);
+      -webkit-background-clip:text;background-clip:text;color:transparent;padding:2px 0 8px}
+    .sub{color:var(--dim);margin:0 0 20px;font-size:13.5px}
+    a{color:var(--azure)}
+
+    /* gate */
+    .gate{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;max-width:470px}
+    .gate label{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+      color:var(--dim);margin-bottom:8px;font-weight:700}
+    input,textarea,select{width:100%;background:rgba(0,0,0,.34);border:1.5px solid var(--line);
+      border-radius:var(--r-sm);padding:11px 12px;color:var(--text);font:inherit}
+    textarea{resize:vertical;min-height:150px;line-height:1.55;font-size:13.5px}
+    button{font:inherit;cursor:pointer;border:none;border-radius:var(--r-sm);
+      padding:9px 15px;font-weight:700;font-size:13px;background:rgba(255,255,255,.09);color:var(--text)}
+    button:hover{background:rgba(255,255,255,.15)}
+    button.primary{background:linear-gradient(120deg,var(--orange),var(--magenta));color:#fff}
+    button.gold{background:rgba(242,185,5,.14);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(242,185,5,.4)}
+    button.danger{background:rgba(255,90,90,.13);color:var(--red);box-shadow:inset 0 0 0 1px rgba(255,90,90,.34)}
+    button:disabled{opacity:.4;cursor:not-allowed}
+
+    /* status bar */
+    .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+      background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+      padding:12px 16px;margin-bottom:18px}
+    .mode{font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-size:11.5px;
+      padding:5px 11px;border-radius:100px}
+    .mode.dry{background:rgba(242,185,5,.14);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(242,185,5,.42)}
+    .mode.live{background:rgba(255,90,90,.15);color:var(--red);box-shadow:inset 0 0 0 1px rgba(255,90,90,.45)}
+    .bar .spacer{flex:1}
+    .chip{font-size:12px;color:var(--muted);padding:4px 10px;border-radius:100px;
+      background:rgba(255,255,255,.05);border:1px solid var(--line)}
+    .chip b{color:var(--text)}
+
+    /* tabs */
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 16px}
+    .tab{padding:8px 14px;border-radius:100px;background:transparent;color:var(--dim);
+      border:1px solid transparent;font-weight:600;font-size:13px}
+    .tab[aria-selected="true"]{background:rgba(255,255,255,.07);color:var(--text);border-color:var(--line)}
+    .tab .n{opacity:.6;margin-left:5px;font-variant-numeric:tabular-nums}
+
+    /* cards */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+      display:flex;flex-direction:column}
+    .card .thumb{background:#000;aspect-ratio:4/5;object-fit:contain;width:100%;display:block}
+    .card .thumb.vid{aspect-ratio:9/16;max-height:330px}
+    .card .body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+    .ttl{font-weight:700;font-size:14.5px;line-height:1.3}
+    .meta{font-size:12px;color:var(--dim);display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+    .st{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+      padding:3px 8px;border-radius:100px}
+    .st.draft{background:rgba(255,255,255,.09);color:var(--muted)}
+    .st.needs_review{background:rgba(255,176,32,.14);color:var(--amber)}
+    .st.approved{background:rgba(60,214,133,.13);color:var(--green)}
+    .st.scheduled{background:rgba(0,144,216,.15);color:var(--azure)}
+    .st.published{background:rgba(60,214,133,.2);color:var(--green)}
+    .st.failed,.st.rejected{background:rgba(255,90,90,.14);color:var(--red)}
+    .st.publishing{background:rgba(216,24,96,.16);color:#ff7ab0}
+    .cap{font-size:12.5px;color:var(--muted);white-space:pre-wrap;max-height:132px;overflow:auto;
+      background:rgba(0,0,0,.24);border-radius:var(--r-sm);padding:9px 10px;line-height:1.5}
+    .warn{font-size:12px;color:var(--amber);background:rgba(255,176,32,.08);
+      border-left:2px solid var(--amber);padding:6px 9px;border-radius:0 6px 6px 0}
+    .err{font-size:12px;color:var(--red);background:rgba(255,90,90,.08);
+      border-left:2px solid var(--red);padding:6px 9px;border-radius:0 6px 6px 0}
+    .prov{font-size:11.5px;color:var(--green);background:rgba(60,214,133,.07);
+      border-left:2px solid var(--green);padding:6px 9px;border-radius:0 6px 6px 0}
+    .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+    .acts button{padding:7px 11px;font-size:12px}
+
+    /* tables + lists */
+    table{width:100%;border-collapse:collapse;background:var(--panel);
+      border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:13px}
+    th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+    th{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700}
+    tr:last-child td{border-bottom:none}
+    td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+    .log{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+      padding:6px 0;max-height:660px;overflow:auto}
+    .log .row{display:flex;gap:11px;padding:8px 15px;border-bottom:1px solid rgba(255,255,255,.05);
+      font-size:13px;align-items:baseline}
+    .log .row:last-child{border-bottom:none}
+    .log .t{color:var(--dim);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:118px}
+    .log .row.warn-l{background:rgba(255,176,32,.05)}
+    .log .row.error-l{background:rgba(255,90,90,.06)}
+    .log .row.error-l .m{color:#ff8f8f}
+    .log .row.warn-l .m{color:#ffd08a}
+    .log .sc{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);min-width:66px}
+
+    .empty{color:var(--dim);padding:34px 18px;text-align:center;background:var(--panel);
+      border:1px dashed var(--line);border-radius:var(--r)}
+    .sect{margin:26px 0 12px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--gold);font-weight:800}
+    .hidden{display:none!important}
+    .msg{color:var(--red);margin-top:12px;font-size:13px}
+
+    /* modal */
+    .veil{position:fixed;inset:0;background:rgba(4,4,8,.82);display:flex;align-items:center;
+      justify-content:center;padding:20px;z-index:50}
+    .modal{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
+      padding:20px;width:min(640px,100%);max-height:88vh;overflow:auto}
+    .modal h3{margin:0 0 4px;font-family:'Bangers',cursive;font-size:26px;letter-spacing:.03em;padding:2px 0 6px}
+    .modal .row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+    .kv{display:grid;grid-template-columns:150px 1fr;gap:5px 12px;font-size:12.5px;margin:10px 0}
+    .kv dt{color:var(--dim)} .kv dd{margin:0;word-break:break-word;font-variant-numeric:tabular-nums}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+      background:rgba(0,0,0,.35);padding:1.5px 5px;border-radius:4px}
+    @media(max-width:640px){ body{padding:16px 12px 60px} h1{font-size:32px} .kv{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Social Content</h1>
+  <p class="sub">Website events and approved videos, in one queue. Nothing reaches Instagram without passing through here.</p>
+
+  <div class="gate" id="gate">
+    <label for="tok">Admin token</label>
+    <input id="tok" type="password" placeholder="sakekitty-social ADMIN_TOKEN" autocomplete="off" />
+    <div style="display:flex;gap:8px;margin-top:11px">
+      <button class="primary" id="load">Open console</button>
+    </div>
+    <p class="msg hidden" id="err"></p>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="bar" id="bar"></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="view"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Production worker. `?api=http://127.0.0.1:8799` points the same page at a
+  // local `wrangler dev` instance, which is how this console gets exercised
+  // before anything is deployed. It is not a security hole: every request still
+  // needs the admin token, and pointing the page somewhere else only means it
+  // talks to a worker that will refuse it.
+  const BASE = new URLSearchParams(location.search).get('api')
+    || 'https://sakekitty-social.nwilliams23999.workers.dev';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  let TOKEN = '';
+  let STATE = { queue: null, items: [], videos: [], activity: [], unpromoted: [], opps: [], history: [] };
+  let TAB = 'review';
+
+  // ── transport ─────────────────────────────────────────────────────────────
+  async function api(path, method, body) {
+    const res = await fetch(BASE + path, {
+      method: method || 'GET',
+      headers: Object.assign({ 'X-Sake-Admin-Token': TOKEN },
+        body ? { 'Content-Type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const text = await res.text();
+    let data; try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+    if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+    return data;
+  }
+
+  // ── boot ──────────────────────────────────────────────────────────────────
+  async function open() {
+    TOKEN = $('tok').value.trim();
+    if (!TOKEN) return;
+    $('err').classList.add('hidden');
+    try {
+      await api('/queue');
+      sessionStorage.setItem('sk_social_tok', TOKEN);
+      $('gate').classList.add('hidden');
+      $('app').classList.remove('hidden');
+      await refresh();
+    } catch (e) {
+      $('err').textContent = e.message === 'unauthorized' ? 'Wrong admin token.' : e.message;
+      $('err').classList.remove('hidden');
+    }
+  }
+
+  async function refresh() {
+    const [queue, items, videos, activity, unpromoted] = await Promise.all([
+      api('/queue'), api('/items'), api('/video'), api('/activity?limit=140'),
+      api('/events/unpromoted'),
+    ]);
+    STATE.queue = queue; STATE.items = items.items; STATE.videos = videos.videos;
+    STATE.activity = activity.activity; STATE.unpromoted = unpromoted.events;
+    renderBar(); renderTabs(); renderView();
+  }
+
+  // ── chrome ────────────────────────────────────────────────────────────────
+  function renderBar() {
+    const q = STATE.queue;
+    const th = q.token_health || {};
+    const next = (q.next_up || [])[0];
+    const tokenChip = th.ok === true
+      ? `<span class="chip">Instagram <b>@${esc(th.username || '?')}</b></span>`
+      : th.ok === false
+        ? `<span class="chip" style="color:var(--red)">Instagram token <b>FAILING</b></span>`
+        : `<span class="chip">Instagram <b>not connected</b></span>`;
+
+    $('bar').innerHTML = `
+      <span class="mode ${q.mode}">${q.mode === 'live' ? 'LIVE — posting for real' : 'Dry run — nothing is posted'}</span>
+      ${tokenChip}
+      <span class="chip">Next out: <b>${next ? esc(next.when) : '—'}</b></span>
+      <span class="chip">Unpromoted shows: <b>${q.unpromoted}</b></span>
+      <span class="spacer"></span>
+      <button id="btn-refresh">Refresh</button>
+      <button id="btn-dry" class="gold">Dry-run report</button>`;
+    $('btn-refresh').onclick = refresh;
+    $('btn-dry').onclick = showDryRun;
+  }
+
+  const TABS = [
+    ['review',    'Needs approval', () => count(['draft', 'needs_review'])],
+    ['scheduled', 'Scheduled',      () => count(['approved', 'scheduled'])],
+    ['videos',    'Videos',         () => STATE.videos.filter(v => v.state === 'REVIEW').length],
+    ['events',    'Shows',          () => STATE.unpromoted.length],
+    ['published', 'Published',      () => count(['published'])],
+    ['failed',    'Failed',         () => count(['failed', 'rejected'])],
+    ['activity',  'Activity',       () => null],
+  ];
+  const count = (sts) => STATE.items.filter(i => sts.includes(i.status)).length;
+
+  function renderTabs() {
+    $('tabs').innerHTML = TABS.map(([key, label, n]) => {
+      const v = n();
+      return `<button class="tab" role="tab" aria-selected="${TAB === key}" data-tab="${key}">
+        ${label}${v ? `<span class="n">${v}</span>` : ''}</button>`;
+    }).join('');
+    $('tabs').querySelectorAll('[data-tab]').forEach(b => {
+      b.onclick = () => { TAB = b.dataset.tab; renderTabs(); renderView(); };
+    });
+  }
+
+  function renderView() {
+    const v = $('view');
+    if (TAB === 'review')    return cards(v, ['draft', 'needs_review'], 'Nothing waiting. Run the content pass to generate drafts.');
+    if (TAB === 'scheduled') return cards(v, ['approved', 'scheduled', 'publishing'], 'Nothing approved or scheduled yet.');
+    if (TAB === 'published') return cards(v, ['published'], 'Nothing published yet.');
+    if (TAB === 'failed')    return cards(v, ['failed', 'rejected'], 'Nothing has failed. Good.');
+    if (TAB === 'videos')    return renderVideos(v);
+    if (TAB === 'events')    return renderEvents(v);
+    if (TAB === 'activity')  return renderActivity(v);
+  }
+
+  // ── content items ─────────────────────────────────────────────────────────
+  function cards(el, statuses, emptyMsg) {
+    const list = STATE.items.filter(i => statuses.includes(i.status));
+    if (!list.length) { el.innerHTML = `<div class="empty">${emptyMsg}</div>`; return; }
+    el.innerHTML = '<div class="grid">' + list.map(cardHTML).join('') + '</div>';
+    el.querySelectorAll('[data-act]').forEach(b => { b.onclick = () => act(b.dataset.act, b.dataset.id); });
+  }
+
+  function cardHTML(i) {
+    const when = i.scheduled_local || i.published_local;
+    const src = i.event
+      ? `${esc(i.event.title)} · ${esc(i.event.event_date)}`
+      : i.video ? `Video · ${esc(i.video.title)}` : '—';
+
+    // For a reel the console must SHOW that the source was approved before it
+    // became publishable — that is the whole point of the gate, and it should be
+    // visible without opening anything.
+    //
+    // When the approval has been withdrawn (the file changed, or someone
+    // revoked it) the row still exists but carries no approver. Showing the
+    // green "approved by …" banner with empty fields there would state the
+    // opposite of the truth, so that case gets its own, louder line.
+    let prov = '';
+    if (i.video) {
+      prov = i.video.approved_by
+        ? `<div class="prov">Source video approved by <b>${esc(i.video.approved_by)}</b> ·
+             ${new Date(i.video.approved_at).toLocaleString()}
+             (${esc(i.video.approval_source || 'unknown source')})</div>`
+        : `<div class="err">Source video is <b>${esc(i.video.state)}</b> — its approval no longer
+             stands, so this cannot be published until it is reviewed again.</div>`;
+    }
+
+    const warnings = (i.warnings || []).map(w => `<div class="warn">${esc(w)}</div>`).join('');
+    const failure = i.failure_reason ? `<div class="err">${esc(i.failure_reason)}</div>` : '';
+
+    const thumb = i.media_url
+      ? `<img class="thumb${i.type === 'reel' ? ' vid' : ''}" src="${esc(i.media_url)}" alt="" loading="lazy" />`
+      : `<div class="thumb" style="display:grid;place-items:center;color:var(--dim);font-size:13px">no graphic yet</div>`;
+
+    return `<div class="card">
+      ${thumb}
+      <div class="body">
+        <div class="ttl">${esc(i.title || '(untitled)')}</div>
+        <div class="meta">
+          <span class="st ${i.status}">${i.status.replace('_', ' ')}</span>
+          <span>${esc(i.type)}${i.surface === 'story' ? ' · story' : ''}</span>
+          ${when ? `<span>· ${esc(when)}</span>` : ''}
+        </div>
+        <div class="meta">${src}</div>
+        ${prov}${failure}${warnings}
+        <div class="cap">${esc(i.caption)}${(i.hashtags || []).length ? '\n\n' + esc(i.hashtags.join(' ')) : ''}</div>
+        <div class="acts">${actions(i)}</div>
+      </div></div>`;
+  }
+
+  function actions(i) {
+    const b = (act, label, cls) =>
+      `<button class="${cls || ''}" data-act="${act}" data-id="${i.id}">${label}</button>`;
+    const out = [];
+    if (i.status === 'draft' || i.status === 'needs_review') {
+      out.push(b('approve', 'Approve', 'primary'), b('caption', 'Edit caption'),
+               b('regen', 'Regenerate'), b('reject', 'Reject', 'danger'));
+    } else if (i.status === 'approved') {
+      out.push(b('schedule', 'Schedule', 'primary'), b('now', 'Post now', 'gold'),
+               b('caption', 'Edit caption'), b('reject', 'Reject', 'danger'));
+    } else if (i.status === 'scheduled') {
+      out.push(b('now', 'Post now', 'gold'), b('unschedule', 'Unschedule'),
+               b('detail', 'Details'), b('reject', 'Cancel', 'danger'));
+    } else if (i.status === 'published') {
+      if (i.permalink) out.push(`<a href="${esc(i.permalink)}" target="_blank" rel="noopener"><button>View on Instagram</button></a>`);
+      out.push(b('detail', 'Details'), b('archive', 'Archive'));
+    } else if (i.status === 'failed') {
+      out.push(b('schedule', 'Reschedule', 'primary'), b('detail', 'Why it failed'), b('archive', 'Archive'));
+    } else {
+      out.push(b('detail', 'Details'), b('archive', 'Archive'));
+    }
+    return out.join('');
+  }
+
+  async function act(what, id) {
+    const item = STATE.items.find(i => i.id === id);
+    try {
+      if (what === 'approve') {
+        const who = who_ask(); if (!who) return;
+        await api('/items/approve', 'POST', { id, by: who });
+      } else if (what === 'reject') {
+        const reason = prompt('Reject — why? (recorded on the item)');
+        if (reason === null) return;
+        await api('/items/reject', 'POST', { id, by: who_default(), reason });
+      } else if (what === 'archive') {
+        await api('/items/archive', 'POST', { id });
+      } else if (what === 'unschedule') {
+        await api('/items/unschedule', 'POST', { id });
+      } else if (what === 'caption') {
+        return captionModal(item);
+      } else if (what === 'schedule') {
+        return scheduleModal(item);
+      } else if (what === 'now') {
+        return publishNowModal(item);
+      } else if (what === 'detail') {
+        return detailModal(id);
+      } else if (what === 'regen') {
+        return alert('Regenerate runs locally, where the fonts and the renderer live:\n\n'
+          + '  python scripts/social/run.py\n\n'
+          + 'It re-renders any draft whose opportunity is still open and replaces the graphic.');
+      }
+      await refresh();
+    } catch (e) { alert(e.message); }
+  }
+
+  function who_ask() {
+    const saved = sessionStorage.getItem('sk_social_who') || 'nick';
+    const who = prompt('Approving as (this is recorded on the item):', saved);
+    if (who) sessionStorage.setItem('sk_social_who', who.trim());
+    return who && who.trim();
+  }
+  const who_default = () => sessionStorage.getItem('sk_social_who') || 'console';
+
+  // ── modals ────────────────────────────────────────────────────────────────
+  function modal(html, wire) {
+    const veil = document.createElement('div');
+    veil.className = 'veil';
+    veil.innerHTML = `<div class="modal">${html}</div>`;
+    document.body.appendChild(veil);
+    const close = () => veil.remove();
+    veil.addEventListener('click', (e) => { if (e.target === veil) close(); });
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
+    });
+    wire(veil, close);
+    return veil;
+  }
+
+  function captionModal(item) {
+    modal(`<h3>Edit caption</h3>
+      <p class="sub" style="margin:0 0 10px">Editing an approved post sends it back for review — an approval covers the words that were read.</p>
+      <textarea id="m-cap">${esc(item.caption)}</textarea>
+      <label style="margin-top:10px;display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:700">Hashtags</label>
+      <input id="m-tags" value="${esc((item.hashtags || []).join(' '))}" />
+      <div class="row"><button class="primary" id="m-save">Save</button><button id="m-cancel">Cancel</button></div>`,
+      (v, close) => {
+        v.querySelector('#m-cancel').onclick = close;
+        v.querySelector('#m-save').onclick = async () => {
+          const tags = v.querySelector('#m-tags').value.trim().split(/\s+/).filter(Boolean);
+          try {
+            await api('/items/caption', 'POST', { id: item.id, caption: v.querySelector('#m-cap').value, hashtags: tags });
+            close(); await refresh();
+          } catch (e) { alert(e.message); }
+        };
+      });
+  }
+
+  function scheduleModal(item) {
+    const d = new Date(Date.now() + 36e5);
+    const date = d.toISOString().slice(0, 10);
+    modal(`<h3>Schedule</h3>
+      <p class="sub" style="margin:0 0 12px">Times are Eastern. The scheduler moves a post later if it would land too close to another one — the spacing rules are in the policy.</p>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:700">Date</label>
+          <input type="date" id="m-date" value="${date}" /></div>
+        <div style="flex:1"><label style="font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:700">Time</label>
+          <input type="time" id="m-time" value="18:30" /></div>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;color:var(--muted)">
+        <input type="checkbox" id="m-force" style="width:auto" /> Use this exact time, ignore spacing rules</label>
+      <div class="row"><button class="primary" id="m-go">Schedule</button><button id="m-cancel">Cancel</button></div>`,
+      (v, close) => {
+        v.querySelector('#m-cancel').onclick = close;
+        v.querySelector('#m-go').onclick = async () => {
+          try {
+            const r = await api('/items/schedule', 'POST', {
+              id: item.id, date: v.querySelector('#m-date').value,
+              time: v.querySelector('#m-time').value,
+              force: v.querySelector('#m-force').checked, by: who_default(),
+            });
+            close();
+            if (r.moved) alert('Moved: ' + r.reason);
+            await refresh();
+          } catch (e) { alert(e.message); }
+        };
+      });
+  }
+
+  function publishNowModal(item) {
+    const live = STATE.queue.mode === 'live';
+    modal(`<h3>Post now</h3>
+      <p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">${esc(item.title)}</p>
+      ${live
+        ? `<div class="err">The engine is in LIVE mode. This posts to Instagram immediately and cannot be undone from here.</div>`
+        : `<div class="warn">The engine is in DRY RUN. This builds the real Instagram payload and logs it, but stops before posting.</div>`}
+      <div class="row"><button class="${live ? 'danger' : 'primary'}" id="m-go">${live ? 'Post to Instagram now' : 'Run dry publish'}</button>
+        <button id="m-cancel">Cancel</button></div>`,
+      (v, close) => {
+        v.querySelector('#m-cancel').onclick = close;
+        v.querySelector('#m-go').onclick = async () => {
+          const b = v.querySelector('#m-go'); b.disabled = true; b.textContent = 'Working…';
+          try {
+            const r = await api('/items/publish-now', 'POST', { id: item.id, by: who_default() });
+            close();
+            alert(r.dryRun ? 'Dry run complete — payload logged, nothing posted.'
+              : r.ok ? 'Published. ' + (r.permalink || r.mediaId)
+                : 'Not published: ' + (r.reason || r.error));
+            await refresh();
+          } catch (e) { alert(e.message); b.disabled = false; b.textContent = 'Retry'; }
+        };
+      });
+  }
+
+  async function detailModal(id) {
+    let d;
+    try { d = await api('/items/detail?id=' + encodeURIComponent(id)); }
+    catch (e) { return alert(e.message); }
+    const i = d.item;
+    const p = d.preview || {};
+    const payload = p.error
+      ? `<div class="err">Would be refused: ${esc(p.error)}</div>`
+      : `<pre style="font-size:11.5px;background:rgba(0,0,0,.35);padding:11px;border-radius:8px;overflow:auto;max-height:240px">${esc(JSON.stringify(p, null, 2))}</pre>`;
+    const pubs = (d.publications || []).map(x =>
+      `<tr><td>${new Date(x.at).toLocaleString()}</td><td>${esc(x.phase)}</td>
+        <td>${esc(x.mode)}</td><td>${x.ok ? '✓' : '✕'}</td>
+        <td>${esc(x.error || x.ig_media_id || '')}</td></tr>`).join('');
+
+    modal(`<h3>${esc(i.title || i.id)}</h3>
+      <dl class="kv">
+        <dt>status</dt><dd>${esc(i.status)}</dd>
+        <dt>type</dt><dd>${esc(i.type)} · ${esc(i.surface)}</dd>
+        <dt>approved by</dt><dd>${esc(i.approved_by || '—')}</dd>
+        <dt>scheduled</dt><dd>${esc(i.scheduled_local || '—')}</dd>
+        <dt>published</dt><dd>${esc(i.published_local || '—')}</dd>
+        <dt>attempts</dt><dd>${i.attempts}</dd>
+        <dt>Instagram id</dt><dd>${esc(i.ig_media_id || '—')}</dd>
+        <dt>permalink</dt><dd>${i.permalink ? `<a href="${esc(i.permalink)}" target="_blank" rel="noopener">${esc(i.permalink)}</a>` : '—'}</dd>
+        <dt>failure</dt><dd>${esc(i.failure_reason || '—')}</dd>
+      </dl>
+      <div class="sect" style="margin-top:16px">What would be sent</div>
+      ${payload}
+      ${pubs ? `<div class="sect">Attempts</div><table><thead><tr><th>When</th><th>Phase</th><th>Mode</th><th>OK</th><th>Detail</th></tr></thead><tbody>${pubs}</tbody></table>` : ''}
+      <div class="row"><button id="m-cancel">Close</button></div>`,
+      (v, close) => { v.querySelector('#m-cancel').onclick = close; });
+  }
+
+  // ── videos ────────────────────────────────────────────────────────────────
+  function renderVideos(el) {
+    if (!STATE.videos.length) {
+      el.innerHTML = `<div class="empty">No videos registered.<br><br>
+        <code>python scripts/social/video.py scan</code><br><br>
+        Everything it finds lands in REVIEW. A folder, a filename or a finished render is never approval.</div>`;
+      return;
+    }
+    const order = { REVIEW: 0, APPROVED: 1, READY_FOR_INSTAGRAM: 2, SCHEDULED: 3, PUBLISHED: 4, RAW: 5, PROCESSING: 6, REJECTED: 7 };
+    const list = STATE.videos.slice().sort((a, b) => (order[a.state] ?? 9) - (order[b.state] ?? 9));
+
+    el.innerHTML = `<div class="sect">Only an APPROVED video can become an Instagram post</div>
+      <table><thead><tr><th>Video</th><th>State</th><th class="num">Length</th><th>Size</th>
+      <th>Approval</th><th>Checks</th><th></th></tr></thead><tbody>` +
+      list.map(v => {
+        const c = v.compatibility;
+        const checks = c.blockers.length
+          ? `<span style="color:var(--red)">${c.blockers.map(esc).join('<br>')}</span>`
+          : c.warnings.length ? `<span style="color:var(--amber)">${c.warnings.map(esc).join('<br>')}</span>`
+            : '<span style="color:var(--green)">ok</span>';
+        const appr = v.approved_by
+          ? `${esc(v.approved_by)}<br><span style="color:var(--dim);font-size:11.5px">${new Date(v.approved_at).toLocaleString()}<br>${esc(v.approval_source || '')}</span>`
+          : '<span style="color:var(--dim)">—</span>';
+        const acts = v.state === 'REVIEW'
+          ? `<button class="primary" data-v="approve" data-id="${v.id}">Approve</button>
+             <button class="danger" data-v="reject" data-id="${v.id}">Reject</button>`
+          : (v.state === 'APPROVED' || v.state === 'READY_FOR_INSTAGRAM')
+            ? `<button data-v="draft" data-id="${v.id}">Make a post</button>
+               <button class="danger" data-v="revoke" data-id="${v.id}">Revoke</button>`
+            : `<button data-v="show" data-id="${v.id}">History</button>`;
+        return `<tr>
+          <td><b>${esc(v.title)}</b><br><span style="color:var(--dim);font-size:11.5px">${esc(v.source_path)}</span></td>
+          <td><span class="st ${v.state === 'REVIEW' ? 'needs_review' : v.state === 'REJECTED' ? 'failed' : 'approved'}">${esc(v.state)}</span></td>
+          <td class="num">${v.duration_s ? v.duration_s.toFixed(1) + 's' : '—'}</td>
+          <td>${v.width}×${v.height}</td>
+          <td>${appr}</td><td style="font-size:11.5px">${checks}</td>
+          <td style="white-space:nowrap">${acts}</td></tr>`;
+      }).join('') + '</tbody></table>';
+
+    el.querySelectorAll('[data-v]').forEach(b => { b.onclick = () => videoAct(b.dataset.v, b.dataset.id); });
+  }
+
+  async function videoAct(what, id) {
+    const v = STATE.videos.find(x => x.id === id);
+    try {
+      if (what === 'approve') {
+        const blockers = v.compatibility.blockers;
+        if (blockers.length && !confirm('Instagram would reject this file:\n\n' + blockers.join('\n') + '\n\nApprove anyway?')) return;
+        const who = who_ask(); if (!who) return;
+        const note = prompt('Note (optional) — e.g. what Nick said when he signed off:', '') || null;
+        // expect_sha256 binds the approval to the bytes shown on this page. If
+        // the file changed since it loaded, the worker refuses.
+        await api('/video/approve', 'POST', { id, by: who, source: 'console', note, expect_sha256: v.sha256 });
+        alert('Approved.\n\nNext, deliver the file so Instagram can fetch it:\n\n  python scripts/social/video.py deliver ' + id);
+      } else if (what === 'reject') {
+        const reason = prompt('Reject — why? (this is kept, and improves the next pick)');
+        if (reason === null) return;
+        await api('/video/reject', 'POST', { id, by: who_default(), reason });
+      } else if (what === 'revoke') {
+        const reason = prompt('Revoke approval — why?');
+        if (reason === null) return;
+        await api('/video/revoke', 'POST', { id, by: who_default(), reason });
+      } else if (what === 'draft') {
+        const cap = prompt('Caption for this reel:', v.caption_draft || v.title);
+        if (cap === null) return;
+        await api('/items/reel', 'POST', { video_id: id, caption: cap, hashtags: ['#pokemoncards', '#pokemontcg', '#cardcollector'] });
+        TAB = 'review';
+      } else if (what === 'show') {
+        const d = await api('/video/detail?id=' + encodeURIComponent(id));
+        return modal(`<h3>${esc(d.video.title)}</h3>
+          <dl class="kv">${Object.entries({
+            state: d.video.state, sha256: d.video.sha256,
+            'approved sha256': d.video.approved_sha256 || '—',
+            'approved by': d.video.approved_by || '—',
+            'approval source': d.video.approval_source || '—',
+            note: d.video.approval_note || '—', path: d.video.source_path,
+          }).map(([k, val]) => `<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`).join('')}</dl>
+          <div class="sect">History</div>
+          <table><tbody>${d.history.map(h =>
+            `<tr><td>${new Date(h.at).toLocaleString()}</td><td>${esc(h.from_state || '-')} → <b>${esc(h.to_state)}</b></td>
+             <td>${esc(h.source || '')} ${esc(h.note || '')}</td></tr>`).join('')}</tbody></table>
+          <div class="row"><button id="m-cancel">Close</button></div>`,
+          (vv, close) => { vv.querySelector('#m-cancel').onclick = close; });
+      }
+      await refresh();
+    } catch (e) { alert(e.message); }
+  }
+
+  // ── shows ─────────────────────────────────────────────────────────────────
+  async function renderEvents(el) {
+    const [evs, opps] = await Promise.all([api('/events'), api('/opportunities')]);
+    const byEvent = {};
+    for (const o of opps.opportunities) (byEvent[o.event_id] = byEvent[o.event_id] || []).push(o);
+    const unpromoted = new Set(STATE.unpromoted.map(e => e.id));
+
+    el.innerHTML = `<div class="sect">Upcoming shows and what is planned for each</div>
+      <table><thead><tr><th>Show</th><th>When</th><th>Where</th><th>Promotion</th></tr></thead><tbody>` +
+      evs.events.map(e => {
+        const ladder = (byEvent[e.id] || []).map(o => {
+          const colour = { published: 'var(--green)', scheduled: 'var(--azure)', drafted: 'var(--amber)',
+            pending: 'var(--dim)', skipped: 'var(--dim)', expired: 'var(--dim)', retired: 'var(--red)' }[o.status] || 'var(--dim)';
+          const window = o.status === 'pending' ? ` (eligible ${o.eligible_from} → ${o.eligible_to})` : '';
+          return `<div style="color:${colour};font-size:12px">${esc(o.kind.replace('_', ' ').toLowerCase())}
+            — <b>${esc(o.status)}</b>${esc(window)}${o.reason ? ` · ${esc(o.reason)}` : ''}</div>`;
+        }).join('') || '<span style="color:var(--dim);font-size:12px">no opportunities — masked, cancelled, or past</span>';
+        return `<tr${unpromoted.has(e.id) ? ' style="background:rgba(255,176,32,.05)"' : ''}>
+          <td><b>${esc(e.title)}</b>${e.masked ? ' <span class="st needs_review">masked</span>' : ''}
+            ${e.status === 'cancelled' ? ' <span class="st failed">cancelled</span>' : ''}</td>
+          <td>${esc(e.event_date)}${e.end_date ? '–' + esc(e.end_date.slice(8)) : ''}<br>
+            <span style="color:var(--dim);font-size:11.5px">${esc(e.hours_text || '')}</span></td>
+          <td>${esc([e.venue, e.city, e.state].filter(Boolean).join(' · '))}</td>
+          <td>${ladder}</td></tr>`;
+      }).join('') + '</tbody></table>';
+  }
+
+  // ── activity ──────────────────────────────────────────────────────────────
+  function renderActivity(el) {
+    if (!STATE.activity.length) { el.innerHTML = '<div class="empty">Nothing has happened yet.</div>'; return; }
+    el.innerHTML = '<div class="log">' + STATE.activity.map(a =>
+      `<div class="row ${a.level}-l">
+        <span class="t">${new Date(a.at).toLocaleString()}</span>
+        <span class="sc">${esc(a.scope)}</span>
+        <span class="m">${esc(a.message)}</span>
+      </div>`).join('') + '</div>';
+  }
+
+  // ── dry run ───────────────────────────────────────────────────────────────
+  async function showDryRun() {
+    let d;
+    try { d = await api('/dry-run'); } catch (e) { return alert(e.message); }
+    const rows = d.items.map(i => `<tr>
+      <td><b>${esc(i.title)}</b><br><span style="color:var(--dim);font-size:11.5px">${esc(i.type)} · ${esc(i.status)}</span></td>
+      <td>${i.scheduled_for ? new Date(i.scheduled_for).toLocaleString() : '—'}</td>
+      <td>${i.would === 'publish'
+        ? '<span style="color:var(--green)">would publish</span>'
+        : `<span style="color:var(--red)">would refuse</span><br><span style="font-size:11.5px">${esc(i.reason)}</span>`}</td>
+      <td style="font-size:11px">${i.would === 'publish'
+        ? esc(i.endpoint) + '<br>' + esc(JSON.stringify(i.params).slice(0, 200))
+        : ''}</td></tr>`).join('');
+
+    modal(`<h3>Dry-run report</h3>
+      <p class="sub" style="margin:0 0 4px">Mode: <b>${esc(d.mode)}</b> · ${d.items.length} item(s) in the window.
+      This runs the whole pipeline including every safety check, and stops before the Instagram call.</p>
+      ${d.items.length ? `<table><thead><tr><th>Item</th><th>Scheduled</th><th>Outcome</th><th>Payload</th></tr></thead><tbody>${rows}</tbody></table>`
+        : '<div class="empty">Nothing approved or scheduled to report on.</div>'}
+      <div class="row"><button id="m-cancel">Close</button></div>`,
+      (v, close) => { v.querySelector('#m-cancel').onclick = close; });
+  }
+
+  // ── init ──────────────────────────────────────────────────────────────────
+  $('load').addEventListener('click', open);
+  $('tok').addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+  const saved = sessionStorage.getItem('sk_social_tok');
+  if (saved) { $('tok').value = saved; open(); }
+})();
+</script>
+</body>
+</html>

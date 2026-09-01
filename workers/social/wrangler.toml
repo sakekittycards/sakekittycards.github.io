@@ -1,0 +1,49 @@
+name = "sakekitty-social"
+account_id = "9b18005c2881f6865e6bd71685eabaf7"
+main = "src/index.js"
+# Pinned to a date the repo's wrangler (4.84.1) can also run LOCALLY. Its bundled
+# workerd tops out at 2026-04-28, and a later date makes `wrangler dev --local`
+# refuse to start — which would mean the only way to exercise this worker before
+# deploying is to deploy it. Nothing here needs a newer date.
+compatibility_date = "2026-04-28"
+workers_dev = true
+
+[vars]
+# The deploy-time half of the publish gate. Live posting needs BOTH this and the
+# runtime policy to say "live" — see policy.effectiveMode. Flipping the console
+# switch on a worker deployed with PUBLISH_MODE = "dry" does nothing, which is
+# what makes "I turned it on by accident" impossible from the browser alone.
+PUBLISH_MODE = "dry"
+
+# Where Instagram fetches our media from. Must be the worker's own public origin:
+# the URLs handed to the Graph API are built from it, and Instagram has to be
+# able to resolve them from the open internet.
+PUBLIC_BASE = "https://sakekitty-social.nwilliams23999.workers.dev"
+
+# Every 15 minutes: refresh opportunities, revalidate approved items, reap dead
+# leases, publish what is due. Hourly (first tick of the hour) it also checks
+# token health and collects insights.
+[triggers]
+crons = ["*/15 * * * *"]
+
+[[d1_databases]]
+binding       = "DB"
+database_name = "sk-social"
+database_id   = "00000000-0000-0000-0000-000000000000"  # replace after `wrangler d1 create sk-social`
+
+# Generated graphics and prepared video. Private bucket: objects are served only
+# through GET /m/<token> on this worker, addressed by a random token, never by
+# their R2 key.
+[[r2_buckets]]
+binding     = "MEDIA"
+bucket_name = "sk-social-media"
+
+# ── Secrets (wrangler secret put NAME) ───────────────────────────────────────
+#   ADMIN_TOKEN      — gates every endpoint except /health and /m/<token>.
+#                      Same value as the sakekitty-square worker's ADMIN_TOKEN so
+#                      the admin pages share one credential.
+#   IG_ACCESS_TOKEN  — long-lived Instagram Graph token with
+#                      instagram_content_publish. Publishing is impossible
+#                      without it; everything else in the system works.
+#   IG_USER_ID       — the Instagram Business account id (numeric).
+#   DISCORD_WEBHOOK  — optional; mirrors published/failed notices to #sk-ops.
