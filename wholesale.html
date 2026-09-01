@@ -540,9 +540,9 @@
     { id:'tw-pc-fukuoka', name:'Pokémon Center Fukuoka Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:141, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'tw-pc-hiroshima', name:'Pokémon Center Hiroshima Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:136, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'tw-pc-tohoku', name:'Pokémon Center Tohoku Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'tw-storm', name:'Storm Emeralda Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'tw-brave', name:'Mega Brave Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:89, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'tw-abyss', name:'Abyss Eye Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:73, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null }
+    { id:'tw-storm', name:'Storm Emeralda Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'tw-brave', name:'Mega Brave Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:89, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'tw-abyss', name:'Abyss Eye Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:73, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 }
   ];
 
   var GROUP_ORDER = ['Pokémon · Chinese sealed', 'Pokémon · Japanese sealed'];
@@ -657,7 +657,7 @@
     if (p.cardsPerPack) bits.push('<span><b>' + p.cardsPerPack + '</b> cards/pack</span>');
     var spec = bits.length
       ? '<div class="spec">' + bits.join('') + '</div>'
-      : '<div class="spec"><span class="none">Configuration on request</span></div>';
+      : '<div class="spec"><span class="none">Contents on request</span></div>';
 
     // availability reads as its own fact, not as a fourth spec chip
     var avail = '';
