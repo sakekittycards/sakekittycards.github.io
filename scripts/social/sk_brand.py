@@ -42,6 +42,7 @@ glyphs, and are what let two different faces sit on one optical baseline.
 """
 from __future__ import annotations
 
+import hashlib
 import os
 from dataclasses import dataclass
 from functools import lru_cache
@@ -91,6 +92,13 @@ WARM: Sequence[tuple[float, tuple[int, int, int]]] = (
     (0.00, (255, 207, 58)),
     (0.38, (255, 90, 16)),
     (1.00, (224, 36, 110)),
+)
+# A third display ramp so the title is not always the same orange. Gold is the
+# mascot's outline colour and the most under-used hue in the palette.
+GOLD_RAMP: Sequence[tuple[float, tuple[int, int, int]]] = (
+    (0.00, (255, 226, 120)),
+    (0.45, (242, 185, 5)),
+    (1.00, (240, 96, 0)),
 )
 COOL: Sequence[tuple[float, tuple[int, int, int]]] = (
     (0.00, (127, 228, 255)),
@@ -325,6 +333,9 @@ def base_canvas(cv: Canvas, warm_corner: str = "tl") -> Image.Image:
     if warm_corner == "tl":
         wx, wy = int(cv.w * 0.10), int(cv.h * 0.06)
         cx2, cy2 = int(cv.w * 0.90), int(cv.h * 0.94)
+    elif warm_corner == "tr":
+        wx, wy = int(cv.w * 0.90), int(cv.h * 0.06)
+        cx2, cy2 = int(cv.w * 0.10), int(cv.h * 0.94)
     else:
         wx, wy = int(cv.w * 0.90), int(cv.h * 0.94)
         cx2, cy2 = int(cv.w * 0.10), int(cv.h * 0.06)
@@ -420,24 +431,42 @@ def place_mascot(canvas: Image.Image, height: int, right: int, bottom: int,
     return art.size
 
 
-def bottom_scrim(canvas: Image.Image, height: int, strength: int = 255) -> None:
-    """Fade the bottom of the canvas to ink.
+def bottom_band(canvas: Image.Image, top: int, feather: int = 46) -> None:
+    """An opaque ink band from `top` to the bottom edge, softened at its top.
 
-    This is what lets the mascot bleed off the bottom edge. The source artwork
-    ends in a straight horizontal cut where the wordmark used to cover the cat's
-    lower body; the fix is never to paint the cut out, it is to put something in
-    front of it. Bleeding the art past the edge and fading into the ground does
-    that, and leaves a clean field for the footer lockup.
+    This replaces an earlier full-height gradient scrim. The gradient reached far
+    enough up the canvas to wash out the card the mascot is holding — the single
+    most on-brand element in the artwork — while still not being opaque enough at
+    the bottom to hide the illustration's straight machine cut. A short feather
+    into a solid band does both jobs: the cut is genuinely covered, and nothing
+    above the band is dimmed.
     """
     w, h = canvas.size
-    grad = Image.new("L", (1, height))
-    px = grad.load()
-    for y in range(height):
-        t = y / max(height - 1, 1)
-        px[0, y] = int(strength * (t ** 1.55))
-    layer = Image.new("RGBA", (w, height), INK + (0,))
-    layer.putalpha(grad.resize((w, height)))
-    canvas.alpha_composite(layer, (0, h - height))
+    band = Image.new("RGBA", (w, h - top), INK + (255,))
+    a = Image.new("L", (1, h - top), 255)
+    px = a.load()
+    for y in range(min(feather, h - top)):
+        px[0, y] = int(255 * (y / max(feather - 1, 1)) ** 0.85)
+    band.putalpha(a.resize((w, h - top)))
+    canvas.alpha_composite(band, (0, top))
+
+
+def variant_of(seed: str) -> dict:
+    """Pick a deterministic visual variant for one event.
+
+    Six posts a month that differ only in their words read as a bot, which is
+    exactly the impression this system must not give. The variation is small on
+    purpose — same grid, same type, same mascot — but the warm mass, the accent
+    and the mascot's side rotate, so a scrolled feed shows a family rather than
+    six copies. Derived from the event so a re-render is identical.
+    """
+    n = int(hashlib.sha256(seed.encode("utf-8")).hexdigest()[:8], 16)
+    return {
+        "corner": ("tl", "tr")[n % 2],
+        "mascot_right": bool((n >> 1) % 2),
+        "accent": (GOLD, AZURE, MAGENTA)[(n >> 2) % 3],
+        "ramp": (WARM, WARM, GOLD_RAMP)[(n >> 4) % 3],
+    }
 
 
 # ── Chrome ───────────────────────────────────────────────────────────────────

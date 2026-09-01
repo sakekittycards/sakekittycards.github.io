@@ -16,6 +16,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const SUITES = [
   ['video_approval_test.mjs', 'the invariant: an unapproved video can never reach publish'],
   ['engine_test.mjs', 'ingestion, opportunities, scheduling, idempotency, dry run'],
+  ['adversarial_test.mjs', 'reconciliation, concurrency, renames, DST, and both first-pass regressions'],
 ];
 
 let total = 0;

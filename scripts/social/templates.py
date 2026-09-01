@@ -82,8 +82,15 @@ def build_copy(ev: dict, kind: str, booth: str | None = None) -> EventCopy:
     # The venue is the detail line under it.
     place = where or venue
     detail = venue if (venue and venue.lower() != place.lower()) else ""
-    if ev.get("hours_text") and len(ev["hours_text"]) <= 34:
-        detail = f"{detail} · {ev['hours_text']}" if detail else ev["hours_text"]
+    # One supporting fact only. Appending hours to a long venue produced
+    # "San Mateo County Convention Center · Sat 10am-6pm · Sun 10am-5pm", which
+    # wrapped to two lines of small grey text and read as clutter. The venue is
+    # what someone needs to find the booth; the full hours are in the caption.
+    hours = (ev.get("hours_text") or "").strip()
+    if not detail and hours:
+        detail = hours
+    elif detail and hours and len(detail) + len(hours) <= 40:
+        detail = f"{detail} · {hours}"
 
     booth = booth or ev.get("booth")
     cta = booth if booth else ("BUY · SELL · TRADE" if ev.get("kind") != "online" else "LIVE ON WHATNOT")
@@ -105,23 +112,35 @@ def _eyebrow(img, cv, copy, y):
     return y + int(cv.w * 0.028 * B.CAP_INTER) + int(cv.h * 0.022)
 
 
-def _title_block(img, cv, copy, y, max_width, start_px, min_px):
-    """Fit the show name to at most two lines, centred, largest size that fits."""
-    px = B.fit_display(copy.title, max_width, start_px, min_px)
-    lines = [copy.title]
-    if px <= min_px + 2:
-        px = int(start_px * 0.78)
-        lines = B.wrap_display(copy.title, max_width, px, max_lines=2)
-        while lines and max(B.measure(l, B.BANGERS, px, 0.04)[0] for l in lines) > max_width and px > 40:
-            px -= 3
-            lines = B.wrap_display(copy.title, max_width, px, max_lines=2)
+def _title_block(img, cv, copy, y, max_width, start_px, min_px, ramp=None):
+    """Fit the show name, preferring TWO BIG LINES over one small one.
 
-    for i, line in enumerate(lines):
+    The earlier fitter shrank a long name until it fit on one line, which made
+    "STUART CARD SHOW" enormous and "COLLECT-A-CON — SAN FRANCISCO" tiny. Side by
+    side in a feed that reads as inconsistent rather than responsive, so the
+    title now only shrinks to a floor and then wraps, keeping display type at a
+    comparable weight across the whole set.
+    """
+    ramp = ramp or B.WARM
+    one_line = B.fit_display(copy.title, max_width, start_px, min_px, tracking_em=0.04)
+    wrap_floor = int(start_px * 0.62)
+
+    if one_line >= wrap_floor:
+        lines, px = [copy.title], one_line
+    else:
+        px = start_px
+        lines = B.wrap_display(copy.title, max_width, px, tracking_em=0.04, max_lines=2)
+        while px > wrap_floor and (len(lines) > 2 or max(
+                B.measure(l, B.BANGERS, px, 0.04)[0] for l in lines) > max_width):
+            px -= 3
+            lines = B.wrap_display(copy.title, max_width, px, tracking_em=0.04, max_lines=2)
+
+    for line in lines:
         w, _ = B.measure(line, B.BANGERS, px, 0.04)
-        h = B.display_text(img, line, px, (cv.w - w) // 2, y, stops=B.WARM,
+        h = B.display_text(img, line, px, (cv.w - w) // 2, y, stops=ramp,
                            tracking_em=0.04, glow=(255, 96, 30))[1]
-        y += h + int(px * 0.10)
-    return y + int(cv.h * 0.006)
+        y += h + int(px * 0.12)
+    return y + int(cv.h * 0.004)
 
 
 def _fact_block(img, cv, copy, y):
@@ -138,11 +157,15 @@ def _fact_block(img, cv, copy, y):
         y += int(place_px * B.CAP_INTER) + int(cv.h * 0.013)
 
     if copy.detail_line:
-        det_px = int(cv.w * 0.028)
+        # 0.034 of canvas width, not 0.028. A 4:5 post renders about 390px wide
+        # in-feed on a phone, so 0.028 x 1080 = 30px lands at ~10.8 effective
+        # pixels — under the site's own locked 13px floor for readable copy, and
+        # Nick reads these outdoors in sunlight. 0.034 lands at ~13.3.
+        det_px = int(cv.w * 0.034)
         for line in B.wrap_flat(copy.detail_line, B.INTER, det_px,
                                 int(cv.w - cv.safe_x * 2), max_lines=2):
             B.flat_text(img, line, B.INTER, det_px, cv.w // 2, y,
-                        colour=B.WHITE, alpha=B.A_DIM, anchor="c")
+                        colour=B.WHITE, alpha=B.A_MUTED, anchor="c")
             y += int(det_px * B.CAP_INTER) + int(cv.h * 0.009)
     return y
 
@@ -150,48 +173,47 @@ def _fact_block(img, cv, copy, y):
 # ── Template: banner ─────────────────────────────────────────────────────────
 def render_banner(ev: dict, kind: str, cv: B.Canvas = B.FEED_45,
                   booth: str | None = None) -> Image.Image:
-    """Type-led. One centred column of information, mascot holding the corner.
+    """Type column above, mascot filling the lower half, contact band beneath.
 
-    The layout is a single top-down column — eyebrow, name, rule, date, place,
-    detail, CTA — and then the mascot occupies the lower right, bleeding a little
-    past the safe margin so it reads as artwork rather than a pasted sticker. Its
-    base sits behind the footer hairline, which is where the source artwork's
-    straight bottom cut becomes invisible instead of becoming a problem.
+    Three bands, no gaps. The earlier version left a ~230px void between the CTA
+    and the mascot's head because the mascot was bled off the bottom edge to hide
+    the artwork's straight machine cut; that also cropped away the card the cat is
+    holding. Anchoring the mascot on an opaque contact band instead covers the cut
+    AND keeps the whole illustration, and the type column then sits directly on
+    top of it.
     """
     copy = build_copy(ev, kind, booth)
-    img = B.base_canvas(cv, warm_corner="tl")
+    var = B.variant_of(f"{ev.get('id') or ev['title']}|{ev['event_date']}")
+
+    img = B.base_canvas(cv, warm_corner=var["corner"])
 
     content_w = cv.w - cv.safe_x * 2
-    top = cv.safe_top + int(cv.h * 0.072)
-    footer_y = cv.h - cv.safe_bottom - int(cv.h * 0.012)
-    rule_y = footer_y - int(cv.h * 0.062)
+    top = cv.safe_top + int(cv.h * 0.038)
+    footer_y = cv.h - cv.safe_bottom - int(cv.h * 0.010)
+    band_top = footer_y - int(cv.h * 0.070)
 
-    # Mascot first: everything else is positioned to clear it. It bleeds past
-    # both the right and bottom edges so the artwork's straight bottom cut ends
-    # up off-canvas, and the scrim below covers whatever is left of it.
-    mascot_h = int(cv.h * (0.50 if cv is B.FEED_45 else 0.46 if cv is B.FEED_11 else 0.38))
-    B.place_mascot(img, mascot_h,
-                   right=cv.w + int(cv.w * 0.17),
-                   bottom=cv.h + int(cv.h * 0.045))
-    B.bottom_scrim(img, int(cv.h * 0.185))
+    # Mascot: whole artwork, sitting on the band, biased to one side per variant.
+    mascot_h = int(cv.h * (0.455 if cv is B.FEED_45 else 0.40 if cv is B.FEED_11 else 0.33))
+    art_w = int(mascot_h * (B.mascot_art().width / B.mascot_art().height))
+    right = cv.w + int(cv.w * 0.07) if var["mascot_right"] else art_w - int(cv.w * 0.07)
+    B.place_mascot(img, mascot_h, right=right, bottom=band_top + int(cv.h * 0.028))
+
+    B.sparks(img, seed=abs(hash(ev["event_date"])) % 9973, count=8,
+             avoid=[(cv.safe_x - 24, top - 24, cv.w - cv.safe_x + 24, int(cv.h * 0.50))])
 
     y = _eyebrow(img, cv, copy, top)
     y = _title_block(img, cv, copy, y, content_w,
-                     start_px=int(cv.w * 0.115), min_px=int(cv.w * 0.052))
-    y += int(cv.h * 0.010)
-    B.rule(img, cv.w // 2 - int(cv.w * 0.075), y, cv.w // 2 + int(cv.w * 0.075))
-    y += int(cv.h * 0.026)
+                     start_px=int(cv.w * 0.112), min_px=int(cv.w * 0.050),
+                     ramp=var["ramp"])
+    y += int(cv.h * 0.008)
+    B.rule(img, cv.w // 2 - int(cv.w * 0.070), y, cv.w // 2 + int(cv.w * 0.070),
+           colour=var["accent"])
+    y += int(cv.h * 0.024)
     y = _fact_block(img, cv, copy, y)
+    B.pill(img, copy.cta, int(cv.w * 0.026), cv.w // 2, y + int(cv.h * 0.014),
+           colour=var["accent"])
 
-    # The CTA sits directly under the facts, not floating at the bottom — it is
-    # the last line of the same sentence, not a separate banner.
-    B.pill(img, copy.cta, int(cv.w * 0.026), cv.w // 2, y + int(cv.h * 0.016))
-
-    B.sparks(img, seed=abs(hash(ev["event_date"])) % 9973, count=9,
-             avoid=[(cv.safe_x - 24, top - 24, cv.w - cv.safe_x + 24, y + int(cv.h * 0.07)),
-                    (int(cv.w * 0.42), rule_y - mascot_h, cv.w, rule_y)])
-
-    B.rule(img, cv.safe_x, rule_y, cv.w - cv.safe_x, colour=B.WHITE, alpha=30, thickness=1)
+    B.bottom_band(img, band_top)
     B.footer(img, cv, footer_y)
     return B.finish(img)
 

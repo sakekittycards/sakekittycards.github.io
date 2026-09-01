@@ -67,7 +67,8 @@ export async function ingestEvents(env, snapshot, { at = nowMs(), source = 'even
   }
 
   const seen = new Set();
-  const result = { added: [], updated: [], material: [], cancelled: [], unchanged: 0 };
+  const addedById = new Map();
+  const result = { added: [], updated: [], material: [], cancelled: [], renamed: [], unchanged: 0 };
 
   for (const raw of snapshot) {
     const ev = normalizeEvent(raw);
@@ -92,6 +93,7 @@ export async function ingestEvents(env, snapshot, { at = nowMs(), source = 'even
         ev.reveal_at, ev.status, 'new', ev.fingerprint, JSON.stringify(raw), at, at, at
       ).run();
       result.added.push(ev.id);
+      addedById.set(ev.id, ev);
       await log(env, 'info', 'events', ev.id,
         `Found new event: ${ev.title} — ${humanDate(ev.event_date)}`,
         { venue: ev.venue, city: ev.city, state: ev.state }, at);
@@ -132,15 +134,50 @@ export async function ingestEvents(env, snapshot, { at = nowMs(), source = 'even
   }
 
   // Anything we know about that the site no longer lists, and that has not
-  // already happened, is a cancellation.
+  // already happened, is a cancellation — UNLESS it was renamed.
   const today = new Date(at).toISOString().slice(0, 10);
   const stale = await env.DB.prepare(
-    `SELECT id, title, event_date FROM events
+    `SELECT id, title, event_date, venue, first_seen_at FROM events
       WHERE source = ? AND status = 'scheduled' AND COALESCE(end_date, event_date) >= ?`
   ).bind(source, today).all();
 
   for (const row of stale.results || []) {
     if (seen.has(row.id)) continue;
+
+    // Identity is (title, date), so correcting a typo in a show's name reads as
+    // "the old one vanished and a brand new one appeared" — which would post a
+    // cancellation notice to the activity log and fire a fresh announcement for
+    // a show we have known about for months. Detect the rename instead.
+    //
+    // Deliberately conservative: same date, and either the same venue or a
+    // clearly similar title. Two genuinely different shows on one date at one
+    // venue is not a thing that happens on this calendar; a mis-detection here
+    // would suppress a real cancellation, so the bar is "obviously the same
+    // event", not "plausibly".
+    const renamed = result.added
+      .map((id) => addedById.get(id))
+      .find((ev) => ev && ev.event_date === row.event_date
+        && (sameVenue(ev.venue, row.venue) || titlesAlike(ev.title, row.title)));
+
+    if (renamed) {
+      // Carry the original first-seen forward so the announcement window is not
+      // reopened by an edit.
+      await env.DB.prepare('UPDATE events SET first_seen_at = ? WHERE id = ?')
+        .bind(row.first_seen_at, renamed.id).run();
+      await env.DB.prepare('DELETE FROM events WHERE id = ?').bind(row.id).run();
+      // Move any opportunities and drafts across rather than orphaning them.
+      await env.DB.prepare('UPDATE opportunities SET event_id = ? WHERE event_id = ?')
+        .bind(renamed.id, row.id).run();
+      await env.DB.prepare('UPDATE content_items SET event_id = ? WHERE event_id = ?')
+        .bind(renamed.id, row.id).run();
+      result.added = result.added.filter((id) => id !== renamed.id);
+      result.renamed.push({ from: row.title, to: renamed.title, id: renamed.id });
+      await log(env, 'info', 'events', renamed.id,
+        `Event renamed: "${row.title}" is now "${renamed.title}" — same show, kept its history.`,
+        { was: row.id }, at);
+      continue;
+    }
+
     await env.DB.prepare(
       "UPDATE events SET status = 'cancelled', fingerprint = ?, updated_at = ? WHERE id = ?"
     ).bind(await sha256Hex(`cancelled:${row.id}`), at, row.id).run();
@@ -151,6 +188,29 @@ export async function ingestEvents(env, snapshot, { at = nowMs(), source = 'even
   }
 
   return result;
+}
+
+function sameVenue(a, b) {
+  const x = normalizeValue(a);
+  const y = normalizeValue(b);
+  return Boolean(x) && x === y;
+}
+
+/**
+ * Are these two show names obviously the same show?
+ *
+ * Token overlap rather than edit distance: show names differ by whole words
+ * ("Cardichu — Pompano" vs "Cardichu — Pompano Beach"), and a character-level
+ * measure scores unrelated short names too highly.
+ */
+function titlesAlike(a, b) {
+  const tok = (s) => new Set(normalizeValue(s).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((w) => w.length > 2));
+  const x = tok(a);
+  const y = tok(b);
+  if (!x.size || !y.size) return false;
+  let shared = 0;
+  for (const w of x) if (y.has(w)) shared += 1;
+  return shared / Math.min(x.size, y.size) >= 0.6;
 }
 
 function diffFields(before, after) {

@@ -230,10 +230,10 @@ export async function mediaPermalink(env, mediaId) {
  * timed out on ours. Before retrying we look at recent media and try to match;
  * if we find it, we adopt the existing post instead of making a second one.
  */
-export async function findRecentByCaption(env, caption, { withinMs = 3600e3 } = {}) {
+export async function findRecentByCaption(env, caption, { withinMs = 6 * 3600e3 } = {}) {
   const d = await call(env, 'GET', `/${env.IG_USER_ID}/media`, {
     fields: 'id,caption,timestamp,permalink,media_type',
-    limit: 10,
+    limit: 25,
   });
   const cutoff = Date.now() - withinMs;
   const needle = String(caption || '').trim().slice(0, 120);
@@ -244,6 +244,47 @@ export async function findRecentByCaption(env, caption, { withinMs = 3600e3 } = 
     if (String(m.caption || '').trim().slice(0, 120) === needle) return m;
   }
   return null;
+}
+
+/**
+ * The authoritative answer to "did this container already publish?"
+ *
+ * `status_code` on a media container is documented to reach PUBLISHED once
+ * `media_publish` has succeeded, and that is the only signal Meta gives us that
+ * survives our own process dying. Caption matching is a guess; this is a fact,
+ * so it runs first and the caption search is only a fallback for resolving the
+ * resulting media id.
+ *
+ * Returns one of:
+ *   { state: 'published' }             already out — do NOT publish again
+ *   { state: 'ready' }                 container is FINISHED, safe to publish
+ *   { state: 'pending' }               still processing
+ *   { state: 'dead', reason }          ERROR/EXPIRED — build a new container
+ *   { state: 'unknown', reason }       we could not find out; caller must not
+ *                                      assume either way
+ */
+export async function reconcileContainer(env, containerId) {
+  let st;
+  try {
+    st = await containerStatus(env, containerId);
+  } catch (e) {
+    // A container id Meta no longer recognises is gone, not published: the id
+    // space is per-account and short-lived, and a 400 on lookup means it was
+    // never accepted or has aged out.
+    if (e instanceof IgError && e.kind === 'permanent' && e.status === 400) {
+      return { state: 'dead', reason: 'Instagram no longer recognises the container id' };
+    }
+    return { state: 'unknown', reason: String(e.message || e) };
+  }
+
+  switch (st.code) {
+    case 'PUBLISHED': return { state: 'published' };
+    case 'FINISHED': return { state: 'ready' };
+    case 'IN_PROGRESS': return { state: 'pending' };
+    case 'ERROR':
+    case 'EXPIRED': return { state: 'dead', reason: `container ${st.code}` };
+    default: return { state: 'unknown', reason: `unrecognised status_code ${st.code}` };
+  }
 }
 
 /**

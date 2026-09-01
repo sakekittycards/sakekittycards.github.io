@@ -131,11 +131,22 @@ export async function buildPayload(env, item) {
  * Writing the id after the call would lose exactly the information needed to
  * avoid a double post.
  */
-export async function publishItem(env, itemId, policy, { at = nowMs(), force = false } = {}) {
+export async function publishItem(env, itemId, policy, { at = nowMs(), force = false, __ig = ig } = {}) {
+  // `__ig` is a test seam, and it earns its keep: the failure this function
+  // exists to survive is "Instagram accepted the publish and then our process
+  // died", which cannot be produced against the real API. The default is the
+  // real client, so production has no idea this parameter exists.
+  const IG = __ig;
   const mode = effectiveMode(env, policy);
 
   const token = await claim(env, itemId, { at });
   if (!token) {
+    // Two schedulers fired on the same tick, or a manual POST NOW raced the
+    // cron. Exactly one holds the lease and will publish; this one stops here.
+    // Logged at info, not error: this is the protection working, not a fault.
+    await log(env, 'info', 'publish', itemId,
+      'Duplicate worker execution detected — another run already holds this post. '
+      + 'No second post was created.', null, at);
     return { ok: false, skipped: true, reason: 'another worker holds the lease, or the item is no longer scheduled' };
   }
 
@@ -156,6 +167,12 @@ export async function publishItem(env, itemId, policy, { at = nowMs(), force = f
 
   if (mode === 'dry' && !force) {
     await record(env, item, 'dry-run', true, { payload }, mode, at);
+    // A dry run is not an attempt. `claim()` incremented the counter to take the
+    // lease; give it back, or six dry runs would exhaust the retry budget of a
+    // post that has never actually been sent anywhere.
+    await env.DB.prepare(
+      'UPDATE content_items SET attempts = MAX(attempts - 1, 0) WHERE id = ? AND lease_token = ?'
+    ).bind(itemId, token).run();
     await releaseLease(env, itemId, token, 'scheduled', {
       at, reason: 'dry run — not published', nextRetryAt: at + 6 * 3600e3,
     });
@@ -166,45 +183,96 @@ export async function publishItem(env, itemId, policy, { at = nowMs(), force = f
   }
 
   try {
-    // If a previous attempt already produced a container, do not make another.
     let containerId = item.ig_creation_id;
 
+    // ── Reconciliation ────────────────────────────────────────────────────
+    //
+    // A container id surviving from a previous attempt means we already told
+    // Instagram to build this post and then lost track of what happened. The
+    // dangerous case is the narrow window where `media_publish` succeeded on
+    // their side and our process died before recording it: retrying blindly
+    // there posts the same thing twice, publicly.
+    //
+    // Meta gives us exactly one durable signal for this — the container's own
+    // `status_code`, which reaches PUBLISHED once media_publish has succeeded.
+    // That is a fact about their state rather than a guess about ours, so it is
+    // checked FIRST and unconditionally. Caption matching is only used
+    // afterwards to recover the media id for the record.
     if (containerId) {
-      const adopted = await adoptIfAlreadyPublished(env, item, payload, at);
-      if (adopted) {
-        await finish(env, item, token, adopted.id, adopted.permalink, at, mode, 'adopted');
-        return { ok: true, adopted: true, mediaId: adopted.id };
+      const rec = await IG.reconcileContainer(env, containerId);
+
+      if (rec.state === 'published') {
+        const match = await IG.findRecentByCaption(env, payload.params.caption || '')
+          .catch(() => null);
+        await log(env, 'warn', 'publish', item.id,
+          match
+            ? `Reconciled: a previous attempt had already published this — adopting the existing post instead of posting again.`
+            : `Reconciled: a previous attempt had already published this. The post is live; Instagram did not return its media id, so the link is missing from our record.`,
+          { container: containerId, ig_media_id: match ? match.id : null }, at);
+        await finish(env, item, token, match ? match.id : null,
+          match ? match.permalink : null, at, mode, 'reconciled');
+        return { ok: true, reconciled: true, mediaId: match ? match.id : null };
       }
+
+      if (rec.state === 'dead') {
+        // The container is unusable. Drop it so a fresh one is built; it was
+        // never published, so this cannot duplicate anything.
+        await env.DB.prepare('UPDATE content_items SET ig_creation_id=NULL WHERE id=?')
+          .bind(item.id).run();
+        containerId = null;
+        await log(env, 'info', 'publish', item.id,
+          `The previous upload expired before it could be published (${rec.reason}) — rebuilding it.`,
+          null, at);
+      } else if (rec.state === 'unknown') {
+        // We do not know whether this published. Refusing to act is the only
+        // safe answer: another attempt could double-post, and giving up could
+        // silently drop a post. Hold it and make a human look.
+        await record(env, item, 'reconcile', false,
+          { error_kind: 'uncertain', error: rec.reason }, mode, at);
+        await releaseLease(env, item.id, token, 'needs_review', {
+          at,
+          reason: `Instagram publish state is uncertain — we cannot tell whether this posted. `
+            + `Check @sakekittycards before retrying. (${rec.reason})`,
+        });
+        await log(env, 'error', 'publish', item.id,
+          `Instagram publish state uncertain — held for reconciliation. We asked Instagram whether `
+          + `upload ${containerId} had published and could not get an answer (${rec.reason}). `
+          + `Nothing was sent. Check the account before approving a retry.`, null, at);
+        await notify(env, `⚠️ Uncertain publish state: "${item.title}". Check @sakekittycards before retrying.`);
+        return { ok: false, uncertain: true, reason: rec.reason };
+      }
+      // 'ready' and 'pending' both fall through to the normal path below.
     }
 
     if (!containerId) {
       containerId = payload.kind === 'reel'
-        ? await ig.createReelContainer(env, {
+        ? await IG.createReelContainer(env, {
           videoUrl: payload.params.video_url,
           caption: payload.params.caption,
           coverUrl: payload.params.cover_url || null,
         })
         : payload.kind === 'story'
-          ? await ig.createStoryContainer(env, { imageUrl: payload.params.image_url })
-          : await ig.createImageContainer(env, {
+          ? await IG.createStoryContainer(env, { imageUrl: payload.params.image_url })
+          : await IG.createImageContainer(env, {
             imageUrl: payload.params.image_url,
             caption: payload.params.caption,
           });
 
-      // Persist before publishing. See the note above the function.
+      // Persisted BEFORE publishing. This single write is what makes the
+      // reconciliation above possible at all.
       await env.DB.prepare('UPDATE content_items SET ig_creation_id=?, updated_at=? WHERE id=?')
         .bind(containerId, at, itemId).run();
       await record(env, item, 'container', true, { ig_creation_id: containerId }, mode, at);
     }
 
-    await ig.waitForContainer(env, containerId, {
+    await IG.waitForContainer(env, containerId, {
       timeoutMs: payload.kind === 'reel' ? 120000 : 30000,
     });
 
-    const mediaId = await ig.publishContainer(env, containerId);
+    const mediaId = await IG.publishContainer(env, containerId);
     let permalink = null;
     try {
-      const meta = await ig.mediaPermalink(env, mediaId);
+      const meta = await IG.mediaPermalink(env, mediaId);
       permalink = meta.permalink || null;
     } catch {
       // A missing permalink is cosmetic; the post is out.
@@ -241,7 +309,10 @@ async function finish(env, item, token, mediaId, permalink, at, mode, phase) {
 async function handleFailure(env, item, token, e, mode, at) {
   const kind = e instanceof ig.IgError ? e.kind : 'transient';
   const permanent = kind === 'permanent' || e instanceof PublishRefused || e instanceof NotApproved;
-  const attempts = (item.attempts || 0) + 1;
+  // `claim()` already incremented attempts before we read the row, so this is
+  // the real count. Adding one here again made every item fail a whole attempt
+  // early.
+  const attempts = item.attempts || 1;
   const exhausted = attempts >= MAX_ATTEMPTS;
 
   await record(env, item, 'publish', false, {
@@ -254,8 +325,11 @@ async function handleFailure(env, item, token, e, mode, at) {
     await env.DB.prepare("INSERT OR REPLACE INTO meta (k,v) VALUES ('token_health', ?)")
       .bind(JSON.stringify({ ok: false, at, error: String(e.message || e) })).run();
     await log(env, 'error', 'publish', item.id,
-      `Instagram rejected our token — publishing is paused until it is refreshed. (${e.message})`, null, at);
-    await notify(env, `🔑 Instagram token failed — publishing paused. ${e.message}`);
+      'Instagram authentication expired — publishing is paused. Nothing will post until the '
+      + 'access token is replaced. Run POST /ig/refresh-token, then '
+      + '`wrangler secret put IG_ACCESS_TOKEN`. Queued posts are kept and will go out afterwards. '
+      + `(Instagram said: ${e.message})`, null, at);
+    await notify(env, `🔑 Instagram authentication expired — publishing paused. ${e.message}`);
   }
 
   const status = permanent || exhausted ? 'failed' : 'scheduled';
@@ -274,28 +348,6 @@ async function handleFailure(env, item, token, e, mode, at) {
     { code: e.code ?? null, next_retry_at: nextRetryAt }, at);
 
   return { ok: false, error: e.message, kind, willRetry: status === 'scheduled' };
-}
-
-/**
- * Did the container we already made turn into a post while we were not looking?
- *
- * Only ever asked when a container id survives from a previous attempt, which is
- * exactly the timed-out-publish case.
- */
-async function adoptIfAlreadyPublished(env, item, payload, at) {
-  try {
-    const match = await ig.findRecentByCaption(env, payload.params.caption || '');
-    if (match) {
-      await log(env, 'warn', 'publish', item.id,
-        `A previous attempt had already published this — adopting ${match.id} instead of posting again`,
-        { permalink: match.permalink }, at);
-      return match;
-    }
-  } catch {
-    // If we cannot check, fall through: waitForContainer will report an EXPIRED
-    // or already-published container rather than us guessing.
-  }
-  return null;
 }
 
 async function record(env, item, phase, ok, extra, mode, at) {

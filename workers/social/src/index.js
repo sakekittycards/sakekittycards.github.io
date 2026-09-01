@@ -395,15 +395,27 @@ async function route(request, env, ctx, path, url, at) {
   if (path === '/items/publish-now' && method === 'POST') {
     const item = await items.getItem(env, body.id);
     if (!item) return json({ error: 'not found' }, 404);
+    if (item.status === 'publishing') {
+      // The scheduler is mid-flight on this exact item. The old code fell back
+      // to an unconditional UPDATE that reset status to 'scheduled', stomping a
+      // live publish's state while its lease was still held — a confusing
+      // half-state for no benefit. Refusing is correct: it is already going out.
+      return json({
+        error: 'this post is being published right now by the scheduler — wait for it to finish',
+        code: 'in_flight',
+      }, 409);
+    }
     if (!['approved', 'scheduled', 'failed'].includes(item.status)) {
       return json({ error: `item is ${item.status}` }, 409);
     }
-    await items.scheduleItem(env, body.id, at - 1000, { by: body.by || 'console', at })
-      .catch(async () => {
-        await env.DB.prepare(
-          "UPDATE content_items SET status='scheduled', scheduled_for=?, next_retry_at=NULL WHERE id=?"
-        ).bind(at - 1000, body.id).run();
-      });
+    // Conditional: only moves the item if it is still in a state we may move.
+    // If the scheduler claimed it between the check above and here, zero rows
+    // change and publishItem's own claim() will decline, which is the outcome
+    // we want.
+    await env.DB.prepare(
+      `UPDATE content_items SET status='scheduled', scheduled_for=?, next_retry_at=NULL, updated_at=?
+        WHERE id=? AND status IN ('approved','scheduled','failed')`
+    ).bind(at - 1000, at, body.id).run();
     const res = await pub.publishItem(env, body.id, policy, { at, force: Boolean(body.force_live) });
     return json({ ok: res.ok, ...res });
   }

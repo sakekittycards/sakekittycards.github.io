@@ -228,8 +228,12 @@ export async function revalidate(env, { at = nowMs() } = {}) {
     const fp = await computeSubjectFingerprint(env, item);
     if (fp === item.subject_fingerprint) continue;
     const why = fp === 'missing'
-      ? 'the source event or video no longer exists'
-      : 'the event details changed after approval';
+      ? (item.type === 'reel'
+        ? 'the approved video was removed from the registry'
+        : 'the event was removed from the website')
+      : (item.type === 'reel'
+        ? 'the video file changed after approval — publishing refused until it is reviewed again'
+        : 'the event details changed after approval — the graphic may now state something untrue');
     await env.DB.prepare(
       `UPDATE content_items SET status='needs_review', failure_reason=?, scheduled_for=NULL,
          updated_at=? WHERE id=?`

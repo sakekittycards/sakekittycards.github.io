@@ -12,7 +12,7 @@
  * turns out to belong to someone who would rather we did not repost it, the
  * question "where did this come from and when" has to have an answer.
  */
-import { stableId, sha256Hex, nowMs } from './util.js';
+import { stableId, sha256Hex, nowMs, fetchT } from './util.js';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;      // Instagram's own image ceiling
 const MAX_VIDEO_BYTES = 1024 * 1024 * 1024;   // Reels ceiling
@@ -170,7 +170,10 @@ export async function fetchCandidate(env, url, { referer = null, at = nowMs() } 
   }
   if (parsed.protocol !== 'https:') throw new Error('flyer: source must be https');
 
-  const res = await fetch(parsed.toString(), {
+  // Timed out rather than plain fetch: a show organizer's site that accepts the
+  // connection and then stalls would otherwise hold the request open until the
+  // platform kills it, and this runs inside a content pass.
+  const res = await fetchT(parsed.toString(), {
     redirect: 'follow',
     headers: {
       // Identify ourselves. Several show-organizer sites sit behind rules that
@@ -179,7 +182,7 @@ export async function fetchCandidate(env, url, { referer = null, at = nowMs() } 
       accept: 'image/avif,image/webp,image/png,image/jpeg,*/*;q=0.8',
       ...(referer ? { referer } : {}),
     },
-  });
+  }, 15000);
   if (!res.ok) throw new Error(`flyer: source returned ${res.status}`);
 
   const finalUrl = new URL(res.url);
