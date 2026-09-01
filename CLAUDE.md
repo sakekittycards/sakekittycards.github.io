@@ -25,6 +25,65 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 - `track.html` — customer-facing grading-prep order tracker. Takes `?order=SK-YYYY-XXXXXX`, shows an 8-stage status bar, card list, and PSA cert numbers once graded. Hits `GET /grading/track` on the worker.
 - `shipping.html` — "How to Pack Your Cards" guide. Pure content page (no forms/data). Four packing tiers (1 / up-to-10 / 10-19 / 20+), DO NOT rules, clear-sleeve rules, shipping/extra tips. Visuals are cropped photo strips at `assets/shipping/tier{1-4}.png` (extracted from the original ChatGPT infographic). Linked from nav and footer between Sell/Trade and Grading Prep on every page.
 - `faq.html`, `about.html`, `contact.html` — info pages
+
+### SEO landing pages + guides (added 2026-09-01)
+
+Eleven pages added in the SEO overhaul. All are ordinary hand-maintainable static HTML —
+they were *scaffolded* by `scripts/_seo_build_landing.py` / `_seo_build_guides.py`, which
+refuse to overwrite an existing file, so they cannot drift the way `build_graded_page.py`
+once did. Edit the HTML directly; the scripts are historical record + a way to add a new
+page with correct chrome.
+
+**Commercial landing pages** — each owns one search intent no existing URL served:
+- `sell-pokemon-collection.html` — whole collections / estates / bulk, no itemizing. CTA → `contact.html?topic=Collection+Offer`.
+- `sell-graded-pokemon-cards.html` — PSA / CGC / BGS / SGC slabs, $100 floor. CTA → trade-in graded form.
+- `pokemon-card-appraisal.html` — "what are my cards worth". CTA → the trade-in lookup used purely as a valuation tool.
+- `pokemon-card-buyer-florida.html` — local intent. **ONE honest geo page, deliberately NOT one page per city** — that would be doorway spam. Venue table is real, from `assets/events-data.js`.
+- `wholesale-pokemon.html` — public, **price-free** B2B lead page. `wholesale.html` (the real price list) stays hidden, unlinked and noindex; this page must NEVER link to it.
+
+**Guides** (hub is `resources.html`):
+`guide-sell-pokemon-collection` · `guide-what-dealers-pay` · `guide-should-you-grade` ·
+`guide-psa-vs-cgc` · `guide-grade-your-own-cards` · `guide-spot-fake-pokemon-cards`.
+
+⚠️ `resources.html` used to inline all six topics at ~200 words each, so six intents fought
+over one URL. It is now a **hub of teasers + links**. Do not re-inline the long versions —
+that recreates the cannibalization.
+
+⚠️ `guide-should-you-grade.html` publishes our own measured PSA 10 : Grade 9 multiples
+(58,533 pairs — median 3.00×, modern 2.98×, vintage 4.42×, middle era 2.89×; denominator is
+a generic Grade 9, NOT PSA 9 — re-measure with `scripts/verify_psa_multiple.py`). Source is
+`reference_psa10_psa9_multiple` in memory. **Re-measure before changing those numbers**,
+and keep the method note on the page.
+
+Every number on these pages was copied from live code, not remembered:
+rate ladder ← `trade-in.html` `RATES` · condition ← `COND_MULT` · service fees ←
+`grading-prep.html` service cards · shipping ← `main.js` constants · venues ←
+`assets/events-data.js`.
+
+### Per-SKU product pages — `p/<slug>.html` (added 2026-09-01)
+
+`product.html` is a single JS shell: its real title/description/canonical/Product
+schema only exist after JS runs, so Bing, social scrapers and most AI crawlers saw
+nothing for 55 SKUs. `scripts/build_product_pages.py` emits one crawlable static page
+per SKU into `p/`, plus `assets/product-slugs.json` (SKU -> slug).
+
+- **Staleness is handled in the page, not by the build cadence.** Each page re-fetches
+  `/items` on load and overwrites price + stock, so a committed number is never shown
+  stale. If the SKU has gone (sold), the page injects `noindex, follow`, retitles to
+  "Sold — …" and swaps the buy panel for a sold state. Both paths verified in Chromium.
+- **Links degrade safely.** `shop.html` / `graded.html` / the snapshot builder look the
+  SKU up in the manifest and fall back to `product.html?id=` when it isn't there, so a
+  SKU added to Square after the last build can never 404. Both pages `await
+  skSlugsReady` before first paint — without that the map lands after render and every
+  link silently falls back.
+- `product.html` stays the universal shell and now canonicalises to the static page
+  when the manifest knows the SKU.
+- **Re-run after inventory changes:** `python scripts/build_product_pages.py`. Idempotent
+  (verified byte-stable over 3 runs), prunes pages whose SKU vanished. Regenerate the
+  sitemap Products block too.
+
+### Other pages
+
 - `wholesale.html` — **hidden** B2B wholesale sealed price list + quote-request tool. Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS/JS (no style.css/main.js, no cache-buster). Keep it unlinked.
   - **Data-driven:** every SKU lives in the `CATALOG` array at the top of the inline script (id, name, set, region, group, price, unit, status, available, boxesPerCase/packsPerBox/cardsPerPack). To change inventory or pricing edit ONLY that array plus the `UPDATED` constant — no HTML duplication. `MOQ` is a constant too.
   - **Pricing rule:** Chinese sealed = ACT Distro cost **+7%**, rounded UP to the whole dollar, per case. Japanese = Team Wag cost +7%, per box. The three Pokémon Center Special Boxes are the exception: priced at **75% of market** (PriceCharting ungraded), not cost-plus. Nick's filter: anything landing at **≥85% of market is dropped from the list entirely**. See `project_sk_wholesale_pricing` in memory.
@@ -40,6 +99,38 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 - **A11y baseline (every page):** `<a class="skip-link" href="#main">Skip to main content</a>` as first child of `<body>`, and `<main id="main">` on the wrapper. CSS in `style.css` (`.skip-link` rule). Nav + footer logo `<img>` tags carry explicit `width`/`height` to prevent CLS.
 - Commit messages: short conversational summary, then `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`. See `git log` for style.
 - **Branch workflow:** all work happens on `dev`. Claude commits + pushes to `dev` (non-default branch, no harness wall). When ready to deploy, Nick clicks "Merge pull request" on the open `dev → main` PR — that's the deploy moment, GitHub Pages rebuilds from `main`. After merge, Claude runs `git pull` on dev to fast-forward to the new main. Do NOT push directly to `main` — the harness blocks it. The previous "small edits go straight to main" note is retired.
+- **Run `python scripts/seo_audit.py` before any SEO-touching PR.** Static crawl of every root
+  `.html`: tag balance, JSON-LD validity *and* required properties per type, title/description
+  uniqueness + SERP length, canonical self-reference, internal link integrity (it knows GitHub
+  Pages serves `/foo` for `foo.html`), image alt + width/height, and sitemap coverage against
+  the real indexable set. Exits non-zero on any ERROR. Warnings on redirect stubs and utility
+  pages are expected.
+- **Sitewide nav/footer changes go through `scripts/_seo_update_chrome.py`**, which holds the
+  canonical blocks, applies them to all 35 chrome pages, preserves each page's
+  `aria-current="page"`, asserts tag balance, and is idempotent. Do not hand-edit nav or footer
+  on individual pages — the old blind-replace approach injected into dropdown parents and the
+  PDP breadcrumb.
+- **Generated artifacts and the scripts that own them.** All are idempotent and assert
+  before writing. If you change one, run it 3x and diff.
+  | Script | Owns | Re-run when |
+  |---|---|---|
+  | `build_product_pages.py` | `p/*.html`, `assets/product-slugs.json` | inventory changes |
+  | `build_event_schema.py` | fenced static Event JSON-LD in `events.html` | `assets/events-data.js` changes |
+  | `build_shop_snapshot.py` | the `<!--SNAP:*-->` grids in `shop.html` | catalog changes |
+  | `_seo_update_chrome.py` | nav + footer on all 34 chrome pages | nav/footer changes |
+  | `verify_psa_multiple.py` | re-measures the published PSA-multiple table | before changing those numbers |
+  | `seo_audit.py` | nothing — it is the gate | every SEO-touching PR |
+- **`robots.txt` has exactly ONE `User-agent: *` group, deliberately.** Do not add
+  per-agent groups to "welcome" a crawler: a crawler obeys only its most specific
+  matching group, so a named group containing just `Allow: /` cancels the `Disallow`
+  rules for that crawler. A 2026-09-01 revision did this for 12 agents and silently
+  un-blocked `/scripts/` and `/workers/` for Googlebot and every AI crawler. Fixed —
+  don't reintroduce it.
+- **Analytics event layer**: `window.skTrack(name, props)` in `main.js`, vendor-neutral.
+  Buffers until a vendor attaches via `skTrack.use(fn)`, and mirrors every event to
+  `window.dataLayer` so GA4/GTM can be installed with zero further code. Canonical event
+  names live in `skTrack.EVENTS` — add new ones there. No personal data goes through it;
+  values are banded (`skPriceBand`) rather than exact.
 - Typography baseline: body copy 14–15px, headings use Bangers with gradient fill. Don't drop below 13px for readable copy.
 
 ## Customer-facing forms — Sell/Trade and Grading Prep are paired
@@ -67,6 +158,19 @@ Sealed JP (booster boxes, ETBs) — included in the Japanese dropdown section si
 6. **Customer manual entry** — inline numeric input on the list line for cards no source has data on.
 
 `COND_MULT` then discounts by condition (NM 1.0 / LP 0.85 / MP 0.70 / HP 0.50 / DMG 0.30) for the Market display + Cash + Credit offers (all three move in lockstep).
+
+### Graded prices + listings (shop, product, home, Graded Vault)
+
+Square is a **mirror of Nick's TCGenie inventory (account 54)**, refreshed once a day at 13:00 UTC by the
+TCGenie Worker's `skDailyRun` (`POST /admin/reprice-sk?dry=1` on the TCGenie worker previews it). Truth flows
+app → Square → site, never the other way: edit prices/inventory in TCGenie; Square hand edits are overwritten on
+the next run. Graded pricing in the app = the Graded Audit booth engine on CardLadder comps only. `/items` exposes
+`cert` and `sold` for graded items; sold cards are omitted (`Status: sold` description line, set via
+`POST /admin/set-item-status` — never deleted). Pages read `item.price` directly (0/null = Make Offer).
+`assets/graded-prices.json` and `scripts/build_graded_page.py` are gone (2026-08-31); `graded.html` renders live
+from `/items` and prefers `assets/graded/<cert>.jpg` (shoot photo) over the Square image (capture-tool photo).
+`scripts/graded-uploader/_build_graded_prices_pc.py` is legacy from the retired pipeline. Spec: tcgenie
+`docs/superpowers/specs/2026-08-31-sk-site-inventory-mirror-design.md`.
 
 ### Pricing chain (graded cards, Sell/Trade graded form)
 
@@ -137,7 +241,7 @@ Bangers' character feet sit further below the baseline than a normal line-box al
   - **Sealed**:  <$100 80/90 · $100–$499 83/93 · $500–$999 86/96 · ≥$1,000 90/100  (premium ladder — sealed earns more at every band)
   - **Graded**:  <$100 NOT ACCEPTED · $100–$499 80/90 · $500–$999 85/95 · ≥$1,000 90/100
   - The old `<$5 65/80` tier was retired 2026-07-06 to match the app matrix (screenshot-driven). Singles <$5 now buy at 70/80, sealed <$5 at 80/90.
-  - Graded under $100 isn't accepted — slab cost ($25-30 for grading) outweighs the card. Matrix shows ✕ in that cell with footnote explanation. Form falls through to singles `RATES.base` (70/80) if a low-value graded card is added so quotes stay sane even when the policy guidance is bypassed. All other graded bands match singles/sealed exactly. 90% cash hard cap at $1,000+. **Cash was bumped +5pts to match the booth across all tiers (2026-07-03); credit unchanged.** New sub-$5 band: singles & sealed under $5 buy at **65% cash / 80% credit** (handling cost outweighs the bump on low-value singles) — `RATES.low`. Cash-vs-credit spread is now +10pts on most tiers (+15 on the sub-$5 band) — still nudges customers toward credit, which cycles back into booth purchases via Square gift card. Headline banner reads "Up to 90% cash · 100% trade credit". History: rates dropped 10pts uniformly 2026-05-12 then rebalanced same day to the current asymmetric model (cash -5 vs booth, credit matches booth).
+  - Graded under $100 isn't accepted — slab cost ($25-30 for grading) outweighs the card. Matrix shows ✕ in that cell with footnote explanation. Form falls through to singles `RATES.base` (70/80) if a low-value graded card is added so quotes stay sane even when the policy guidance is bypassed. All other graded bands match singles/sealed exactly. 90% cash hard cap at $1,000+. **Cash was bumped +5pts to match the booth across all tiers (2026-07-03); credit unchanged.** ⚠️ **There is no sub-$5 band in the live code** — verified against `trade-in.html` `RATES` on 2026-09-01. The const has exactly `base / mid / high / top / sealedBase / sealedMid / sealedHigh`; no `RATES.low` exists. An earlier revision of this doc described one; it was stale and is corrected here. Cash-vs-credit spread is +10pts on every tier — still nudges customers toward credit, which cycles back into booth purchases via Square gift card. Headline banner reads "Up to 90% cash · 100% trade credit". History: rates dropped 10pts uniformly 2026-05-12 then rebalanced same day to the current asymmetric model (cash -5 vs booth, credit matches booth).
 - **Unsorted-bulk by-weight tier** (added 2026-05-12): top row of the bulk table. **$1.50/lb cash · $2.50/lb trade credit** for English Pokémon only. **No basic energy cards. No jumbo / oversized cards.** Powered by a `unit: 'lb'` field on the `BULK_RATES` row that flips the rate-cell display from "$X" to "$X /lb" and the modal suffix from "per card" to "per lb". Pattern reusable for any future weight-priced tier.
 - **Bulk rates:** 13 categories (12 per-card + the unsorted by-weight tier above), defined in `BULK_RATES` array in trade-in.html. **English Pokémon only on bulk** — Japanese/Chinese not accepted at bulk rates (graded and high-value singles in those languages are fine via the per-card form). **Jumbo / oversized cards (4x6" or larger) are not accepted at any tier** — bulk, raw, sealed, or graded. Stated in the trade-in intro paragraph + bulk-section sub copy + email-templates.md template #2. Keep in sync if categories change. Rates were rebalanced data-driven 2026-05-05 against TCGplayer mpapi /latestsales sold-avg (cheapest card per category as the floor, buy at 60%) — see commit history for the table. History: Bulk CGC + Bulk PSA/BGS graded buckets were removed 2026-05-05 — graded sells via the per-card form (cert # + value). Illustration Rare (S&V), Secret/Hyper Rare, and Trainer/Galarian Gallery removed 2026-05-05 — those have real value and route through the per-card singles tiers instead. GX was split out from "GX, EX, or V" into its own row 2026-05-05 (different era, different bulk price). Radiant and Amazing Rare split apart 2026-05-05 (Amazing Rare is a much rarer pull). Bottom singles tier label is "Non-bulk Singles under $100" so customers don't confuse the 70/80% rate with bulk.
 - **Payment methods:** Venmo, PayPal, Cash App. **Zelle is NOT an option.** Square in progress (see below).

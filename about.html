@@ -7,13 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#06060a" />
   <meta name="color-scheme" content="dark" />
-  <title>About Sake Kitty Cards — Florida Pokémon Card Vendor</title>
-  <meta name="description" content="Collector-run Pokémon card vendor serving Florida — graded slabs, sealed, trade-ins and grading prep, at shows from Fort Myers to Delray Beach." />
+  <title>About Sake Kitty Cards — Who We Are & How We Work</title>
+  <meta name="description" content="Who we are, what we buy and sell, how a mail-in transaction actually works and how you get paid. Collector-run, booths on both Florida coasts, shipping nationwide." />
 
   <!-- Canonical + Social preview (added 2026-05-06 SEO pass) -->
   <link rel="canonical" href="https://sakekittycards.com/about.html" />
-  <meta property="og:title" content="About Sake Kitty Cards — Florida Pokémon Card Vendor" />
-  <meta property="og:description" content="Collector-run Pokémon card vendor serving Florida — graded slabs, sealed, trade-ins and grading prep, at shows from Fort Myers to Delray Beach." />
+  <meta property="og:title" content="About Sake Kitty Cards — Who We Are & How We Work" />
+  <meta property="og:description" content="Who we are, what we buy and sell, how a mail-in transaction actually works and how you get paid. Collector-run, booths on both Florida coasts, shipping nationwide." />
   <meta property="og:site_name" content="Sake Kitty Cards" />
   <meta property="og:locale" content="en_US" />
   <meta property="og:image" content="https://sakekittycards.com/og-image.png" />
@@ -22,9 +22,21 @@
   <meta property="og:url" content="https://sakekittycards.com/about.html" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="About Sake Kitty Cards — Florida Pokémon Card Vendor" />
-  <meta name="twitter:description" content="Collector-run Pokémon card vendor serving Florida — graded slabs, sealed, trade-ins and grading prep, at shows from Fort Myers to Delray Beach." />
+  <meta name="twitter:title" content="About Sake Kitty Cards — Who We Are & How We Work" />
+  <meta name="twitter:description" content="Who we are, what we buy and sell, how a mail-in transaction actually works and how you get paid. Collector-run, booths on both Florida coasts, shipping nationwide." />
   <meta name="twitter:image" content="https://sakekittycards.com/og-image.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "@id": "https://sakekittycards.com/about.html",
+    "name": "About Sake Kitty Cards",
+    "description": "Who we are, what we buy and sell, how a mail-in transaction actually works and how you get paid. Collector-run, booths on both Florida coasts, shipping nationwide.",
+    "isPartOf": { "@id": "https://sakekittycards.com/#website" },
+    "mainEntity": { "@id": "https://sakekittycards.com/#organization" },
+    "publisher": { "@id": "https://sakekittycards.com/#organization" }
+  }
+  </script>
   <!-- Breadcrumb structured data -->
   <script type="application/ld+json">
   {
@@ -40,7 +52,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=179" />
+  <link rel="stylesheet" href="style.css?v=180" />
   <style>
     /* About-page eyebrow under H1 — matches the shipping page's tagline rhythm. */
     .about-tagline {
@@ -247,20 +259,35 @@
             <li><a href="shop.html?cat=graded">Graded Cards</a></li>
             <li><a href="graded.html">Graded Vault</a></li>
             <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+            <li><a href="wholesale-pokemon.html">Wholesale &amp; B2B</a></li>
           </ul>
         </li>
-        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li class="nav-dropdown">
+          <a href="trade-in.html">Sell / Trade</a>
+          <ul class="nav-dropdown-menu" aria-label="Ways to sell your cards">
+            <li><a href="sell-pokemon-collection.html">Sell a Collection</a></li>
+            <li><a href="sell-graded-pokemon-cards.html">Sell Graded Slabs</a></li>
+            <li><a href="pokemon-card-appraisal.html">Card Appraisal</a></li>
+            <li><a href="pokemon-card-buyer-florida.html">Selling in Florida</a></li>
+          </ul>
+        </li>
         <li><a href="grading-prep.html">Grading Prep</a></li>
         <li><a href="events.html">Events</a></li>
-        <li><a href="team.html">Our Team</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="reviews.html">Reviews</a></li>
-        <li><a href="watch.html">Watch</a></li>
         <li class="nav-dropdown">
           <a href="resources.html">Resources</a>
-          <ul class="nav-dropdown-menu" aria-label="Resources">
+          <ul class="nav-dropdown-menu" aria-label="Guides and resources">
+            <li><a href="guide-should-you-grade.html">Should You Grade?</a></li>
+            <li><a href="guide-what-dealers-pay.html">What Dealers Pay</a></li>
             <li><a href="shipping.html">Shipping &amp; Packing</a></li>
             <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="about.html">About</a>
+          <ul class="nav-dropdown-menu" aria-label="About Sake Kitty Cards">
+            <li><a href="team.html">Our Team</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="watch.html">Watch</a></li>
           </ul>
         </li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
@@ -343,6 +370,146 @@
         </div>
       </div>
     </div>
+
+    <!-- What we actually do. The About page had 211 words and answered none of
+         the questions somebody mailing us a $4,000 collection would ask, which
+         is a trust problem before it is an SEO problem. -->
+    <div class="section" style="padding-top:0">
+      <div class="section-header">
+        <h2 class="section-title">What Sake Kitty Cards Actually Does</h2>
+        <p class="section-sub">Four things, and we would rather be specific than sound big.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+        <div class="card" style="padding:26px 28px">
+          <h3 style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:.04em;padding-bottom:6px">We buy</h3>
+          <p>Pok&eacute;mon singles, sealed product, graded slabs and bulk &mdash; from one card to an entire
+          estate collection. Rates are published in full on the <a href="trade-in.html">Sell / Trade page</a>
+          rather than quoted case by case, so you can check our offer before you ever contact us.</p>
+        </div>
+        <div class="card" style="padding:26px 28px">
+          <h3 style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:.04em;padding-bottom:6px">We sell</h3>
+          <p>Graded slabs and sealed product, at our booths across Florida, on this site, on TCGplayer and on
+          Whatnot. What you see in the <a href="shop.html">shop</a> is inventory we physically hold.</p>
+        </div>
+        <div class="card" style="padding:26px 28px">
+          <h3 style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:.04em;padding-bottom:6px">We prep cards for grading</h3>
+          <p>We screen cards against PSA, CGC and Beckett standards, prep them, and submit on your behalf or
+          hand them back ready to send. <a href="grading-prep.html">Grading prep</a> exists so you stop paying
+          $30 a card to find out a card was never going to grade.</p>
+        </div>
+        <div class="card" style="padding:26px 28px">
+          <h3 style="font-family:'Bangers',cursive;font-size:22px;letter-spacing:.04em;padding-bottom:6px">We supply shops</h3>
+          <p>Sealed English, Japanese and Chinese Pok&eacute;mon at trade pricing for card shops, breakers and
+          other show vendors. <a href="wholesale-pokemon.html">Wholesale</a> runs on a $1,500 minimum.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- How a transaction works. This is the section a first-time mail-in
+         customer is actually looking for. Every claim here is a live business
+         rule from CLAUDE.md — don't add anything that isn't. -->
+    <div class="section" style="padding-top:0">
+      <div class="section-header">
+        <h2 class="section-title">How Working With Us Works</h2>
+        <p class="section-sub">You are potentially mailing strangers something valuable. Here is exactly what
+        happens, so nothing about it has to be a leap of faith.</p>
+      </div>
+      <div class="prep-steps">
+        <div class="prep-step">
+          <div class="prep-step-num">1</div>
+          <h3>You get a number first</h3>
+          <p>Nothing ships before you have an offer you have agreed to. Our quote tool prices your cards
+          against live market data and shows you that market value <em>separately</em> from what we would pay,
+          so you can see the spread rather than take our word for it.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">2</div>
+          <h3>We review before you send</h3>
+          <p>Every submission is reviewed and confirmed by a person before you post anything. If something in
+          your list is worth more than we can sensibly pay for it, we tell you that up front rather than
+          quietly buying it cheap.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">3</div>
+          <h3>Mail it in, or hand it over</h3>
+          <p>We buy from all fifty states by mail, and in person at our Florida booths most weekends. The
+          <a href="shipping.html">packing guide</a> covers the method by lot size &mdash; following it is
+          genuinely the difference between a Near Mint quote and a Lightly Played one.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">4</div>
+          <h3>We go through it in front of you, or on camera</h3>
+          <p>Cards are inspected by hand and graded for condition conservatively. Where our assessment differs
+          from what you expected, we will tell you which specific flaw drove it.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">5</div>
+          <h3>You get paid the same day</h3>
+          <p>Cash by Venmo, PayPal or Cash App &mdash; your pick. We do not use Zelle. Store credit is issued as a
+          Square gift card with its own code, redeemable at the booth and online, and it always pays more than
+          cash on the same cards.</p>
+        </div>
+        <div class="prep-step">
+          <div class="prep-step-num">6</div>
+          <h3>Or you say no, and we send it back</h3>
+          <p>If you decline the final offer on cards you already mailed, they go back to you. An offer you
+          have not accepted is not a sale, and we are not going to treat it like one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Where we are + who runs it. No storefront exists; say so plainly rather
+         than implying one. -->
+    <div class="section" style="padding-top:0">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px">
+        <div class="card" style="padding:28px 30px">
+          <h3 style="font-family:'Bangers',cursive;font-size:23px;letter-spacing:.04em;padding-bottom:6px">Where to find us</h3>
+          <p>We are a card-show vendor and a mail-in operation, not a storefront &mdash; there is no shop you can
+          walk into, and we would rather say that than imply otherwise. What there is: a booth at real,
+          recurring shows across Florida most weekends, on the Gulf coast in Fort Myers, North Fort Myers and
+          Naples, on the Treasure Coast in Stuart, and on the Atlantic side in Delray Beach, Palm Beach
+          Gardens, Pompano Beach and Fort Lauderdale &mdash; plus larger multi-state conventions.</p>
+          <p style="margin-top:14px"><a href="events.html" class="btn btn-primary btn-sm">See the show calendar</a>
+          <a href="pokemon-card-buyer-florida.html" class="btn btn-outline btn-sm" style="margin-left:10px">Selling in Florida</a></p>
+        </div>
+        <div class="card" style="padding:28px 30px">
+          <h3 style="font-family:'Bangers',cursive;font-size:23px;letter-spacing:.04em;padding-bottom:6px">Who you are dealing with</h3>
+          <p>Sake Kitty Cards was founded by Nick Williams and is run by a small named crew &mdash; Nick,
+          Jonathan Delia and Joshua Noplis &mdash; who are the same people you meet at the booth, who answer the
+          email, and who handle your cards. There is no call center between you and the person going through
+          your collection.</p>
+          <p style="margin-top:14px">You can also see us at work: we post pulls, show days and grading
+          results publicly on <a href="https://www.instagram.com/sakekittycards" target="_blank" rel="noopener">Instagram</a>
+          and <a href="https://www.youtube.com/@SakeKittyCards" target="_blank" rel="noopener">YouTube</a>, and
+          we sell under our own name on
+          <a href="https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211" target="_blank" rel="noopener">TCGplayer</a>
+          and <a href="https://whatnot.com/invite/sakekittycards" target="_blank" rel="noopener">Whatnot</a>,
+          where the feedback is not ours to edit.</p>
+          <p style="margin-top:14px"><a href="team.html" class="btn btn-primary btn-sm">Meet the team</a>
+          <a href="contact.html" class="btn btn-outline btn-sm" style="margin-left:10px">Contact us</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Things we don't do. Saying what you won't do is a stronger trust signal
+         than another paragraph about how much you care. -->
+    <div class="section" style="padding-top:0">
+      <div class="card" style="padding:30px 32px">
+        <h2 style="font-family:'Bangers',cursive;font-size:26px;letter-spacing:.04em;padding-bottom:8px">Things we don&rsquo;t do</h2>
+        <ul style="line-height:2.05;padding-left:20px;color:var(--muted)">
+          <li><strong>We don&rsquo;t buy graded cards under $100.</strong> The grading fee inside the slab costs
+          more than the card. There is no version of that deal that is good for you.</li>
+          <li><strong>We don&rsquo;t bulk your good cards.</strong> Anything with real value gets priced
+          individually, and we will pull it out even if you did not.</li>
+          <li><strong>We don&rsquo;t clean, buff or alter cards.</strong> Card Prep is a microfiber dust-off, a
+          penny sleeve and a card saver &mdash; nothing applied to the card, ever.</li>
+          <li><strong>We don&rsquo;t promise grades.</strong> Screening does not guarantee a specific grade. Final
+          grades are determined by PSA, CGC, or Beckett.</li>
+          <li><strong>We don&rsquo;t take Zelle</strong>, and we don&rsquo;t hold your cards hostage over an offer
+          you turned down.</li>
+        </ul>
+      </div>
+    </div>
 </main>
 
   <footer class="site-footer">
@@ -361,16 +528,21 @@
       <nav class="footer-nav">
         <a href="shop.html">Shop</a>
         <a href="graded.html">Graded Vault</a>
+        <a href="wholesale-pokemon.html">Wholesale</a>
         <a href="events.html">Events</a>
-        <a href="team.html">Our Team</a>
         <a href="trade-in.html">Sell / Trade</a>
+        <a href="sell-pokemon-collection.html">Sell a Collection</a>
+        <a href="sell-graded-pokemon-cards.html">Sell Graded Slabs</a>
+        <a href="pokemon-card-appraisal.html">Card Appraisal</a>
+        <a href="pokemon-card-buyer-florida.html">Selling in Florida</a>
         <a href="grading-prep.html">Grading Prep</a>
-        <a href="reviews.html">Reviews</a>
-        <a href="watch.html">Watch</a>
-        <a href="resources.html">Resources</a>
+        <a href="resources.html">Guides</a>
         <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
+        <a href="team.html">Our Team</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
         <a href="contact.html">Contact</a>
         <a href="track.html">Track Order</a>
         <a href="gift-cards.html">Gift Cards</a>
@@ -379,6 +551,6 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
 </body>
 </html>

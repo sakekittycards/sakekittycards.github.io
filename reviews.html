@@ -41,7 +41,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=179" />
+  <link rel="stylesheet" href="style.css?v=180" />
 
   <style>
     /* Reviews page — premium collector trust wall. Five sections:
@@ -705,20 +705,35 @@
             <li><a href="shop.html?cat=graded">Graded Cards</a></li>
             <li><a href="graded.html">Graded Vault</a></li>
             <li><a href="shop.html?cat=merch">Apparel &amp; Merch</a></li>
+            <li><a href="wholesale-pokemon.html">Wholesale &amp; B2B</a></li>
           </ul>
         </li>
-        <li><a href="trade-in.html">Sell / Trade</a></li>
+        <li class="nav-dropdown">
+          <a href="trade-in.html">Sell / Trade</a>
+          <ul class="nav-dropdown-menu" aria-label="Ways to sell your cards">
+            <li><a href="sell-pokemon-collection.html">Sell a Collection</a></li>
+            <li><a href="sell-graded-pokemon-cards.html">Sell Graded Slabs</a></li>
+            <li><a href="pokemon-card-appraisal.html">Card Appraisal</a></li>
+            <li><a href="pokemon-card-buyer-florida.html">Selling in Florida</a></li>
+          </ul>
+        </li>
         <li><a href="grading-prep.html">Grading Prep</a></li>
         <li><a href="events.html">Events</a></li>
-        <li><a href="team.html">Our Team</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="reviews.html" aria-current="page">Reviews</a></li>
-        <li><a href="watch.html">Watch</a></li>
         <li class="nav-dropdown">
           <a href="resources.html">Resources</a>
-          <ul class="nav-dropdown-menu" aria-label="Resources">
+          <ul class="nav-dropdown-menu" aria-label="Guides and resources">
+            <li><a href="guide-should-you-grade.html">Should You Grade?</a></li>
+            <li><a href="guide-what-dealers-pay.html">What Dealers Pay</a></li>
             <li><a href="shipping.html">Shipping &amp; Packing</a></li>
             <li><a href="faq.html">FAQ</a></li>
+          </ul>
+        </li>
+        <li class="nav-dropdown">
+          <a href="about.html">About</a>
+          <ul class="nav-dropdown-menu" aria-label="About Sake Kitty Cards">
+            <li><a href="team.html">Our Team</a></li>
+            <li><a href="reviews.html" aria-current="page">Reviews</a></li>
+            <li><a href="watch.html">Watch</a></li>
           </ul>
         </li>
         <li><a href="contact.html" class="nav-cta">Contact</a></li>
@@ -734,10 +749,10 @@
       <p class="reviews-sub">From singles and slabs to sealed product and show pickups — here's what collectors are saying about Sake Kitty Cards.</p>
       <div id="reviewsSummary" class="reviews-summary-card" role="group" aria-label="Overall rating summary" hidden>
         <div class="rs-score-row">
-          <span class="rs-score" id="reviewsAvg" aria-hidden="true">5.0</span>
-          <span class="rs-stars" id="reviewsAvgStars" aria-hidden="true">★★★★★</span>
+          <span class="rs-score" id="reviewsAvg" aria-hidden="true">&mdash;</span>
+          <span class="rs-stars" id="reviewsAvgStars" aria-hidden="true"></span>
         </div>
-        <span class="rs-count" id="reviewsCount">Based on 0 verified customer reviews</span>
+        <span class="rs-count" id="reviewsCount">Ratings load from reviews left on this site</span>
       </div>
     </section>
 
@@ -749,8 +764,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           </span>
           <div class="sp-stat-body">
-            <span class="sp-stat-value">1,000+</span>
-            <span class="sp-stat-label">Orders Shipped</span>
+            <span class="sp-stat-value">2,300+</span>
+            <span class="sp-stat-label">TCGplayer Sales</span>
           </div>
         </div>
         <div class="sp-stat">
@@ -767,8 +782,8 @@
             <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </span>
           <div class="sp-stat-body">
-            <span class="sp-stat-value">5★ Verified</span>
-            <span class="sp-stat-label">Customer Rating</span>
+            <span class="sp-stat-value">99%+ Positive</span>
+            <span class="sp-stat-label">TCGplayer Feedback</span>
           </div>
         </div>
         <div class="sp-stat">
@@ -891,16 +906,21 @@
       <nav class="footer-nav">
         <a href="shop.html">Shop</a>
         <a href="graded.html">Graded Vault</a>
+        <a href="wholesale-pokemon.html">Wholesale</a>
         <a href="events.html">Events</a>
-        <a href="team.html">Our Team</a>
         <a href="trade-in.html">Sell / Trade</a>
+        <a href="sell-pokemon-collection.html">Sell a Collection</a>
+        <a href="sell-graded-pokemon-cards.html">Sell Graded Slabs</a>
+        <a href="pokemon-card-appraisal.html">Card Appraisal</a>
+        <a href="pokemon-card-buyer-florida.html">Selling in Florida</a>
         <a href="grading-prep.html">Grading Prep</a>
-        <a href="reviews.html">Reviews</a>
-        <a href="watch.html">Watch</a>
-        <a href="resources.html">Resources</a>
+        <a href="resources.html">Guides</a>
         <a href="shipping.html">Shipping Guide</a>
         <a href="faq.html">FAQ</a>
         <a href="about.html">About</a>
+        <a href="team.html">Our Team</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="watch.html">Watch</a>
         <a href="contact.html">Contact</a>
         <a href="track.html">Track Order</a>
         <a href="gift-cards.html">Gift Cards</a>
@@ -909,7 +929,7 @@
     <p class="footer-copy">© 2026 Sake Kitty Cards. All rights reserved. · <a href="grading-terms.html" style="color:var(--dim)">Grading Prep Terms</a></p>
   </footer>
 
-  <script src="main.js?v=161" defer></script>
+  <script src="main.js?v=162" defer></script>
   <script>
     // Reviews list + submission form.
     //
@@ -952,14 +972,25 @@
       const avgStarsEl = document.getElementById('reviewsAvgStars');
       const countEl    = document.getElementById('reviewsCount');
 
-      const renderReviews = (reviews) => {
-        const total = reviews.reduce((s, r) => s + (Number(r.stars) || 0), 0);
-        const avg   = total / reviews.length;
-        const avgRounded = Math.round(avg);
-        avgEl.textContent      = avg.toFixed(1);
-        avgStarsEl.textContent = starString(avgRounded);
-        countEl.textContent    = `Based on ${reviews.length} verified customer review${reviews.length === 1 ? '' : 's'}`;
-        summary.hidden = false;
+      // `isSeed` = we're showing the hand-picked TCGplayer feedback set, not
+      // reviews collected through our own form. In that case the aggregate
+      // score card stays HIDDEN: "5.0 — based on 6 verified customer reviews"
+      // read as a site-wide rating computed from a complete review set, which
+      // it is not. The wall itself is still real feedback and is labelled as
+      // TCGplayer feedback in the note above it. Do not "restore" the summary
+      // for the seed set — that claim is the thing that was wrong.
+      const renderReviews = (reviews, isSeed) => {
+        if (isSeed) {
+          summary.hidden = true;
+        } else {
+          const total = reviews.reduce((s, r) => s + (Number(r.stars) || 0), 0);
+          const avg   = total / reviews.length;
+          const avgRounded = Math.round(avg);
+          avgEl.textContent      = avg.toFixed(1);
+          avgStarsEl.textContent = starString(avgRounded);
+          countEl.textContent    = `Based on ${reviews.length} customer review${reviews.length === 1 ? '' : 's'} left on this site`;
+          summary.hidden = false;
+        }
 
         grid.innerHTML = reviews.map(r => {
           const stars = Math.max(0, Math.min(5, Number(r.stars) || 0));
@@ -984,11 +1015,11 @@
         .then(data => {
           const reviews = Array.isArray(data.reviews) ? data.reviews : [];
           // Worker live but no approved reviews yet → fall through to placeholders
-          renderReviews(reviews.length ? reviews : PLACEHOLDER_REVIEWS);
+          renderReviews(reviews.length ? reviews : PLACEHOLDER_REVIEWS, reviews.length === 0);
         })
         .catch(err => {
           console.warn('Reviews load failed, using placeholder set:', err);
-          renderReviews(PLACEHOLDER_REVIEWS);
+          renderReviews(PLACEHOLDER_REVIEWS, true);
         });
 
       // ─── Star-rating picker ────────────────────────────────────────

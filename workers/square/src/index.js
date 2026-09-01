@@ -164,6 +164,9 @@ export default {
       if (path === '/admin/clear-item-price' && request.method === 'POST') {
         return await updateItemPrice(request, base, squareHeaders, env, true);
       }
+      if (path === '/admin/set-item-status' && request.method === 'POST') {
+        return await setItemStatus(request, base, squareHeaders, env);
+      }
 
       if (path === '/admin/replace-graded-images' && request.method === 'POST') {
         return await replaceGradedImages(request, base, squareHeaders, env);
@@ -388,6 +391,15 @@ async function listItems(base, headers, locationId, env) {
       // so the grid shows the default color's printed shot.
       const imageUrl = primary.imageUrl || squareHero;
 
+      // Site mirror (TCGenie acct-54 → Square → site): graded items expose their cert so pages can key by it, and a
+      // "Status: sold" description line (written by TCGenie's daily mirror) hides card items — merch never carries it.
+      const rawDesc = o.item_data?.description || '';
+      const certM = rawDesc.match(/Cert\s*#:\s*([0-9]+)/i);
+      const cert = certM ? certM[1] : null;
+      const sold = /^\s*Status:\s*sold\s*$/im.test(rawDesc);
+      const sku0 = o.item_data?.variations?.[0]?.item_variation_data?.sku || '';
+      const isCard = !!cert || /Card ID:/i.test(rawDesc) || /^SEAL-/.test(sku0);
+
       // Total in-stock units across all variations. Used by the shop grid
       // to show "Only N left" scarcity badges on low-stock items. Counts
       // only the tracked variations (null stock = untracked = excluded).
@@ -407,6 +419,9 @@ async function listItems(base, headers, locationId, env) {
         // cert) still reads — so backend lookups are unaffected.
         description: stripCertLines(o.item_data?.description),
         price:       primary.price,
+        cert,
+        sold,
+        isCard,
         currency:    o.item_data?.variations?.[0]?.item_variation_data?.price_money?.currency || 'USD',
         imageUrl,
         imageUrls,
@@ -418,7 +433,9 @@ async function listItems(base, headers, locationId, env) {
         variations,
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter(it => !(it.isCard && it.sold))   // sold cards leave the site (TCGenie mirror marks them; never deleted)
+    .map(({ isCard, ...it }) => it);
 
   return json({ items });
 }
@@ -2794,6 +2811,27 @@ function json(data, status = 200) {
 // from a description before it goes out on the PUBLIC /items feed. Graded slabs
 // store their cert in the Square description for cert-keyed admin tooling, but
 // customers shouldn't see it. Non-graded items have no such line — no-op for them.
+// Site mirror: mark a card item sold (hidden from /items) or live again. Writes ONE description line,
+// "Status: sold", via the catalog upsert; never deletes. Body: { item_id, status: 'sold' | 'live' }.
+async function setItemStatus(request, base, squareHeaders, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) return json({ error: 'unauthorized' }, 401);
+  let body; try { body = await request.json(); } catch (_e) { return json({ error: 'invalid_json' }, 400); }
+  const itemId = String(body.item_id || ''), status = body.status === 'sold' ? 'sold' : 'live';
+  if (!itemId) return json({ error: 'missing_item_id' }, 400);
+  const getRes = await fetch(`${base}/v2/catalog/object/${encodeURIComponent(itemId)}`, { headers: squareHeaders });
+  const got = await getRes.json();
+  if (!getRes.ok || !got.object) return json({ error: 'item_not_found', detail: got }, 404);
+  const obj = got.object;
+  const lines = String(obj.item_data?.description || '').split('\n').filter(l => !/^\s*Status:\s*sold\s*$/i.test(l));
+  if (status === 'sold') lines.push('Status: sold');
+  obj.item_data.description = lines.join('\n').trim().slice(0, 4096);
+  const upRes = await fetch(`${base}/v2/catalog/object`, { method: 'POST', headers: squareHeaders, body: JSON.stringify({ idempotency_key: crypto.randomUUID(), object: obj }) });
+  const up = await upRes.json();
+  if (!upRes.ok) return json({ error: 'square_api_error', detail: up }, upRes.status);
+  return json({ ok: true, item_id: itemId, status });
+}
+
 function stripCertLines(desc) {
   return String(desc || '')
     .split('\n')

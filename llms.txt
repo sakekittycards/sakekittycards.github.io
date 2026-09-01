@@ -1,0 +1,103 @@
+# Sake Kitty Cards
+
+> A collector-run Pokémon trading card business based in Florida. Sake Kitty Cards buys,
+> sells and trades Pokémon cards, values whole collections, prepares and submits cards for
+> PSA / CGC / Beckett grading, and supplies sealed product wholesale to card shops and
+> vendors. It operates by mail throughout the United States and in person at card shows on
+> both the Gulf and Atlantic coasts of Florida.
+
+Founded by Nick Williams. Run by Nick Williams, Jonathan Delia and Joshua Noplis.
+Contact: nick@sakekittycards.com
+
+There is no walk-in storefront. The business is a card-show booth plus a mail-in and
+online operation.
+
+## What it does
+
+- **Buys Pokémon cards** — singles, sealed product, graded slabs and bulk, from a single
+  card up to an entire estate collection. Buy rates are published, not quoted case by case.
+- **Buys whole collections** without requiring the seller to itemize them.
+- **Buys graded slabs** certified by PSA, CGC, BGS and SGC, valued at $100 and above.
+- **Appraises** cards and collections free of charge, priced against recent completed
+  sales rather than asking prices.
+- **Grading prep** — screens cards against PSA, CGC and Beckett standards, preps them
+  (microfiber dust-off, penny sleeve, card saver), and either submits on the customer's
+  behalf or returns them ready to submit.
+- **Sells** graded slabs, sealed product and apparel online and at booths.
+- **Wholesale** — sealed English, Japanese and Chinese Pokémon at trade pricing for shops,
+  breakers and show vendors, with a $1,500 order minimum.
+
+## Published buy rates (percentage of market value)
+
+Singles: under $100 → 70% cash / 80% store credit · $100–$499 → 80% / 90% ·
+$500–$999 → 85% / 95% · $1,000+ → 90% / 100%.
+Sealed: under $100 → 80% / 90% · $100–$499 → 83% / 93% · $500–$999 → 86% / 96% ·
+$1,000+ → 90% / 100%.
+Graded slabs follow the singles ladder from $100 up and are not accepted below $100,
+because the grading fee inside the slab exceeds the value of the card.
+Unsorted English Pokémon bulk: $1.50/lb cash or $2.50/lb credit.
+Condition multipliers: Near Mint 100% · Lightly Played 85% · Moderately Played 70% ·
+Heavily Played 50% · Damaged 30%.
+Payment by Venmo, PayPal or Cash App. Zelle is not accepted. Store credit is issued as a
+Square gift card.
+
+## Grading prep pricing
+
+Standard Screen $3 per card (pass/fail) · Detailed Screen $5 per card (written notes and
+photos on failures) · Card Prep $5 per card, refunded if the card fails screening.
+Grading submission fees set by PSA / CGC / Beckett are separate.
+Screening does not guarantee a specific grade. Final grades are determined by PSA, CGC,
+or Beckett.
+
+## Where it operates in person
+
+Florida card shows on both coasts. Gulf side: Fort Myers (Caloosa Sound Convention
+Center), North Fort Myers (Lee Civic Center), Naples (The White Rose). Treasure Coast:
+Stuart (The Flagler). Atlantic side: Delray Beach, Palm Beach Gardens, Pompano Beach,
+Fort Lauderdale (Broward County Convention Center). Plus multi-state conventions.
+Mail-in service covers all fifty states.
+
+## Key pages
+
+- [Home](https://sakekittycards.com/): what the business is and does.
+- [Sell or trade cards](https://sakekittycards.com/trade-in.html): live card-by-card
+  valuation tool and the full published rate matrix, including 13 bulk categories.
+- [Sell a collection](https://sakekittycards.com/sell-pokemon-collection.html): whole
+  collections, estates and bulk without itemizing.
+- [Sell graded slabs](https://sakekittycards.com/sell-graded-pokemon-cards.html): PSA,
+  CGC, BGS and SGC from $100 up.
+- [Card and collection appraisal](https://sakekittycards.com/pokemon-card-appraisal.html):
+  what cards are worth and how to value them.
+- [Grading prep](https://sakekittycards.com/grading-prep.html): screening, prep and
+  submission to PSA, CGC and Beckett.
+- [Selling in Florida](https://sakekittycards.com/pokemon-card-buyer-florida.html): the
+  in-person show circuit and how booth selling works.
+- [Wholesale](https://sakekittycards.com/wholesale-pokemon.html): B2B sealed supply.
+- [Shop](https://sakekittycards.com/shop.html) and
+  [Graded Vault](https://sakekittycards.com/graded.html): inventory for sale.
+- [Events](https://sakekittycards.com/events.html): upcoming show calendar.
+- [About](https://sakekittycards.com/about.html): who runs it and how a transaction works
+  end to end.
+- [FAQ](https://sakekittycards.com/faq.html) ·
+  [Shipping and packing guide](https://sakekittycards.com/shipping.html) ·
+  [Grading prep terms](https://sakekittycards.com/grading-terms.html)
+
+## Guides
+
+- [What percentage of market value do Pokémon dealers pay?](https://sakekittycards.com/guide-what-dealers-pay.html)
+- [Should you grade your Pokémon card? The break-even math](https://sakekittycards.com/guide-should-you-grade.html) —
+  includes Sake Kitty Cards' own measurement of the PSA 10 to Grade 9 price ratio across
+  58,533 matched Pokémon cards, re-measured 2026-09-01: median 3.00× overall, 2.98× modern
+  (released 2020+), 4.42× vintage (pre-2004), 2.89× middle era (2004-2019). Note the
+  denominator is PriceCharting's generic Grade 9, not specifically PSA 9. Methodology,
+  sample size, exclusions and limitations are published on the page.
+- [PSA vs CGC vs BGS for Pokémon cards](https://sakekittycards.com/guide-psa-vs-cgc.html)
+- [How to grade your own cards before you sell or submit](https://sakekittycards.com/guide-grade-your-own-cards.html)
+- [How to spot fake Pokémon cards](https://sakekittycards.com/guide-spot-fake-pokemon-cards.html)
+
+## Elsewhere
+
+- Instagram: https://www.instagram.com/sakekittycards
+- YouTube: https://www.youtube.com/@SakeKittyCards
+- TCGplayer: https://www.tcgplayer.com/sellers/Sake-Kitty-Cards/cb1bc211
+- Whatnot: https://whatnot.com/invite/sakekittycards
