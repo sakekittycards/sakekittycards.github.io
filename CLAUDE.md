@@ -25,7 +25,12 @@ Small-vendor Pokémon card website. Owner: Nick Williams. Contact: nick@sakekitt
 - `track.html` — customer-facing grading-prep order tracker. Takes `?order=SK-YYYY-XXXXXX`, shows an 8-stage status bar, card list, and PSA cert numbers once graded. Hits `GET /grading/track` on the worker.
 - `shipping.html` — "How to Pack Your Cards" guide. Pure content page (no forms/data). Four packing tiers (1 / up-to-10 / 10-19 / 20+), DO NOT rules, clear-sleeve rules, shipping/extra tips. Visuals are cropped photo strips at `assets/shipping/tier{1-4}.png` (extracted from the original ChatGPT infographic). Linked from nav and footer between Sell/Trade and Grading Prep on every page.
 - `faq.html`, `about.html`, `contact.html` — info pages
-- `wholesale.html` — **hidden** Pokémon CN sealed wholesale price list (cases). Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS (no style.css/main.js, no cache-buster). Prices = supplier cost +10%, rounded up to nearest $10. Keep it unlinked.
+- `wholesale.html` — **hidden** B2B wholesale sealed price list + quote-request tool. Unlinked from nav/footer everywhere + `noindex, nofollow` — shared by direct URL only. Standalone inline CSS/JS (no style.css/main.js, no cache-buster). Keep it unlinked.
+  - **Data-driven:** every SKU lives in the `CATALOG` array at the top of the inline script (id, name, set, region, group, price, unit, status, available, boxesPerCase/packsPerBox/cardsPerPack). To change inventory or pricing edit ONLY that array plus the `UPDATED` constant — no HTML duplication. `MOQ` is a constant too.
+  - **Pricing rule:** Chinese sealed = ACT Distro cost **+7%**, rounded UP to the whole dollar, per case. Japanese = Team Wag cost +7%, per box. The three Pokémon Center Special Boxes are the exception: priced at **75% of market** (PriceCharting ungraded), not cost-plus. Nick's filter: anything landing at **≥85% of market is dropped from the list entirely**. See `project_sk_wholesale_pricing` in memory.
+  - **Wholesale minimum $1,500** before shipping — enforced in the UI (progress meter in the dock, submit blocked under it).
+  - **Quote requests** POST to `/sk/wholesale-order` on the **TCGenie** worker (not sakekitty-square — square has no Resend key), which emails nick@ + andrew@sakekittycards.com with reply-to set to the buyer. Payload shape `{name, company, email, phone, notes, company_website, elapsedMs, items:[{name, qty, unit, price}]}` — don't change it without changing the worker.
+  - Order state persists in `localStorage` under `sk_wholesale_order_v2`, and is dropped on load if a SKU vanished or its price moved, so a stale cart can never quote an old price.
 
 ## Conventions
 

@@ -5,814 +5,990 @@
   <link rel="icon" type="image/png" href="logo-icon.png" />
   <link rel="apple-touch-icon" href="logo-touch.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sake Kitty Cards — Pokémon CN &amp; JP Wholesale List</title>
+  <title>Sake Kitty Cards — Wholesale Sealed Inventory</title>
   <!-- Hidden page: unlinked from nav/footer, kept out of search indexes on purpose. -->
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&display=swap">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700;800&display=swap');
+    /* ============================================================
+       Sake Kitty wholesale — trade desk, not storefront.
+       Colour carries STATE, never decoration. Brand display type is
+       reserved for the wordmark and section headings; every number is
+       set in tabular Inter so columns line up and scan fast.
+       ============================================================ */
     :root {
-      --bg:        #060608;
-      --bg-card:   rgba(255,255,255,0.04);
-      --bg-card-h: rgba(255,255,255,0.07);
-      --orange:    #ff6a00;
-      --pink:      #ff0080;
-      --purple:    #7b2fff;
+      --bg:        #08080b;
+      --surface:   #101014;
+      --surface-2: #16161c;
+      --raised:    #1c1c23;
+      --line:      rgba(255,255,255,0.09);
+      --line-2:    rgba(255,255,255,0.16);
+      --text:      #f5f5f7;
+      --muted:     rgba(245,245,247,0.85);   /* LOCKED floor - CLAUDE.md contrast baseline */
+      --dim:       rgba(245,245,247,0.65);   /* LOCKED floor - do not lower */
+      --faint:     rgba(245,245,247,0.50);   /* labels/eyebrows only */
+
+      /* state — the only saturated colour on the page */
+      --ok:        #35d0a5;
+      --ok-bg:     rgba(53,208,165,0.12);
+      --low:       #ff9d4d;
+      --low-bg:    rgba(255,157,77,0.12);
+      --soon:      #9b8cff;
+      --soon-bg:   rgba(155,140,255,0.14);
+      --off:       rgba(245,245,247,0.58);
+      --off-bg:    rgba(255,255,255,0.05);
+
+      /* brand — CTA and wordmark only */
       --cyan:      #00d4ff;
-      --gold:      #ffd166;
-      --text:      #ffffff;
-      --muted:     rgba(255,255,255,0.85);
-      --dim:       rgba(255,255,255,0.65);
-      --border:    rgba(255,255,255,0.08);
-      --r:         14px;
-      --r-pill:    100px;
+      --purple:    #7b2fff;
+      --pink:      #ff0080;
+
+      --r:   12px;
+      --r-s: 9px;
+      --maxw: 1600px;
     }
     * { box-sizing: border-box; }
-    html, body { overflow-x: hidden; max-width: 100%; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-      font-size: 15px;
-      line-height: 1.55;
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      font-size: 15px; line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-    }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px 64px; position: relative; }
-
-    /* ── ambient glow ── */
-    .glow {
-      position: absolute; pointer-events: none; z-index: 0;
-      width: 560px; height: 560px; border-radius: 50%;
-      filter: blur(90px); opacity: 0.16;
-    }
-    .glow-pink   { background: var(--pink);   top: -120px; left: -160px; }
-    .glow-purple { background: var(--purple); top: 60px;  right: -200px; }
-
-    /* ── hero ── */
-    header { position: relative; text-align: center; padding: 56px 16px 8px; z-index: 1; }
-    header img.logo {
-      width: 132px; height: auto; max-width: 100%;
-      filter: drop-shadow(0 0 24px rgba(255,0,128,0.35));
-    }
-    h1 {
-      font-family: 'Bangers', cursive;
-      font-weight: 400;
-      font-size: clamp(42px, 8vw, 76px);
-      letter-spacing: 2px;
-      margin: 8px 0 0;
-      line-height: 1.25;
-      padding: 2px 0 8px;
-      background: linear-gradient(100deg, var(--orange) 0%, var(--pink) 38%, var(--purple) 72%, var(--cyan) 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
-      text-wrap: balance;
-    }
-    .hero-sub {
-      color: var(--muted);
-      font-size: 16px;
-      margin: 2px 0 0;
-    }
-    .hero-eyebrow {
-      display: inline-block;
-      margin-top: 18px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--cyan);
-      border: 1px solid rgba(0,212,255,0.35);
-      border-radius: var(--r-pill);
-      padding: 6px 16px;
-      background: rgba(0,212,255,0.07);
-    }
-    .hero-note { color: var(--dim); font-size: 13px; margin-top: 14px; }
-
-    /* ── legend ── */
-    .legend {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
-      margin: 26px 0 6px; position: relative; z-index: 1;
-    }
-
-    /* ── sections ── */
-    section { position: relative; z-index: 1; margin-top: 48px; }
-    .sec-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-    h2 {
-      font-family: 'Bangers', cursive;
-      font-weight: 400;
-      font-size: clamp(28px, 4.5vw, 40px);
-      letter-spacing: 1.5px;
-      margin: 0;
-      line-height: 1.25;
-      padding: 2px 0 8px;
-      background: linear-gradient(100deg, var(--pink), var(--purple));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
-    }
-    section.sec-boxes h2 { background: linear-gradient(100deg, var(--cyan), var(--purple)); -webkit-background-clip: text; background-clip: text; }
-    section.sec-gift  h2 { background: linear-gradient(100deg, var(--orange), var(--pink)); -webkit-background-clip: text; background-clip: text; }
-    section.sec-pc    h2 { background: linear-gradient(100deg, var(--gold), var(--orange)); -webkit-background-clip: text; background-clip: text; }
-    section.sec-jp    h2 { background: linear-gradient(100deg, var(--pink), var(--cyan)); -webkit-background-clip: text; background-clip: text; }
-    .sec-count { color: var(--dim); font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-      gap: 16px;
-      margin-top: 14px;
-    }
-
-    /* ── product card ── */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 18px 18px 16px;
-      display: flex; flex-direction: column; gap: 12px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute; inset: 0 auto 0 0; width: 4px;
-      background: var(--card-accent, var(--pink));
-      opacity: 0.85;
-    }
-    .card:hover {
-      transform: translateY(-3px);
-      background: var(--bg-card-h);
-      border-color: rgba(255,255,255,0.16);
-    }
-    .card-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-    .pname { font-weight: 700; font-size: 15.5px; line-height: 1.35; margin: 0; }
-    .pname .brand { display: block; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
-
-    .pill {
-      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-      border-radius: var(--r-pill); padding: 4px 11px; white-space: nowrap;
       font-variant-numeric: tabular-nums;
     }
-    .pill-stock    { color: var(--cyan);   background: rgba(0,212,255,0.10);  border: 1px solid rgba(0,212,255,0.35); }
-    .pill-low      { color: var(--orange); background: rgba(255,106,0,0.12);  border: 1px solid rgba(255,106,0,0.4); }
-    .pill-arriving { color: #c9a2ff;       background: rgba(123,47,255,0.14); border: 1px solid rgba(123,47,255,0.45); }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(16px, 3vw, 40px); }
+    .skip-link { position: absolute; left: -9999px; }
+    .skip-link:focus { left: 12px; top: 12px; z-index: 200; background: var(--raised); padding: 10px 16px; border-radius: var(--r-s); }
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
 
-    .price-row { display: flex; align-items: baseline; gap: 8px; }
-    .price {
-      font-weight: 800;
-      font-size: 30px;
-      letter-spacing: -0.5px;
-      font-variant-numeric: tabular-nums;
-      line-height: 1.1;
+    /* ── masthead ─────────────────────────────────────────────── */
+    .mast { border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #0c0c11, var(--bg)); }
+    .mast-in { display: flex; align-items: center; gap: 18px; padding: 18px 0 16px; flex-wrap: wrap; }
+    .mast img { width: 46px; height: 46px; flex: none; }
+    .mast .id { flex: 1 1 auto; min-width: 210px; }
+    .mast h1 {
+      font-family: Bangers, Inter, cursive; font-weight: 400; letter-spacing: 1.2px;
+      font-size: clamp(25px, 3.4vw, 34px); line-height: 1.05; margin: 0;
+      background: linear-gradient(96deg, var(--pink), var(--purple) 58%, var(--cyan));
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
     }
-    .price-unit { color: var(--dim); font-size: 13px; font-weight: 600; }
-    .price-tba {
-      font-weight: 700; font-size: 16px; color: var(--dim);
-      border: 1px dashed rgba(255,255,255,0.22); border-radius: 8px; padding: 4px 12px;
-    }
+    .mast .sub { font-size: 13.5px; color: var(--dim); margin: 1px 0 0; }
+    .mast .sub b { color: var(--muted); font-weight: 600; }
 
-    .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
-    .chip {
-      font-size: 12px; font-weight: 600; color: var(--muted);
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px; padding: 3px 9px;
-      font-variant-numeric: tabular-nums;
-    }
-    .chip-qty { color: var(--gold); border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.07); }
+    .terms { display: flex; gap: 0; flex-wrap: wrap; border-top: 1px solid var(--line); }
+    .terms div { flex: 1 1 190px; padding: 11px 0 13px; border-right: 1px solid var(--line); }
+    .terms div:last-child { border-right: 0; }
+    .terms dt { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); margin: 0 0 3px; }
+    .terms dd { margin: 0; font-size: 13.5px; color: var(--muted); font-weight: 500; padding-right: 18px; }
+    .terms a { color: var(--muted); }
 
+    /* ── controls ─────────────────────────────────────────────── */
+    .bar {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(8,8,11,0.93); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .bar-in { display: flex; gap: 10px; align-items: center; padding: 11px 0; flex-wrap: wrap; }
+    .seg { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-s); padding: 3px; gap: 2px; }
+    .seg button {
+      font: 600 13px/1 Inter, sans-serif; color: var(--dim); background: none; border: 0;
+      padding: 8px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+      transition: color .12s ease, background .12s ease;
+    }
+    .seg button:hover { color: var(--text); }
+    .seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+    .seg button .n { color: var(--faint); font-weight: 500; margin-left: 5px; }
+    .seg button[aria-pressed="true"] .n { color: var(--dim); }
 
-    /* -- order builder -- */
-    .qty { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-    .qty button {
-      width: 32px; height: 32px; flex: none; cursor: pointer;
-      font: 700 18px/1 system-ui, sans-serif; color: var(--text);
-      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-      border-radius: 9px; transition: background .12s ease, border-color .12s ease;
+    .find { position: relative; flex: 1 1 190px; max-width: 300px; }
+    .find input {
+      width: 100%; font: 500 14px/1 Inter, sans-serif; color: var(--text);
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-s);
+      padding: 10px 12px 10px 34px;
     }
-    .qty button:hover:not(:disabled) { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.28); }
-    .qty button:disabled { opacity: .3; cursor: not-allowed; }
-    .qty input {
-      width: 62px; height: 32px; text-align: center; font: 700 15px/1 system-ui, sans-serif;
-      color: var(--text); background: rgba(0,0,0,0.35); border: 1px solid var(--border);
-      border-radius: 9px; font-variant-numeric: tabular-nums; -moz-appearance: textfield;
-    }
-    .qty input::-webkit-outer-spin-button, .qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .qty input:focus-visible, .qty button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-    .qty .lbl { font-size: 12px; font-weight: 600; color: var(--dim); }
-    .card.picked { border-color: rgba(0,212,255,0.45); background: rgba(0,212,255,0.05); }
+    .find input::placeholder { color: var(--faint); }
+    .find svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--faint); fill: none; stroke-width: 2; }
+    .find .clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 17px; line-height: 1; padding: 4px 7px; }
 
-    /* -- sticky order bar -- */
-    .orderbar {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-      background: rgba(10,10,14,0.94); backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255,255,255,0.14);
-      padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
-      display: none; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap;
+    .toggle {
+      display: inline-flex; align-items: center; gap: 7px; cursor: pointer; user-select: none;
+      font: 600 13px/1 Inter, sans-serif; color: var(--dim);
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-s); padding: 9px 13px;
+      transition: color .12s ease, border-color .12s ease;
     }
-    .orderbar.on { display: flex; }
-    .orderbar .sum { font-weight: 700; font-variant-numeric: tabular-nums; }
-    .orderbar .sum span { color: var(--dim); font-weight: 600; }
+    .toggle:hover { color: var(--text); }
+    .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .toggle .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); transition: background .12s ease, box-shadow .12s ease; }
+    .toggle:has(input:checked) { color: var(--text); border-color: rgba(53,208,165,0.4); }
+    .toggle:has(input:checked) .dot { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-bg); }
+    .toggle:has(input:focus-visible) { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    select.sort {
+      font: 600 13px/1 Inter, sans-serif; color: var(--dim); cursor: pointer;
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-s);
+      padding: 9px 12px; appearance: none; padding-right: 28px;
+      background-image: linear-gradient(45deg, transparent 50%, var(--faint) 50%), linear-gradient(135deg, var(--faint) 50%, transparent 50%);
+      background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%;
+      background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+    }
+    select.sort:hover { color: var(--text); }
+    .bar .spacer { flex: 1 1 auto; }
+    .linkish { font: 600 13px/1 Inter, sans-serif; color: var(--dim); background: none; border: 0; cursor: pointer; padding: 9px 4px; }
+    .linkish:hover { color: var(--cyan); }
+
+    /* ── grid ─────────────────────────────────────────────────── */
+    main { padding-bottom: 40px; }
+    .grp { margin-top: 34px; }
+    .grp-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 13px; flex-wrap: wrap; }
+    .grp-head h2 {
+      font-family: Bangers, Inter, cursive; font-weight: 400; letter-spacing: 1px;
+      font-size: clamp(20px, 2.4vw, 26px); margin: 0; color: var(--text);
+    }
+    .grp-head .cnt { font-size: 11.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--faint); }
+    .grp-head .rule { flex: 1 1 40px; height: 1px; background: var(--line); }
+
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); }
+
+    .sku {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+      padding: 15px 16px 14px; display: flex; flex-direction: column; gap: 11px;
+      transition: border-color .14s ease, background .14s ease;
+    }
+    .sku:hover { border-color: var(--line-2); background: var(--surface-2); }
+    .sku.on { border-color: rgba(0,212,255,0.5); background: var(--surface-2); box-shadow: inset 3px 0 0 var(--cyan); }
+    .sku.na { opacity: .72; }
+
+    .sku .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .sku .set { font-size: 10.5px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--faint); }
+    .sku h3 { font-size: 15px; font-weight: 600; line-height: 1.3; margin: 2px 0 0; letter-spacing: -0.01em; min-height: 2.6em; }
+
+    .stat { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .04em; white-space: nowrap; padding: 4px 9px 4px 8px; border-radius: 100px; flex: none; }
+    .stat i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .stat.ok   { color: var(--ok);   background: var(--ok-bg); }
+    .stat.low  { color: var(--low);  background: var(--low-bg); }
+    .stat.soon { color: var(--soon); background: var(--soon-bg); }
+    .stat.off  { color: var(--off);  background: var(--off-bg); }
+
+    .money { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+    .money .p { font-size: 27px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .money .u { font-size: 13px; color: var(--dim); font-weight: 500; }
+    .money .each { font-size: 13px; color: var(--faint); font-weight: 500; margin-left: auto; }
+    .money .tba { font-size: 15px; font-weight: 600; color: var(--dim); }
+
+    .spec { display: flex; flex-wrap: wrap; gap: 3px 13px; font-size: 12.5px; color: var(--dim); border-top: 1px solid var(--line); padding-top: 9px; }
+    .spec span b { color: var(--muted); font-weight: 600; }
+    .spec .none { color: var(--faint); font-style: italic; }
+
+    .avail { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    .avail b { color: var(--text); font-weight: 700; }
+    .avail.thin b { color: var(--low); }
+
+    /* quantity */
+    .pick { display: flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 2px; }
+    .pick button {
+      width: 34px; height: 34px; flex: none; cursor: pointer;
+      font: 600 17px/1 Inter, sans-serif; color: var(--muted);
+      background: var(--raised); border: 1px solid var(--line); border-radius: 8px;
+      transition: background .12s ease, color .12s ease;
+    }
+    .pick button:hover:not(:disabled) { background: #24242c; color: var(--text); }
+    .pick button:disabled { opacity: .32; cursor: not-allowed; }
+    .pick input {
+      width: 68px; flex: none; height: 34px; text-align: center;
+      font: 700 15px/1 Inter, sans-serif; color: var(--text);
+      background: #0a0a0e; border: 1px solid var(--line-2); border-radius: 8px;
+      -moz-appearance: textfield;
+    }
+    .pick input::-webkit-outer-spin-button, .pick input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .pick input::placeholder { color: var(--faint); font-weight: 500; }
+    .pick .un { font-size: 12.5px; color: var(--faint); font-weight: 600; white-space: nowrap; }
+    .pick .line { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--cyan); white-space: nowrap; }
+    .noorder { font-size: 13px; color: var(--faint); margin-top: auto; padding-top: 6px; }
+    .noorder b { color: var(--muted); font-weight: 600; }
+
+    .empty { text-align: center; padding: 70px 20px; color: var(--dim); }
+    .empty b { display: block; color: var(--text); font-size: 17px; margin-bottom: 6px; }
+
+    /* ── order dock ───────────────────────────────────────────── */
+    .dock {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+      background: rgba(12,12,16,0.97); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--line-2);
+      transform: translateY(101%); transition: transform .22s cubic-bezier(.2,.8,.3,1);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .dock.up { transform: translateY(0); }
+    .dock-in { display: flex; align-items: center; gap: 18px; padding: 13px 0; flex-wrap: wrap; }
+    .dock .figs { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; }
+    .dock .fig .k { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; }
+    .dock .fig .v { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+    .dock .fig .v small { font-size: 12px; font-weight: 500; color: var(--dim); }
+    .dock .moq { flex: 1 1 190px; min-width: 160px; max-width: 320px; }
+    .dock .moq .k { font-size: 11.5px; color: var(--dim); font-weight: 600; letter-spacing: 0; text-transform: none; margin-bottom: 5px; display: block; }
+    .dock .moq .k b { color: var(--text); font-weight: 700; }
+    .dock .moq .k.met { color: var(--ok); }
+    .meter { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden; }
+    .meter i { display: block; height: 100%; width: 0; border-radius: 3px; background: linear-gradient(90deg, var(--purple), var(--cyan)); transition: width .3s cubic-bezier(.2,.8,.3,1); }
+    .meter.met i { background: var(--ok); }
+    .dock .acts { display: flex; gap: 9px; align-items: center; margin-left: auto; }
+
     .btn {
-      cursor: pointer; font: 800 15px/1 system-ui, sans-serif; color: #08070f;
-      background: linear-gradient(95deg, var(--cyan), var(--purple));
-      border: 0; border-radius: 10px; padding: 12px 22px;
+      cursor: pointer; font: 700 14.5px/1 Inter, sans-serif; color: #06060a;
+      background: linear-gradient(96deg, var(--cyan), #6ba8ff);
+      border: 0; border-radius: var(--r-s); padding: 13px 22px; white-space: nowrap;
+      transition: filter .12s ease, transform .08s ease;
     }
-    .btn.ghost { background: none; color: var(--text); border: 1px solid var(--border); font-weight: 700; }
-    .btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .btn:hover:not(:disabled) { filter: brightness(1.08); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn.quiet { background: none; color: var(--dim); border: 1px solid var(--line); font-weight: 600; }
+    .btn.quiet:hover { color: var(--text); border-color: var(--line-2); }
+    .btn.small { padding: 9px 14px; font-size: 13px; }
 
-    /* -- review sheet -- */
+    /* ── quote sheet ──────────────────────────────────────────── */
     .sheet[hidden] { display: none !important; }
-    .sheet {
-      position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.72);
-      display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto;
-    }
-    .sheet-in {
-      width: 100%; max-width: 620px; background: #101017;
-      border: 1px solid rgba(255,255,255,0.14); border-radius: 16px; padding: 24px;
-    }
-    .sheet h3 { font-family: 'Bangers', cursive; font-weight: 400; font-size: 30px; letter-spacing: 1px; margin: 0 0 4px; }
-    .sheet .hint { color: var(--dim); font-size: 13.5px; margin: 0 0 18px; line-height: 1.5; }
-    .lines { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 6px; }
-    .lines td { padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; }
-    .lines .n { color: var(--text); }
-    .lines .q, .lines .t { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
-    .lines .x { width: 26px; text-align: right; }
-    .lines .x button { background: none; border: 0; color: var(--dim); cursor: pointer; font-size: 17px; line-height: 1; padding: 2px 4px; }
-    .lines .x button:hover { color: var(--orange); }
-    .tot { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 6px 2px; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .tot small { display: block; font-weight: 600; font-size: 12px; color: var(--dim); text-align: right; }
-    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0 0; }
+    .sheet { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.76); display: flex; align-items: flex-start; justify-content: center; padding: clamp(10px, 4vh, 44px) 14px; overflow-y: auto; overscroll-behavior: contain; }
+    .sheet-in { width: 100%; max-width: 660px; background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; overflow: hidden; }
+    .sheet-hd { padding: 20px 24px 16px; border-bottom: 1px solid var(--line); }
+    .sheet-hd h2 { font-family: Bangers, Inter, cursive; font-weight: 400; letter-spacing: 1px; font-size: 27px; margin: 0; }
+    .sheet-bd { padding: 18px 24px 22px; }
+
+    .promise { display: grid; gap: 7px; margin: 0 0 18px; padding: 13px 15px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-s); }
+    .promise li { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+    .promise svg { width: 15px; height: 15px; flex: none; margin-top: 2px; stroke: var(--ok); fill: none; stroke-width: 2.4; }
+    .promise b { color: var(--text); font-weight: 700; }
+
+    table.rev { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    table.rev th { text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); padding: 0 8px 7px; border-bottom: 1px solid var(--line-2); }
+    table.rev th.r, table.rev td.r { text-align: right; }
+    table.rev td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    table.rev td.nm { color: var(--text); }
+    table.rev td.nm small { display: block; color: var(--faint); font-size: 11.5px; margin-top: 1px; }
+    table.rev td.r { white-space: nowrap; color: var(--muted); }
+    table.rev td.tot { font-weight: 700; color: var(--text); }
+    table.rev .del { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 17px; line-height: 1; width: 30px; height: 30px; border-radius: 6px; }
+    table.rev .del:hover { color: var(--low); background: var(--low-bg); }
+    .revfoot { display: flex; justify-content: flex-end; gap: 26px; align-items: baseline; padding: 13px 8px 0; }
+    .revfoot .k { font-size: 13px; color: var(--dim); }
+    .revfoot .v { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+    .revfoot .v small { display: block; text-align: right; font-size: 11px; font-weight: 500; color: var(--faint); letter-spacing: 0; }
+
+    .shortfall { margin: 14px 0 0; padding: 11px 14px; border-radius: var(--r-s); font-size: 13.5px; line-height: 1.45; background: var(--low-bg); border: 1px solid rgba(255,157,77,0.3); color: #ffcfa6; }
+    .shortfall b { color: #fff; }
+
+    fieldset.fields { border: 0; padding: 0; margin: 20px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    fieldset.fields legend { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); padding: 0 0 9px; }
     .fields .wide { grid-column: 1 / -1; }
-    .fields label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); margin-bottom: 5px; }
+    .fields label { display: block; font-size: 12px; font-weight: 600; color: var(--dim); margin-bottom: 5px; }
+    .fields label .opt { color: var(--faint); font-weight: 500; }
     .fields input, .fields textarea {
-      width: 100%; font: 15px/1.4 system-ui, sans-serif; color: var(--text);
-      background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      width: 100%; font: 15px/1.4 Inter, sans-serif; color: var(--text);
+      background: #0a0a0e; border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 11px 13px;
     }
-    .fields textarea { resize: vertical; min-height: 74px; }
-    .fields input:focus-visible, .fields textarea:focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; }
+    .fields input::placeholder, .fields textarea::placeholder { color: var(--faint); }
+    .fields textarea { resize: vertical; min-height: 76px; }
+    .fields input[aria-invalid="true"] { border-color: var(--low); }
+    .ferr { font-size: 12px; color: var(--low); margin-top: 5px; }
     .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-    .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
-    .msg { margin-top: 14px; font-size: 14px; line-height: 1.5; }
-    .msg.err { color: #ff9a6a; }
-    .done { text-align: center; padding: 18px 4px 6px; }
-    .done .ref { font-family: ui-monospace, Consolas, monospace; font-size: 21px; font-weight: 700; color: var(--cyan); margin: 10px 0; }
-    body.has-bar { padding-bottom: 96px; }
-    @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } .sheet-in { padding: 18px; } }
 
-    /* ── footer ── */
-    footer { position: relative; z-index: 1; text-align: center; margin-top: 64px; }
-    footer .bar {
-      height: 6px; border-radius: 3px;
-      background: linear-gradient(90deg, var(--orange), var(--pink), var(--purple), var(--cyan));
-      box-shadow: 0 0 18px rgba(255,0,128,0.45);
+    .sheet-ft { display: flex; gap: 10px; justify-content: flex-end; align-items: center; padding: 16px 24px 20px; border-top: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
+    .sheet-ft .note { margin-right: auto; font-size: 13px; color: var(--faint); max-width: 40ch; }
+    .banner { margin: 14px 0 0; padding: 11px 14px; border-radius: var(--r-s); font-size: 13.5px; line-height: 1.45; background: var(--low-bg); border: 1px solid rgba(255,157,77,0.35); color: #ffcfa6; }
+
+    .done { text-align: center; padding: 34px 24px 30px; }
+    .done .tick { width: 46px; height: 46px; margin: 0 auto 14px; border-radius: 50%; background: var(--ok-bg); display: flex; align-items: center; justify-content: center; }
+    .done .tick svg { width: 22px; height: 22px; stroke: var(--ok); fill: none; stroke-width: 2.6; }
+    .done h2 { font-family: Bangers, Inter, cursive; font-weight: 400; letter-spacing: 1px; font-size: 26px; margin: 0 0 4px; }
+    .done .ref { display: inline-block; font-family: ui-monospace, Consolas, monospace; font-size: 19px; font-weight: 700; color: var(--cyan); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 16px; margin: 12px 0 14px; }
+    .done p { color: var(--dim); font-size: 13.5px; line-height: 1.55; margin: 0 auto; max-width: 46ch; }
+
+    .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+    footer { border-top: 1px solid var(--line); margin-top: 40px; }
+    footer .in { padding: 22px 0 34px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--faint); }
+    footer a { color: var(--dim); text-decoration: none; }
+    footer a:hover { color: var(--cyan); }
+
+    body.docked { padding-bottom: 104px; }
+
+    @media (max-width: 720px) {
+      .terms div { flex-basis: 50%; border-right: 0; }
+      fieldset.fields { grid-template-columns: 1fr; }
+      .dock-in { gap: 12px; padding: 11px 0; }
+      .dock .figs { gap: 16px; width: 100%; }
+      .dock .moq { flex-basis: 100%; max-width: none; order: 3; }
+      .dock .acts { width: 100%; }
+      .dock .acts .btn { flex: 1; }
+      .sheet { padding: 0; }
+      .sheet-in { border-radius: 0; min-height: 100%; max-width: none; }
+      .sheet-ft { position: sticky; bottom: 0; }
+      .sheet-ft .note { display: none; }
+      .money .p { font-size: 24px; }
     }
-    footer p { color: var(--dim); font-size: 13px; margin: 16px 0 0; }
-    footer a { color: var(--cyan); text-decoration: none; }
-    footer a:focus-visible, .card:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-
     @media (prefers-reduced-motion: reduce) {
-      .card { transition: none; }
-      .card:hover { transform: none; }
-    }
-    @media (max-width: 480px) {
-      .price { font-size: 26px; }
-      header { padding-top: 40px; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
 <body>
-<a class="skip-link" href="#main" style="position:absolute;left:-9999px;">Skip to main content</a>
-<main id="main">
-<div class="wrap">
-  <div class="glow glow-pink"></div>
-  <div class="glow glow-purple"></div>
+<a class="skip-link" href="#main">Skip to inventory</a>
 
-  <header>
-    <img class="logo" src="logo-transparent.png" alt="Sake Kitty Cards logo" width="132" height="132">
-    <h1>Sake Kitty Cards</h1>
-    <p class="hero-sub">Pokémon CN &amp; JP · Sealed Product List</p>
-    <span class="hero-eyebrow">Wholesale · Sealed Product</span>
-    <p class="hero-note">Chinese sealed priced per case &middot; Japanese priced per box &middot; Updated August 31, 2026<br>Set quantities below and send a quote request &mdash; we confirm price and availability by email.</p>
-  </header>
-
-  <div class="legend">
-    <span class="pill pill-stock">In Stock</span>
-    <span class="pill pill-low">Low Stock</span>
-    <span class="pill pill-arriving">Arriving Soon</span>
+<header class="mast">
+  <div class="wrap">
+    <div class="mast-in">
+      <img src="logo-transparent.png" alt="" width="46" height="46">
+      <div class="id">
+        <h1>Sake Kitty Cards</h1>
+        <p class="sub">Wholesale sealed inventory &middot; <b>Chinese</b> priced per case, <b>Japanese</b> per box &middot; updated <b id="updated"></b></p>
+      </div>
+    </div>
+    <dl class="terms">
+      <div><dt>Minimum order</dt><dd><b id="moqLabel"></b> before shipping</dd></div>
+      <div><dt>Pricing &amp; stock</dt><dd>Confirmed by us before any payment</dd></div>
+      <div><dt>Ships from</dt><dd>Fort Myers, Florida</dd></div>
+      <div><dt>Questions</dt><dd><a href="mailto:nick@sakekittycards.com">nick@sakekittycards.com</a></dd></div>
+    </dl>
   </div>
+</header>
 
-  <!-- ══ Gem Packs ══ -->
-  <section class="sec-gem">
-    <div class="sec-head"><h2>Gem Packs</h2><span class="sec-count">4 products</span></div>
-    <div class="grid">
-
-      <div class="card" style="--card-accent: var(--pink)">
-        <div class="card-top">
-          <p class="pname">Gem Pack Vol.5 Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$728</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">162 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">18 packs/box</span><span class="chip">4 cards/pack</span>
-        </div>
+<div class="bar">
+  <div class="wrap">
+    <div class="bar-in">
+      <div class="seg" role="group" aria-label="Filter by origin">
+        <button type="button" data-region="all" aria-pressed="true">All<span class="n" data-count="all"></span></button>
+        <button type="button" data-region="cn" aria-pressed="false">Chinese<span class="n" data-count="cn"></span></button>
+        <button type="button" data-region="jp" aria-pressed="false">Japanese<span class="n" data-count="jp"></span></button>
       </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname">Gem Pack Vol.4 Case</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$535</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">40 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">4 cards/pack</span>
-        </div>
+      <div class="find">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="q" placeholder="Search products" aria-label="Search products" autocomplete="off">
+        <button class="clear" id="qClear" type="button" aria-label="Clear search" hidden>&times;</button>
       </div>
-
-      <div class="card" style="--card-accent: var(--pink)">
-        <div class="card-top">
-          <p class="pname">Gem Pack Vol.2 Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$1,177</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">105 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">4 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname">Gem Pack Vol.6 Case</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$514</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">30 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">18 packs/box</span><span class="chip">4 cards/pack</span>
-        </div>
-      </div>
-
+      <label class="toggle"><input type="checkbox" id="inStock"><span class="dot"></span>In stock now</label>
+      <select class="sort" id="sort" aria-label="Sort products">
+        <option value="default">Catalog order</option>
+        <option value="price-asc">Price: low to high</option>
+        <option value="price-desc">Price: high to low</option>
+        <option value="name">Name A–Z</option>
+      </select>
+      <span class="spacer"></span>
+      <button class="linkish" id="csv" type="button">Download CSV</button>
     </div>
-  </section>
-
-  <!-- ══ Booster Box Cases ══ -->
-  <section class="sec-boxes">
-    <div class="sec-head"><h2>Booster Box Cases</h2><span class="sec-count">10 products</span></div>
-    <div class="grid">
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV5</span>Black Crystal Blaze — Slim Booster Box Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$407</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">37 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">24 packs/box</span><span class="chip">5 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV5</span>Black Crystal Blaze — Jumbo Booster Box Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$471</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">20 cases</span>
-          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV6</span>True Mystery — Slim Booster Box Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$407</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">42 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">24 packs/box</span><span class="chip">5 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--orange)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV7</span>Sharp Blade Awakening — Jumbo Booster Box Case</p>
-          <span class="pill pill-low">Low Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$471</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">15 cases</span>
-          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--orange)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV8</span>Brilliant Illusion — Slim Booster Box Case</p>
-          <span class="pill pill-low">Low Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$407</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">2 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">20 packs/box</span><span class="chip">5 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV8</span>Brilliant Illusion — Jumbo Booster Box Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$471</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">20 cases</span>
-          <span class="chip">12 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV9</span>Stellar Glass — Slim Booster Box Case</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$514</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">80 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">20 packs/box</span><span class="chip">5 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV9.5</span>Terastal Grand Gathering — Booster Box Case</p>
-          <span class="pill pill-stock">In Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$1,284</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">16 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">10 packs/box</span><span class="chip">10 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV10</span>Pursue Glory Together — Slim Booster Box Case</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$578</span><span class="price-unit">/ case</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">100 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">15 packs/box</span><span class="chip">5 cards/pack</span>
-        </div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">CSV10</span>Pursue Glory Together — Jumbo Booster Box Case</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price-tba">Pricing soon</span></div>
-        <div class="meta">
-          <span class="chip chip-qty">50 cases</span>
-          <span class="chip">20 boxes/case</span><span class="chip">6 packs/box</span><span class="chip">20 cards/pack</span>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══ Gift & Collection Boxes ══ -->
-  <section class="sec-gift">
-    <div class="sec-head"><h2>Gift &amp; Collection Boxes</h2><span class="sec-count">4 products</span></div>
-    <div class="grid">
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">Eevee Advanced</span>Gift Box Case — Vaporeon 💧</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$375</span><span class="price-unit">/ case</span></div>
-        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--orange)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">Eevee Advanced</span>Gift Box Case — Flareon 🔥</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$375</span><span class="price-unit">/ case</span></div>
-        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--gold)">
-        <div class="card-top">
-          <p class="pname"><span class="brand">Eevee Advanced</span>Gift Box Case — Jolteon ⚡</p>
-          <span class="pill pill-arriving">Arriving Soon</span>
-        </div>
-        <div class="price-row"><span class="price">$375</span><span class="price-unit">/ case</span></div>
-        <div class="meta"><span class="chip chip-qty">75 cases</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--pink)">
-        <div class="card-top">
-          <p class="pname">Trainer Collection Box Case</p>
-          <span class="pill pill-low">Low Stock</span>
-        </div>
-        <div class="price-row"><span class="price">$279</span><span class="price-unit">/ case</span></div>
-        <div class="meta"><span class="chip chip-qty">10 cases</span></div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══ Japanese · Pokémon Center Boxes ══ -->
-  <section class="sec-pc">
-    <div class="sec-head"><h2>Pokémon Center Boxes</h2><span class="sec-count">3 products · Japanese</span></div>
-    <div class="grid">
-
-      <div class="card" style="--card-accent: var(--pink)">
-        <div class="card-top">
-          <p class="pname">Pokémon Center Tohoku</p>
-        </div>
-        <div class="price-row"><span class="price">$121</span><span class="price-unit">/ box</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--cyan)">
-        <div class="card-top">
-          <p class="pname">Pokémon Center Hiroshima</p>
-        </div>
-        <div class="price-row"><span class="price">$136</span><span class="price-unit">/ box</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname">Pokémon Center Fukuoka</p>
-        </div>
-        <div class="price-row"><span class="price">$140</span><span class="price-unit">/ box</span></div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ══ Japanese · Booster Boxes ══ -->
-  <section class="sec-jp">
-    <div class="sec-head"><h2>Japanese Booster Boxes</h2><span class="sec-count">3 products · Japanese</span></div>
-    <div class="grid">
-
-      <div class="card" style="--card-accent: var(--pink)">
-        <div class="card-top">
-          <p class="pname">Storm Emeralda</p>
-        </div>
-        <div class="price-row"><span class="price">$103</span><span class="price-unit">/ box</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--purple)">
-        <div class="card-top">
-          <p class="pname">Mega Brave</p>
-        </div>
-        <div class="price-row"><span class="price">$78</span><span class="price-unit">/ box</span></div>
-      </div>
-
-      <div class="card" style="--card-accent: var(--gold)">
-        <div class="card-top">
-          <p class="pname">Abyss Eye</p>
-        </div>
-        <div class="price-row"><span class="price">$69</span><span class="price-unit">/ box</span></div>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    <div class="bar"></div>
-    <p>Sake Kitty Cards · <a href="index.html">sakekittycards.com</a> · nick@sakekittycards.com · IG @sakekittycards</p>
-  </footer>
+  </div>
 </div>
 
-<div class="orderbar" id="obar">
-  <div class="sum" id="obarSum"></div>
-  <button class="btn" id="obarGo" type="button">Review order</button>
-  <button class="btn ghost" id="obarClear" type="button">Clear</button>
+<main id="main">
+  <div class="wrap">
+    <div id="groups"></div>
+    <div class="empty" id="empty" hidden>
+      <b>Nothing matches that</b>
+      <span>Try a different search, or clear the filters to see all products.</span>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="in">
+      <span>Sake Kitty Cards &middot; Fort Myers, Florida &middot; <a href="mailto:nick@sakekittycards.com">nick@sakekittycards.com</a></span>
+      <span>Prices and availability change. Both are confirmed in writing before any payment is taken.</span>
+    </div>
+  </div>
+</footer>
+
+<div class="dock" id="dock" aria-hidden="true">
+  <div class="wrap">
+    <div class="dock-in">
+      <div class="figs">
+        <div class="fig"><span class="k" id="dLinesK">Lines</span><span class="v" id="dLines">0</span></div>
+        <div class="fig"><span class="k">Estimated total</span><span class="v" id="dTotal">$0</span></div>
+      </div>
+      <div class="moq">
+        <span class="k" id="dMoq"></span>
+        <div class="meter" id="dMeter"><i></i></div>
+      </div>
+      <div class="acts">
+        <button class="btn quiet small" id="dClear" type="button">Clear</button>
+        <button class="btn" id="dReview" type="button">Review order</button>
+      </div>
+    </div>
+  </div>
 </div>
+<p class="sr" role="status" aria-live="polite" id="live"></p>
 
 <div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="sheet-in">
-    <div id="sheetForm">
-      <h3 id="sheetTitle">Request a quote</h3>
-      <p class="hint">Send us the quantities you want. We confirm current price and availability against stock and reply with a firm total &mdash; nothing is charged and no stock is held by submitting this.</p>
-      <table class="lines"><tbody id="lineRows"></tbody></table>
-      <div class="tot"><span>Total at listed prices</span><span id="lineTot">$0<small>indicative</small></span></div>
-      <div class="fields">
-        <div><label for="fName">Your name</label><input id="fName" autocomplete="name" maxlength="120"></div>
-        <div><label for="fCompany">Company</label><input id="fCompany" autocomplete="organization" maxlength="140"></div>
-        <div><label for="fEmail">Email</label><input id="fEmail" type="email" autocomplete="email" maxlength="160"></div>
-        <div><label for="fPhone">Phone <span style="text-transform:none;letter-spacing:0">(optional)</span></label><input id="fPhone" type="tel" autocomplete="tel" maxlength="60"></div>
-        <div class="wide"><label for="fNotes">Anything else <span style="text-transform:none;letter-spacing:0">(optional)</span></label><textarea id="fNotes" maxlength="1200" placeholder="Delivery timing, a title you need that isn't listed, payment questions."></textarea></div>
-        <div class="hp" aria-hidden="true"><label for="fWebsite">Website</label><input id="fWebsite" tabindex="-1" autocomplete="off"></div>
+  <div class="sheet-in" role="document">
+    <div id="stepForm">
+      <div class="sheet-hd">
+        <h2 id="sheetTitle">Request a quote</h2>
       </div>
-      <div class="msg err" id="sheetErr" hidden></div>
-      <div class="acts">
-        <button class="btn ghost" id="sheetClose" type="button">Keep browsing</button>
-        <button class="btn" id="sheetSend" type="button">Send request</button>
+      <div class="sheet-bd">
+        <ul class="promise">
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>No payment is taken.</b> This sends us your list — nothing is charged and no card is collected.</span></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>Stock is not reserved</b> by submitting. We check it against the shelf when we price your quote.</span></li>
+          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span><b>We reply with confirmed pricing, availability and shipping</b> — then you decide whether to proceed.</span></li>
+        </ul>
+
+        <table class="rev">
+          <thead><tr><th scope="col">Product</th><th scope="col" class="r">Qty</th><th scope="col" class="r">Unit</th><th scope="col" class="r">Line</th><th><span class="sr">Remove</span></th></tr></thead>
+          <tbody id="revRows"></tbody>
+        </table>
+        <div class="revfoot">
+          <span class="k">Estimated order total</span>
+          <span class="v" id="revTotal">$0<small>at listed prices, pending confirmation</small></span>
+        </div>
+        <div id="revShort" class="shortfall" hidden></div>
+
+        <form id="quoteForm" novalidate>
+          <fieldset class="fields">
+            <legend>Where we send the quote</legend>
+            <div><label for="fName">Your name</label><input id="fName" name="name" autocomplete="name" maxlength="120" required><div class="ferr" id="eName" hidden></div></div>
+            <div><label for="fCompany">Company <span class="opt">(optional)</span></label><input id="fCompany" name="company" autocomplete="organization" maxlength="140"></div>
+            <div><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="160" required><div class="ferr" id="eEmail" hidden></div></div>
+            <div><label for="fPhone">Phone <span class="opt">(optional)</span></label><input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="60"></div>
+            <div class="wide"><label for="fNotes">Anything we should know <span class="opt">(optional)</span></label><textarea id="fNotes" name="notes" maxlength="1200" placeholder="Delivery timing, a title you need that isn't listed, how you'd like to pay."></textarea></div>
+            <div class="hp" aria-hidden="true"><label for="fWebsite">Website</label><input id="fWebsite" tabindex="-1" autocomplete="off"></div>
+          </fieldset>
+          <div class="banner" id="sendErr" role="alert" hidden></div>
+        </form>
+      </div>
+      <div class="sheet-ft">
+        <span class="note">We read every request by hand — you'll hear back from Nick or Andrew.</span>
+        <button class="btn quiet" id="backToList" type="button">Back to inventory</button>
+        <button class="btn" id="send" type="button">Send request</button>
       </div>
     </div>
-    <div id="sheetDone" hidden>
+
+    <div id="stepDone" hidden>
       <div class="done">
-        <h3>Request sent</h3>
+        <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <h2>Request received</h2>
         <div class="ref" id="doneRef"></div>
-        <p class="hint" style="margin:0 auto;max-width:44ch">We have it. Nick or Andrew will come back to you with confirmed pricing and availability. Keep this reference for the thread.</p>
+        <p id="doneMsg"></p>
       </div>
-      <div class="acts" style="justify-content:center"><button class="btn" id="doneClose" type="button">Done</button></div>
+      <div class="sheet-ft" style="justify-content:center">
+        <button class="btn" id="doneClose" type="button">Back to inventory</button>
+      </div>
     </div>
   </div>
 </div>
-</main>
 
 <script>
 (function () {
   'use strict';
+
+  /* ===========================================================
+     CATALOG — the single source of truth for this page.
+     To edit inventory or pricing, change ONLY this array and the
+     UPDATED date below. Nothing else in the file needs touching.
+
+       id           stable key; used for saved orders. Never reuse.
+       name         what the buyer and our email both see
+       set          short set/line code shown above the name ('' to omit)
+       region       'cn' | 'jp'   (drives the origin filter + grouping)
+       group        section heading
+       price        integer USD per `unit`; null = not yet priced
+       unit         'case' | 'box'
+       status       'in' | 'low' | 'soon' | 'out'
+       available    integer count of `unit`, or null if we don't publish one
+       boxesPerCase / packsPerBox / cardsPerPack — null when not applicable
+     =========================================================== */
+  var UPDATED = '2026-09-01';
+  var MOQ = 1500;                       // wholesale minimum, USD, before shipping
   var API = 'https://tcgenie.nwilliams23999.workers.dev/sk/wholesale-order';
-  var KEY = 'sk_wholesale_order_v1';
-  var LOADED = Date.now();
+  var STORE = 'sk_wholesale_order_v2';
+
+  var CATALOG = [
+    // ── Chinese, priced per case ────────────────────────────────
+    { id:'cn-gem5',  name:'Gem Pack Vol.5 Case',  set:'', region:'cn', group:'Gem Packs', price:728,  unit:'case', status:'in',   available:162, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
+    { id:'cn-gem4',  name:'Gem Pack Vol.4 Case',  set:'', region:'cn', group:'Gem Packs', price:535,  unit:'case', status:'soon', available:40,  boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'cn-gem2',  name:'Gem Pack Vol.2 Case',  set:'', region:'cn', group:'Gem Packs', price:1177, unit:'case', status:'in',   available:105, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'cn-gem6',  name:'Gem Pack Vol.6 Case',  set:'', region:'cn', group:'Gem Packs', price:514,  unit:'case', status:'soon', available:30,  boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
+
+    { id:'cn-csv5s', name:'Black Crystal Blaze — Slim Booster Box Case',    set:'CSV5',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'in',   available:37,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'cn-csv5j', name:'Black Crystal Blaze — Jumbo Booster Box Case',   set:'CSV5',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'in',   available:20,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
+    { id:'cn-csv6s', name:'True Mystery — Slim Booster Box Case',           set:'CSV6',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'in',   available:42,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'cn-csv7j', name:'Sharp Blade Awakening — Jumbo Booster Box Case', set:'CSV7',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'low',  available:15,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
+    { id:'cn-csv8s', name:'Brilliant Illusion — Slim Booster Box Case',     set:'CSV8',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'low',  available:2,   boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'cn-csv8j', name:'Brilliant Illusion — Jumbo Booster Box Case',    set:'CSV8',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'in',   available:20,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
+    { id:'cn-csv9s', name:'Stellar Glass — Slim Booster Box Case',          set:'CSV9',   region:'cn', group:'Booster Box Cases', price:514,  unit:'case', status:'soon', available:80,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'cn-csv95', name:'Terastal Grand Gathering — Booster Box Case',    set:'CSV9.5', region:'cn', group:'Booster Box Cases', price:1284, unit:'case', status:'in',   available:16,  boxesPerCase:20, packsPerBox:10, cardsPerPack:10 },
+    { id:'cn-csv10s',name:'Pursue Glory Together — Slim Booster Box Case',  set:'CSV10',  region:'cn', group:'Booster Box Cases', price:578,  unit:'case', status:'soon', available:100, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'cn-csv10j',name:'Pursue Glory Together — Jumbo Booster Box Case', set:'CSV10',  region:'cn', group:'Booster Box Cases', price:null, unit:'case', status:'out',  available:0,   boxesPerCase:20, packsPerBox:6,  cardsPerPack:20 },
+
+    { id:'cn-eev-v', name:'Eevee Advanced Gift Box Case — Vaporeon', set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'cn-eev-f', name:'Eevee Advanced Gift Box Case — Flareon',  set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'cn-eev-j', name:'Eevee Advanced Gift Box Case — Jolteon',  set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'cn-trainer',name:'Trainer Collection Box Case',            set:'', region:'cn', group:'Gift & Collection Boxes', price:279, unit:'case', status:'low',  available:10, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+
+    // ── Japanese, priced per box ────────────────────────────────
+    // available/config left null on purpose: we do not publish a stock
+    // figure or pack spec we cannot stand behind. See notes to Nick.
+    { id:'jp-pc-tohoku',    name:'Pokémon Center Tohoku Special Box',    set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'jp-pc-hiroshima', name:'Pokémon Center Hiroshima Special Box', set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:136, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'jp-pc-fukuoka',   name:'Pokémon Center Fukuoka Special Box',   set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:140, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+
+    { id:'jp-storm', name:'Storm Emeralda', set:'', region:'jp', group:'Japanese Booster Boxes', price:103, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'jp-brave', name:'Mega Brave',     set:'', region:'jp', group:'Japanese Booster Boxes', price:78,  unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'jp-abyss', name:'Abyss Eye',      set:'', region:'jp', group:'Japanese Booster Boxes', price:69,  unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null }
+  ];
+
+  var GROUP_ORDER = ['Gem Packs', 'Booster Box Cases', 'Gift & Collection Boxes', 'Pokémon Center Boxes', 'Japanese Booster Boxes'];
+  var STATUS = {
+    in:   { cls:'ok',   label:'In stock' },
+    low:  { cls:'low',  label:'Low stock' },
+    soon: { cls:'soon', label:'Arriving soon' },
+    out:  { cls:'off',  label:'Unavailable' }
+  };
+
+  /* ── helpers ─────────────────────────────────────────────── */
+  var $ = function (id) { return document.getElementById(id); };
+  function money(n) { return '$' + Math.round(Number(n) || 0).toLocaleString('en-US'); }
+  function money2(n) {
+    var v = Number(n) || 0;
+    return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function orderable(p) { return p.price != null && p.status !== 'out'; }
+  function byId(id) { for (var i = 0; i < CATALOG.length; i++) { if (CATALOG[i].id === id) return CATALOG[i]; } return null; }
+
+  /* per-box (or per-pack) economics — the number a buyer actually compares on */
+  function each(p) {
+    if (p.price == null) return '';
+    if (p.unit === 'case' && p.boxesPerCase) return money2(p.price / p.boxesPerCase) + ' / box';
+    if (p.unit === 'box' && p.packsPerBox) return money2(p.price / p.packsPerBox) + ' / pack';
+    return '';
+  }
+
+  /* ── order state ─────────────────────────────────────────── */
   var order = {};
-
-  try { order = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { order = {}; }
-
-  function money(n) { return '$' + Number(n || 0).toLocaleString('en-US'); }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(order)); } catch (e) {} }
-
-  // DOM refs first: the card loop calls set() -> paint() on init, and paint() needs these.
-  // (Declaring them after the loop leaves them `undefined` at that point and the loop dies on card 1.)
-  var bar = document.getElementById('obar');
-  var barSum = document.getElementById('obarSum');
-  var sheet = document.getElementById('sheet');
-  var rows = document.getElementById('lineRows');
-  var totEl = document.getElementById('lineTot');
-  var errEl = document.getElementById('sheetErr');
-
-  // every card that has a real price is orderable; "Pricing soon" lines are not
-  var cards = [].slice.call(document.querySelectorAll('.card')).map(function (card) {
-    var nameEl = card.querySelector('.pname');
-    var priceEl = card.querySelector('.price');
-    var unitEl = card.querySelector('.price-unit');
-    if (!nameEl || !priceEl) return null;
-    var brand = nameEl.querySelector('.brand');
-    var name = (brand ? nameEl.textContent.replace(brand.textContent, '') : nameEl.textContent).trim();
-    return {
-      card: card, name: name,
-      price: parseInt(priceEl.textContent.replace(/[^0-9]/g, ''), 10) || 0,
-      unit: ((unitEl && unitEl.textContent) || '/ case').replace('/', '').trim()
-    };
-  }).filter(Boolean);
-
-  cards.forEach(function (it) {
-    var wrap = document.createElement('div');
-    wrap.className = 'qty';
-    var minus = document.createElement('button');
-    minus.type = 'button'; minus.textContent = '\u2212';
-    minus.setAttribute('aria-label', 'One fewer ' + it.name);
-    var input = document.createElement('input');
-    input.type = 'number'; input.min = '0'; input.max = '999'; input.step = '1'; input.value = '';
-    input.placeholder = '0';
-    input.setAttribute('aria-label', 'Cases of ' + it.name);
-    var plus = document.createElement('button');
-    plus.type = 'button'; plus.textContent = '+';
-    plus.setAttribute('aria-label', 'One more ' + it.name);
-    var lbl = document.createElement('span');
-    lbl.className = 'lbl'; lbl.textContent = it.unit + 's';
-    wrap.appendChild(minus); wrap.appendChild(input); wrap.appendChild(plus); wrap.appendChild(lbl);
-    it.card.appendChild(wrap);
-    it.input = input; it.minus = minus;
-
-    function set(n) {
-      n = Math.max(0, Math.min(999, Math.floor(Number(n) || 0)));
-      if (n) { order[it.name] = { qty: n, price: it.price, unit: it.unit }; }
-      else { delete order[it.name]; }
-      input.value = n ? String(n) : '';
-      it.card.classList.toggle('picked', !!n);
-      minus.disabled = !n;
-      save(); paint();
-    }
-    it.set = set;
-    minus.addEventListener('click', function () { set((Number(input.value) || 0) - 1); });
-    plus.addEventListener('click', function () { set((Number(input.value) || 0) + 1); });
-    input.addEventListener('input', function () { set(input.value); });
-    set(order[it.name] ? order[it.name].qty : 0);
-  });
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE) || '{}');
+    // drop anything whose price moved or whose SKU disappeared, so a stale
+    // saved order can never quote an old price back at us
+    Object.keys(raw || {}).forEach(function (id) {
+      var p = byId(id);
+      if (p && orderable(p) && raw[id] && raw[id].price === p.price) {
+        order[id] = { qty: Math.max(1, Math.min(9999, Math.floor(raw[id].qty) || 0)), price: p.price };
+      }
+    });
+  } catch (e) { order = {}; }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(order)); } catch (e) {} }
 
   function lines() {
-    return Object.keys(order).map(function (n) {
-      return { name: n, qty: order[n].qty, price: order[n].price, unit: order[n].unit };
+    return Object.keys(order).map(function (id) {
+      var p = byId(id);
+      return p ? { p: p, qty: order[id].qty, line: p.price * order[id].qty } : null;
+    }).filter(Boolean).sort(function (a, b) {
+      return CATALOG.indexOf(a.p) - CATALOG.indexOf(b.p);
     });
   }
   function totals() {
-    return lines().reduce(function (a, l) {
-      a.units += l.qty; a.value += l.qty * l.price; a.skus += 1; return a;
-    }, { units: 0, value: 0, skus: 0 });
+    var ls = lines(), v = 0, u = 0;
+    ls.forEach(function (l) { v += l.line; u += l.qty; });
+    return { lines: ls.length, value: v, units: u, met: v >= MOQ, short: Math.max(0, MOQ - v) };
   }
-  function paint() {
-    var t = totals();
-    bar.classList.toggle('on', t.skus > 0);
-    document.body.classList.toggle('has-bar', t.skus > 0);
-    barSum.innerHTML = t.skus + (t.skus === 1 ? ' product' : ' products') +
-      ' <span>&middot; ' + t.units + (t.units === 1 ? ' unit' : ' units') + ' &middot; ' + money(t.value) + '</span>';
-  }
-  function paintSheet() {
-    var ls = lines(), t = totals();
-    rows.innerHTML = '';
-    ls.forEach(function (l) {
-      var tr = document.createElement('tr');
-      var td1 = document.createElement('td'); td1.className = 'n'; td1.textContent = l.name;
-      var td2 = document.createElement('td'); td2.className = 'q'; td2.textContent = l.qty + ' \u00d7 ' + l.unit;
-      var td3 = document.createElement('td'); td3.className = 't'; td3.textContent = money(l.qty * l.price);
-      var td4 = document.createElement('td'); td4.className = 'x';
-      var rm = document.createElement('button');
-      rm.type = 'button'; rm.innerHTML = '&times;';
-      rm.setAttribute('aria-label', 'Remove ' + l.name);
-      rm.addEventListener('click', function () {
-        var hit = cards.filter(function (c) { return c.name === l.name; })[0];
-        if (hit) { hit.set(0); } else { delete order[l.name]; save(); paint(); }
-        paintSheet();
-        if (!totals().skus) { close(); }
-      });
-      td4.appendChild(rm);
-      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
-      rows.appendChild(tr);
+
+  /* ── render ──────────────────────────────────────────────── */
+  var view = { region: 'all', q: '', inStock: false, sort: 'default' };
+  var groupsEl = $('groups');
+
+  function visible() {
+    var q = view.q.trim().toLowerCase();
+    var out = CATALOG.filter(function (p) {
+      if (view.region !== 'all' && p.region !== view.region) return false;
+      if (view.inStock && p.status !== 'in' && p.status !== 'low') return false;
+      if (q && (p.name + ' ' + p.set + ' ' + p.group).toLowerCase().indexOf(q) < 0) return false;
+      return true;
     });
-    totEl.innerHTML = money(t.value) + '<small>' + t.units + (t.units === 1 ? ' unit' : ' units') + ' &middot; indicative</small>';
+    if (view.sort === 'price-asc')  out.sort(function (a, b) { return (a.price == null) - (b.price == null) || a.price - b.price; });
+    if (view.sort === 'price-desc') out.sort(function (a, b) { return (a.price == null) - (b.price == null) || b.price - a.price; });
+    if (view.sort === 'name')       out.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    return out;
   }
 
-  var lastFocus = null;
-  function open() {
-    if (!totals().skus) return;
+  function card(p) {
+    var el = document.createElement('article');
+    el.className = 'sku' + (orderable(p) ? '' : ' na');
+    el.dataset.id = p.id;
+
+    var st = STATUS[p.status];
+    var head = '<div class="top"><div>' +
+      (p.set ? '<div class="set">' + p.set + '</div>' : '') +
+      '<h3>' + p.name + '</h3></div>' +
+      '<span class="stat ' + st.cls + '"><i></i>' + st.label + '</span></div>';
+
+    var price = p.price == null
+      ? '<div class="money"><span class="tba">Price on request</span></div>'
+      : '<div class="money"><span class="p">' + money(p.price) + '</span><span class="u">/ ' + p.unit + '</span>' +
+        (each(p) ? '<span class="each">' + each(p) + '</span>' : '') + '</div>';
+
+    var bits = [];
+    if (p.boxesPerCase) bits.push('<span><b>' + p.boxesPerCase + '</b> boxes/case</span>');
+    if (p.packsPerBox)  bits.push('<span><b>' + p.packsPerBox + '</b> packs/box</span>');
+    if (p.cardsPerPack) bits.push('<span><b>' + p.cardsPerPack + '</b> cards/pack</span>');
+    var spec = bits.length
+      ? '<div class="spec">' + bits.join('') + '</div>'
+      : '<div class="spec"><span class="none">Configuration on request</span></div>';
+
+    // availability reads as its own fact, not as a fourth spec chip
+    var avail = '';
+    if (p.available != null && p.available > 0) {
+      avail = '<div class="avail' + (p.available <= 5 ? ' thin' : '') + '"><b>' + p.available + '</b> ' +
+        (p.available === 1 ? p.unit : p.unit + 's') + ' available</div>';
+    } else if (p.available == null) {
+      avail = '<div class="avail" style="color:var(--faint)">Stock confirmed on request</div>';
+    }
+
+    el.innerHTML = head + price + spec + avail;
+
+    if (!orderable(p)) {
+      var na = document.createElement('div');
+      na.className = 'noorder';
+      na.innerHTML = p.price == null
+        ? 'Not yet priced. <b>Ask for it in your notes</b> and we\'ll quote it.'
+        : 'Currently unavailable.';
+      el.appendChild(na);
+      return el;
+    }
+
+    var pick = document.createElement('div');
+    pick.className = 'pick';
+    var minus = document.createElement('button');
+    minus.type = 'button'; minus.textContent = '−'; minus.setAttribute('aria-label', 'Remove one ' + p.unit + ' of ' + p.name);
+    var input = document.createElement('input');
+    input.type = 'text'; input.inputMode = 'numeric'; input.autocomplete = 'off'; input.placeholder = '—';
+    input.setAttribute('aria-label', p.name + ', number of ' + p.unit + 's');
+    var plus = document.createElement('button');
+    plus.type = 'button'; plus.textContent = '+'; plus.setAttribute('aria-label', 'Add one ' + p.unit + ' of ' + p.name);
+    var un = document.createElement('span'); un.className = 'un'; un.textContent = p.unit + 's';
+    var line = document.createElement('span'); line.className = 'line';
+    pick.appendChild(minus); pick.appendChild(input); pick.appendChild(plus); pick.appendChild(un); pick.appendChild(line);
+
+    el.appendChild(pick);
+
+    minus.addEventListener('click', function () { setQty(p, cur(p) - 1, true); });
+    plus.addEventListener('click', function () { setQty(p, cur(p) + 1, true); });
+    input.addEventListener('input', function () {
+      var digits = input.value.replace(/[^\d]/g, '').slice(0, 4);
+      if (digits !== input.value) input.value = digits;
+      setQty(p, digits === '' ? 0 : parseInt(digits, 10), false);
+    });
+    input.addEventListener('blur', function () { paintCard(p); });
+    return el;
+  }
+
+  function cur(p) { return order[p.id] ? order[p.id].qty : 0; }
+
+  function setQty(p, n, refocus) {
+    n = Math.max(0, Math.min(9999, Math.floor(Number(n) || 0)));
+    if (n > 0) order[p.id] = { qty: n, price: p.price };
+    else delete order[p.id];
+    save(); paintCard(p); paintDock();
+    if (refocus) {
+      announce(n > 0
+        ? p.name + ', ' + plural(n, p.unit, p.unit + 's') + '. Order total ' + money(totals().value)
+        : p.name + ' removed from the order');
+    }
+  }
+
+  function paintCard(p) {
+    var el = groupsEl.querySelector('[data-id="' + p.id + '"]');
+    if (!el) return;
+    var n = cur(p);
+    var input = el.querySelector('.pick input');
+    var minus = el.querySelector('.pick button');
+    var line = el.querySelector('.line');
+    if (input && document.activeElement !== input) input.value = n ? String(n) : '';
+    // moving focus off a button as we disable it, rather than letting focus fall to <body>
+    if (minus && !n && document.activeElement === minus && input) input.focus();
+    if (minus) minus.disabled = !n;
+    if (line) line.textContent = n ? money(p.price * n) : '';
+    el.classList.toggle('on', n > 0);
+    // requesting more than we list is allowed — we just say so plainly
+    var warn = el.querySelector('.overask');
+    if (p.available != null && n > p.available) {
+      if (!warn) {
+        warn = document.createElement('div');
+        warn.className = 'noorder overask';
+        el.appendChild(warn);
+      }
+      warn.innerHTML = 'Above the <b>' + p.available + '</b> we list. We\'ll confirm what we can source.';
+    } else if (warn) { warn.remove(); }
+  }
+
+  function render() {
+    var list = visible();
+    groupsEl.innerHTML = '';
+    var order_ = view.sort === 'default' ? GROUP_ORDER : ['__flat'];
+    if (view.sort === 'default') {
+      order_.forEach(function (g) {
+        var items = list.filter(function (p) { return p.group === g; });
+        if (!items.length) return;
+        groupsEl.appendChild(groupEl(g, items));
+      });
+    } else if (list.length) {
+      groupsEl.appendChild(groupEl(list.length + ' products', list, true));
+    }
+    $('empty').hidden = list.length > 0;
+    Object.keys(order).forEach(function (id) { var p = byId(id); if (p) paintCard(p); });
+  }
+
+  function groupEl(title, items, flat) {
+    var sec = document.createElement('section');
+    sec.className = 'grp';
+    var h = document.createElement('div');
+    h.className = 'grp-head';
+    h.innerHTML = '<h2>' + title + '</h2>' + (flat ? '' : '<span class="cnt">' + plural(items.length, 'product', 'products') + '</span>') + '<span class="rule"></span>';
+    var g = document.createElement('div');
+    g.className = 'grid';
+    items.forEach(function (p) { g.appendChild(card(p)); });
+    sec.appendChild(h); sec.appendChild(g);
+    return sec;
+  }
+
+  var liveEl = $('live'), liveTimer;
+  function announce(msg) {
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(function () { liveEl.textContent = msg; }, 120);
+  }
+
+  /* ── dock ────────────────────────────────────────────────── */
+  function paintDock() {
+    var t = totals();
+    var dock = $('dock');
+    dock.classList.toggle('up', t.lines > 0);
+    dock.setAttribute('aria-hidden', t.lines ? 'false' : 'true');
+    document.body.classList.toggle('docked', t.lines > 0);
+    $('dLines').textContent = t.lines;
+    $('dLinesK').textContent = t.lines === 1 ? 'Line' : 'Lines';
+    $('dTotal').innerHTML = money(t.value) + ' <small>est.</small>';
+    var pct = Math.min(100, (t.value / MOQ) * 100);
+    $('dMeter').querySelector('i').style.width = pct + '%';
+    $('dMeter').classList.toggle('met', t.met);
+    var k = $('dMoq');
+    k.classList.toggle('met', t.met);
+    k.innerHTML = t.met
+      ? '<b>' + money(MOQ) + ' minimum met</b>'
+      : '<b>' + money(t.short) + '</b> to reach the ' + money(MOQ) + ' minimum';
+    $('dReview').disabled = t.lines === 0;
+  }
+
+  /* ── quote sheet ─────────────────────────────────────────── */
+  var sheet = $('sheet'), lastFocus = null, sending = false;
+
+  function paintReview() {
+    var t = totals(), tb = $('revRows');
+    tb.innerHTML = '';
+    lines().forEach(function (l) {
+      var tr = document.createElement('tr');
+      var nm = document.createElement('td'); nm.className = 'nm';
+      nm.innerHTML = l.p.name + (l.p.set ? '<small>' + l.p.set + '</small>' : '');
+      var q = document.createElement('td'); q.className = 'r'; q.textContent = l.qty + ' × ' + l.p.unit;
+      var u = document.createElement('td'); u.className = 'r'; u.textContent = money(l.p.price);
+      var tot = document.createElement('td'); tot.className = 'r tot'; tot.textContent = money(l.line);
+      var x = document.createElement('td'); x.className = 'r';
+      var del = document.createElement('button');
+      del.type = 'button'; del.className = 'del'; del.innerHTML = '&times;';
+      del.setAttribute('aria-label', 'Remove ' + l.p.name + ' from the order');
+      del.addEventListener('click', function () {
+        setQty(l.p, 0, false);
+        if (!totals().lines) { closeSheet(); announce('Order cleared'); }
+        else { paintReview(); announce(l.p.name + ' removed'); }
+      });
+      x.appendChild(del);
+      [nm, q, u, tot, x].forEach(function (c) { tr.appendChild(c); });
+      tb.appendChild(tr);
+    });
+    $('revTotal').innerHTML = money(t.value) + '<small>at listed prices, pending confirmation</small>';
+    var sh = $('revShort');
+    sh.hidden = t.met;
+    if (!t.met) sh.innerHTML = 'Our wholesale minimum is <b>' + money(MOQ) + '</b> before shipping. You\'re <b>' + money(t.short) + '</b> under &mdash; add a little more and the request can go through.';
+    $('send').disabled = !t.met;
+    $('send').title = t.met ? '' : 'Reach the ' + money(MOQ) + ' minimum to send';
+  }
+
+  function openSheet() {
+    if (!totals().lines) return;
     lastFocus = document.activeElement;
-    paintSheet();
-    errEl.hidden = true;
-    document.getElementById('sheetForm').hidden = false;
-    document.getElementById('sheetDone').hidden = true;
+    paintReview();
+    $('sendErr').hidden = true;
+    ['eName', 'eEmail'].forEach(function (i) { $(i).hidden = true; });
+    ['fName', 'fEmail'].forEach(function (i) { $(i).removeAttribute('aria-invalid'); });
+    $('stepForm').hidden = false; $('stepDone').hidden = true;
     sheet.hidden = false;
-    document.getElementById('fName').focus();
+    document.body.style.overflow = 'hidden';
+    ($('fName').value ? $('send') : $('fName')).focus();
   }
-  function close() {
+  function closeSheet() {
     sheet.hidden = true;
-    if (lastFocus && lastFocus.focus) { lastFocus.focus(); }
+    document.body.style.overflow = '';
+    // lastFocus may since have been hidden (the dock retracts when the order
+    // empties, and it does after a successful send) - fall back to something real
+    var target = (lastFocus && lastFocus.offsetParent !== null) ? lastFocus : null;
+    if (!target) target = totals().lines ? $('dReview') : document.getElementById('q');
+    if (target && target.focus) target.focus();
   }
 
-  document.getElementById('obarGo').addEventListener('click', open);
-  document.getElementById('sheetClose').addEventListener('click', close);
-  document.getElementById('doneClose').addEventListener('click', close);
-  document.getElementById('obarClear').addEventListener('click', function () {
-    cards.forEach(function (c) { c.set(0); });
-    order = {}; save(); paint(); close();
+  // focus trap
+  // Escape lives on the document, not the sheet: a disabled Send button drops
+  // focus to <body>, and a modal must still close from there.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !sheet.hidden) { e.preventDefault(); closeSheet(); }
   });
-  sheet.addEventListener('click', function (e) { if (e.target === sheet) { close(); } });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !sheet.hidden) { close(); } });
+  sheet.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var f = sheet.querySelectorAll('button:not([disabled]), input:not([tabindex="-1"]), textarea, select, a[href]');
+    var vis = [].filter.call(f, function (el) { return el.offsetParent !== null; });
+    if (!vis.length) return;
+    var first = vis[0], last = vis[vis.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  sheet.addEventListener('mousedown', function (e) { if (e.target === sheet) closeSheet(); });
 
-  document.getElementById('sheetSend').addEventListener('click', function () {
-    var btn = this;
+  /* ── submit ──────────────────────────────────────────────── */
+  var LOADED = Date.now();
+  function fieldError(id, errId, msg) {
+    $(errId).textContent = msg; $(errId).hidden = false;
+    $(id).setAttribute('aria-invalid', 'true');
+  }
+  function clearFieldError(id, errId) { $(errId).hidden = true; $(id).removeAttribute('aria-invalid'); }
+
+  $('send').addEventListener('click', function () {
+    if (sending) return;
+    var t = totals();
+    if (!t.met || !t.lines) return;
+
+    var name = $('fName').value.trim();
+    var email = $('fEmail').value.trim();
+    var bad = false;
+    if (!name) { fieldError('fName', 'eName', 'We need a name to address the quote to.'); bad = true; }
+    else clearFieldError('fName', 'eName');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { fieldError('fEmail', 'eEmail', 'Check this address — it\'s where the quote goes.'); bad = true; }
+    else clearFieldError('fEmail', 'eEmail');
+    if (bad) { $(!name ? 'fName' : 'fEmail').focus(); return; }
+
+    sending = true;
+    var btn = $('send');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    $('sendErr').hidden = true;
+
     var payload = {
-      name: document.getElementById('fName').value.trim(),
-      company: document.getElementById('fCompany').value.trim(),
-      email: document.getElementById('fEmail').value.trim(),
-      phone: document.getElementById('fPhone').value.trim(),
-      notes: document.getElementById('fNotes').value.trim(),
-      company_website: document.getElementById('fWebsite').value.trim(),
+      name: name,
+      company: $('fCompany').value.trim(),
+      email: email,
+      phone: $('fPhone').value.trim(),
+      notes: $('fNotes').value.trim(),
+      company_website: $('fWebsite').value.trim(),
       elapsedMs: Date.now() - LOADED,
-      items: lines()
+      items: lines().map(function (l) {
+        return { name: l.p.name, qty: l.qty, unit: l.p.unit, price: l.p.price };
+      })
     };
-    if (!payload.name) { fail('Please add your name so we know who to reply to.'); return; }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(payload.email)) { fail('That email does not look right \u2014 we need it to send the quote back.'); return; }
 
-    errEl.hidden = true;
-    btn.disabled = true; btn.textContent = 'Sending\u2026';
-    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var bail = setTimeout(function () { if (ctl) ctl.abort(); }, 20000);
+
+    fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: ctl && ctl.signal })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (res) {
-        if (!res.ok || !res.d || !res.d.ok) { throw new Error((res.d && res.d.error) || 'Request failed'); }
-        document.getElementById('doneRef').textContent = res.d.ref || '';
-        document.getElementById('sheetForm').hidden = true;
-        document.getElementById('sheetDone').hidden = false;
-        cards.forEach(function (c) { c.set(0); });
-        order = {}; save(); paint();
+        if (!res.ok || !res.d.ok) throw new Error(res.d.error || 'We couldn\'t send that just now.');
+        $('doneRef').textContent = res.d.ref || '';
+        $('doneMsg').textContent = 'We\'ve got your list and a copy is with Nick and Andrew. We\'ll come back to ' + email +
+          ' with confirmed pricing, availability and shipping. Quote this reference if you need to chase it.';
+        $('stepForm').hidden = true; $('stepDone').hidden = false;
+        $('doneClose').focus();
+        order = {}; save(); render(); paintDock();
+        announce('Request sent. Reference ' + (res.d.ref || ''));
       })
       .catch(function (e) {
-        fail((e && e.message) || 'Could not send. Email nick@sakekittycards.com and we will pick it up there.');
+        var b = $('sendErr');
+        var msg = (e && e.name === 'AbortError')
+          ? 'That took too long to send.'
+          : (e && e.message && e.message.length < 120 ? e.message : 'Something went wrong on our end.');
+        b.innerHTML = msg +
+          ' Your order is still here — try again, or email <a href="mailto:nick@sakekittycards.com" style="color:inherit">nick@sakekittycards.com</a> and we\'ll pick it up there.';
+        b.hidden = false;
       })
-      .then(function () { btn.disabled = false; btn.textContent = 'Send request'; });
+      .then(function () { clearTimeout(bail); sending = false; btn.disabled = false; btn.textContent = 'Send request'; paintReview(); });
   });
 
-  function fail(m) { errEl.textContent = m; errEl.hidden = false; }
+  ['fName', 'fEmail'].forEach(function (id) {
+    $(id).addEventListener('input', function () { clearFieldError(id, id === 'fName' ? 'eName' : 'eEmail'); });
+  });
+  // Enter submits from any single-line field (the textarea keeps its newlines)
+  $('quoteForm').addEventListener('submit', function (e) { e.preventDefault(); $('send').click(); });
+  $('quoteForm').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $('send').click(); }
+  });
 
-  paint();
+  /* ── CSV ─────────────────────────────────────────────────── */
+  function csv() {
+    var head = ['Product', 'Set', 'Origin', 'Category', 'Price USD', 'Per', 'Boxes/case', 'Packs/box', 'Cards/pack', 'Status', 'Available'];
+    var rows = CATALOG.map(function (p) {
+      return [p.name, p.set, p.region === 'cn' ? 'Chinese' : 'Japanese', p.group,
+        p.price == null ? '' : p.price, p.unit, p.boxesPerCase || '', p.packsPerBox || '',
+        p.cardsPerPack || '', STATUS[p.status].label, p.available == null ? '' : p.available];
+    });
+    var esc = function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var body = [head].concat(rows).map(function (r) { return r.map(esc).join(','); }).join('\r\n');
+    var blob = new Blob(['﻿' + body], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sake-kitty-wholesale-' + UPDATED + '.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
+  /* ── wire up ─────────────────────────────────────────────── */
+  $('updated').textContent = new Date(UPDATED + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  $('moqLabel').textContent = money(MOQ);
+
+  [].forEach.call(document.querySelectorAll('.seg button'), function (b) {
+    b.addEventListener('click', function () {
+      view.region = b.dataset.region;
+      [].forEach.call(document.querySelectorAll('.seg button'), function (o) {
+        o.setAttribute('aria-pressed', String(o === b));
+      });
+      render();
+    });
+  });
+  document.querySelector('[data-count="all"]').textContent = CATALOG.length;
+  document.querySelector('[data-count="cn"]').textContent = CATALOG.filter(function (p) { return p.region === 'cn'; }).length;
+  document.querySelector('[data-count="jp"]').textContent = CATALOG.filter(function (p) { return p.region === 'jp'; }).length;
+
+  var qt;
+  $('q').addEventListener('input', function () {
+    $('qClear').hidden = !$('q').value;
+    clearTimeout(qt);
+    qt = setTimeout(function () { view.q = $('q').value; render(); }, 120);
+  });
+  $('qClear').addEventListener('click', function () { $('q').value = ''; $('qClear').hidden = true; view.q = ''; render(); $('q').focus(); });
+  $('inStock').addEventListener('change', function () { view.inStock = this.checked; render(); });
+  $('sort').addEventListener('change', function () { view.sort = this.value; render(); });
+  $('csv').addEventListener('click', csv);
+
+  $('dReview').addEventListener('click', openSheet);
+  $('backToList').addEventListener('click', closeSheet);
+  $('doneClose').addEventListener('click', closeSheet);
+  $('dClear').addEventListener('click', function () {
+    var t = totals();
+    if (!t.lines) return;
+    if (t.lines > 2 && !window.confirm('Clear all ' + t.lines + ' lines from this order?')) return;
+    order = {}; save(); render(); paintDock(); announce('Order cleared');
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (totals().lines && sheet.hidden) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  render();
+  paintDock();
 })();
 </script>
-
 </body>
 </html>
