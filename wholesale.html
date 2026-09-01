@@ -209,6 +209,7 @@
     .noorder { font-size: 13px; color: var(--faint); margin-top: auto; padding-top: 6px; }
     .noorder b { color: var(--muted); font-weight: 600; }
 
+    .reload-note { margin: 22px 0 -8px; padding: 11px 15px; border-radius: var(--r-s); font-size: 13.5px; background: var(--low-bg); border: 1px solid rgba(255,157,77,0.3); color: #ffcfa6; }
     .empty { text-align: center; padding: 70px 20px; color: var(--dim); }
     .empty b { display: block; color: var(--text); font-size: 17px; margin-bottom: 6px; }
 
@@ -217,10 +218,11 @@
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
       background: rgba(12,12,16,0.97); backdrop-filter: blur(14px);
       border-top: 1px solid var(--line-2);
-      transform: translateY(101%); transition: transform .22s cubic-bezier(.2,.8,.3,1);
+      transform: translateY(101%); visibility: hidden;
+      transition: transform .22s cubic-bezier(.2,.8,.3,1), visibility .22s;
       padding-bottom: env(safe-area-inset-bottom);
     }
-    .dock.up { transform: translateY(0); }
+    .dock.up { transform: translateY(0); visibility: visible; }
     .dock-in { display: flex; align-items: center; gap: 18px; padding: 13px 0; flex-wrap: wrap; }
     .dock .figs { display: flex; gap: 22px; align-items: baseline; flex-wrap: wrap; }
     .dock .fig .k { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; }
@@ -304,6 +306,10 @@
     .done h2 { font-family: Bangers, Inter, cursive; font-weight: 400; letter-spacing: 1px; font-size: 26px; margin: 0 0 4px; }
     .done .ref { display: inline-block; font-family: ui-monospace, Consolas, monospace; font-size: 19px; font-weight: 700; color: var(--cyan); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 8px 16px; margin: 12px 0 14px; }
     .done p { color: var(--dim); font-size: 13.5px; line-height: 1.55; margin: 0 auto; max-width: 46ch; }
+    .sentlines { list-style: none; margin: 20px auto 0; padding: 0; max-width: 420px; text-align: left; }
+    .sentlines li { display: flex; justify-content: space-between; gap: 14px; font-size: 13.5px; padding: 7px 0; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .sentlines li b { color: var(--text); white-space: nowrap; font-weight: 600; }
+    .sentlines li.sum { border-bottom: 0; border-top: 1px solid var(--line-2); margin-top: 4px; padding-top: 10px; color: var(--text); font-weight: 700; }
 
     .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
@@ -346,8 +352,8 @@
       </div>
     </div>
     <dl class="terms">
-      <div><dt>Minimum order</dt><dd><b id="moqLabel"></b> before shipping</dd></div>
-      <div><dt>Pricing &amp; stock</dt><dd>Confirmed by us before any payment</dd></div>
+      <div><dt>Minimum order</dt><dd><b id="moqLabel"></b> USD, before shipping</dd></div>
+      <div><dt>Pricing &amp; stock</dt><dd>All prices USD &middot; confirmed before any payment</dd></div>
       <div><dt>Ships from</dt><dd>Fort Myers, Florida</dd></div>
       <div><dt>Questions</dt><dd><a href="mailto:nick@sakekittycards.com">nick@sakekittycards.com</a></dd></div>
     </dl>
@@ -370,8 +376,8 @@
       <label class="toggle"><input type="checkbox" id="inStock"><span class="dot"></span>In stock now</label>
       <select class="sort" id="sort" aria-label="Sort products">
         <option value="default">Catalog order</option>
-        <option value="price-asc">Price: low to high</option>
-        <option value="price-desc">Price: high to low</option>
+        <option value="price-asc">Unit price: low to high</option>
+        <option value="price-desc">Unit price: high to low</option>
         <option value="name">Name A–Z</option>
       </select>
       <span class="spacer"></span>
@@ -449,6 +455,7 @@
             <div><label for="fCompany">Company <span class="opt">(optional)</span></label><input id="fCompany" name="company" autocomplete="organization" maxlength="140"></div>
             <div><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="160" required><div class="ferr" id="eEmail" hidden></div></div>
             <div><label for="fPhone">Phone <span class="opt">(optional)</span></label><input id="fPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="60"></div>
+            <div class="wide"><label for="fShip">Ship to <span class="opt">(city and country — we need it to quote freight)</span></label><input id="fShip" name="shipTo" autocomplete="address-level2" maxlength="140" required><div class="ferr" id="eShip" hidden></div></div>
             <div class="wide"><label for="fNotes">Anything we should know <span class="opt">(optional)</span></label><textarea id="fNotes" name="notes" maxlength="1200" placeholder="Delivery timing, a title you need that isn't listed, how you'd like to pay."></textarea></div>
             <div class="hp" aria-hidden="true"><label for="fWebsite">Website</label><input id="fWebsite" tabindex="-1" autocomplete="off"></div>
           </fieldset>
@@ -468,6 +475,7 @@
         <h2>Request received</h2>
         <div class="ref" id="doneRef"></div>
         <p id="doneMsg"></p>
+        <ul class="sentlines" id="doneLines"></ul>
       </div>
       <div class="sheet-ft" style="justify-content:center">
         <button class="btn" id="doneClose" type="button">Back to inventory</button>
@@ -552,6 +560,7 @@
     return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
   function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
   function orderable(p) { return p.price != null && p.status !== 'out'; }
   function byId(id) { for (var i = 0; i < CATALOG.length; i++) { if (CATALOG[i].id === id) return CATALOG[i]; } return null; }
 
@@ -565,15 +574,20 @@
 
   /* ── order state ─────────────────────────────────────────── */
   var order = {};
+  var droppedOnLoad = 0;
   try {
     var raw = JSON.parse(localStorage.getItem(STORE) || '{}');
-    // drop anything whose price moved or whose SKU disappeared, so a stale
-    // saved order can never quote an old price back at us
+    // Drop anything whose price moved or whose SKU disappeared, so a stale saved
+    // order can never quote an old price back at us - but say so rather than
+    // letting lines silently evaporate between visits.
     Object.keys(raw || {}).forEach(function (id) {
-      var p = byId(id);
-      if (p && orderable(p) && raw[id] && raw[id].price === p.price) {
-        order[id] = { qty: Math.max(1, Math.min(9999, Math.floor(raw[id].qty) || 0)), price: p.price };
-      }
+      var p = byId(id), row = raw[id];
+      if (!row || typeof row !== 'object') return;
+      var q = Math.floor(Number(row.qty));
+      if (!(q > 0)) return;
+      if (!p || !orderable(p)) { droppedOnLoad++; return; }
+      if (row.price !== p.price) { droppedOnLoad++; return; }
+      order[id] = { qty: Math.min(9999, q), price: p.price };
     });
   } catch (e) { order = {}; }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(order)); } catch (e) {} }
@@ -595,6 +609,16 @@
   /* ── render ──────────────────────────────────────────────── */
   var view = { region: 'all', q: '', inStock: false, sort: 'default' };
   var groupsEl = $('groups');
+
+  function matching(region) {
+    var q = view.q.trim().toLowerCase();
+    return CATALOG.filter(function (p) {
+      if (region !== 'all' && p.region !== region) return false;
+      if (view.inStock && p.status !== 'in' && p.status !== 'low') return false;
+      if (q && (p.name + ' ' + p.set + ' ' + p.group).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
 
   function visible() {
     var q = view.q.trim().toLowerCase();
@@ -637,8 +661,9 @@
     // availability reads as its own fact, not as a fourth spec chip
     var avail = '';
     if (p.available != null && p.available > 0) {
-      avail = '<div class="avail' + (p.available <= 5 ? ' thin' : '') + '"><b>' + p.available + '</b> ' +
-        (p.available === 1 ? p.unit : p.unit + 's') + ' available</div>';
+      var word = p.status === 'soon' ? ' inbound' : ' available';
+      avail = '<div class="avail' + (p.status !== 'soon' && p.available <= 5 ? ' thin' : '') + '"><b>' + p.available + '</b> ' +
+        (p.available === 1 ? p.unit : p.unit + 's') + word + '</div>';
     } else if (p.available == null) {
       avail = '<div class="avail" style="color:var(--faint)">Stock confirmed on request</div>';
     }
@@ -648,9 +673,9 @@
     if (!orderable(p)) {
       var na = document.createElement('div');
       na.className = 'noorder';
-      na.innerHTML = p.price == null
-        ? 'Not yet priced. <b>Ask for it in your notes</b> and we\'ll quote it.'
-        : 'Currently unavailable.';
+      na.innerHTML = p.status === 'out'
+        ? '<b>Not currently available.</b> Ask in your notes and we\'ll tell you if it returns.'
+        : 'Not yet priced. <b>Ask for it in your notes</b> and we\'ll quote it.';
       el.appendChild(na);
       return el;
     }
@@ -731,10 +756,17 @@
         groupsEl.appendChild(groupEl(g, items));
       });
     } else if (list.length) {
-      groupsEl.appendChild(groupEl(list.length + ' products', list, true));
+      groupsEl.appendChild(groupEl(plural(list.length, 'product', 'products'), list, true));
     }
     $('empty').hidden = list.length > 0;
+    // counts must describe what clicking that segment would actually show
+    ['all', 'cn', 'jp'].forEach(function (r) {
+      document.querySelector('[data-count="' + r + '"]').textContent = matching(r).length;
+    });
     Object.keys(order).forEach(function (id) { var p = byId(id); if (p) paintCard(p); });
+    if (view.q || view.inStock || view.region !== 'all') {
+      announce(plural(list.length, 'product', 'products') + ' shown');
+    }
   }
 
   function groupEl(title, items, flat) {
@@ -765,7 +797,7 @@
     document.body.classList.toggle('docked', t.lines > 0);
     $('dLines').textContent = t.lines;
     $('dLinesK').textContent = t.lines === 1 ? 'Line' : 'Lines';
-    $('dTotal').innerHTML = money(t.value) + ' <small>est.</small>';
+    $('dTotal').textContent = money(t.value);
     var pct = Math.min(100, (t.value / MOQ) * 100);
     $('dMeter').querySelector('i').style.width = pct + '%';
     $('dMeter').classList.toggle('met', t.met);
@@ -795,9 +827,17 @@
       del.type = 'button'; del.className = 'del'; del.innerHTML = '&times;';
       del.setAttribute('aria-label', 'Remove ' + l.p.name + ' from the order');
       del.addEventListener('click', function () {
+        var row = del.closest('tr');
+        var nextRow = row && (row.nextElementSibling || row.previousElementSibling);
+        var nextIdx = nextRow ? [].indexOf.call(tb.children, nextRow) : -1;
         setQty(l.p, 0, false);
-        if (!totals().lines) { closeSheet(); announce('Order cleared'); }
-        else { paintReview(); announce(l.p.name + ' removed'); }
+        if (!totals().lines) { closeSheet(); announce('Order cleared'); return; }
+        paintReview();
+        announce(l.p.name + ' removed from the order');
+        // paintReview() rebuilt the tbody, so re-find something real to focus
+        var after = tb.children[Math.max(0, Math.min(nextIdx, tb.children.length - 1))];
+        var btn = after && after.querySelector('.del');
+        (btn || $('backToList')).focus();
       });
       x.appendChild(del);
       [nm, q, u, tot, x].forEach(function (c) { tr.appendChild(c); });
@@ -806,7 +846,11 @@
     $('revTotal').innerHTML = money(t.value) + '<small>at listed prices, pending confirmation</small>';
     var sh = $('revShort');
     sh.hidden = t.met;
-    if (!t.met) sh.innerHTML = 'Our wholesale minimum is <b>' + money(MOQ) + '</b> before shipping. You\'re <b>' + money(t.short) + '</b> under &mdash; add a little more and the request can go through.';
+    if (!t.met) {
+      sh.innerHTML = 'Our wholesale minimum is <b>' + money(MOQ) + '</b> before shipping. This order is <b>' +
+        money(t.short) + '</b> under' + (t.short <= 250 ? ' &mdash; one more case usually covers it.' : '.') +
+        ' Add more to send the request, or email us if you need a one-off.';
+    }
     $('send').disabled = !t.met;
     $('send').title = t.met ? '' : 'Reach the ' + money(MOQ) + ' minimum to send';
   }
@@ -816,20 +860,25 @@
     lastFocus = document.activeElement;
     paintReview();
     $('sendErr').hidden = true;
-    ['eName', 'eEmail'].forEach(function (i) { $(i).hidden = true; });
-    ['fName', 'fEmail'].forEach(function (i) { $(i).removeAttribute('aria-invalid'); });
+    ['eName', 'eEmail', 'eShip'].forEach(function (i) { $(i).hidden = true; });
+    ['fName', 'fEmail', 'fShip'].forEach(function (i) { $(i).removeAttribute('aria-invalid'); });
     $('stepForm').hidden = false; $('stepDone').hidden = true;
     sheet.hidden = false;
     document.body.style.overflow = 'hidden';
-    ($('fName').value ? $('send') : $('fName')).focus();
+    var first = (!$('fName').value) ? $('fName') : (!$('send').disabled ? $('send') : $('fName'));
+    first.focus();
   }
   function closeSheet() {
     sheet.hidden = true;
     document.body.style.overflow = '';
     // lastFocus may since have been hidden (the dock retracts when the order
     // empties, and it does after a successful send) - fall back to something real
-    var target = (lastFocus && lastFocus.offsetParent !== null) ? lastFocus : null;
-    if (!target) target = totals().lines ? $('dReview') : document.getElementById('q');
+    var usable = function (el) {
+      if (!el || !el.focus || el.disabled) return false;
+      var r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+    };
+    var target = usable(lastFocus) ? lastFocus : (totals().lines && usable($('dReview')) ? $('dReview') : $('q'));
     if (target && target.focus) target.focus();
   }
 
@@ -837,7 +886,7 @@
   // Escape lives on the document, not the sheet: a disabled Send button drops
   // focus to <body>, and a modal must still close from there.
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !sheet.hidden) { e.preventDefault(); closeSheet(); }
+    if (e.key === 'Escape' && !sheet.hidden && !sending) { e.preventDefault(); closeSheet(); }
   });
   sheet.addEventListener('keydown', function (e) {
     if (e.key !== 'Tab') return;
@@ -848,7 +897,7 @@
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
-  sheet.addEventListener('mousedown', function (e) { if (e.target === sheet) closeSheet(); });
+  sheet.addEventListener('mousedown', function (e) { if (e.target === sheet && !sending) closeSheet(); });
 
   /* ── submit ──────────────────────────────────────────────── */
   var LOADED = Date.now();
@@ -870,7 +919,10 @@
     else clearFieldError('fName', 'eName');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) { fieldError('fEmail', 'eEmail', 'Check this address — it\'s where the quote goes.'); bad = true; }
     else clearFieldError('fEmail', 'eEmail');
-    if (bad) { $(!name ? 'fName' : 'fEmail').focus(); return; }
+    var shipTo = $('fShip').value.trim();
+    if (!shipTo) { fieldError('fShip', 'eShip', 'We need a destination to quote freight.'); bad = true; }
+    else clearFieldError('fShip', 'eShip');
+    if (bad) { $(!name ? 'fName' : (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email) ? 'fEmail' : 'fShip')).focus(); return; }
 
     sending = true;
     var btn = $('send');
@@ -882,12 +934,15 @@
       company: $('fCompany').value.trim(),
       email: email,
       phone: $('fPhone').value.trim(),
-      notes: $('fNotes').value.trim(),
+      notes: ($('fShip').value.trim() ? 'Ship to: ' + $('fShip').value.trim() + '\n\n' : '') + $('fNotes').value.trim(),
+      shipTo: $('fShip').value.trim(),
       company_website: $('fWebsite').value.trim(),
       elapsedMs: Date.now() - LOADED,
       items: lines().map(function (l) {
-        return { name: l.p.name, qty: l.qty, unit: l.p.unit, price: l.p.price };
-      })
+        return { name: l.p.name, qty: l.qty, unit: l.p.unit, price: l.p.price, id: l.p.id, lineTotal: l.line };
+      }),
+      orderTotal: totals().value,
+      catalogDate: UPDATED
     };
 
     var ctl = ('AbortController' in window) ? new AbortController() : null;
@@ -898,8 +953,15 @@
       .then(function (res) {
         if (!res.ok || !res.d.ok) throw new Error(res.d.error || 'We couldn\'t send that just now.');
         $('doneRef').textContent = res.d.ref || '';
+        $('doneRef').hidden = !res.d.ref;
         $('doneMsg').textContent = 'We\'ve got your list and a copy is with Nick and Andrew. We\'ll come back to ' + email +
           ' with confirmed pricing, availability and shipping. Quote this reference if you need to chase it.';
+        // show them what they just sent - the order is about to be cleared
+        var sent = lines(), sentTotal = totals().value;
+        var ul = $('doneLines');
+        ul.innerHTML = sent.map(function (l) {
+          return '<li><span>' + escapeHtml(l.p.name) + '</span><b>' + l.qty + ' \u00d7 ' + l.p.unit + '</b></li>';
+        }).join('') + '<li class="sum"><span>Estimated total</span><b>' + money(sentTotal) + '</b></li>';
         $('stepForm').hidden = true; $('stepDone').hidden = false;
         $('doneClose').focus();
         order = {}; save(); render(); paintDock();
@@ -910,15 +972,20 @@
         var msg = (e && e.name === 'AbortError')
           ? 'That took too long to send.'
           : (e && e.message && e.message.length < 120 ? e.message : 'Something went wrong on our end.');
-        b.innerHTML = msg +
-          ' Your order is still here — try again, or email <a href="mailto:nick@sakekittycards.com" style="color:inherit">nick@sakekittycards.com</a> and we\'ll pick it up there.';
+        // build as text - never interpolate a server string into innerHTML
+        b.textContent = msg + ' Your order is still here \u2014 try again, or email ';
+        var a = document.createElement('a');
+        a.href = 'mailto:nick@sakekittycards.com'; a.textContent = 'nick@sakekittycards.com';
+        a.style.color = 'inherit';
+        b.appendChild(a);
+        b.appendChild(document.createTextNode(' and we\'ll pick it up there.'));
         b.hidden = false;
       })
       .then(function () { clearTimeout(bail); sending = false; btn.disabled = false; btn.textContent = 'Send request'; paintReview(); });
   });
 
-  ['fName', 'fEmail'].forEach(function (id) {
-    $(id).addEventListener('input', function () { clearFieldError(id, id === 'fName' ? 'eName' : 'eEmail'); });
+  [['fName', 'eName'], ['fEmail', 'eEmail'], ['fShip', 'eShip']].forEach(function (pair) {
+    $(pair[0]).addEventListener('input', function () { clearFieldError(pair[0], pair[1]); });
   });
   // Enter submits from any single-line field (the textarea keeps its newlines)
   $('quoteForm').addEventListener('submit', function (e) { e.preventDefault(); $('send').click(); });
@@ -957,9 +1024,6 @@
       render();
     });
   });
-  document.querySelector('[data-count="all"]').textContent = CATALOG.length;
-  document.querySelector('[data-count="cn"]').textContent = CATALOG.filter(function (p) { return p.region === 'cn'; }).length;
-  document.querySelector('[data-count="jp"]').textContent = CATALOG.filter(function (p) { return p.region === 'jp'; }).length;
 
   var qt;
   $('q').addEventListener('input', function () {
@@ -982,12 +1046,17 @@
     order = {}; save(); render(); paintDock(); announce('Order cleared');
   });
 
-  window.addEventListener('beforeunload', function (e) {
-    if (totals().lines && sheet.hidden) { e.preventDefault(); e.returnValue = ''; }
-  });
-
   render();
   paintDock();
+  if (droppedOnLoad) {
+    announce(plural(droppedOnLoad, 'saved line was', 'saved lines were') + ' removed because prices or availability changed.');
+    var warn = document.createElement('div');
+    warn.className = 'reload-note';
+    warn.textContent = plural(droppedOnLoad, 'line from your saved order was', 'lines from your saved order were') +
+      ' removed because the price or availability changed since your last visit.';
+    document.querySelector('main .wrap').insertBefore(warn, groupsEl);
+    setTimeout(function () { warn.remove(); }, 20000);
+  }
 })();
 </script>
 </body>
