@@ -365,7 +365,7 @@
       <div><dt>Minimum order</dt><dd><b id="moqLabel"></b> USD, before shipping</dd></div>
       <div><dt>Pricing &amp; stock</dt><dd>All prices USD &middot; confirmed before any payment</dd></div>
       <div><dt>Ships from</dt><dd>Fort Myers, Florida</dd></div>
-      <div><dt>Questions</dt><dd><a href="mailto:nick@sakekittycards.com">nick@sakekittycards.com</a></dd></div>
+      <div><dt>Questions</dt><dd><a href="mailto:info@sakekittycards.com">info@sakekittycards.com</a></dd></div>
     </dl>
   </div>
 </header>
@@ -409,7 +409,7 @@
 <footer>
   <div class="wrap">
     <div class="in">
-      <span>Sake Kitty Cards &middot; Fort Myers, Florida &middot; <a href="mailto:nick@sakekittycards.com">nick@sakekittycards.com</a></span>
+      <span>Sake Kitty Cards &middot; Fort Myers, Florida &middot; <a href="mailto:info@sakekittycards.com">info@sakekittycards.com</a></span>
       <span>Prices and availability change. Both are confirmed in writing before any payment is taken.</span>
     </div>
   </div>
@@ -520,41 +520,32 @@
   var STORE = 'sk_wholesale_order_v2';
 
   var CATALOG = [
-    // ── Chinese, priced per case ────────────────────────────────
-    { id:'cn-gem5',  name:'Gem Pack Vol.5 Case',  set:'', region:'cn', group:'Gem Packs', price:728,  unit:'case', status:'in',   available:162, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
-    { id:'cn-gem4',  name:'Gem Pack Vol.4 Case',  set:'', region:'cn', group:'Gem Packs', price:535,  unit:'case', status:'soon', available:40,  boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
-    { id:'cn-gem2',  name:'Gem Pack Vol.2 Case',  set:'', region:'cn', group:'Gem Packs', price:1177, unit:'case', status:'in',   available:105, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
-    { id:'cn-gem6',  name:'Gem Pack Vol.6 Case',  set:'', region:'cn', group:'Gem Packs', price:514,  unit:'case', status:'soon', available:30,  boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
-
-    { id:'cn-csv5s', name:'Black Crystal Blaze — Slim Booster Box Case',    set:'CSV5',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'in',   available:37,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
-    { id:'cn-csv5j', name:'Black Crystal Blaze — Jumbo Booster Box Case',   set:'CSV5',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'in',   available:20,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
-    { id:'cn-csv6s', name:'True Mystery — Slim Booster Box Case',           set:'CSV6',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'in',   available:42,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
-    { id:'cn-csv7j', name:'Sharp Blade Awakening — Jumbo Booster Box Case', set:'CSV7',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'low',  available:15,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
-    { id:'cn-csv8s', name:'Brilliant Illusion — Slim Booster Box Case',     set:'CSV8',   region:'cn', group:'Booster Box Cases', price:407,  unit:'case', status:'low',  available:2,   boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
-    { id:'cn-csv8j', name:'Brilliant Illusion — Jumbo Booster Box Case',    set:'CSV8',   region:'cn', group:'Booster Box Cases', price:471,  unit:'case', status:'in',   available:20,  boxesPerCase:12, packsPerBox:6,  cardsPerPack:20 },
-    { id:'cn-csv9s', name:'Stellar Glass — Slim Booster Box Case',          set:'CSV9',   region:'cn', group:'Booster Box Cases', price:514,  unit:'case', status:'soon', available:80,  boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
-    { id:'cn-csv95', name:'Terastal Grand Gathering — Booster Box Case',    set:'CSV9.5', region:'cn', group:'Booster Box Cases', price:1284, unit:'case', status:'in',   available:16,  boxesPerCase:20, packsPerBox:10, cardsPerPack:10 },
-    { id:'cn-csv10s',name:'Pursue Glory Together — Slim Booster Box Case',  set:'CSV10',  region:'cn', group:'Booster Box Cases', price:578,  unit:'case', status:'soon', available:100, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
-    { id:'cn-csv10j',name:'Pursue Glory Together — Jumbo Booster Box Case', set:'CSV10',  region:'cn', group:'Booster Box Cases', price:null, unit:'case', status:'out',  available:0,   boxesPerCase:20, packsPerBox:6,  cardsPerPack:20 },
-
-    { id:'cn-eev-v', name:'Eevee Advanced Gift Box Case — Vaporeon', set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'cn-eev-f', name:'Eevee Advanced Gift Box Case — Flareon',  set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'cn-eev-j', name:'Eevee Advanced Gift Box Case — Jolteon',  set:'', region:'cn', group:'Gift & Collection Boxes', price:375, unit:'case', status:'soon', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'cn-trainer',name:'Trainer Collection Box Case',            set:'', region:'cn', group:'Gift & Collection Boxes', price:279, unit:'case', status:'low',  available:10, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-
-    // ── Japanese, priced per box ────────────────────────────────
-    // available/config left null on purpose: we do not publish a stock
-    // figure or pack spec we cannot stand behind. See notes to Nick.
-    { id:'jp-pc-tohoku',    name:'Pokémon Center Tohoku Special Box',    set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'jp-pc-hiroshima', name:'Pokémon Center Hiroshima Special Box', set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:136, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'jp-pc-fukuoka',   name:'Pokémon Center Fukuoka Special Box',   set:'Pokémon Center', region:'jp', group:'Pokémon Center Boxes', price:140, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-
-    { id:'jp-storm', name:'Storm Emeralda', set:'', region:'jp', group:'Japanese Booster Boxes', price:103, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'jp-brave', name:'Mega Brave',     set:'', region:'jp', group:'Japanese Booster Boxes', price:78,  unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'jp-abyss', name:'Abyss Eye',      set:'', region:'jp', group:'Japanese Booster Boxes', price:69,  unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null }
+    { id:'pcn-csv9-5-terastal-grand-gathering-booster-box-ca-61fe', name:'Terastal Grand Gathering — Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:1284, unit:'case', status:'soon', available:65, boxesPerCase:20, packsPerBox:10, cardsPerPack:10 },
+    { id:'pcn-gem-pack-vol-2-case-81d0', name:'Gem Pack Vol.2 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:1177, unit:'case', status:'in', available:21, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'pcn-gem-pack-vol-5-case-356c', name:'Gem Pack Vol.5 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:728, unit:'case', status:'in', available:40, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
+    { id:'pcn-csv10-pursue-glory-together-slim-booster-box-c-5a0b', name:'Pursue Glory Together — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:578, unit:'case', status:'soon', available:60, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-gem-pack-vol-4-case-18ea', name:'Gem Pack Vol.4 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:535, unit:'case', status:'soon', available:70, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'pcn-gem-pack-vol-6-case-bdfb', name:'Gem Pack Vol.6 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:514, unit:'case', status:'soon', available:30, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
+    { id:'pcn-csv9-stellar-glass-slim-booster-box-case-215b', name:'Stellar Glass — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:514, unit:'case', status:'soon', available:40, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-csv5-black-crystal-blaze-jumbo-booster-box-cas-34e6', name:'Black Crystal Blaze — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:471, unit:'case', status:'in', available:25, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
+    { id:'pcn-csv7-sharp-blade-awakening-jumbo-booster-box-c-6a0e', name:'Sharp Blade Awakening — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:471, unit:'case', status:'in', available:32, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
+    { id:'pcn-csv8-brilliant-illusion-jumbo-booster-box-case-47a4', name:'Brilliant Illusion — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:471, unit:'case', status:'in', available:39, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
+    { id:'pcn-csv5-black-crystal-blaze-slim-booster-box-case-e527', name:'Black Crystal Blaze — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:407, unit:'case', status:'in', available:50, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-csv6-true-mystery-slim-booster-box-case-9aa6', name:'True Mystery — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:407, unit:'case', status:'in', available:5, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-csv8-brilliant-illusion-slim-booster-box-case-648c', name:'Brilliant Illusion — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:407, unit:'case', status:'in', available:50, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-eevee-advanced-gift-box-case-vaporeon-d4e1', name:'Eevee Advanced Gift Box Case — Vaporeon', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:375, unit:'case', status:'in', available:30, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-eevee-advanced-gift-box-case-flareon-2be3', name:'Eevee Advanced Gift Box Case — Flareon', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:375, unit:'case', status:'in', available:30, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-eevee-advanced-gift-box-case-jolteon-6be0', name:'Eevee Advanced Gift Box Case — Jolteon', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:375, unit:'case', status:'in', available:30, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-trainer-collection-box-case-c918', name:'Trainer Collection Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:279, unit:'case', status:'in', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-pc-fukuoka', name:'Pokémon Center Fukuoka Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:141, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-pc-hiroshima', name:'Pokémon Center Hiroshima Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:136, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-pc-tohoku', name:'Pokémon Center Tohoku Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-storm', name:'Storm Emeralda Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:121, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-brave', name:'Mega Brave Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:89, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-abyss', name:'Abyss Eye Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:73, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null }
   ];
 
-  var GROUP_ORDER = ['Gem Packs', 'Booster Box Cases', 'Gift & Collection Boxes', 'Pokémon Center Boxes', 'Japanese Booster Boxes'];
+  var GROUP_ORDER = ['Pokémon · Chinese sealed', 'Pokémon · Japanese sealed'];
   var STATUS = {
     in:   { cls:'ok',   label:'In stock' },
     low:  { cls:'low',  label:'Low stock' },
@@ -985,7 +976,7 @@
         // build as text - never interpolate a server string into innerHTML
         b.textContent = msg + ' Your order is still here \u2014 try again, or email ';
         var a = document.createElement('a');
-        a.href = 'mailto:nick@sakekittycards.com'; a.textContent = 'nick@sakekittycards.com';
+        a.href = 'mailto:info@sakekittycards.com'; a.textContent = 'info@sakekittycards.com';
         a.style.color = 'inherit';
         b.appendChild(a);
         b.appendChild(document.createTextNode(' and we\'ll pick it up there.'));

@@ -50,7 +50,8 @@ over one URL. It is now a **hub of teasers + links**. Do not re-inline the long 
 that recreates the cannibalization.
 
 ⚠️ `guide-should-you-grade.html` publishes our own measured PSA 10 : Grade 9 multiples
-(58,152 pairs — median 3.00×, modern 2.97×, vintage 4.26×). Source is
+(58,533 pairs — median 3.00×, modern 2.98×, vintage 4.42×, middle era 2.89×; denominator is
+a generic Grade 9, NOT PSA 9 — re-measure with `scripts/verify_psa_multiple.py`). Source is
 `reference_psa10_psa9_multiple` in memory. **Re-measure before changing those numbers**,
 and keep the method note on the page.
 
