@@ -39,12 +39,14 @@ sakekittycards@gmail.com
 
 ───────────────────────────────────────
 Payout Tiers (reference — unified $100/$500/$1,000 breakpoints)
-  Singles <$100 ........ 65% cash / 80% credit
-  Sealed  <$100 ........ 65% cash / 80% credit
-  Graded  <$100 ........ NOT ACCEPTED (slab cost outweighs the card)
-  ALL types $100–$499 .. 75% cash / 90% credit
-  ALL types $500–$999 .. 80% cash / 95% credit
-  ALL types ≥$1,000 .... 85% cash / 100% credit
+  Singles <$100 ............... 65% cash / 75% credit
+  Sealed  <$100 ............... 75% cash / 85% credit
+  Graded  <$100 ............... NOT ACCEPTED (slab cost outweighs the card)
+  Singles / Graded $100–$499 .. 75% cash / 85% credit
+  Sealed           $100–$499 .. 78% cash / 88% credit
+  Singles / Graded $500–$999 .. 80% cash / 90% credit
+  Sealed           $500–$999 .. 81% cash / 91% credit
+  ALL types ≥$1,000 ........... 85% cash / 95% credit
 
 Store credit is always worth more — use it on any
 future purchase from our shop.

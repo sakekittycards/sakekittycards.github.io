@@ -68,14 +68,14 @@ COND_MULT = {"NM": 1.0, "LP": 0.85, "MP": 0.70, "HP": 0.50, "DMG": 0.30}  # site
 def raw_rate(mk, kind="raw"):
     """Value-tier buy rate (cash, store credit) — matches trade-in.html RATES + tcgenie id-54."""
     if kind == "sealed":                       # sealed = premium ladder
-        if mk < 100:  return 0.80, 0.90
-        if mk < 500:  return 0.83, 0.93
-        if mk < 1000: return 0.86, 0.96
-        return 0.90, 1.00
-    if mk < 100:  return 0.70, 0.80            # singles
-    if mk < 500:  return 0.80, 0.90
-    if mk < 1000: return 0.85, 0.95
-    return 0.90, 1.00
+        if mk < 100:  return 0.75, 0.85
+        if mk < 500:  return 0.78, 0.88
+        if mk < 1000: return 0.81, 0.91
+        return 0.85, 0.95
+    if mk < 100:  return 0.65, 0.75            # singles
+    if mk < 500:  return 0.75, 0.85
+    if mk < 1000: return 0.80, 0.90
+    return 0.85, 0.95
 
 
 def gnorm(s): return re.sub(r"[^a-z0-9]", "", (s or "").lower())
