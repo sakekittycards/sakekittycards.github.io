@@ -514,17 +514,25 @@
        available    integer count of `unit`, or null if we don't publish one
        boxesPerCase / packsPerBox / cardsPerPack — null when not applicable
      =========================================================== */
-  var UPDATED = '2026-09-01';
+  var UPDATED = '2026-09-03';
   var MOQ = 1500;                       // wholesale minimum, USD, before shipping
   var API = 'https://tcgenie.nwilliams23999.workers.dev/sk/wholesale-order';
   var STORE = 'sk_wholesale_order_v2';
 
   var CATALOG = [
+    { id:'pcn-csv7-blade-awakened-coin-set-case-6d9a', name:'Blade Awakened Coin Set Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:2258, unit:'case', status:'soon', available:35, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'pcn-csv9-5-terastal-grand-gathering-booster-box-ca-61fe', name:'Terastal Grand Gathering — Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:1290, unit:'case', status:'soon', available:65, boxesPerCase:20, packsPerBox:10, cardsPerPack:10 },
     { id:'pcn-gem-pack-vol-2-case-81d0', name:'Gem Pack Vol.2 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:1183, unit:'case', status:'in', available:21, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'pcn-dream-drawing-vol-2-aqua-figure-set-case-f36c', name:'Dream Drawing Vol.2 Aqua Figure Set Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:1118, unit:'case', status:'soon', available:16, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-paldea-trainer-group-photo-card-charm-set-case-eda7', name:'Paldea Trainer Group Photo Card Charm Set Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:968, unit:'case', status:'soon', available:35, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-csv9-5-eeveelution-coin-box-case-2385', name:'Eeveelution Coin Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:882, unit:'case', status:'soon', available:60, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-gem-pack-vol-5-case-356c', name:'Gem Pack Vol.5 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:731, unit:'case', status:'in', available:40, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
     { id:'pcn-csv10-pursue-glory-together-slim-booster-box-c-5a0b', name:'Pursue Glory Together — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:581, unit:'case', status:'soon', available:60, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-gem-pack-vol-4-case-18ea', name:'Gem Pack Vol.4 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:538, unit:'case', status:'soon', available:70, boxesPerCase:20, packsPerBox:15, cardsPerPack:4 },
+    { id:'pcn-paldea-trainer-battle-gift-box-case-5c96', name:'Paldea Trainer Battle Gift Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:538, unit:'case', status:'soon', available:35, boxesPerCase:40, packsPerBox:null, cardsPerPack:null },
     { id:'pcn-gem-pack-vol-6-case-bdfb', name:'Gem Pack Vol.6 Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:516, unit:'case', status:'soon', available:30, boxesPerCase:20, packsPerBox:18, cardsPerPack:4 },
     { id:'pcn-csv9-stellar-glass-slim-booster-box-case-215b', name:'Stellar Glass — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:516, unit:'case', status:'soon', available:40, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
+    { id:'pcn-csv7-sharp-blade-awakening-slim-booster-box-ca-1b38', name:'Sharp Blade Awakening — Slim Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:485, unit:'case', status:'soon', available:35, boxesPerCase:20, packsPerBox:15, cardsPerPack:5 },
     { id:'pcn-csv5-black-crystal-blaze-jumbo-booster-box-cas-34e6', name:'Black Crystal Blaze — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:473, unit:'case', status:'in', available:25, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
     { id:'pcn-csv7-sharp-blade-awakening-jumbo-booster-box-c-6a0e', name:'Sharp Blade Awakening — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:473, unit:'case', status:'in', available:32, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
     { id:'pcn-csv8-brilliant-illusion-jumbo-booster-box-case-47a4', name:'Brilliant Illusion — Jumbo Booster Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:473, unit:'case', status:'in', available:39, boxesPerCase:12, packsPerBox:6, cardsPerPack:20 },
@@ -535,16 +543,42 @@
     { id:'pcn-eevee-advanced-gift-box-case-flareon-2be3', name:'Eevee Advanced Gift Box Case — Flareon', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:376, unit:'case', status:'in', available:30, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'pcn-eevee-advanced-gift-box-case-jolteon-6be0', name:'Eevee Advanced Gift Box Case — Jolteon', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:376, unit:'case', status:'in', available:30, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'pcn-trainer-collection-box-case-c918', name:'Trainer Collection Box Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:280, unit:'case', status:'in', available:75, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pcn-v-union-gift-box-mixed-case-greninja-mewtwo-za-5324', name:'V-UNION Gift Box Mixed Case', set:'', region:'cn', group:'Pokémon · Chinese sealed', price:269, unit:'case', status:'soon', available:36, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'tw-30th', name:'Pokémon 30th Anniversary — Booster Box (JP)', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:237, unit:'box', status:'soon', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pjp-triple-beat-booster-box-7f1b', name:'Triple Beat Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:156, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
     { id:'tw-pc-fukuoka', name:'Pokémon Center Fukuoka Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:152, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'tw-pc-hiroshima', name:'Pokémon Center Hiroshima Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:149, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
     { id:'tw-pc-tohoku', name:'Pokémon Center Tohoku Special Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:114, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
-    { id:'tw-storm', name:'Storm Emeralda Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:98, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
-    { id:'tw-brave', name:'Mega Brave Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:77, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
-    { id:'tw-abyss', name:'Abyss Eye Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:69, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
-    { id:'pen-pitch-black-elite-trainer-box-9390', name:'Pitch Black Elite Trainer Box', set:'', region:'en', group:'Pokémon · English sealed', price:753, unit:'case', status:'low', available:null, boxesPerCase:10, packsPerBox:9, cardsPerPack:10 }
+    { id:'pjp-sv3-raging-surf-box-68c3', name:'Raging Surf Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:108, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'tw-storm', name:'Storm Emeralda Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:98, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pjp-sv1-violet-ex-box-1ebc', name:'Violet ex Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:97, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'pjp-m4-ninja-spinner-790a', name:'Ninja Spinner Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:97, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'pjp-sv7-stellar-miracle-b29f', name:'Stellar Miracle Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:97, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'pjp-pkmjp-m1s-mega-symphonia-f8de', name:'Mega Symphonia Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:91, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'tw-brave', name:'Mega Brave Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:77, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pjp-m3-nihil-zero-booster-box-8fce', name:'Nihil Zero Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:75, unit:'box', status:'low', available:null, boxesPerCase:null, packsPerBox:30, cardsPerPack:5 },
+    { id:'tw-abyss', name:'Abyss Eye Booster Box', set:'', region:'jp', group:'Pokémon · Japanese sealed', price:69, unit:'box', status:'in', available:null, boxesPerCase:null, packsPerBox:null, cardsPerPack:null },
+    { id:'pen-chaos-rising-booster-box-case-064b', name:'Chaos Rising — Booster Box Case', set:'', region:'en', group:'Pokémon · English sealed', price:1075, unit:'case', status:'low', available:13, boxesPerCase:6, packsPerBox:36, cardsPerPack:10 },
+    { id:'pen-pitch-black-booster-box-36-packs-4357', name:'Pitch Black — Booster Box Case', set:'', region:'en', group:'Pokémon · English sealed', price:1075, unit:'case', status:'low', available:null, boxesPerCase:6, packsPerBox:36, cardsPerPack:10 },
+    { id:'pen-pitch-black-elite-trainer-box-9390', name:'Pitch Black Elite Trainer Box', set:'', region:'en', group:'Pokémon · English sealed', price:753, unit:'case', status:'low', available:null, boxesPerCase:10, packsPerBox:9, cardsPerPack:10 },
+    { id:'pen-151-booster-bundle-bf3d', name:'151 Booster Bundle', set:'', region:'en', group:'Pokémon · English sealed', price:194, unit:'box', status:'low', available:12, boxesPerCase:null, packsPerBox:6, cardsPerPack:10 },
+    { id:'lcn-the-first-chapter-booster-display-case-c800', name:'The First Chapter Booster Display Case', set:'', region:'cn', group:'Disney Lorcana · Chinese', price:129, unit:'case', status:'in', available:180, boxesPerCase:null, packsPerBox:10, cardsPerPack:12 },
+    { id:'lcn-rise-of-the-floodborn-booster-display-case-4871', name:'Rise of the Floodborn Booster Display Case', set:'', region:'cn', group:'Disney Lorcana · Chinese', price:129, unit:'case', status:'in', available:120, boxesPerCase:null, packsPerBox:10, cardsPerPack:12 },
+    { id:'lcn-the-first-chapter-light-booster-display-case-4e9c', name:'The First Chapter — Light Booster Display Case', set:'', region:'cn', group:'Disney Lorcana · Chinese', price:81, unit:'case', status:'in', available:178, boxesPerCase:null, packsPerBox:24, cardsPerPack:5 },
+    { id:'lcn-rise-of-the-floodborn-light-booster-display-ca-1773', name:'Rise of the Floodborn — Light Booster Display Case', set:'', region:'cn', group:'Disney Lorcana · Chinese', price:81, unit:'case', status:'in', available:120, boxesPerCase:null, packsPerBox:24, cardsPerPack:5 },
+    { id:'rbc-spiritforged-jumbo-booster-box-case-5e6b', name:'Spiritforged — Jumbo Booster Box Case', set:'', region:'cn', group:'Riftbound · Chinese', price:484, unit:'case', status:'in', available:50, boxesPerCase:null, packsPerBox:12, cardsPerPack:14 },
+    { id:'rbc-spiritforged-slim-booster-box-case-7ea3', name:'Spiritforged — Slim Booster Box Case', set:'', region:'cn', group:'Riftbound · Chinese', price:387, unit:'case', status:'in', available:50, boxesPerCase:null, packsPerBox:24, cardsPerPack:5 },
+    { id:'kay-kpop-demon-hunters-classic-edition-case-47e1', name:'Kpop Demon Hunters Classic Edition Case', set:'', region:'cn', group:'Kayou', price:645, unit:'case', status:'in', available:25, boxesPerCase:24, packsPerBox:20, cardsPerPack:5 },
+    { id:'kay-kpop-demon-hunters-energy-edition-case-3c42', name:'Kpop Demon Hunters Energy Edition Case', set:'', region:'cn', group:'Kayou', price:568, unit:'case', status:'in', available:50, boxesPerCase:16, packsPerBox:12, cardsPerPack:8 },
+    { id:'kay-naruto-smriti-collectible-card-jin-2-case-7e94', name:'Naruto Smriti Collectible Card Jin 2 Case', set:'', region:'cn', group:'Kayou', price:516, unit:'case', status:'in', available:20, boxesPerCase:16, packsPerBox:12, cardsPerPack:8 },
+    { id:'nvk-bt03-unbreakable-booster-box-f18d', name:'BT03 Unbreakable Booster Box', set:'', region:'jp', group:'Nivel Arena', price:1720, unit:'case', status:'low', available:9, boxesPerCase:24, packsPerBox:24, cardsPerPack:6 },
+    { id:'nvk-bt02-the-kingdom-booster-box-7a5d', name:'BT02 The Kingdom Booster Box', set:'', region:'jp', group:'Nivel Arena', price:1559, unit:'case', status:'low', available:9, boxesPerCase:24, packsPerBox:24, cardsPerPack:6 },
+    { id:'nvk-bt01-encounter-booster-box-6bc8', name:'BT01 Encounter Booster Box', set:'', region:'jp', group:'Nivel Arena', price:1290, unit:'case', status:'low', available:9, boxesPerCase:24, packsPerBox:24, cardsPerPack:6 },
+    { id:'spt-panini-fifa-world-cup-2026-premium-edition-cas-9f91', name:'Panini FIFA World Cup 2026 Premium Edition Case', set:'', region:'en', group:'Sports', price:1054, unit:'case', status:'low', available:17, boxesPerCase:12, packsPerBox:10, cardsPerPack:6 },
+    { id:'spt-panini-fifa-world-cup-2026-standard-edition-ca-023d', name:'Panini FIFA World Cup 2026 Standard Edition Case', set:'', region:'en', group:'Sports', price:581, unit:'case', status:'low', available:6, boxesPerCase:36, packsPerBox:10, cardsPerPack:4 }
   ];
 
-  var GROUP_ORDER = ['Pokémon · Chinese sealed', 'Pokémon · Japanese sealed', 'Pokémon · English sealed'];
+  var GROUP_ORDER = ['Pokémon · Chinese sealed', 'Pokémon · Japanese sealed', 'Pokémon · English sealed', 'Disney Lorcana · Chinese', 'Riftbound · Chinese', 'Kayou', 'Nivel Arena', 'Sports'];
   var STATUS = {
     in:   { cls:'ok',   label:'In stock' },
     low:  { cls:'low',  label:'Low stock' },
