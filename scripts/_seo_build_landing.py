@@ -431,8 +431,8 @@ G_FAQ = [
      "card worth $60, the economics do not work for either of us. Under $100 you will do better selling "
      "the slab directly, or trading it in as part of a larger lot."),
     ("What do you pay for slabs?",
-     "The same ladder as singles from $100 up: 80% cash or 90% credit from $100 to $499, 85% or 95% from "
-     "$500 to $999, and 90% cash or 100% credit at $1,000 and above."),
+     "The same ladder as singles from $100 up: 75% cash or 85% credit from $100 to $499, 80% or 90% from "
+     "$500 to $999, and 85% cash or 95% credit at $1,000 and above."),
     ("Do you need the cert number?",
      "Yes, and it is genuinely useful to you. The cert number tells us the exact card, set, printing and "
      "grade with zero ambiguity, so the quote comes back faster and does not move when the slab arrives."),
@@ -447,7 +447,7 @@ G_FAQ = [
 
 emit('sell-graded-pokemon-cards.html', force=FORCE,
      title='Sell Graded Pokémon Cards — PSA, CGC & BGS Slabs | Sake Kitty Cards',
-     desc='We buy graded Pokemon slabs — PSA, CGC, BGS and SGC — from $100 up, at 80–90% cash or up to 100% in trade credit. Cert-number quotes, mail-in nationwide.',
+     desc='We buy graded Pokemon slabs — PSA, CGC, BGS and SGC — from $100 up, at 75–85% cash or up to 95% in trade credit. Cert-number quotes, mail-in nationwide.',
      schema=[
          breadcrumbs([('Home', ''), ('Sell / Trade', 'trade-in.html'), ('Sell Graded Slabs', 'sell-graded-pokemon-cards.html')]),
          service_schema(
@@ -460,7 +460,7 @@ emit('sell-graded-pokemon-cards.html', force=FORCE,
      body='''    <div class="page-hero">
       <h1>Sell Your Graded Pok&eacute;mon Cards</h1>
       <p>PSA, CGC, BGS and SGC slabs from $100 up. Quote from the cert number in minutes, priced against
-      recent sold comps for that exact grade &mdash; up to 90% cash or 100% in trade credit.</p>
+      recent sold comps for that exact grade &mdash; up to 85% cash or 95% in trade credit.</p>
       <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:28px">
         <a href="trade-in.html" class="btn btn-primary btn-lg">Quote your slabs</a>
         <a href="graded.html" class="btn btn-outline btn-lg">See what we&rsquo;re holding</a>
