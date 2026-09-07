@@ -165,7 +165,7 @@ emit('guide-sell-pokemon-collection.html', force=FORCE,
      sec('Cash or store credit',
          prose(
              'Most buyers, us included, pay more in credit than in cash &mdash; on our ladder the spread is about '
-             'ten percentage points, and at the top tier credit reaches 100% of market value against 90% cash. '
+             'ten percentage points, and at the top tier credit reaches 95% of market value against 85% cash. '
              'The reason is simple: credit stays in the business.',
              'The decision is therefore not really about the percentage. It is about whether you were going to '
              'spend that money on cards anyway. If you are consolidating a collection and plan to buy chase '
@@ -330,7 +330,7 @@ Q3 = [
     ("What is a fair percentage?",
      "It scales with the value of the card. On cheap singles, 60-70% of market is normal because the handling "
      "cost per card is nearly the same whether the card is worth $3 or $300. On four-figure cards the "
-     "percentage should be much higher — we pay 90% cash and 100% in credit at $1,000 and up."),
+     "percentage should be much higher — we pay 85% cash and 95% in credit at $1,000 and up."),
     ("Would I make more selling the cards myself?",
      "On paper, yes, and honestly for some collections that is the right answer. What it costs you is roughly "
      "13% in marketplace fees, packing and postage on every sale, the hours to photograph and list, and the "
