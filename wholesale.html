@@ -377,6 +377,7 @@
         <button type="button" data-region="all" aria-pressed="true">All<span class="n" data-count="all"></span></button>
         <button type="button" data-region="cn" aria-pressed="false">Chinese<span class="n" data-count="cn"></span></button>
         <button type="button" data-region="jp" aria-pressed="false">Japanese<span class="n" data-count="jp"></span></button>
+        <button type="button" data-region="en" aria-pressed="false">English<span class="n" data-count="en"></span></button>
       </div>
       <div class="find">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -794,7 +795,7 @@
     }
     $('empty').hidden = list.length > 0;
     // counts must describe what clicking that segment would actually show
-    ['all', 'cn', 'jp'].forEach(function (r) {
+    ['all', 'cn', 'jp', 'en'].forEach(function (r) {
       document.querySelector('[data-count="' + r + '"]').textContent = matching(r).length;
     });
     Object.keys(order).forEach(function (id) { var p = byId(id); if (p) paintCard(p); });
