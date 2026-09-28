@@ -1,5 +1,5 @@
 {
-  "_note": "Acceptance corpus for the wholesale auto-reply classifier. These are eight genuine first-touch enquiries taken from the live mailbox on 2026-09-28, with every identity replaced: names, email addresses, company names and locations are invented, and .example domains are reserved and unroutable. The wording that drives classification - the product mentions, amounts, quantities, availability and sourcing language - is preserved verbatim, which is the only part the classifier reads. THIS REPOSITORY IS PUBLIC: never restore real sender identities here. The un-anonymised originals are kept outside the repo, in the sk-wholesale handoff folder.",
+  "_note": "Acceptance corpus for the wholesale auto-reply classifier. These are eleven genuine first-touch enquiries taken from the live mailbox on 2026-09-28, with every identity replaced: names, email addresses, company names and locations are invented, and .example domains are reserved and unroutable. The wording that drives classification - the product mentions, amounts, quantities, availability and sourcing language - is preserved verbatim, which is the only part the classifier reads. THIS REPOSITORY IS PUBLIC: never restore real sender identities here. The un-anonymised originals are kept outside the repo, in the sk-wholesale handoff folder.",
   "cases": [
     {
       "id": "web-form-detailed-buyer",
@@ -154,6 +154,64 @@
         "bodyText": "Hi Nick,\n\nMy name is Marisol Vance, Founder and CEO of Vance Strategic Ventures\nLLC, operator of Cocoa Row, a premium multi-category retail\ndestination currently in development in Texas.\n\nWe are currently establishing suppliers for our planned TCG & Collectibles\nsection and are interested in developing an ongoing wholesale purchasing\nrelationship with Sake Kitty Cards.\n\nOur primary interest is authentic, factory-sealed English/U.S.-market\nPokemon TCG products, including booster displays, Elite Trainer Boxes,\nbooster bundles, special collections, tins, Pokemon Center products, sealed\ncases when available, and new releases.\n\nI would appreciate information on your current English Pokemon wholesale\nprogram, including:\n\n   - Current wholesale price list\n   - Minimum order requirements\n   - New-release and preorder access\n   - Allocation procedures for high-demand releases\n   - Sealed-case availability\n   - Requirements for recurring wholesale buyers\n   - Whether you work with brick-and-mortar retailers currently in the\n   pre-opening stage\n\nCocoa Row is being developed as a physical retail destination, and we\nare building our supplier network and opening merchandise plan now. We are\nlooking for reliable, long-term supply relationships rather than one-time\npurchases.\n\nThank you, and I look forward to hearing from you.\n\nMarisol Vance\nFounder & CEO\nVance Strategic Ventures LLC"
       },
       "expectStrict": "route"
+    },
+    {
+      "id": "web-form-wrong-topic",
+      "received": "2026-09-27",
+      "channel": "web3forms",
+      "expect": "route",
+      "expectStrict": "route",
+      "why": "a Collection Offer form - someone selling cards TO us. A wholesale supplier's terms letter is the wrong answer, and this one even uses the word wholesale",
+      "msg": {
+        "from": "notify+c1l0x4@web3forms.com",
+        "subject": "Collection Offer - A few hundred cards",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": [
+          "INBOX"
+        ],
+        "headers": {},
+        "bodyText": "name : Marco Bell\nemail : marco.bell@example.com\nphone :\ncollection_size : A few hundred cards\nhandoff : Whichever is easier\nmessage : I have 70 Pokemon cards i got while working, 2014 basic cards, a few doubles and a holographic one. Do you buy a wholesale lot like this from a reseller, and what are your terms?"
+      }
+    },
+    {
+      "id": "empty-body-mobile-signature",
+      "received": "2026-09-27",
+      "channel": "direct",
+      "expect": "route",
+      "expectStrict": "route",
+      "why": "the entire body is a mobile sign-off - the real enquiry never arrived, so there is nothing to answer",
+      "msg": {
+        "from": "Adrian Vela <adrian.vela@example.com>",
+        "subject": "Wholesale price list request",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": [
+          "INBOX"
+        ],
+        "headers": {},
+        "bodyText": "Enviado desde mi iPhone"
+      }
+    },
+    {
+      "id": "wants-to-buy-from-us",
+      "received": "2026-09-28",
+      "channel": "direct",
+      "expect": "route",
+      "expectStrict": "route",
+      "why": "a dealer buying OUR graded stock, not a wholesale customer - and it carries an offer",
+      "msg": {
+        "from": "Elias Marchetti <elias.marchetti@example.com>",
+        "subject": "Interested in Buying Your Graded Cards",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": [
+          "INBOX",
+          "IMPORTANT"
+        ],
+        "headers": {},
+        "bodyText": "Hi,\n\nI'm a card vendor based in NYC and I'm interested in purchasing a\nlarge group of your graded Pokemon cards. I recently sold a majority\nof my inventory and am looking to restock.\n\nI'd be happy to send over an offer sheet listing the cards I'm\ninterested in, along with current market prices and my offer for each.\nWould that work for you?\n\nThanks,\nElias Marchetti"
+      }
     }
   ]
 }

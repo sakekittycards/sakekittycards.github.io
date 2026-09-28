@@ -144,6 +144,7 @@ export const REASONS = {
   SOURCING: 'route.sourcing',
   ENGLISH: 'route.english_product',
   SITE_OFFER: 'route.site_offer',
+  WRONG_FORM_TOPIC: 'route.wrong_form_topic',
   PARTNERSHIP: 'route.partnership',
   PRICE_REQUEST: 'route.price_request',
   CHASER: 'route.chaser',
@@ -183,7 +184,7 @@ export const DEFAULT_RULESET = RULESETS.STANDARD;
 
 export const DEFAULT_CAPS = { perHour: 10, perDay: 10 };
 export const MAX_BODY_CHARS = 2000;
-export const MIN_BODY_CHARS = 20;
+export const MIN_BODY_CHARS = 40;
 
 // ─── Text helpers ──────────────────────────────────────────────────────────
 
@@ -208,6 +209,32 @@ function hasTerm(haystack, term) {
 function firstTermHit(haystack, terms) {
   for (const t of terms) if (hasTerm(haystack, t)) return t;
   return null;
+}
+
+/**
+ * Client-added sign-offs that carry no content. A body consisting only of
+ * one of these is an empty message, and must never earn a reply: the real
+ * enquiry is in the subject line, or never arrived at all.
+ */
+const SIGNATURE_PREFIXES = [
+  'sent from my', 'sent from yahoo mail', 'sent from mail for windows',
+  'sent from outlook', 'get outlook for', 'enviado desde mi',
+  'envoye de mon', 'envoyé de mon', 'verzonden vanaf mijn',
+  'von meinem', 'inviato dal mio', 'skickat fran min',
+];
+
+/** The body with content-free client sign-offs removed. */
+export function stripSignatures(bodyText) {
+  const NL = String.fromCharCode(10);
+  return String(bodyText || '')
+    .split(NL)
+    .filter((line) => {
+      const l = line.trim().toLowerCase();
+      if (!l) return true;
+      return !SIGNATURE_PREFIXES.some((p) => l.startsWith(p));
+    })
+    .join(NL)
+    .trim();
 }
 
 /** Address out of "Name <a@b.com>" or a bare address. */
@@ -462,6 +489,15 @@ function routeReasons(msg, ctx, firstName) {
   // sender who never says "english" never sees it mentioned.
   if (strict && hasTerm(hay, 'english')) reasons.push(REASONS.ENGLISH);
 
+  // 9a. A site-form submission is in scope only when it came through the
+  //     wholesale topic. The form also carries collection offers, grading
+  //     enquiries and general contact, and a wholesale supplier's terms
+  //     letter is the wrong answer to every one of them - most sharply to
+  //     someone offering to sell us their collection.
+  if (msg.viaWebForm && !/wholesale|b2b/i.test(msg.formTopic || '')) {
+    reasons.push(`${REASONS.WRONG_FORM_TOPIC}:${msg.formTopic || 'none'}`);
+  }
+
   // 10. Site-form offers are real money.
   if (/\boffer\b\s*:/i.test(subject) || /^offer\b/i.test(subject.trim()) ||
       /\bmy offer\b|\bi'?d like to offer\b|\boffering you\b/i.test(hay)) {
@@ -506,7 +542,7 @@ function stage2Reasons(msg, ctx) {
   const caps = { ...DEFAULT_CAPS, ...(ctx.caps || {}) };
 
   if (ctx.killSwitch) reasons.push(REASONS.KILL_SWITCH);
-  if (body.trim().length < MIN_BODY_CHARS) reasons.push(REASONS.BODY_TOO_SHORT);
+  if (stripSignatures(body).length < MIN_BODY_CHARS) reasons.push(REASONS.BODY_TOO_SHORT);
   if (!firstTermHit(hay, WHOLESALE_INTENT_TERMS)) reasons.push(REASONS.NO_WHOLESALE_INTENT);
   if ((ctx.sentLastHour || 0) >= caps.perHour) reasons.push(REASONS.CAP_HOURLY);
   if ((ctx.sentLastDay || 0) >= caps.perDay) reasons.push(REASONS.CAP_DAILY);

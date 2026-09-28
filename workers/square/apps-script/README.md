@@ -26,12 +26,14 @@ never **what the reply says** — there is one template.
 
 | `ruleset` | Behaviour | Measured on 8 real enquiries |
 |---|---|---|
-| `standard` (default) | Acknowledge and route. Replies even when the enquiry names a product, quantity, budget or English, because the reply answers none of them and says Nick is picking the specifics up. | 6 reply, 2 route |
-| `strict` | The original brief. Any product, price, quantity, availability, sourcing or English mention is a hard block. | 0 reply, 8 route |
+| `standard` (default) | Acknowledge and route. Replies even when the enquiry names a product, quantity, budget or English, because the reply answers none of them and says Nick is picking the specifics up. | 6 reply, 5 route |
+| `strict` | The original brief. Any product, price, quantity, availability, sourcing or English mention is a hard block. | 0 reply, 11 route |
 
-Both sets always route: site-form offers, partnership and consignment
-proposals, chasers, known contacts, non-first-touch, attachments, bodies
-over 2,000 characters, and anything we cannot greet by name. Under
+Both sets always route: site-form submissions on any topic other than
+Wholesale / B2B, site-form offers, partnership and consignment proposals,
+chasers, known contacts, non-first-touch, attachments, bodies over 2,000
+characters, bodies that are empty once a mobile sign-off is stripped, and
+anything we cannot greet by name. Under
 `standard` the two remaining routes in the corpus are both chasers, which
 is the intended behaviour — someone chasing a non-reply should never get a
 form letter.
@@ -237,6 +239,12 @@ message : ...
 
 This is the busiest wholesale intake channel. `parseWeb3Form()` unwraps it
 before anything else runs — otherwise every form submission would be
-discarded by the `notify+` drop rule. A reply to a form submission goes out
+discarded by the `notify+` drop rule.
+
+⚠️ The same form also carries **collection offers, grading enquiries and
+general contact**. Only the `Wholesale / B2B` topic is eligible; every other
+topic routes with `route.wrong_form_topic`. Without that gate a collection
+offer — someone selling cards *to* Nick — that happens to use the word
+"wholesale" would receive a wholesale *supplier's* terms letter. A reply to a form submission goes out
 as a new message, not a threaded reply, because there is nothing of the
 sender's to thread onto.

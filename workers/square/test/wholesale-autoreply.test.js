@@ -16,6 +16,7 @@ import {
   parseWeb3Form,
   extractFirstName,
   looksEnglish,
+  stripSignatures,
   renderReply,
   ENGLISH_PARAGRAPH,
   renderSubject,
@@ -321,6 +322,55 @@ test('a web3forms submission is NOT dropped as a bulk sender', () => {
   assert.equal(r.firstName, 'Dana');
 });
 
+
+test('stripSignatures removes content-free client sign-offs', () => {
+  assert.equal(stripSignatures('Enviado desde mi iPhone'), '');
+  assert.equal(stripSignatures('Sent from my iPhone'), '');
+  assert.equal(stripSignatures('Get Outlook for Android'), '');
+  // Real content survives, and only the sign-off line goes.
+  const body = 'Hi, we want a wholesale account.' + String.fromCharCode(10) + 'Sent from my iPhone';
+  assert.equal(stripSignatures(body), 'Hi, we want a wholesale account.');
+});
+
+test('a body that is only a mobile signature never earns a reply', () => {
+  const r = classify(cleanMsg({
+    from: 'Adrian Vela <adrian.vela@example.com>',
+    subject: 'Wholesale price list request',
+    bodyText: 'Enviado desde mi iPhone',
+  }), CLEAN_CTX);
+  assert.equal(r.decision, 'route');
+  assert.ok(r.reasons.includes(REASONS.BODY_TOO_SHORT));
+});
+
+test('a site-form submission on the wrong topic always routes', () => {
+  // The contact form also carries collection offers, grading enquiries and
+  // general contact. A wholesale supplier's terms letter answers none of
+  // them - least of all someone offering to sell us their collection.
+  const r = classify({
+    from: 'notify+c1l0x4@web3forms.com',
+    subject: 'Collection Offer - A few hundred cards',
+    bodyText: 'name : Marco Bell' + String.fromCharCode(10) +
+              'email : marco.bell@example.com' + String.fromCharCode(10) +
+              'message : Do you buy a wholesale lot like this from a reseller, and what are your terms?',
+    headers: {}, hasAttachments: false, threadMessageCount: 1, labels: ['INBOX'],
+  }, CLEAN_CTX);
+  assert.equal(r.decision, 'route');
+  assert.ok(r.reasons.some((x) => x.startsWith(REASONS.WRONG_FORM_TOPIC)));
+});
+
+test('the wholesale topic is still eligible', () => {
+  const r = classify({
+    from: 'notify+uafoh4@web3forms.com',
+    subject: 'Contact: Wholesale / B2B',
+    bodyText: 'name : Dana Whitfield' + String.fromCharCode(10) +
+              'email : dana@example.com' + String.fromCharCode(10) +
+              'topic : Wholesale / B2B' + String.fromCharCode(10) +
+              'message : Hi, I run a card shop and would like to open a wholesale reseller account with you. Could you tell me how your terms work?',
+    headers: {}, hasAttachments: false, threadMessageCount: 1, labels: ['INBOX'],
+  }, CLEAN_CTX);
+  assert.equal(r.decision, 'reply');
+});
+
 // ─── Template ──────────────────────────────────────────────────────────────
 
 test('the reply template leaks no price, product or discount', () => {
@@ -398,7 +448,7 @@ test('renderSubject prefixes Re: exactly once', () => {
 
 // ─── The real corpus ───────────────────────────────────────────────────────
 
-test('eight real first-touch enquiries are classified as expected under both rule sets', () => {
+test('every real first-touch enquiry is classified as expected under both rule sets', () => {
   const { cases } = JSON.parse(
     readFileSync(join(HERE, 'fixtures', 'real-enquiries.json'), 'utf8')
   );
