@@ -1,0 +1,10 @@
+{
+  "name": "sakekitty-square-worker",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker for Square checkout, grading, promos and the wholesale first-touch auto-reply.",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "deploy": "wrangler deploy"
+  }
+}
