@@ -17,6 +17,7 @@ import {
   extractFirstName,
   looksEnglish,
   renderReply,
+  ENGLISH_PARAGRAPH,
   renderSubject,
   REASONS,
 } from '../src/wholesale-autoreply.js';
@@ -96,7 +97,6 @@ test('drops spam-labelled mail', () => {
 
 // Rules that apply under BOTH rule sets.
 const alwaysBlocks = [
-  ['english', { bodyText: 'Reseller account, interested in English sealed.' }, REASONS.ENGLISH],
   ['chaser', { bodyText: 'Reseller account. I already emailed about this.' }, REASONS.CHASER],
   ['partnership', { bodyText: 'Reseller account - I would like to discuss consignment.' }, REASONS.PARTNERSHIP],
   ['attachment', { hasAttachments: true }, REASONS.ATTACHMENT],
@@ -105,6 +105,7 @@ const alwaysBlocks = [
 // Rules that apply under 'strict' only. Under 'standard' these same
 // messages get the terms reply, because the reply answers none of them.
 const strictOnlyBlocks = [
+  ['english', { bodyText: 'Reseller account, interested in English sealed.' }, REASONS.ENGLISH],
   ['currency in body', { bodyText: 'Terms for a reseller account, budget is $4,000.' }, REASONS.CURRENCY],
   ['currency written out', { bodyText: 'Opening a reseller account, around 4000 USD to start.' }, REASONS.CURRENCY],
   ['quantity', { bodyText: 'Reseller account please, thinking 5 cases to start.' }, REASONS.QUANTITY],
@@ -335,7 +336,7 @@ test('the reply template leaks no price, product or discount', () => {
   }
 
   // Never volunteer English, never imply a discount.
-  assert.ok(!/\benglish\b/i.test(body), 'template mentions English');
+  assert.ok(!/\benglish\b/i.test(body), 'default template mentions English');
   assert.ok(/don't offer volume discounts/i.test(body), 'template must rule discounts out explicitly');
 
   // Nick's voice: no exclamation marks, no em-dashes.
@@ -353,6 +354,40 @@ test('the reply template leaks no price, product or discount', () => {
   // Links to the price-free lead page, never the pricing catalogue.
   assert.ok(body.includes('sakekittycards.com/wholesale-pokemon'), 'wrong catalogue link');
   assert.ok(!/sakekittycards\.com\/wholesale(?!-pokemon)/.test(body), 'links the pricing catalogue');
+});
+
+
+test('the English paragraph appears only when the sender raised English', () => {
+  const NL = String.fromCharCode(10);
+  const plain = renderReply({ firstName: 'Dana' });
+  const asked = renderReply({ firstName: 'Dana', mentionsEnglish: true });
+
+  assert.ok(!plain.toLowerCase().includes('english'), 'English leaked into the default reply');
+  assert.ok(asked.includes('On English:'), 'English paragraph missing when asked');
+  assert.ok(asked.includes('source it to order rather than stocking it'));
+
+  // The extra paragraph is still price-free and product-free, and defers
+  // the specifics, exactly like the rest of the template.
+  const amounts = asked.match(new RegExp('[$][0-9,]+', 'g')) || [];
+  assert.deepEqual(amounts, ['$1,500']);
+  for (const term of ['storm emeralda', 'gem pack', 'prismatic', 'booster box', 'etb']) {
+    assert.ok(!asked.toLowerCase().includes(term), `English variant mentions "${term}"`);
+  }
+  assert.ok(!asked.includes('!'), 'English variant contains an exclamation mark');
+  assert.ok(!asked.includes(String.fromCharCode(8212)), 'English variant contains an em-dash');
+  assert.ok(!asked.includes(String.fromCharCode(8211)), 'English variant contains an en-dash');
+
+  // Everything else is byte-identical - one inserted paragraph, nothing more.
+  assert.equal(asked.replace(NL + ENGLISH_PARAGRAPH + NL, ''), plain);
+  assert.ok(ENGLISH_PARAGRAPH.endsWith('Nick will price them.'));
+});
+
+test('classify reports whether English was raised', () => {
+  assert.equal(classify(cleanMsg(), CLEAN_CTX).mentionsEnglish, false);
+  assert.equal(
+    classify(cleanMsg({ bodyText: 'Reseller account, interested in English sealed product for my shop.' }), CLEAN_CTX).mentionsEnglish,
+    true
+  );
 });
 
 test('renderSubject prefixes Re: exactly once', () => {

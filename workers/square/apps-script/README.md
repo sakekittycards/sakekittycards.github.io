@@ -26,16 +26,31 @@ never **what the reply says** — there is one template.
 
 | `ruleset` | Behaviour | Measured on 8 real enquiries |
 |---|---|---|
-| `standard` (default) | Acknowledge and route. Replies even when the enquiry names a product, quantity or budget, because the reply answers none of them and says Nick is picking the specifics up. | 2 reply, 6 route |
-| `strict` | The original brief. Any product, price, quantity, availability or sourcing mention is a hard block. | 0 reply, 8 route |
+| `standard` (default) | Acknowledge and route. Replies even when the enquiry names a product, quantity, budget or English, because the reply answers none of them and says Nick is picking the specifics up. | 6 reply, 2 route |
+| `strict` | The original brief. Any product, price, quantity, availability, sourcing or English mention is a hard block. | 0 reply, 8 route |
 
-Both sets always route: English mentions, site-form offers, partnership and
-consignment proposals, chasers, known contacts, non-first-touch, attachments,
-bodies over 2,000 characters, and anything we cannot greet by name.
+Both sets always route: site-form offers, partnership and consignment
+proposals, chasers, known contacts, non-first-touch, attachments, bodies
+over 2,000 characters, and anything we cannot greet by name. Under
+`standard` the two remaining routes in the corpus are both chasers, which
+is the intended behaviour — someone chasing a non-reply should never get a
+form letter.
 
-Under `standard` the dominant filter is the **English** rule — five of the
-eight real enquiries mention English product. That is the next lever if the
-reply rate needs to be higher.
+### English
+
+`standard` replies to English enquiries and adds one paragraph, which
+appears **only** when the sender raised English themselves:
+
+> On English: we source it to order rather than stocking it, so it isn't
+> part of the standard catalogue. Send the specific products and quantities
+> you're after and Nick will price them.
+
+That is Nick's own wording from three of his sent replies. It names no
+price, product or availability and hands the specifics back to him. Nothing
+is volunteered: a sender who never says "english" never sees it mentioned,
+so the "stocked but not advertised" rule still holds. Without the
+paragraph, an English buyer would read a reply listing Japanese and Chinese
+as a refusal, which is wrong — we do supply English to order.
 
 ```bash
 curl -s -X POST "$WORKER/admin/wholesale/autoreply/config"   -H "X-Sake-Admin-Token: $ADMIN_TOKEN" -H 'Content-Type: application/json'   -d '{"updates":{"ruleset":"strict"}}'

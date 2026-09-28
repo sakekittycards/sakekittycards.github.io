@@ -455,8 +455,12 @@ function routeReasons(msg, ctx, firstName) {
   const sourceHit = strict ? firstTermHit(hay, SOURCING_TERMS) : null;
   if (sourceHit) reasons.push(`${REASONS.SOURCING}:${sourceHit}`);
 
-  // 9. English product — stocked but never advertised, so never volunteered.
-  if (hasTerm(hay, 'english')) reasons.push(REASONS.ENGLISH);
+  // 9. English product. Strict only.
+  //
+  // Under 'standard' an English enquiry gets the reply, and renderReply adds
+  // the English paragraph because they asked. Nothing is volunteered: a
+  // sender who never says "english" never sees it mentioned.
+  if (strict && hasTerm(hay, 'english')) reasons.push(REASONS.ENGLISH);
 
   // 10. Site-form offers are real money.
   if (/\boffer\b\s*:/i.test(subject) || /^offer\b/i.test(subject.trim()) ||
@@ -529,13 +533,18 @@ export function classify(rawMsg, ctx = {}) {
   const { name } = parseAddress(msg.from);
   const firstName = extractFirstName(name, msg.bodyText || '');
 
+  const mentionsEnglish = hasTerm(
+    normalizeText(`${msg.subject || ''}
+${msg.bodyText || ''}`), 'english'
+  );
+
   const blocks = routeReasons(msg, ctx, firstName);
-  if (blocks.length) return { decision: 'route', reasons: blocks, firstName, msg };
+  if (blocks.length) return { decision: 'route', reasons: blocks, firstName, msg, mentionsEnglish };
 
   const gaps = stage2Reasons(msg, ctx);
-  if (gaps.length) return { decision: 'route', reasons: gaps, firstName, msg };
+  if (gaps.length) return { decision: 'route', reasons: gaps, firstName, msg, mentionsEnglish };
 
-  return { decision: 'reply', reasons: [REASONS.ELIGIBLE], firstName, msg };
+  return { decision: 'reply', reasons: [REASONS.ELIGIBLE], firstName, msg, mentionsEnglish };
 }
 
 // ─── Reply template ────────────────────────────────────────────────────────
@@ -545,12 +554,30 @@ export function classify(rawMsg, ctx = {}) {
 // hyphens rather than em-dashes, no "thank you for reaching out!".
 //
 // DO NOT add anything about a price, a product, availability, a quantity,
-// sourcing, English product, or a volume discount.
+// sourcing or a volume discount.
+//
+// The English paragraph appears ONLY when the sender raised English
+// themselves. It is Nick's own wording from three of his sent replies, it
+// states no price, product or availability, and it hands the specifics
+// straight back to him. Without it, an English buyer reads a reply listing
+// Japanese and Chinese as a refusal - which is wrong, because we do supply
+// English to order. Someone who never mentions English never sees this.
 
 export const CATALOGUE_URL = 'https://sakekittycards.com/wholesale-pokemon';
 export const REPLY_FROM = 'wholesale@sakekittycards.com';
 
-export function renderReply({ firstName, catalogueUrl = CATALOGUE_URL } = {}) {
+export const ENGLISH_PARAGRAPH = `On English: we source it to order rather than stocking it, so it isn't
+part of the standard catalogue. Send the specific products and quantities
+you're after and Nick will price them.`;
+
+export function renderReply({
+  firstName,
+  catalogueUrl = CATALOGUE_URL,
+  mentionsEnglish = false,
+} = {}) {
+  const english = mentionsEnglish ? `
+${ENGLISH_PARAGRAPH}
+` : '';
   return `Hi ${firstName},
 
 Thanks for reaching out. Here are the basics so you're not waiting on them.
@@ -568,7 +595,7 @@ Thanks for reaching out. Here are the basics so you're not waiting on them.
   pass it through without markup and quote it per order.
 - Resale certificate: we need a valid one on file before a first order ships.
 - Territory: we don't offer territory protection or exclusivity.
-
+${english}
 More on how we work: ${catalogueUrl}
 
 This reply is automatic so the terms reach you straight away. Anything

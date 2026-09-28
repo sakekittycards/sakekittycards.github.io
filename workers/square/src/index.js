@@ -3016,6 +3016,7 @@ async function wholesaleClassify(request, env) {
       body: renderWholesaleReply({
         firstName: result.firstName,
         catalogueUrl: cfg.catalogue_url || WHOLESALE_CATALOGUE_URL,
+        mentionsEnglish: !!result.mentionsEnglish,
       }),
       headers: { 'Auto-Submitted': 'auto-replied' },
       // A form submission has no message of the sender's to thread onto.

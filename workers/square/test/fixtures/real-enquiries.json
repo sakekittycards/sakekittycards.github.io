@@ -6,7 +6,7 @@
       "received": "2026-09-23",
       "channel": "web3forms",
       "expect": "reply",
-      "why": "no English, no chaser - standard gives it the terms; strict blocks on currency, quantity and booster boxes",
+      "why": "no chaser - standard gives it the terms; strict blocks on currency, quantity and booster boxes",
       "msg": {
         "from": "notify+uafoh4@web3forms.com",
         "subject": "Contact: Wholesale / B2B",
@@ -25,7 +25,7 @@
       "received": "2026-09-12",
       "channel": "web3forms",
       "expect": "route",
-      "why": "says he has already emailed with no response - a chaser is not a first touch under either set",
+      "why": "already emailed with no response - a chaser is not a first touch under either set",
       "msg": {
         "from": "notify+i3dhtj@web3forms.com",
         "subject": "Contact: Wholesale / B2B",
@@ -43,8 +43,8 @@
       "id": "web-form-shop-owner",
       "received": "2026-09-08",
       "channel": "web3forms",
-      "expect": "route",
-      "why": "English Pokemon throughout",
+      "expect": "reply",
+      "why": "English no longer blocks under standard, so the terms go out with the English paragraph; strict blocks on One Piece, inventory and preorder",
       "msg": {
         "from": "notify+dbrord@web3forms.com",
         "subject": "Contact: Wholesale / B2B",
@@ -63,7 +63,7 @@
       "received": "2026-09-07",
       "channel": "web3forms",
       "expect": "reply",
-      "why": "no English, no chaser - standard gives it the terms; strict blocks on the $5,000",
+      "why": "standard gives it the terms; strict blocks on the $5,000",
       "msg": {
         "from": "notify+z2yxgq@web3forms.com",
         "subject": "Contact: Wholesale / B2B",
@@ -81,8 +81,8 @@
       "id": "direct-eu-volume-buyer",
       "received": "2026-09-21",
       "channel": "direct",
-      "expect": "route",
-      "why": "english products",
+      "expect": "reply",
+      "why": "standard gives the terms plus the English paragraph; strict blocks on quantity, booster boxes and stock",
       "msg": {
         "from": "Bram Velthuis <bram@velthuisgroep.example>",
         "subject": "erious B2B Interest - Pokemon Products for the Netherlands",
@@ -101,7 +101,7 @@
       "received": "2026-09-22",
       "channel": "direct",
       "expect": "route",
-      "why": "English, and chasing an earlier approach",
+      "why": "chasing an earlier approach",
       "msg": {
         "from": "Curio Dept <curiodept@example.com>",
         "subject": "Wholesale Account Follow-Up",
@@ -120,8 +120,8 @@
       "id": "direct-vending-startup",
       "received": "2026-09-05",
       "channel": "direct",
-      "expect": "route",
-      "why": "English Pokemon sealed product",
+      "expect": "reply",
+      "why": "standard gives the terms plus the English paragraph; strict blocks on currency, availability and allocation",
       "msg": {
         "from": "Aidan Rourke <aidan.rourke@example.com>",
         "subject": "Wholesale inquiry",
@@ -139,8 +139,8 @@
       "id": "direct-retail-buildout",
       "received": "2026-09-03",
       "channel": "direct",
-      "expect": "route",
-      "why": "English in the subject and throughout",
+      "expect": "reply",
+      "why": "standard gives the terms plus the English paragraph; strict blocks on availability and preorder",
       "msg": {
         "from": "Marisol Vance <marisolvance@example.com>",
         "subject": "Wholesale Inquiry - English Pokemon TCG | Cocoa Row",
