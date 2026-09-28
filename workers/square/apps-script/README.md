@@ -175,11 +175,16 @@ all, delete the triggers in the Apps Script UI.
 | Setting | Default | Meaning |
 |---|---|---|
 | `ruleset` | `standard` | which rule set gates the reply |
-| `cap_per_hour` | 3 | auto-sends per hour |
+| `cap_per_hour` | 10 | auto-sends per hour |
 | `cap_per_day` | 10 | auto-sends per day |
 | one per sender | — | ever, tracked in `wholesale_autoreply_senders` |
 
 Hitting a cap routes to Nick rather than queueing.
+
+⚠️ With both at 10, **`cap_per_day` binds first and `cap_per_hour` never
+fires** — you cannot reach 10 in an hour without also reaching 10 in a day.
+The hourly cap only does real work once the daily one is higher than it.
+Raise `cap_per_day` if the intent was to allow a burst after a show.
 
 ## Endpoints
 

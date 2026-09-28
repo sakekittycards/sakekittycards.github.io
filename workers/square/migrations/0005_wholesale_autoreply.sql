@@ -76,7 +76,7 @@ INSERT OR IGNORE INTO wholesale_autoreply_config (key, value) VALUES
   --              (0 of 8 reply). See wholesale-autoreply.js RULESETS.
   ('ruleset',         'standard'),
   ('kill_switch',     '1'),
-  ('cap_per_hour',    '3'),
+  ('cap_per_hour',    '10'),
   ('cap_per_day',     '10'),
   ('clean_drafts_required', '10'),
   ('catalogue_url',   'https://sakekittycards.com/wholesale-pokemon'),

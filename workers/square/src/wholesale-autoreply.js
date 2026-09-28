@@ -181,7 +181,7 @@ export const REASONS = {
 export const RULESETS = { STANDARD: 'standard', STRICT: 'strict' };
 export const DEFAULT_RULESET = RULESETS.STANDARD;
 
-export const DEFAULT_CAPS = { perHour: 3, perDay: 10 };
+export const DEFAULT_CAPS = { perHour: 10, perDay: 10 };
 export const MAX_BODY_CHARS = 2000;
 export const MIN_BODY_CHARS = 20;
 

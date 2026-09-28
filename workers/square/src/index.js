@@ -2852,7 +2852,7 @@ const WHOLESALE_AR_DEFAULTS = {
   mode: 'shadow',
   ruleset: 'standard',
   kill_switch: '1',
-  cap_per_hour: '3',
+  cap_per_hour: '10',
   cap_per_day: '10',
   clean_drafts_required: '10',
   catalogue_url: WHOLESALE_CATALOGUE_URL,

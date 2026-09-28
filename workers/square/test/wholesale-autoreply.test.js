@@ -262,7 +262,7 @@ test('kill switch forces route', () => {
 });
 
 test('rate caps force route', () => {
-  assert.ok(classify(cleanMsg(), { ...CLEAN_CTX, sentLastHour: 3 }).reasons.includes(REASONS.CAP_HOURLY));
+  assert.ok(classify(cleanMsg(), { ...CLEAN_CTX, sentLastHour: 10 }).reasons.includes(REASONS.CAP_HOURLY));
   assert.ok(classify(cleanMsg(), { ...CLEAN_CTX, sentLastDay: 10 }).reasons.includes(REASONS.CAP_DAILY));
 });
 
