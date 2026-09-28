@@ -1,0 +1,133 @@
+{
+  "_note": "Acceptance corpus for the wholesale auto-reply classifier. These are eight genuine first-touch enquiries taken from the live mailbox on 2026-09-28, with every identity replaced: names, email addresses, company names and locations are invented, and .example domains are reserved and unroutable. The wording that drives classification - the product mentions, amounts, quantities, availability and sourcing language - is preserved verbatim, which is the only part the classifier reads. THIS REPOSITORY IS PUBLIC: never restore real sender identities here. The un-anonymised originals are kept outside the repo, in the sk-wholesale handoff folder.",
+  "cases": [
+    {
+      "id": "web-form-detailed-buyer",
+      "received": "2026-09-23",
+      "channel": "web3forms",
+      "expect": "route",
+      "why": "sourcing, booster boxes, inventory, $1,500, quantities per box or case",
+      "msg": {
+        "from": "notify+uafoh4@web3forms.com",
+        "subject": "Contact: Wholesale / B2B",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "name : Marcus Trelane\nemail : marcus@northvaleretail.example\ntopic : Wholesale / B2B\nmessage : Hi Sake Kitty Cards team,\n\nMy name is Marcus Trelane, owner of Northvale Retail LLC in New Hampshire. I'm developing our online trading-card retail business, with plans to sell through our website and livestreams.\n\nI'm interested in sourcing sealed Japanese and Chinese Pokemon products, particularly booster boxes and cases. Could you send your current wholesale price list and available inventory, including quantities per box or case?\n\nI saw your $1,500 order minimum and would like to evaluate a mixed opening order based on pricing and availability. Please also include your payment terms, estimated shipping costs to New Hampshire, and whether there are any ongoing purchasing requirements or restrictions on website and livestream sales.\n\nI can provide our LLC formation documents and any additional business information needed for approval.\n\nThank you,\nMarcus Trelane\nNorthvale Retail LLC"
+      }
+    },
+    {
+      "id": "web-form-terse-chaser",
+      "received": "2026-09-12",
+      "channel": "web3forms",
+      "expect": "route",
+      "why": "asks for a price list, and says he has already emailed with no response",
+      "msg": {
+        "from": "notify+i3dhtj@web3forms.com",
+        "subject": "Contact: Wholesale / B2B",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "name : Owen Prydd\nemail : owen.prydd@example.com\ntopic : Wholesale / B2B\nmessage : Hello, ive already emailed but had no response. I'm looking for a supplier of pokemon items and merchandise. Could you provide me with a price list please ?"
+      }
+    },
+    {
+      "id": "web-form-shop-owner",
+      "received": "2026-09-08",
+      "channel": "web3forms",
+      "expect": "route",
+      "why": "English, ETBs, booster boxes, One Piece, preorder allocations, case pricing, volume discounts",
+      "msg": {
+        "from": "notify+dbrord@web3forms.com",
+        "subject": "Contact: Wholesale / B2B",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "name : Reid Calloway\nemail : reid@lastwordtcg.example\ntopic : Wholesale / B2B\nmessage : Hi Sake Kitty Team,\n\nMy name is Reid Calloway, and I'm the owner of The Last Word TCG, a Texas-based trading card business.\n\nWe sell through our website, vendor/card shows, and live/stream-based content, with a primary focus on Pokemon, One Piece, sealed product, graded cards, and collector education.\n\nWe're currently expanding our wholesale relationships and are especially interested in:\n\nEnglish Pokemon booster boxes, ETBs, booster bundles, tins, and collection boxes\nJapanese Pokemon\nOne Piece sealed product\nNew-release inventory and preorder allocations\nCase pricing and volume discounts\n\nWe're a registered Texas business and can provide our EIN, resale certificate, business registration, website, and any other documentation required.\n\nWe're looking to build a dependable long-term supplier relationship and make consistent purchases as The Last Word TCG continues to grow.\n\nThank you,\n\nReid Calloway\nOwner | The Last Word TCG"
+      }
+    },
+    {
+      "id": "web-form-budget-stated",
+      "received": "2026-09-07",
+      "channel": "web3forms",
+      "expect": "route",
+      "why": "states a $5,000 budget",
+      "msg": {
+        "from": "notify+z2yxgq@web3forms.com",
+        "subject": "Contact: Wholesale / B2B",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "name : Tomas Ferrand\nemail : tomas.ferrand@example.com\ntopic : Wholesale / B2B\nmessage : Hello, I'd like to explore the possibility of buying Pokemon cards in Paraguay. It's a business venture, as I see potential in my country's market. I personally collect them, and there's a lot of demand. I'd like to make a purchase of approximately $5,000."
+      }
+    },
+    {
+      "id": "direct-eu-volume-buyer",
+      "received": "2026-09-21",
+      "channel": "direct",
+      "expect": "route",
+      "why": "English, booster boxes, ETBs, pallet pricing, MOQ, price list, better pricing for larger orders",
+      "msg": {
+        "from": "Bram Velthuis <bram@velthuisgroep.example>",
+        "subject": "erious B2B Interest - Pokemon Products for the Netherlands",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "Hello,\n\nMy name is Bram and I am based in the Netherlands.\n\nWe are already selling a large volume of Pokemon products and are currently looking to expand our purchasing significantly.\n\nIn addition to our current sales channels, we are also preparing to launch Pokemon vending machines at multiple locations across the Netherlands. Because of this, we are looking for a reliable long-term supplier who can provide larger quantities of sealed Pokemon TCG products at competitive B2B prices.\n\nWe are mainly interested in english products such as:\n\n    * Booster Boxes\n\n    * Elite Trainer Boxes\n\n    * Booster Bundles\n\n    * Collection Boxes\n\n    * Tins\n\n    * Blisters\n\n    * Special Sets\n\n    * Other sealed English Pokemon TCG products\n\nCould you please let me know:\n\n    * Do you have experience shipping B2B orders to the Netherlands or other EU countries?\n\n    * Do you offer wholesale, case or pallet pricing?\n\n    * What is your minimum order quantity or minimum order value?\n\n    * Can you provide your current Pokemon inventory and B2B price list?\n\n    * Do you offer better pricing for larger or recurring orders?\n\n    * What would shipping to the Netherlands approximately cost?\n\n    * Do you work with international retailers on a long-term basis?\n\nWe are looking for a supplier where we can purchase regularly and increase our order volumes over time if the pricing and cooperation are good.\n\nI would be happy to receive your current stock list and best B2B pricing.\n\nKind regards,\n\nBram Velthuis\nNetherlands"
+      }
+    },
+    {
+      "id": "direct-chaser-corporate-name",
+      "received": "2026-09-22",
+      "channel": "direct",
+      "expect": "route",
+      "why": "availability, English, sourcing, $1,500, and he is chasing an earlier approach",
+      "msg": {
+        "from": "Curio Dept <curiodept@example.com>",
+        "subject": "Wholesale Account Follow-Up",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX", "IMPORTANT"],
+        "headers": {},
+        "bodyText": "Hi Sake Kitty Wholesale Team,\n\nI'm following up regarding a wholesale order I'm preparing for Curio Dept.\n\nI had previously reached out to Nick with a few questions about current\navailability, but I haven't received a response yet, so I wanted to check\nin with the wholesale team directly.\n\nI'm looking to place an order across English, Japanese, and Chinese Pokemon\nproducts. I'd especially like to know:\n\n   - Whether the current wholesale list is still up to date\n   - If any newer English products have been added or can be sourced\n   - Whether the $1,500 minimum can be combined across categories or if it\n   applies separately to each category\n\nI'm ready to move forward with an order once I confirm the current\ninventory and minimum requirements.\n\nThank you for your help.\n\nBest,\nDeclan Moore\nCurio Dept."
+      }
+    },
+    {
+      "id": "direct-vending-startup",
+      "received": "2026-09-05",
+      "channel": "direct",
+      "expect": "route",
+      "why": "English throughout, availability, allocation, $1,500, price list",
+      "msg": {
+        "from": "Aidan Rourke <aidan.rourke@example.com>",
+        "subject": "Wholesale inquiry",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX"],
+        "headers": {},
+        "bodyText": "Hi Nick,\n\nMy name is Aidan, and I'm in the process of starting a Pokemon TCG vending\nbusiness in Wisconsin. I'm currently researching suppliers and building out\nmy launch plan, and I came across Sake Kitty's wholesale program.\n\nI'm particularly interested in your English Pokemon sealed product for\nvending machines. Before moving forward, I wanted to ask a few questions\nabout your wholesale program:\n\n- Do you currently approve unattended/vending-machine businesses as\nwholesale customers?\n- What English Pokemon products are currently available at wholesale\npricing?\n- How does your English Pokemon allocation work for a new customer?\n- Is the $1,500 minimum per order, and can different English products be\nmixed to reach that minimum?\n- Do you offer better allocations or pricing as a customer establishes\npurchase history?\n- Could you send me your current wholesale price list for English Pokemon\nproducts?\n\nI'm currently in the planning and location-acquisition stage, so I'm not\nlooking to place an order immediately. I'm trying to establish my supply\nchain and determine which products and pricing make the most sense before\nlaunching.\n\nI'd appreciate any information you can provide. I'm hoping to build a\nlong-term relationship with a reliable supplier as I expand the vending\noperation.\n\nThank you,\n\nAidan"
+      }
+    },
+    {
+      "id": "direct-retail-buildout",
+      "received": "2026-09-03",
+      "channel": "direct",
+      "expect": "route",
+      "why": "English in the subject and throughout, booster displays, ETBs, preorder access, allocation, price list",
+      "msg": {
+        "from": "Marisol Vance <marisolvance@example.com>",
+        "subject": "Wholesale Inquiry - English Pokemon TCG | Cocoa Row",
+        "hasAttachments": false,
+        "threadMessageCount": 1,
+        "labels": ["INBOX", "IMPORTANT"],
+        "headers": {},
+        "bodyText": "Hi Nick,\n\nMy name is Marisol Vance, Founder and CEO of Vance Strategic Ventures\nLLC, operator of Cocoa Row, a premium multi-category retail\ndestination currently in development in Texas.\n\nWe are currently establishing suppliers for our planned TCG & Collectibles\nsection and are interested in developing an ongoing wholesale purchasing\nrelationship with Sake Kitty Cards.\n\nOur primary interest is authentic, factory-sealed English/U.S.-market\nPokemon TCG products, including booster displays, Elite Trainer Boxes,\nbooster bundles, special collections, tins, Pokemon Center products, sealed\ncases when available, and new releases.\n\nI would appreciate information on your current English Pokemon wholesale\nprogram, including:\n\n   - Current wholesale price list\n   - Minimum order requirements\n   - New-release and preorder access\n   - Allocation procedures for high-demand releases\n   - Sealed-case availability\n   - Requirements for recurring wholesale buyers\n   - Whether you work with brick-and-mortar retailers currently in the\n   pre-opening stage\n\nCocoa Row is being developed as a physical retail destination, and we\nare building our supplier network and opening merchandise plan now. We are\nlooking for reliable, long-term supply relationships rather than one-time\npurchases.\n\nThank you, and I look forward to hearing from you.\n\nMarisol Vance\nFounder & CEO\nVance Strategic Ventures LLC"
+      }
+    }
+  ]
+}

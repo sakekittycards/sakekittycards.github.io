@@ -25,6 +25,15 @@
 //         SQUARE_APPLICATION_ID, PRINTFUL_STORE_ID, AIRTABLE_BASE_ID,
 //         AIRTABLE_TABLE_ID
 
+import {
+  classify as classifyWholesaleMail,
+  renderReply as renderWholesaleReply,
+  renderSubject as renderWholesaleSubject,
+  parseAddress as parseMailAddress,
+  CATALOGUE_URL as WHOLESALE_CATALOGUE_URL,
+  REPLY_FROM as WHOLESALE_REPLY_FROM,
+} from './wholesale-autoreply.js';
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -211,6 +220,43 @@ export default {
         const rows = (q.results || []).map(r => ({ email: String(r.email).trim().toLowerCase(), src: r.src }))
           .filter(r => r.email.includes('@'));
         return json({ count: rows.length, emails: rows });
+      }
+
+      // ─── Wholesale first-touch auto-reply ──────────────────────────────
+      // Driven by the Apps Script arm running in the Gmail account. All
+      // admin-token gated; see workers/square/apps-script/README.md.
+
+      // Classify one inbound message. Returns the decision and, when the
+      // decision is to reply, the rendered subject and body.
+      if (path === '/wholesale/autoreply/classify' && request.method === 'POST') {
+        return await wholesaleClassify(request, env);
+      }
+
+      // Record what the Apps Script actually did with a decision.
+      if (path === '/wholesale/autoreply/record' && request.method === 'POST') {
+        return await wholesaleRecord(request, env);
+      }
+
+      // Everything the daily digest needs, in one call.
+      if (path === '/wholesale/autoreply/digest' && request.method === 'GET') {
+        return await wholesaleDigest(request, env);
+      }
+
+      // Read or change the runtime config — mode, kill switch, caps. This is
+      // the no-deploy kill switch.
+      if (path === '/admin/wholesale/autoreply/config' && (request.method === 'GET' || request.method === 'POST')) {
+        return await wholesaleConfig(request, env);
+      }
+
+      // The shadow log, newest first.
+      if (path === '/admin/wholesale/autoreply/log' && request.method === 'GET') {
+        return await wholesaleLog(request, url, env);
+      }
+
+      // Mark a draft as approved unedited — this is what advances the
+      // 10-clean-drafts gate toward auto-send.
+      if (path === '/admin/wholesale/autoreply/approve' && request.method === 'POST') {
+        return await wholesaleApprove(request, env);
       }
 
       // Public endpoint — let the gift-cards page check a balance from
@@ -2789,6 +2835,371 @@ async function computeHmacSha256Base64(secret, data) {
   let bin = '';
   for (const b of bytes) bin += String.fromCharCode(b);
   return btoa(bin);
+}
+
+// ─── Wholesale first-touch auto-reply ──────────────────────────────────────
+//
+// The classifier itself lives in wholesale-autoreply.js and is pure. These
+// handlers supply it with state from D1, persist the decision, and hand the
+// Apps Script arm an instruction.
+//
+// Rollout modes, held in wholesale_autoreply_config.mode:
+//   shadow — classify and log only. Nothing is drafted or sent.
+//   draft  — eligible mail becomes a Gmail draft for Nick to send by hand.
+//   live   — eligible mail is sent automatically.
+
+const WHOLESALE_AR_DEFAULTS = {
+  mode: 'shadow',
+  kill_switch: '1',
+  cap_per_hour: '3',
+  cap_per_day: '10',
+  clean_drafts_required: '10',
+  catalogue_url: WHOLESALE_CATALOGUE_URL,
+  reply_from: WHOLESALE_REPLY_FROM,
+};
+
+function wholesaleAuth(request, env) {
+  const provided = request.headers.get('X-Sake-Admin-Token') || '';
+  if (!env.ADMIN_TOKEN || !timingSafeEqual(provided, env.ADMIN_TOKEN)) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+  if (!env.PROMO_DB) return json({ error: 'db_unavailable' }, 503);
+  return null;
+}
+
+async function wholesaleReadConfig(env) {
+  const cfg = { ...WHOLESALE_AR_DEFAULTS };
+  try {
+    const q = await env.PROMO_DB
+      .prepare('SELECT key, value FROM wholesale_autoreply_config')
+      .all();
+    for (const row of q.results || []) cfg[row.key] = row.value;
+  } catch {
+    // Table not migrated yet — fall back to the safe defaults above, which
+    // are shadow mode with the kill switch on.
+  }
+  return cfg;
+}
+
+async function wholesaleClassify(request, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'bad_json' }, 400);
+  }
+
+  const gmailMessageId = String(body.gmailMessageId || '').trim();
+  if (!gmailMessageId) return json({ error: 'gmailMessageId_required' }, 400);
+
+  const cfg = await wholesaleReadConfig(env);
+  const mode = ['shadow', 'draft', 'live'].includes(cfg.mode) ? cfg.mode : 'shadow';
+
+  const msg = {
+    from: body.from || '',
+    subject: body.subject || '',
+    bodyText: body.bodyText || '',
+    headers: body.headers || {},
+    hasAttachments: !!body.hasAttachments,
+    threadMessageCount: Number(body.threadMessageCount || 1),
+    labels: body.labels || [],
+  };
+
+  // Resolve the real sender first — a web3forms submission hides it in the
+  // body, and the sender ledger must key off the human, not the relay.
+  const preview = classifyWholesaleMail(msg, { killSwitch: false });
+  const { email: senderEmail, name: senderName } = parseMailAddress(preview.msg.from);
+
+  // Sender state.
+  let alreadyReplied = false;
+  let knownContact = false;
+  try {
+    const row = await env.PROMO_DB
+      .prepare('SELECT replied_at, known_contact FROM wholesale_autoreply_senders WHERE sender_email = ?')
+      .bind(senderEmail)
+      .first();
+    if (row) {
+      alreadyReplied = !!row.replied_at;
+      knownContact = !!row.known_contact;
+    }
+  } catch { /* table missing — treat as unknown sender */ }
+
+  // Rate-limit counts, from what was actually sent.
+  let sentLastHour = 0;
+  let sentLastDay = 0;
+  try {
+    const counts = await env.PROMO_DB.prepare(
+      `SELECT
+         SUM(CASE WHEN created_at >= datetime('now','-1 hour') THEN 1 ELSE 0 END) AS h,
+         SUM(CASE WHEN created_at >= datetime('now','-1 day')  THEN 1 ELSE 0 END) AS d
+       FROM wholesale_autoreply_log WHERE action = 'sent'`
+    ).first();
+    sentLastHour = Number(counts?.h || 0);
+    sentLastDay = Number(counts?.d || 0);
+  } catch { /* table missing — counts stay zero */ }
+
+  // The kill switch stops mail going out; it is not a classification input.
+  // In shadow mode nothing is actuated anyway, so ignoring it there is what
+  // lets shadow show the decision the rules would really have reached.
+  const killSwitch = mode === 'shadow' ? false : cfg.kill_switch === '1';
+
+  const result = classifyWholesaleMail(msg, {
+    alreadyReplied,
+    knownContact,
+    killSwitch,
+    sentLastHour,
+    sentLastDay,
+    caps: { perHour: Number(cfg.cap_per_hour), perDay: Number(cfg.cap_per_day) },
+  });
+
+  // What the Apps Script should do about it.
+  let action = 'none';
+  if (result.decision === 'route') action = 'route';
+  else if (result.decision === 'reply') {
+    action = mode === 'live' ? 'send' : mode === 'draft' ? 'draft' : 'shadow';
+  }
+
+  // Persist the decision. Unique on gmail_message_id, so a re-run of the
+  // same message updates rather than duplicating.
+  try {
+    await env.PROMO_DB.prepare(
+      `INSERT INTO wholesale_autoreply_log
+         (gmail_message_id, gmail_thread_id, sender_email, sender_name, subject,
+          via_web_form, decision, reasons, mode, action)
+       VALUES (?,?,?,?,?,?,?,?,?,?)
+       ON CONFLICT(gmail_message_id) DO UPDATE SET
+         decision = excluded.decision,
+         reasons  = excluded.reasons,
+         mode     = excluded.mode,
+         action   = excluded.action`
+    ).bind(
+      gmailMessageId,
+      body.gmailThreadId || null,
+      senderEmail,
+      senderName || null,
+      preview.msg.subject || null,
+      preview.msg.viaWebForm ? 1 : 0,
+      result.decision,
+      result.reasons.join(','),
+      mode,
+      action === 'shadow' ? 'none' : action
+    ).run();
+
+    await env.PROMO_DB.prepare(
+      'INSERT OR IGNORE INTO wholesale_autoreply_senders (sender_email) VALUES (?)'
+    ).bind(senderEmail).run();
+  } catch (e) {
+    return json({ error: 'log_write_failed', detail: String(e) }, 500);
+  }
+
+  const payload = {
+    decision: result.decision,
+    reasons: result.reasons,
+    mode,
+    action,
+    sender: { email: senderEmail, name: senderName, firstName: result.firstName },
+    viaWebForm: !!preview.msg.viaWebForm,
+  };
+
+  // Only hand back a rendered reply when one is actually going to be used.
+  if (action === 'draft' || action === 'send') {
+    payload.reply = {
+      to: senderEmail,
+      from: cfg.reply_from || WHOLESALE_REPLY_FROM,
+      subject: renderWholesaleSubject(preview.msg.subject),
+      body: renderWholesaleReply({
+        firstName: result.firstName,
+        catalogueUrl: cfg.catalogue_url || WHOLESALE_CATALOGUE_URL,
+      }),
+      headers: { 'Auto-Submitted': 'auto-replied' },
+      // A form submission has no message of the sender's to thread onto.
+      newThread: !!preview.msg.viaWebForm,
+    };
+  }
+
+  return json(payload);
+}
+
+async function wholesaleRecord(request, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'bad_json' }, 400);
+  }
+
+  const id = String(body.gmailMessageId || '').trim();
+  const action = String(body.action || '').trim();
+  if (!id || !action) return json({ error: 'gmailMessageId_and_action_required' }, 400);
+
+  await env.PROMO_DB.prepare(
+    `UPDATE wholesale_autoreply_log
+        SET action = ?, result_message_id = ?, error = ?
+      WHERE gmail_message_id = ?`
+  ).bind(action, body.resultMessageId || null, body.error || null, id).run();
+
+  // A sent reply closes that address off for good.
+  if (action === 'sent') {
+    const row = await env.PROMO_DB
+      .prepare('SELECT sender_email FROM wholesale_autoreply_log WHERE gmail_message_id = ?')
+      .bind(id).first();
+    if (row?.sender_email) {
+      await env.PROMO_DB.prepare(
+        `UPDATE wholesale_autoreply_senders
+            SET replied_at = strftime('%Y-%m-%dT%H:%M:%SZ','now'), reply_message_id = ?
+          WHERE sender_email = ?`
+      ).bind(body.resultMessageId || null, row.sender_email).run();
+    }
+  }
+
+  return json({ ok: true });
+}
+
+async function wholesaleApprove(request, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'bad_json' }, 400);
+  }
+  const id = String(body.gmailMessageId || '').trim();
+  if (!id) return json({ error: 'gmailMessageId_required' }, 400);
+
+  await env.PROMO_DB.prepare(
+    'UPDATE wholesale_autoreply_log SET draft_approved_clean = ? WHERE gmail_message_id = ?'
+  ).bind(body.clean === false ? 0 : 1, id).run();
+
+  return json({ ok: true, progress: await wholesaleCleanDraftStreak(env) });
+}
+
+/**
+ * Consecutive drafts approved without edits, newest-first until the streak
+ * breaks. This is the gate to auto-send.
+ */
+async function wholesaleCleanDraftStreak(env) {
+  const q = await env.PROMO_DB.prepare(
+    `SELECT draft_approved_clean FROM wholesale_autoreply_log
+      WHERE action = 'drafted' AND draft_approved_clean IS NOT NULL
+      ORDER BY created_at DESC LIMIT 50`
+  ).all();
+  let streak = 0;
+  for (const row of q.results || []) {
+    if (Number(row.draft_approved_clean) === 1) streak += 1;
+    else break;
+  }
+  return streak;
+}
+
+async function wholesaleLog(request, url, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  const limit = Math.min(Number(url.searchParams.get('limit') || 100), 500);
+  const decision = url.searchParams.get('decision');
+
+  const stmt = decision
+    ? env.PROMO_DB.prepare(
+        'SELECT * FROM wholesale_autoreply_log WHERE decision = ? ORDER BY created_at DESC LIMIT ?'
+      ).bind(decision, limit)
+    : env.PROMO_DB.prepare(
+        'SELECT * FROM wholesale_autoreply_log ORDER BY created_at DESC LIMIT ?'
+      ).bind(limit);
+
+  const q = await stmt.all();
+  return json({ count: (q.results || []).length, rows: q.results || [] });
+}
+
+async function wholesaleConfig(request, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  if (request.method === 'GET') {
+    const cfg = await wholesaleReadConfig(env);
+    return json({ config: cfg, cleanDraftStreak: await wholesaleCleanDraftStreak(env) });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'bad_json' }, 400);
+  }
+
+  const updates = body.updates || (body.key ? { [body.key]: body.value } : null);
+  if (!updates || typeof updates !== 'object') {
+    return json({ error: 'updates_required' }, 400);
+  }
+
+  const allowed = new Set(Object.keys(WHOLESALE_AR_DEFAULTS));
+  for (const [k, v] of Object.entries(updates)) {
+    if (!allowed.has(k)) return json({ error: 'unknown_key', key: k }, 400);
+    if (k === 'mode' && !['shadow', 'draft', 'live'].includes(String(v))) {
+      return json({ error: 'bad_mode', value: v }, 400);
+    }
+    await env.PROMO_DB.prepare(
+      `INSERT INTO wholesale_autoreply_config (key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = strftime('%Y-%m-%dT%H:%M:%SZ','now')`
+    ).bind(k, String(v)).run();
+  }
+
+  return json({ ok: true, config: await wholesaleReadConfig(env) });
+}
+
+async function wholesaleDigest(request, env) {
+  const denied = wholesaleAuth(request, env);
+  if (denied) return denied;
+
+  const since = "datetime('now','-1 day')";
+
+  const recent = await env.PROMO_DB.prepare(
+    `SELECT created_at, sender_email, sender_name, subject, decision, reasons, action, via_web_form
+       FROM wholesale_autoreply_log
+      WHERE created_at >= ${since}
+      ORDER BY created_at DESC`
+  ).all();
+
+  // Routed and still unanswered after a day. This is the part that actually
+  // protects against the original failure: mail routed to Nick and forgotten.
+  const stale = await env.PROMO_DB.prepare(
+    `SELECT created_at, sender_email, sender_name, subject, reasons
+       FROM wholesale_autoreply_log
+      WHERE decision = 'route'
+        AND human_replied_at IS NULL
+        AND created_at < ${since}
+        AND created_at >= datetime('now','-30 day')
+      ORDER BY created_at ASC`
+  ).all();
+
+  const rows = recent.results || [];
+  const cfg = await wholesaleReadConfig(env);
+
+  return json({
+    generatedAt: new Date().toISOString(),
+    mode: cfg.mode,
+    killSwitch: cfg.kill_switch === '1',
+    cleanDraftStreak: await wholesaleCleanDraftStreak(env),
+    cleanDraftsRequired: Number(cfg.clean_drafts_required),
+    last24h: {
+      total: rows.length,
+      replied: rows.filter((r) => r.action === 'sent').length,
+      drafted: rows.filter((r) => r.action === 'drafted').length,
+      routed: rows.filter((r) => r.decision === 'route').length,
+      dropped: rows.filter((r) => r.decision === 'drop').length,
+      rows,
+    },
+    awaitingNick: { count: (stale.results || []).length, rows: stale.results || [] },
+  });
 }
 
 function timingSafeEqual(a, b) {
