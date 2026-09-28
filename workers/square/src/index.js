@@ -2850,6 +2850,7 @@ async function computeHmacSha256Base64(secret, data) {
 
 const WHOLESALE_AR_DEFAULTS = {
   mode: 'shadow',
+  ruleset: 'standard',
   kill_switch: '1',
   cap_per_hour: '3',
   cap_per_day: '10',
@@ -2953,6 +2954,7 @@ async function wholesaleClassify(request, env) {
     sentLastHour,
     sentLastDay,
     caps: { perHour: Number(cfg.cap_per_hour), perDay: Number(cfg.cap_per_day) },
+    ruleset: cfg.ruleset,
   });
 
   // What the Apps Script should do about it.
@@ -2984,7 +2986,7 @@ async function wholesaleClassify(request, env) {
       preview.msg.viaWebForm ? 1 : 0,
       result.decision,
       result.reasons.join(','),
-      mode,
+      `${mode}/${cfg.ruleset}`,
       action === 'shadow' ? 'none' : action
     ).run();
 
@@ -2999,6 +3001,7 @@ async function wholesaleClassify(request, env) {
     decision: result.decision,
     reasons: result.reasons,
     mode,
+    ruleset: cfg.ruleset,
     action,
     sender: { email: senderEmail, name: senderName, firstName: result.firstName },
     viaWebForm: !!preview.msg.viaWebForm,
@@ -3144,6 +3147,9 @@ async function wholesaleConfig(request, env) {
     if (!allowed.has(k)) return json({ error: 'unknown_key', key: k }, 400);
     if (k === 'mode' && !['shadow', 'draft', 'live'].includes(String(v))) {
       return json({ error: 'bad_mode', value: v }, 400);
+    }
+    if (k === 'ruleset' && !['standard', 'strict'].includes(String(v))) {
+      return json({ error: 'bad_ruleset', value: v }, 400);
     }
     await env.PROMO_DB.prepare(
       `INSERT INTO wholesale_autoreply_config (key, value) VALUES (?, ?)

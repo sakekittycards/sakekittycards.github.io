@@ -12,9 +12,34 @@ changing behaviour is a Worker deploy or a config write, never a script edit.
 
 ## The rule this exists to enforce
 
-> Auto-send only what is true regardless of who is asking. Never auto-send
-> anything touching a price, a product, availability, quantity, sourcing or
-> English product. Default on ambiguity is **route to Nick**.
+> Auto-send only what is true regardless of who is asking. Default on
+> ambiguity is **route to Nick**.
+
+The reply itself never contains a price, a product name, an availability
+claim or any mention of English. That is enforced by a test, under every
+setting below.
+
+## Rule sets
+
+`ruleset` picks how wide the gate opens. It changes **who gets a reply**,
+never **what the reply says** — there is one template.
+
+| `ruleset` | Behaviour | Measured on 8 real enquiries |
+|---|---|---|
+| `standard` (default) | Acknowledge and route. Replies even when the enquiry names a product, quantity or budget, because the reply answers none of them and says Nick is picking the specifics up. | 2 reply, 6 route |
+| `strict` | The original brief. Any product, price, quantity, availability or sourcing mention is a hard block. | 0 reply, 8 route |
+
+Both sets always route: English mentions, site-form offers, partnership and
+consignment proposals, chasers, known contacts, non-first-touch, attachments,
+bodies over 2,000 characters, and anything we cannot greet by name.
+
+Under `standard` the dominant filter is the **English** rule — five of the
+eight real enquiries mention English product. That is the next lever if the
+reply rate needs to be higher.
+
+```bash
+curl -s -X POST "$WORKER/admin/wholesale/autoreply/config"   -H "X-Sake-Admin-Token: $ADMIN_TOKEN" -H 'Content-Type: application/json'   -d '{"updates":{"ruleset":"strict"}}'
+```
 
 ## Install
 
@@ -134,6 +159,7 @@ all, delete the triggers in the Apps Script UI.
 
 | Setting | Default | Meaning |
 |---|---|---|
+| `ruleset` | `standard` | which rule set gates the reply |
 | `cap_per_hour` | 3 | auto-sends per hour |
 | `cap_per_day` | 10 | auto-sends per day |
 | one per sender | — | ever, tracked in `wholesale_autoreply_senders` |
@@ -160,8 +186,9 @@ node --test workers/square/test/wholesale-autoreply.test.js
 ```
 
 The corpus test runs the classifier over eight real first-touch enquiries
-taken from the live mailbox. It fails if a rule change starts auto-replying
-to any of them. `test/fixtures/real-enquiries.json` holds real customer
+taken from the live mailbox, under **both** rule sets, and fails if either
+outcome shifts. It is the thing that tells you what a rule change actually
+does to real mail. `test/fixtures/real-enquiries.json` holds real customer
 names and addresses — the repo is public, so **do not** move that file
 anywhere it gets served, and think before adding more.
 

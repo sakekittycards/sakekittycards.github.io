@@ -70,6 +70,10 @@ CREATE TABLE IF NOT EXISTS wholesale_autoreply_config (
 -- both are changed deliberately.
 INSERT OR IGNORE INTO wholesale_autoreply_config (key, value) VALUES
   ('mode',            'shadow'),
+  -- 'standard' = acknowledge and route. 'strict' = the original brief,
+  -- which blocks on any product, price, quantity, availability or
+  -- sourcing mention. See wholesale-autoreply.js RULESETS.
+  ('ruleset',         'standard'),
   ('kill_switch',     '1'),
   ('cap_per_hour',    '3'),
   ('cap_per_day',     '10'),

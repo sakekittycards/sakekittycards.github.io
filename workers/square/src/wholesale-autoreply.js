@@ -161,6 +161,26 @@ export const REASONS = {
   ELIGIBLE: 'reply.eligible',
 };
 
+/**
+ * Two rule sets, switchable at runtime through the `ruleset` config key.
+ *
+ * 'standard' (default) - acknowledge and route. Auto-replies to a genuine
+ *   wholesale first touch even when it names a product, a quantity or a
+ *   budget, because the reply never answers any of those: it delivers the
+ *   durable terms and says Nick is picking the specifics up. The message
+ *   still reaches Nick either way.
+ *
+ * 'strict' - the original brief. Any mention of a price, product, quantity,
+ *   availability or sourcing is a hard block. Measured against eight real
+ *   first-touch enquiries this replies to none of them, because naming a
+ *   product or a budget is what a wholesale enquiry is.
+ *
+ * Neither set changes a word of what goes out. The template carries no
+ * price, no product name and no availability claim under either.
+ */
+export const RULESETS = { STANDARD: 'standard', STRICT: 'strict' };
+export const DEFAULT_RULESET = RULESETS.STANDARD;
+
 export const DEFAULT_CAPS = { perHour: 3, perDay: 10 };
 export const MAX_BODY_CHARS = 2000;
 export const MIN_BODY_CHARS = 20;
@@ -335,10 +355,20 @@ function titleCase(w) {
 export function looksEnglish(bodyText) {
   const t = normalizeText(bodyText);
   if (!t.trim()) return false;
-  // CJK, Cyrillic, Arabic, Hebrew, Thai, Devanagari present in quantity.
+
+  // A run of CJK, Cyrillic, Arabic, Hebrew, Thai or Devanagari is the one
+  // reliable signal. Treat that as decisive.
   const nonLatin = (t.match(/[぀-ヿ一-鿿Ѐ-ӿ؀-ۿ֐-׿฀-๿ऀ-ॿ]/g) || []).length;
   if (nonLatin > 5) return false;
-  const common = ['the', 'and', 'you', 'for', 'we', 'i ', 'is', 'are', 'to ', 'of ', 'in ', 'would', 'with'];
+
+  // Short messages carry too few function words to judge, and demanding
+  // proof of English from them routes perfectly ordinary two-line
+  // enquiries. Let them through; stage 2 still requires English wholesale
+  // vocabulary before anything is sent, which catches other languages
+  // written in Latin script.
+  if (t.length < 200) return true;
+
+  const common = ['the', 'and', 'you', 'for', 'we ', 'is ', 'are', 'to ', 'of ', 'in ', 'would', 'with', 'our', 'that', 'have'];
   return common.filter((w) => t.includes(w)).length >= 3;
 }
 
@@ -383,6 +413,7 @@ function lowerKeys(obj) {
 
 function routeReasons(msg, ctx, firstName) {
   const reasons = [];
+  const strict = (ctx.ruleset || DEFAULT_RULESET) === RULESETS.STRICT;
   const subject = msg.subject || '';
   const body = msg.bodyText || '';
   const hay = normalizeText(`${subject}\n${body}`);
@@ -399,29 +430,29 @@ function routeReasons(msg, ctx, firstName) {
   if (ctx.alreadyReplied) reasons.push(REASONS.ALREADY_REPLIED);
   if (ctx.knownContact) reasons.push(REASONS.KNOWN_CONTACT);
 
-  // 4. Any currency amount.
-  if (/[$£€¥]\s?\d/.test(body) || /[$£€¥]\s?\d/.test(subject) ||
-      /\b\d[\d,]*(?:\.\d+)?\s*(?:usd|dollars?|eur|gbp|jpy|cad)\b/i.test(hay)) {
+  // 4. Any currency amount. Strict only.
+  if (strict && (/[$£€¥]\s?\d/.test(body) || /[$£€¥]\s?\d/.test(subject) ||
+      /\b\d[\d,]*(?:\.\d+)?\s*(?:usd|dollars?|eur|gbp|jpy|cad)\b/i.test(hay))) {
     reasons.push(REASONS.CURRENCY);
   }
 
-  // 5. Quantity-shaped numbers.
-  if (/\b\d[\d,]*\s*(?:x\b|pcs?\b|cases?\b|boxes?\b|box\b|bundles?\b|packs?\b|units?\b|etbs?\b|displays?\b|pallets?\b|sets?\b|tins?\b)/i.test(hay) ||
+  // 5. Quantity-shaped numbers. Strict only.
+  if (strict && (/\b\d[\d,]*\s*(?:x\b|pcs?\b|cases?\b|boxes?\b|box\b|bundles?\b|packs?\b|units?\b|etbs?\b|displays?\b|pallets?\b|sets?\b|tins?\b)/i.test(hay) ||
       /\b\d[\d,]*\s+of\s+(?:each|them|those|these)\b/i.test(hay) ||
-      /\bqty\b|\bquantit/i.test(hay)) {
+      /\bqty\b|\bquantit/i.test(hay))) {
     reasons.push(REASONS.QUANTITY);
   }
 
-  // 6. Product or set names.
-  const productHit = firstTermHit(hay, PRODUCT_TERMS);
+  // 6. Product or set names. Strict only.
+  const productHit = strict ? firstTermHit(hay, PRODUCT_TERMS) : null;
   if (productHit) reasons.push(`${REASONS.PRODUCT_NAME}:${productHit}`);
 
-  // 7. Availability.
-  const availHit = firstTermHit(hay, AVAILABILITY_TERMS);
+  // 7. Availability. Strict only.
+  const availHit = strict ? firstTermHit(hay, AVAILABILITY_TERMS) : null;
   if (availHit) reasons.push(`${REASONS.AVAILABILITY}:${availHit}`);
 
-  // 8. Sourcing.
-  const sourceHit = firstTermHit(hay, SOURCING_TERMS);
+  // 8. Sourcing. Strict only.
+  const sourceHit = strict ? firstTermHit(hay, SOURCING_TERMS) : null;
   if (sourceHit) reasons.push(`${REASONS.SOURCING}:${sourceHit}`);
 
   // 9. English product — stocked but never advertised, so never volunteered.
@@ -437,8 +468,8 @@ function routeReasons(msg, ctx, firstName) {
   const partnerHit = firstTermHit(hay, PARTNERSHIP_TERMS);
   if (partnerHit) reasons.push(`${REASONS.PARTNERSHIP}:${partnerHit}`);
 
-  // 11a. Any request that touches a price.
-  const priceHit = firstTermHit(hay, PRICE_REQUEST_TERMS);
+  // 11a. Any request that touches a price. Strict only.
+  const priceHit = strict ? firstTermHit(hay, PRICE_REQUEST_TERMS) : null;
   if (priceHit) reasons.push(`${REASONS.PRICE_REQUEST}:${priceHit}`);
 
   // 11b. Someone chasing an earlier approach is not a first touch, whatever

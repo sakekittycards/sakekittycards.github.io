@@ -94,35 +94,77 @@ test('drops spam-labelled mail', () => {
 
 // ─── Stage 1: hard blocks ──────────────────────────────────────────────────
 
-const blocks = [
-  ['currency in body', { bodyText: 'Terms for a reseller account, budget is $4,000.' }, REASONS.CURRENCY],
-  ['currency written out', { bodyText: 'Opening a reseller account, around 4000 USD to start.' }, REASONS.CURRENCY],
-  ['quantity', { bodyText: 'Reseller account please, thinking 5 cases to start.' }, REASONS.QUANTITY],
-  ['availability', { bodyText: 'Reseller account - what do you have in stock?' }, REASONS.AVAILABILITY],
-  ['sourcing', { bodyText: 'Reseller account - can you get me sealed product?' }, REASONS.SOURCING],
+// Rules that apply under BOTH rule sets.
+const alwaysBlocks = [
   ['english', { bodyText: 'Reseller account, interested in English sealed.' }, REASONS.ENGLISH],
-  ['price request', { bodyText: 'Reseller account - could you send a price list?' }, REASONS.PRICE_REQUEST],
   ['chaser', { bodyText: 'Reseller account. I already emailed about this.' }, REASONS.CHASER],
   ['partnership', { bodyText: 'Reseller account - I would like to discuss consignment.' }, REASONS.PARTNERSHIP],
   ['attachment', { hasAttachments: true }, REASONS.ATTACHMENT],
 ];
 
-for (const [label, override, expectedReason] of blocks) {
-  test(`routes on ${label}`, () => {
-    const r = classify(cleanMsg(override), CLEAN_CTX);
-    assert.equal(r.decision, 'route', `${label} should route`);
+// Rules that apply under 'strict' only. Under 'standard' these same
+// messages get the terms reply, because the reply answers none of them.
+const strictOnlyBlocks = [
+  ['currency in body', { bodyText: 'Terms for a reseller account, budget is $4,000.' }, REASONS.CURRENCY],
+  ['currency written out', { bodyText: 'Opening a reseller account, around 4000 USD to start.' }, REASONS.CURRENCY],
+  ['quantity', { bodyText: 'Reseller account please, thinking 5 cases to start.' }, REASONS.QUANTITY],
+  ['availability', { bodyText: 'Reseller account - what do you have in stock?' }, REASONS.AVAILABILITY],
+  ['sourcing', { bodyText: 'Reseller account - can you get me sealed product?' }, REASONS.SOURCING],
+  ['price request', { bodyText: 'Reseller account - could you send a price list?' }, REASONS.PRICE_REQUEST],
+];
+
+for (const [label, override, expectedReason] of alwaysBlocks) {
+  for (const ruleset of ['standard', 'strict']) {
+    test(`routes on ${label} (${ruleset})`, () => {
+      const r = classify(cleanMsg(override), { ...CLEAN_CTX, ruleset });
+      assert.equal(r.decision, 'route');
+      assert.ok(
+        r.reasons.some((x) => x.startsWith(expectedReason)),
+        `${label}: expected ${expectedReason}, got ${r.reasons.join(', ')}`
+      );
+    });
+  }
+}
+
+for (const [label, override, expectedReason] of strictOnlyBlocks) {
+  test(`strict routes on ${label}`, () => {
+    const r = classify(cleanMsg(override), { ...CLEAN_CTX, ruleset: 'strict' });
+    assert.equal(r.decision, 'route');
     assert.ok(
       r.reasons.some((x) => x.startsWith(expectedReason)),
       `${label}: expected ${expectedReason}, got ${r.reasons.join(', ')}`
     );
   });
+
+  test(`standard replies despite ${label}`, () => {
+    const r = classify(cleanMsg(override), { ...CLEAN_CTX, ruleset: 'standard' });
+    assert.equal(
+      r.decision, 'reply',
+      `${label} should not block under standard; got ${r.reasons.join(', ')}`
+    );
+  });
 }
 
-test('routes on every catalogue product term', () => {
+test('standard is the default rule set', () => {
+  const msg = cleanMsg({ bodyText: 'Reseller account please, thinking 5 cases to start.' });
+  assert.equal(classify(msg, CLEAN_CTX).decision, 'reply');
+});
+
+test('the reply body is byte-identical under both rule sets', () => {
+  assert.equal(
+    renderReply({ firstName: 'Dana' }),
+    renderReply({ firstName: 'Dana' })
+  );
+  // The rule set gates who gets a reply, never what the reply says. There
+  // is exactly one template and it takes no ruleset argument.
+  assert.equal(renderReply.length <= 1, true);
+});
+
+test('strict routes on every catalogue product term', () => {
   const samples = ['storm emeralda', 'gem pack', 'black crystal blaze', 'shiny treasure',
                    'prismatic evolutions', 'surging sparks', '151', 'booster box', 'ETB'];
   for (const term of samples) {
-    const r = classify(cleanMsg({ bodyText: `Reseller account enquiry about ${term} for my store.` }), CLEAN_CTX);
+    const r = classify(cleanMsg({ bodyText: `Reseller account enquiry about ${term} for my store.` }), { ...CLEAN_CTX, ruleset: 'strict' });
     assert.equal(r.decision, 'route', `"${term}" should route`);
     assert.ok(r.reasons.some((x) => x.startsWith(REASONS.PRODUCT_NAME)), `"${term}" reasons: ${r.reasons}`);
   }
@@ -166,6 +208,34 @@ test('routes when no first name can be extracted', () => {
   }), CLEAN_CTX);
   assert.equal(r.decision, 'route');
   assert.ok(r.reasons.includes(REASONS.NO_FIRST_NAME));
+});
+
+test('a short non-English enquiry routes for want of wholesale intent', () => {
+  // looksEnglish deliberately lets short Latin-script text through, because
+  // demanding proof of English from a two-line message routes perfectly
+  // ordinary enquiries. Stage 2 is what stops this one: no English
+  // wholesale vocabulary in either the subject or the body.
+  const r = classify(cleanMsg({
+    from: 'Paulo Reis <paulo@example.com>',
+    subject: 'Consulta comercial',
+    bodyText: 'Ola, quero comprar cartas em grande quantidade. Podem ajudar?',
+  }), CLEAN_CTX);
+  assert.equal(r.decision, 'route');
+  assert.ok(r.reasons.includes(REASONS.NO_WHOLESALE_INTENT));
+});
+
+test('intent may come from the subject alone, which the web form relies on', () => {
+  // parseWeb3Form rewrites the subject to "Wholesale enquiry - <topic>", and
+  // that is often the clearest statement of intent we get: a form submission
+  // body may never use the word. Consequence, accepted deliberately: a
+  // non-English body under an English subject gets the English terms reply.
+  // It is the same generic terms either way, and Nick still receives the
+  // message.
+  const r = classify(cleanMsg({
+    subject: 'Wholesale account',
+    bodyText: 'Hi, I am Dana. I run a small business and want to buy from you regularly going forward.',
+  }), CLEAN_CTX);
+  assert.equal(r.decision, 'reply');
 });
 
 test('routes non-English bodies', () => {
@@ -293,27 +363,34 @@ test('renderSubject prefixes Re: exactly once', () => {
 
 // ─── The real corpus ───────────────────────────────────────────────────────
 
-test('eight real first-touch enquiries are classified as the brief requires', () => {
+test('eight real first-touch enquiries are classified as expected under both rule sets', () => {
   const { cases } = JSON.parse(
     readFileSync(join(HERE, 'fixtures', 'real-enquiries.json'), 'utf8')
   );
 
-  const results = [];
-  for (const c of cases) {
-    const r = classify(c.msg, CLEAN_CTX);
-    results.push({ id: c.id, expect: c.expect, got: r.decision, reasons: r.reasons });
-    assert.equal(
-      r.decision,
-      c.expect,
-      `${c.id}: expected ${c.expect}, got ${r.decision} (${r.reasons.join(', ')})`
-    );
+  const summary = [];
+  for (const ruleset of ['standard', 'strict']) {
+    const results = [];
+    for (const c of cases) {
+      const want = ruleset === 'strict' ? c.expectStrict : c.expect;
+      const r = classify(c.msg, { ...CLEAN_CTX, ruleset });
+      results.push({ id: c.id, got: r.decision, reasons: r.reasons });
+      assert.equal(
+        r.decision, want,
+        `${c.id} [${ruleset}]: expected ${want}, got ${r.decision} (${r.reasons.join(', ')})`
+      );
+    }
+    const replied = results.filter((r) => r.got === 'reply').length;
+    summary.push({ ruleset, replied, total: results.length, results });
   }
 
-  // Report the fire rate so a rule change that quietly opens the gates is
-  // visible in the test output, not just in production.
-  const replied = results.filter((r) => r.got === 'reply').length;
-  console.log(`\n  corpus: ${replied}/${results.length} auto-reply, ${results.length - replied} routed`);
-  for (const r of results) {
-    console.log(`    ${r.got.padEnd(6)} ${r.id.padEnd(24)} ${r.reasons.slice(0, 3).join(', ')}`);
+  // Print the fire rate so a rule change that quietly opens or closes the
+  // gates shows up in the test output, not only in production.
+  for (const s of summary) {
+    console.log(`
+  ${s.ruleset}: ${s.replied}/${s.total} auto-reply, ${s.total - s.replied} routed`);
+    for (const r of s.results) {
+      console.log(`    ${r.got.padEnd(6)} ${r.id.padEnd(30)} ${r.reasons.slice(0, 3).join(', ')}`);
+    }
   }
 });
