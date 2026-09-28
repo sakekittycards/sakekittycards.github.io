@@ -2691,7 +2691,9 @@
             const noNum = (rawName || '').replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '').trim();
             const m = noNum.match(/^(.*?)\s*[\(\[]([^)\]]+)[\)\]]\s*$/);
             if (!m) return { name: noNum, variantLabel: '' };
-            const baseName = m[1].trim();
+            // A leading "(201)" left behind after the qualifier is peeled is the
+            // card number, already shown separately — drop it from the name.
+            const baseName = m[1].trim().replace(/\s*\(\d+\)\s*$/, '');
             const variantRaw = m[2].trim();
             // Numeric parens like "Charizard (6)" are CARD NUMBERS, not variants.
             // Strip them off the display name and emit no chip.
@@ -2701,14 +2703,23 @@
             const mapped = _GRADED_VARIANT_LABELS[variantRaw];
             return { name: baseName, variantLabel: mapped !== undefined ? mapped : variantRaw };
           };
+          // Keys held by PLAIN en-static rows. A qualifier row only skips the
+          // TCGdex dedup when a plain row shares its key (metal vs paper
+          // Charizard); a qualifier-only card with no plain sibling must still
+          // collapse into its dex twin or it renders twice.
+          const plainKeys = new Set(enStaticArr.filter(e => !_parseGradedVariant(e.name).variantLabel).map(e => _ddKey(e.name, e.number)));
           for (const e of enStaticArr) {
             const k = _ddKey(e.name, e.number);
             const parsed = _parseGradedVariant(e.name);
-            // Dedup against pokemontcg.io only if THIS en-static row is the
-            // non-variant ("any printing") version. Variant-specific rows are
-            // ALWAYS surfaced because they're a different printing for grading.
-            const dupIdx = !parsed.variantLabel
-              ? gpSearchResults.findIndex(r => r.lang === 'en' && _ddKey(r.name, r.number) === k)
+            // Dedup against pokemontcg.io unless THIS en-static row is a
+            // qualifier variant that has a PLAIN sibling on the same key — the
+            // metal Charizard next to the paper one — in which case it is a
+            // different product and always surfaces. A qualifier-only card
+            // (no plain sibling) still collapses into its dex twin and hands
+            // the twin its chip. The match skips rows that ARE variants, so an
+            // already-pushed variant can't swallow a plain row arriving after it.
+            const dupIdx = (!parsed.variantLabel || !plainKeys.has(k))
+              ? gpSearchResults.findIndex(r => r.lang === 'en' && !r.variant && _ddKey(r.name, r.number) === k)
               : -1;
             if (dupIdx >= 0) {
               // Carry the productId up to the surviving pokemontcg.io row so
@@ -2717,6 +2728,7 @@
               if (!gpSearchResults[dupIdx].productId && e.productId) {
                 gpSearchResults[dupIdx].productId = e.productId;
               }
+              if (parsed.variantLabel) gpSearchResults[dupIdx].variant = parsed.variantLabel;
               continue;
             }
             gpSearchResults.push({
@@ -2779,7 +2791,17 @@
               variantCounts.set(v, (variantCounts.get(v) || 0) + 1);
             }
             let chipBar = '';
-            if (variantCounts.size >= 2) {
+            // Chips are FILTERS: only labels shared by 2+ rows earn one, and the
+            // bar is capped so a broad query can't bury the first result.
+            const sortedVariants = [...variantCounts.entries()]
+              .filter(([v, c]) => v !== 'Normal' && c >= 2)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 8);
+            // Never hide the chip the user has active: the printings enrichment
+            // re-renders this bar seconds after the first paint, and a chip tapped
+            // in that window must survive the cap so its filter stays visible.
+            if (_gpVariantFilter && variantCounts.has(_gpVariantFilter) && !sortedVariants.some(([v]) => v === _gpVariantFilter)) sortedVariants.push([_gpVariantFilter, variantCounts.get(_gpVariantFilter)]);
+            if (sortedVariants.length >= 1) {
               const chipFor = (label, val, count) => {
                 const active = (_gpVariantFilter || null) === val;
                 return `<button type="button" class="gp-vchip" data-vfilter="${_gpEscHtml(val ?? '')}" style="background:${active ? 'rgba(255,174,0,0.22)' : 'rgba(255,255,255,0.05)'};border:1px solid ${active ? 'rgba(255,174,0,0.6)' : 'rgba(255,255,255,0.10)'};color:${active ? '#ffae00' : 'var(--text)'};padding:5px 11px;border-radius:13px;font-size:12px;font-weight:${active ? '700' : '500'};letter-spacing:0.3px;cursor:pointer;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px">
@@ -2787,7 +2809,6 @@
                 </button>`;
               };
               const chips = [chipFor('All', null, ordered.length)];
-              const sortedVariants = [...variantCounts.entries()].sort((a, b) => b[1] - a[1]);
               for (const [v, c] of sortedVariants) chips.push(chipFor(v, v, c));
               chipBar = `<div style="padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.20)">${chips.join('')}</div>`;
             }

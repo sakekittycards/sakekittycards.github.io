@@ -3205,8 +3205,13 @@
     // Returns [{card, variantKey, variantLabel, price}, ...]
     function expandVariants(card) {
       const prices = card.tcgplayer && card.tcgplayer.prices;
+      // en-static rows carry the product's own qualifier ("Celebrations Metal
+      // Card", "Master Ball Pattern") parsed off the TCG CSV name. It outranks
+      // the printing key, which is hardcoded `normal` for those rows and says
+      // nothing real — TCGplayer prices most of them on the Foil printing.
+      const own = card._variantLabel || null;
       if (!prices || Object.keys(prices).length === 0) {
-        return [{ card, variantKey: null, variantLabel: null, price: null }];
+        return [{ card, variantKey: null, variantLabel: own, price: null }];
       }
       const rows = [];
       for (const key of Object.keys(prices)) {
@@ -3215,7 +3220,7 @@
         rows.push({
           card,
           variantKey: key,
-          variantLabel: VARIANT_LABELS[key] || key,
+          variantLabel: own || VARIANT_LABELS[key] || key,
           price,
         });
       }
@@ -3381,17 +3386,44 @@
           `${_stripVariantSuffix(name).toLowerCase()}|${_normNum(number)}`;
 
         const enKeysSeen = new Set(cards.map(c => _dedupKey(c.name, c.number)));
+        // Keys held by PLAIN en-static rows. A qualifier row only bypasses the
+        // TCGdex graft when a plain row shares its key (metal vs paper Charizard);
+        // a qualifier-only card ("Umbreon VMAX (Alternate Art Secret)" with no
+        // plain sibling) must still collapse into its dex twin, or the twin gets
+        // backfilled to the same product and the customer sees one card twice.
+        const plainKeys = new Set(enStatic.filter(e => !_parseGradedVariant(e.name).variantLabel).map(e => _dedupKey(e.name, e.number)));
         for (const e of enStatic) {
-          const nameClean = _stripVariantSuffix(e.name) || e.name;
+          // Peel the TCG CSV qualifier off the name the same way grading-prep
+          // does: "Charizard (Celebrations Metal Card)" → base "Charizard" plus
+          // a visible chip. Printing-only parens ("(Normal)", "(6)") yield no
+          // chip and keep deduping as the plain card below.
+          const parsed = _parseGradedVariant(e.name);
+          const nameClean = parsed.name || _stripVariantSuffix(e.name) || e.name;
           const nnKey = _dedupKey(e.name, e.number);
-          if (enKeysSeen.has(nnKey)) {
+          const isVariant = !!parsed.variantLabel;
+          // Plain rows collapse into a TCGdex twin (grafting the productId so
+          // the priceless dex row can be priced) exactly as before. A qualifier
+          // row that shares its key with a PLAIN row is a DIFFERENT product —
+          // the Celebrations metal Charizard and the paper one both print
+          // "4/102" — so it surfaces on its own and never claims the key: a
+          // plain row arriving after it must not drop. A qualifier row with no
+          // plain sibling collapses into its dex twin like before, and hands
+          // the twin its chip.
+          if (enKeysSeen.has(nnKey) && (!isVariant || !plainKeys.has(nnKey))) {
             /* TCGdex rows carry NO prices (catalog-only by license), so unlike the pokemontcg.io era the
                surviving row must inherit its static twin's productId — that's what the priceless-row
                backfill below resolves through /tcg/market. Skipping outright would silently orphan the
                card from the whole pricing chain. */
             const twin = cards.find(c => c._dex && !c._enStaticProductId && _dedupKey(c.name, c.number) === nnKey);
-            if (twin) twin._enStaticProductId = e.productId;
-            continue;
+            if (twin) {
+              twin._enStaticProductId = e.productId;
+              if (isVariant) twin._variantLabel = parsed.variantLabel;
+              continue;
+            }
+            // A plain row with no un-grafted twin is a true duplicate; a
+            // qualifier row that found none (a sibling qualifier already took
+            // the twin) is a distinct product and surfaces on its own.
+            if (!isVariant) continue;
           }
           cards.push({
             id: `en_${e.productId}`,
@@ -3401,8 +3433,9 @@
             set: { name: e.setName },
             tcgplayer: { prices: e.market != null ? { normal: { market: e.market } } : {} },
             _enStaticProductId: e.productId,
+            _variantLabel: parsed.variantLabel || '',
           });
-          enKeysSeen.add(nnKey);
+          if (!isVariant) enKeysSeen.add(nnKey);
         }
 
         // Merge JP results: existing set-name-based hits (csv.japanese) PLUS
@@ -3539,7 +3572,7 @@
       // ─── Variant-filter chip toolbar (Singles only) ────────────────
       // Build counts from the FULL un-filtered cardRows so the chip
       // labels stay stable regardless of which one is active. Render
-      // only when 2+ distinct variants exist in the result set.
+      // only when at least one non-default label is shared by 2+ rows.
       const variantCounts = new Map();
       const fullCardRows = [];
       for (const c of (cardResults || [])) {
@@ -3552,13 +3585,22 @@
           variantCounts.set(v, (variantCounts.get(v) || 0) + 1);
         }
       }
-      if (variantCounts.size >= 2) {
+      // Chips are FILTERS: only labels shared by 2+ rows earn one, "Normal" is
+      // the default and never does, and the bar is capped so a broad query
+      // can't bury the first result under a wall of pills on a phone.
+      const sorted = [...variantCounts.entries()]
+        .filter(([v, c]) => v !== 'Normal' && c >= 2)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+      // Never hide the chip the user has active — they need it to see what's
+      // filtering the list and to tap it off again.
+      if (_tiVariantFilter && variantCounts.has(_tiVariantFilter) && !sorted.some(([v]) => v === _tiVariantFilter)) sorted.push([_tiVariantFilter, variantCounts.get(_tiVariantFilter)]);
+      if (sorted.length >= 1) {
         const chipFor = (label, val, count) => {
           const active = (_tiVariantFilter || null) === val;
           return `<button type="button" class="ti-vchip" data-vfilter="${_escHtml(val ?? '')}" style="background:${active ? 'rgba(255,174,0,0.22)' : 'rgba(255,255,255,0.05)'};border:1px solid ${active ? 'rgba(255,174,0,0.6)' : 'rgba(255,255,255,0.10)'};color:${active ? '#ffae00' : 'var(--text)'};padding:5px 11px;border-radius:13px;font-size:12px;font-weight:${active ? '700' : '500'};letter-spacing:0.3px;cursor:pointer;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px">${_escHtml(label)}${count != null ? `<span style="opacity:0.55;font-weight:600">${count}</span>` : ''}</button>`;
         };
         const chips = [chipFor('All', null, fullCardRows.length)];
-        const sorted = [...variantCounts.entries()].sort((a, b) => b[1] - a[1]);
         for (const [v, c] of sorted) chips.push(chipFor(v, v, c));
         html.push(`<div style="padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,0.20)">${chips.join('')}</div>`);
       }
@@ -3571,7 +3613,7 @@
           const setName = c.set?.name || '';
           const num = c.number ? ` · #${c.number}` : '';
           const variantTag = r.variantLabel
-            ? ` <span style="color:var(--orange);font-weight:600;font-size:12px">· ${r.variantLabel}</span>`
+            ? ` <span style="color:var(--orange);font-weight:600;font-size:12px">· ${_escHtml(r.variantLabel)}</span>`
             : '';
           return `
             <div class="ti-result" data-card-idx="${i}">
@@ -4418,7 +4460,9 @@
       const noNum = (rawName || '').replace(/\s*[-—]\s*\d+(?:\/\S+)?\s*$/, '').trim();
       const m = noNum.match(/^(.*?)\s*[\(\[]([^)\]]+)[\)\]]\s*$/);
       if (!m) return { name: noNum, variantRaw: '', variantLabel: '' };
-      const baseName = m[1].trim();
+      // A leading "(201)" left behind after the qualifier is peeled is the card
+      // number, already shown separately — drop it from the display name.
+      const baseName = m[1].trim().replace(/\s*\(\d+\)\s*$/, '');
       const variantRaw = m[2].trim();
       // Numeric parens like "Charizard (6)" carry the CARD NUMBER, not a
       // variant. Strip them off the name and emit no chip.
