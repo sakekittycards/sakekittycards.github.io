@@ -1,0 +1,9 @@
+# This repo is PUBLIC — GitHub Pages serves everything committed to it.
+# Customer invoice data carries names and email addresses, and the rendered
+# PDFs carry both plus pricing. Neither belongs in a public repo.
+#
+# The TOOL is committed (render_invoice.py, templates/, fonts/, _template.json).
+# The CUSTOMER DATA and the OUTPUT stay local.
+data/*.json
+!data/_template.json
+out/

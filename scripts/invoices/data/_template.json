@@ -1,0 +1,181 @@
+{
+  "_README": "Copy this file, rename it, edit the values. Run: python render_invoice.py data/<your-file>.json  ·  Totals are COMPUTED from the line items; the `expect` block below is a tripwire — if the two disagree the renderer refuses to emit a PDF.",
+  "output_filename": "SakeKitty_Invoice_Customer_Name.pdf",
+  "business": {
+    "name": "Sake Kitty Cards",
+    "rep": "Nick Williams",
+    "website": "sakekittycards.com",
+    "instagram": "@sakekittycards",
+    "email": "nick@sakekittycards.com"
+  },
+  "doc": {
+    "title": "Pro Forma Invoice",
+    "_title_note": "Use 'Invoice' and set is_final true once costs are confirmed and the document is payable.",
+    "subtitle": "Pokémon card evaluation, preparation and PSA grading services.",
+    "number_label": "Invoice no.",
+    "number": "SK-PF-2026-00NN",
+    "date": "Month D, YYYY",
+    "status": "Preliminary — not payable",
+    "is_final": false
+  },
+  "customer": {
+    "name": "Customer Name",
+    "lines": [
+      "email@example.com"
+    ],
+    "_lines_note": "Any extra identity lines under the name. Leave [] if you have none — never invent contact details."
+  },
+  "services": {
+    "label": "Sake Kitty services",
+    "caption": "N evaluated · N prepared",
+    "subtotal_label": "Sake Kitty service fees",
+    "rows": [
+      {
+        "description": "Pass/Fail condition evaluation",
+        "detail": "Per card evaluated",
+        "qty": 0,
+        "unit_price": 3.0,
+        "ties_to": "evaluated",
+        "_ties_to": "'evaluated' cross-checks qty against expect.evaluated_cards; 'cards' cross-checks it against the grading card count."
+      },
+      {
+        "description": "Card cleaning & preparation",
+        "detail": "Penny sleeve and card saver",
+        "qty": 0,
+        "unit_price": 5.0,
+        "ties_to": "cards"
+      },
+      {
+        "description": "Grading submission coordination",
+        "detail": "Complimentary with paid preparation",
+        "qty": 0,
+        "unit_price": 0,
+        "complimentary": true,
+        "unit_label": "Complimentary"
+      }
+    ]
+  },
+  "grading": {
+    "label": "PSA grading submission",
+    "caption": "N cards",
+    "fee_header": "Est. PSA fee",
+    "subtotal_label": "PSA grading subtotal",
+    "cards": [
+      {
+        "name": "Card Name",
+        "number": "#000",
+        "set": "Set Name",
+        "fee": 63.0,
+        "variant": "1st Edition",
+        "flag": "Higher tier",
+        "_variant": "optional blue chip (1st Edition / Prerelease / Holo)",
+        "_flag": "optional orange chip — use on any card budgeted above the base fee"
+      }
+    ],
+    "footnote": "Optional note under the table. Omit the key to hide it."
+  },
+  "shipping": {
+    "amount": null,
+    "tbd_text": "TBD",
+    "_note": "null renders 'TBD' and leaves it out of the total. Put a number here on the final invoice and it is added in."
+  },
+  "summary": {
+    "label": "Financial summary",
+    "explain": {
+      "heading": "What this covers",
+      "body": "<b>Sake Kitty Cards earns $0.00</b> of this invoice. The remaining <b>$0.00</b> is a PSA grading charge, passed through at actual cost with no markup."
+    },
+    "lines": [
+      {
+        "dot": "sk",
+        "key": "Sake Kitty service fees",
+        "who": "Sake Kitty Cards",
+        "source": "service_fees"
+      },
+      {
+        "dot": "psa",
+        "key": "Estimated PSA grading fees",
+        "who": "Pass-through at cost",
+        "source": "psa_fees"
+      },
+      {
+        "dot": "ship",
+        "key": "Insured shipping",
+        "who": "At actual approved cost",
+        "source": "shipping"
+      }
+    ],
+    "grand_label": "Estimated total",
+    "grand_note": "Before insured shipping and any PSA tier adjustments"
+  },
+  "submission": {
+    "label": "Submission notes",
+    "points": [
+      {
+        "text": "Plain text or <b>bold</b>."
+      },
+      {
+        "text": "Set flag true for an orange bullet.",
+        "flag": true
+      }
+    ]
+  },
+  "terms": {
+    "label": "Customer notes",
+    "one_column": false,
+    "notes": [
+      {
+        "title": "Grading estimates",
+        "body": "PSA charges are provisional. Service levels and declared values are confirmed before submission."
+      },
+      {
+        "title": "Shipping",
+        "body": "Insured shipping is additional, at actual approved cost. Coverage is confirmed with you before anything ships."
+      },
+      {
+        "title": "Additional PSA charges",
+        "body": "PSA may adjust service tiers or add charges on its own assessment. You get an updated breakdown if that happens."
+      },
+      {
+        "title": "Grade expectations",
+        "body": "Our condition assessments are estimates. Final grades are determined independently by PSA. No grade or resale value is guaranteed."
+      },
+      {
+        "title": "Submission coordination",
+        "body": "Complimentary with paid cleaning and preparation. No separate submission or handling fee. Preparation is non-invasive — no restoration or alteration of any card."
+      },
+      {
+        "title": "Final authorization",
+        "body": "A final invoice and payment instructions follow once costs are confirmed. Nothing is authorized or shipped on the basis of this document."
+      }
+    ]
+  },
+  "layout": {
+    "_note": "Each page lists the blocks it carries, in order. Available: masthead, conthead, docline, services, grading, summary, submission_notes, terms. render_invoice.py refuses to emit a PDF if any page overflows, so move a block to the next page if it complains.",
+    "pages": [
+      {
+        "blocks": [
+          "masthead",
+          "docline",
+          "services",
+          "summary",
+          "submission_notes"
+        ]
+      },
+      {
+        "blocks": [
+          "conthead",
+          "grading",
+          "terms"
+        ]
+      }
+    ]
+  },
+  "expect": {
+    "service_fees": 0.0,
+    "psa_fees": 0.0,
+    "total": 0.0,
+    "evaluated_cards": 0,
+    "submitted_cards": 0
+  }
+}

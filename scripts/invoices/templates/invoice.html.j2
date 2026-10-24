@@ -1,0 +1,235 @@
+{#- =========================================================================
+    SAKE KITTY CARDS — INVOICE LAYOUT
+    Same document system as sk-wholesale-terms.html (masthead / docline /
+    section-head / chip / callout / note / mono numerals).
+
+    Pure layout. Every number arrives precomputed from render_invoice.py and
+    every word arrives from the data JSON. Nothing is calculated in here.
+
+    Page composition is data-driven: layout.pages is a list of pages, each
+    naming blocks from the BLOCKS dispatch table at the bottom.
+    ========================================================================= -#}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ doc.title }} {{ doc.number }} — {{ customer.name }} — Sake Kitty Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+{{ css|safe }}
+</style>
+</head>
+<body>
+
+{#- ───────────────────────────── block macros ───────────────────────────── -#}
+
+{% macro m_masthead() %}
+<div class="masthead">
+  <div class="mark">
+    <img src="data:image/png;base64,{{ logo }}" alt="Sake Kitty Cards">
+    <div class="site">{{ business.website }} · {{ business.instagram }}</div>
+  </div>
+  <div class="doc">
+    <p class="eyebrow">{{ business.name }}</p>
+    <h1>{{ doc.title }}</h1>
+    <p class="standfirst">{{ doc.subtitle }}</p>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro m_conthead() %}
+<div class="conthead">
+  <div class="ct">
+    <img src="data:image/png;base64,{{ logo }}" alt="Sake Kitty Cards">
+    <div class="t">{{ doc.title }}</div>
+  </div>
+  <div class="cr">
+    <b>{{ customer.name }}</b><br>
+    {{ doc.number }} · {{ doc.date }}
+  </div>
+</div>
+{% endmacro %}
+
+{% macro m_docline() %}
+<div class="docline">
+  <div>
+    <span class="lbl">Billed to</span>
+    <div class="who">{{ customer.name }}</div>
+    {% for line in customer.lines %}<div class="sub">{{ line }}</div>{% endfor %}
+  </div>
+  <div>
+    <span class="lbl">Prepared by</span>
+    <div class="who">{{ business.rep }}</div>
+    <div class="sub">{{ business.name }}</div>
+  </div>
+  <div>
+    <dl>
+      <dt>{{ doc.number_label }}</dt><dd>{{ doc.number }}</dd>
+      <dt>Date</dt><dd>{{ doc.date }}</dd>
+    </dl>
+    <div style="margin-top:.45rem">
+      <span class="chip {{ 'check' if not doc.is_final else 'set' }}">{{ doc.status }}</span>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro m_services() %}
+<div class="section-head">
+  <span>{{ services.label }}</span>
+  {% if services.caption %}<span class="c">{{ services.caption }}</span>{% endif %}
+</div>
+<table>
+  <colgroup><col><col style="width:8%"><col style="width:20%"><col style="width:16%"></colgroup>
+  <thead>
+    <tr>
+      <th>Description</th>
+      <th class="num">Qty</th>
+      <th class="num">Unit price</th>
+      <th class="num">Amount</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in services.rows %}
+    <tr>
+      <td class="entity">{{ r.description }}
+        {%- if r.detail %}<div class="d">{{ r.detail }}</div>{% endif %}
+      </td>
+      <td class="num"><span class="num">{{ r.qty_display }}</span></td>
+      <td class="num"><span class="num">{{ r.unit_display }}</span></td>
+      <td class="num">
+        {%- if r.complimentary -%}<span class="chip included">Included</span>
+        {%- else -%}<span class="num">{{ r.amount_display }}</span>{%- endif -%}
+      </td>
+    </tr>
+    {% endfor %}
+    <tr class="subtotal">
+      <td colspan="3" class="num lbl">{{ services.subtotal_label }}</td>
+      <td class="num val">{{ totals.service_fees_display }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endmacro %}
+
+{% macro m_grading() %}
+<div class="section-head">
+  <span>{{ grading.label }}</span>
+  <span class="c">{{ grading.caption }}</span>
+</div>
+<table>
+  <colgroup><col style="width:4%"><col><col style="width:30%"><col style="width:16%"></colgroup>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Card</th>
+      <th>Set</th>
+      <th class="num">{{ grading.fee_header }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in grading.cards %}
+    <tr>
+      <td class="no">{{ loop.index }}</td>
+      <td class="entity">{{ c.name }}{% if c.number %} <span class="num" style="color:var(--muted);font-weight:400">{{ c.number }}</span>{% endif %}
+        {%- if c.variant %} <span class="chip variant">{{ c.variant }}</span>{% endif %}
+        {%- if c.flag %} <span class="chip tier">{{ c.flag }}</span>{% endif %}
+      </td>
+      <td class="setcell">{{ c.set }}</td>
+      <td class="num"><span class="num">{{ c.fee_display }}</span></td>
+    </tr>
+    {% endfor %}
+    <tr class="subtotal">
+      <td colspan="3" class="num lbl">{{ grading.subtotal_label }}</td>
+      <td class="num val">{{ totals.psa_fees_display }}</td>
+    </tr>
+  </tbody>
+</table>
+{% if grading.footnote %}<div class="tnote">{{ grading.footnote|safe }}</div>{% endif %}
+{% endmacro %}
+
+{% macro m_summary() %}
+<div class="section-head"><span>{{ summary.label }}</span></div>
+<div class="summary">
+  <div class="explain">
+    <span class="lbl">{{ summary.explain.heading }}</span>
+    {{ summary.explain.body|safe }}
+  </div>
+  <div>
+    <div class="sumlines">
+      {% for l in summary.lines %}
+      <div class="sumline">
+        <span class="dot {{ l.dot }}"></span>
+        <span class="k"><b>{{ l.key }}</b>{% if l.who %}<span class="who">{{ l.who }}</span>{% endif %}</span>
+        <span class="v{{ ' tbd' if l.tbd else '' }}">{{ l.value }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="grand">
+      <div class="gl">
+        <div class="t">{{ summary.grand_label }}</div>
+        {% if summary.grand_note %}<div class="s">{{ summary.grand_note }}</div>{% endif %}
+      </div>
+      <div class="gv">{{ totals.grand_display }}</div>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro m_submission_notes() %}
+<div class="section-head"><span>{{ submission.label }}</span></div>
+<ul class="ticks">
+  {% for n in submission.points %}
+  <li{% if n.flag %} class="flag"{% endif %}>{{ n.text|safe }}</li>
+  {% endfor %}
+</ul>
+{% if submission.callout %}
+<div class="callout">
+  <h2>{{ submission.callout.title }}</h2>
+  <p>{{ submission.callout.body|safe }}</p>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro m_terms() %}
+<div class="section-head"><span>{{ terms.label }}</span></div>
+<div class="notes{{ ' one-col' if terms.one_column else '' }}">
+  {% for n in terms.notes %}
+  <div class="note">
+    <span class="lbl">{{ n.title }}</span>
+    {{ n.body|safe }}
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{#- ────────────────────────── page composition ──────────────────────────── -#}
+{% set BLOCKS = {
+     'masthead':         m_masthead,
+     'conthead':         m_conthead,
+     'docline':          m_docline,
+     'services':         m_services,
+     'grading':          m_grading,
+     'summary':          m_summary,
+     'submission_notes': m_submission_notes,
+     'terms':            m_terms,
+   } %}
+
+{% for page in layout.pages %}
+<section class="sheet">
+  {% for b in page.blocks %}{{ BLOCKS[b]() }}{% endfor %}
+  <footer>
+    <div>
+      <div class="b">{{ business.name }}</div>
+      <div class="m">{{ business.website }} · {{ business.instagram }} · {{ business.email }}</div>
+    </div>
+    {% if layout.pages|length > 1 %}
+    <div class="pg">Page {{ loop.index }} of {{ layout.pages|length }}</div>
+    {% endif %}
+  </footer>
+</section>
+{% endfor %}
+
+</body>
+</html>
