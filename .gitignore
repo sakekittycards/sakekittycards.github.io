@@ -39,3 +39,11 @@ scripts/_ig_live.png
 
 # brainstorming visual companion (local only)
 .superpowers/
+
+# Pipeline scratch — 2 GB of raw scans, debug dumps and a browser profile.
+# Publishing these put the site over the GitHub Pages build budget and the
+# deploy stopped working. Local files are untouched; history still has them.
+scripts/graded-uploader/inbox_archive/
+scripts/graded-uploader/_debug2/
+scripts/graded-uploader/_debug/
+scripts/cardladder/_profile/
