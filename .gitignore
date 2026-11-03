@@ -36,3 +36,6 @@ scripts/graded-uploader/SakeKitty_GradedBuyOffer.html
 scripts/sealed-inventory/_sealed_reprice.log
 scripts/sealed-inventory/_sealed_reprice_cron.out
 scripts/_ig_live.png
+
+# brainstorming visual companion (local only)
+.superpowers/
